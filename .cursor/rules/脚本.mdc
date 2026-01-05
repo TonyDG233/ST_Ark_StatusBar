@@ -1,0 +1,50 @@
+---
+description: 当需要编写脚本时, 你应该参考本文件
+alwaysApply: false
+---
+# 脚本
+
+如果 `src/xxx` 文件夹中仅有 `index.ts` 文件, 则它是一个脚本项目.
+
+脚本以无沙盒 iframe 的形式在酒馆后台运行, 没有自己的界面, 只有代码部分可供编写.
+
+## jquery
+
+脚本中的 jquery 将直接作用于整个酒馆页面而非仅作用于脚本所在的 iframe, 因为它是通过 `window.$ = window.parent.$` 得到的. 例如 `$('body')` 将选择酒馆网页的 `<body>` 标签, 而不是脚本所在的 iframe 的 `<body>` 标签.
+
+## vue
+
+由于脚本运行在 iframe 中, 当需要在脚本中向酒馆页面挂载 vue 组件时, 你应该使用 jquery 来创建一个要挂载的位置, 将其添加到酒馆网页上, 并使用 `app.mount($app[0])` 来挂载.
+
+## 脚本 iframe 样式与酒馆网页样式的区别
+
+由于脚本运行在 iframe 中, 项目中所使用的 style 仅会应用于 iframe 内而不会应用到整个酒馆网页. 因此, 当通过脚本向酒馆网页添加 DOM 时 (无论是通过 jquery 添加, 还是通过 vue 挂载), 你都需要将样式复制到酒馆网页的 `<head>` 中. 为此, 你可以用 `src/util/script.ts` 中定义好了的工具函数:
+
+```typescript
+export function teleport_style() {
+  $(`<div>`)
+    .attr('script_id', getScriptId())
+    .append($(`head > style`, document).clone())
+    .appendTo('head');
+}
+
+export function deteleport_style() {
+  $(`head > div[script_id="${getScriptId()}"]`).remove();
+}
+```
+
+## 脚本设置
+
+如果需要为用户提供自定义设置, 可以使用脚本变量, 并用 `zod` 来定义设置的类型和默认值.
+
+## 按钮
+
+脚本可以在酒馆助手脚本库界面中设置按钮, 用户点击按钮时将会触发对应的事件.
+
+我们可以在代码中这样注册按钮事件:
+
+```typescript
+eventOn(getButtonEvent('按钮名'), () => {
+  console.log('按钮被点击了');
+});
+```
