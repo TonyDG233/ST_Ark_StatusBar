@@ -1,1 +1,1 @@
-../../.cursor/rules/mvu角色卡.mdc
+../../.kilocode/rules/mvu角色卡.md

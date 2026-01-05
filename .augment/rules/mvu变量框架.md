@@ -1,1 +1,1 @@
-../../.cursor/rules/mvu变量框架.mdc
+../../.kilocode/rules/mvu变量框架.md

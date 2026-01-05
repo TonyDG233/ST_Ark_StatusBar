@@ -1,1 +1,1 @@
-../../.cursor/rules/mcp.mdc
+../../.kilocode/rules/mcp.md

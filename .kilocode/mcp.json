@@ -1,1 +1,10 @@
-../.cursor/mcp.json
+{
+  "mcpServers": {
+    "browsermcp": {
+      "command": "pnpx",
+      "args": [
+        "@browsermcp/mcp"
+      ]
+    }
+  }
+}
