@@ -1,10 +1,1 @@
-{
-  "mcpServers": {
-    "browsermcp": {
-      "command": "pnpx",
-      "args": [
-        "@browsermcp/mcp"
-      ]
-    }
-  }
-}
+{"mcpServers":{"browsermcp":{"command":"pnpx","args":["@browsermcp/mcp"],"alwaysAllow":["browser_navigate","browser_go_back","browser_go_forward","browser_snapshot","browser_click","browser_hover","browser_type","browser_select_option","browser_press_key","browser_wait","browser_get_console_logs","browser_screenshot"]}}}
