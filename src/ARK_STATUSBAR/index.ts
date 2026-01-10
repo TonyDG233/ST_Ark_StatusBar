@@ -47,7 +47,7 @@ const startMountingLoop = () => {
         // Check if Startup is already mounted
         if ($mesText.find(`.${STARTUP_CONTAINER_CLASS}`).length === 0) {
           console.info('[ARK_STATUSBAR] Mounting Startup Navigator...');
-          
+
           // Clean up existing content (backup html) before mounting
           $mesText.empty();
 
@@ -56,30 +56,28 @@ const startMountingLoop = () => {
           $mesText.append(mountPoint);
           createApp(StartupNavigator).mount(mountPoint);
         }
-
       } else {
         // --- STORY MODE (Return Button) ---
         // Ensure Startup is NOT present
         if ($mesText.find(`.${STARTUP_CONTAINER_CLASS}`).length > 0) {
-           // We generally assume that if we are switching modes, the message content will be refreshed by the backend/reload
-           // But if we are just hot-swapping:
-           $mesText.find(`.${STARTUP_CONTAINER_CLASS}`).remove();
+          // We generally assume that if we are switching modes, the message content will be refreshed by the backend/reload
+          // But if we are just hot-swapping:
+          $mesText.find(`.${STARTUP_CONTAINER_CLASS}`).remove();
         }
 
         // Check if Return Button is already mounted
         if ($mesText.find(`.${RETURN_BTN_CONTAINER_CLASS}`).length === 0) {
-           console.info('[ARK_STATUSBAR] Mounting Return Button...');
-           
-           // Return Button should APPEND to existing content, NOT overwrite it.
-           // Only Startup Navigator overwrites the content.
-           
-           const mountPoint = document.createElement('div');
-           mountPoint.className = RETURN_BTN_CONTAINER_CLASS;
-           $mesText.append(mountPoint);
-           createApp(ReturnButton).mount(mountPoint);
+          console.info('[ARK_STATUSBAR] Mounting Return Button...');
+
+          // Return Button should APPEND to existing content, NOT overwrite it.
+          // Only Startup Navigator overwrites the content.
+
+          const mountPoint = document.createElement('div');
+          mountPoint.className = RETURN_BTN_CONTAINER_CLASS;
+          $mesText.append(mountPoint);
+          createApp(ReturnButton).mount(mountPoint);
         }
       }
-
     } catch (error) {
       console.error('[ARK_STATUSBAR] Mounting loop error:', error);
     }
@@ -89,7 +87,7 @@ const startMountingLoop = () => {
 // Start the loop when the script loads
 $(() => {
   console.info('[ARK_STATUSBAR] Module Loaded. Starting mount loop...');
-  
+
   // Fix: Teleport styles from iframe to main window
   teleportStyle();
 

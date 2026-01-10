@@ -25,7 +25,7 @@ export const WorldbookManager = {
     try {
       const targetBook = await getTargetWorldbookName();
       const entries = await getWorldbook(targetBook);
-      
+
       let isOriginal = true;
       let isSingleCharClosed = true;
 
@@ -45,22 +45,21 @@ export const WorldbookManager = {
         // Check for 'single_char_closed' logic
         const isSingleChar = SINGLE_CHAR_ENTRIES.includes(key);
         if (isSingleChar) {
-            // For single char closed state, this MUST be false
-            if (currentEnabled !== false) {
-                isSingleCharClosed = false;
-            }
+          // For single char closed state, this MUST be false
+          if (currentEnabled !== false) {
+            isSingleCharClosed = false;
+          }
         } else {
-            // For non-single char, it MUST match baseline
-            if (currentEnabled !== baselineEnabled) {
-                isSingleCharClosed = false;
-            }
+          // For non-single char, it MUST match baseline
+          if (currentEnabled !== baselineEnabled) {
+            isSingleCharClosed = false;
+          }
         }
       }
 
       if (isOriginal) return 'original';
       if (isSingleCharClosed) return 'single_char_closed';
       return 'modified';
-
     } catch (error) {
       console.error('[ARK_Manager] Get Status failed:', error);
       return 'modified'; // Default to modified on error for safety
@@ -74,7 +73,7 @@ export const WorldbookManager = {
     console.info('[ARK_Manager] Resetting Worldbook to Baseline...');
     try {
       const targetBook = await getTargetWorldbookName();
-      await updateWorldbookWith(targetBook, (entries) => {
+      await updateWorldbookWith(targetBook, entries => {
         entries.forEach(entry => {
           if (entry.name && BASELINE_STATE.hasOwnProperty(entry.name)) {
             entry.enabled = BASELINE_STATE[entry.name];
@@ -95,10 +94,10 @@ export const WorldbookManager = {
    */
   async applyScenario(swipeId: number, force: boolean = false): Promise<void> {
     if (!force) {
-        const status = await this.getWorldbookStatus();
-        if (status === 'modified') {
-            throw new Error('STATUS_MODIFIED');
-        }
+      const status = await this.getWorldbookStatus();
+      if (status === 'modified') {
+        throw new Error('STATUS_MODIFIED');
+      }
     }
 
     const scenario = STARTUP_SCENARIOS.find(s => s.swipeId === swipeId);
@@ -112,13 +111,13 @@ export const WorldbookManager = {
 
     try {
       const targetBook = await getTargetWorldbookName();
-      await updateWorldbookWith(targetBook, (entries) => {
+      await updateWorldbookWith(targetBook, entries => {
         entries.forEach(entry => {
           const name = entry.name;
           if (!name) return;
 
           // Note: We DO NOT reset to baseline here. We only apply deltas.
-          
+
           // 1. Apply Enable Delta
           if (scenario.linkedWorldInfo.includes(name)) {
             entry.enabled = true;
@@ -131,10 +130,9 @@ export const WorldbookManager = {
         });
         return entries;
       });
-      
+
       toastr.success(`开局设置应用成功`);
       console.info('[ARK_Manager] Scenario applied successfully.');
-
     } catch (error) {
       console.error('[ARK_Manager] Apply Scenario failed:', error);
       toastr.error('应用开局失败: ' + (error as Error).message);
@@ -149,7 +147,7 @@ export const WorldbookManager = {
     console.info('[ARK_Manager] Closing all single-character entries...');
     try {
       const targetBook = await getTargetWorldbookName();
-      await updateWorldbookWith(targetBook, (entries) => {
+      await updateWorldbookWith(targetBook, entries => {
         entries.forEach(entry => {
           if (entry.name && SINGLE_CHAR_ENTRIES.includes(entry.name)) {
             entry.enabled = false;
@@ -162,5 +160,5 @@ export const WorldbookManager = {
       console.error('[ARK_Manager] Bulk close failed:', error);
       toastr.error('操作失败: ' + (error as Error).message);
     }
-  }
+  },
 };

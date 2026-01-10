@@ -1,7 +1,5 @@
 <template>
-  <a class="director-return-button" @click="handleReturn">
-    返回开局
-  </a>
+  <a class="director-return-button" @click="handleReturn"> 返回开局 </a>
 </template>
 
 <script setup lang="ts">
@@ -28,7 +26,6 @@ const handleReturn = async () => {
     // Save and Reload
     await SillyTavern.saveChat();
     await SillyTavern.reloadCurrentChat();
-
   } catch (error) {
     console.error('[ReturnButton] Failed to return to startup:', error);
     toastr.error('返回开局失败: ' + (error as Error).message);
