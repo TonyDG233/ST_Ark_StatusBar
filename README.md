@@ -24,9 +24,8 @@
 
 ## 📂 目录结构
 *   `src/ARK_STATUSBAR/`: **[核心]** 本项目的所有源代码。
-*   `references/`: 参考资料与旧项目归档。
 *   `.kilocode/`: Agent 规则与工作流配置。
-*   `specs/`: 历史文档（仅供参考）。
+
 
 ## 📝 贡献与维护
 本项目由 **Kilo Code** (AI Agent) 协助开发。
