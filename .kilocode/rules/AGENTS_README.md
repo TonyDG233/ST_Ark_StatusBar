@@ -133,7 +133,9 @@ src/
 ## 7. 开发日志 (Development Logs)
 为了方便追踪开发进度，每个阶段的详细计划和执行记录将存储在 `.kilocode/development_logs/` 目录下。
 
-*   [2026-01-08] [Phase 1: 世界线管控者 (Manager) - 开场与返回系统](.kilocode/development_logs/001_Phase1_Manager_Plan.md) - [已实现 / 待测试]
+*   [2026-01-08] [Phase 1: 世界线管控者 (Manager) - 开场与返回系统](.kilocode/development_logs/001_Phase1_Manager_Plan.md) - [已实现]
+*   [2026-01-10] [Phase 1.5: 世界书控制功能 (Worldbook Control)](.kilocode/development_logs/003_Phase1.5_Worldbook_Control.md) - [已实现]
+*   [2026-01-10] [Phase 1.7: 移动端适配优化 (Mobile Optimization)](.kilocode/development_logs/004_Phase1.7_Mobile_Optimization.md) - [已实现]
 
 ## 8. 常用指令
 - `npm run build`: 构建项目

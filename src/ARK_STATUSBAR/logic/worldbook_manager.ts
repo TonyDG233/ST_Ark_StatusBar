@@ -1,29 +1,80 @@
 import { BASELINE_STATE } from '../config/baseline';
-import { DEFAULT_WORLDBOOK_NAME, STARTUP_SCENARIOS } from '../config/scenarios';
+import { STARTUP_SCENARIOS } from '../config/scenarios';
 import { SINGLE_CHAR_ENTRIES } from '../config/single_char_entries';
 
-// Helper to get safe access to APIs (in case they are not ready)
-// We assume global functions from @types/function/worldbook.d.ts are available at runtime.
-// Since this runs in Tavern Helper environment (Frontend), these should be global.
-// Wait, @types/function is for Backend (Slash Runner). @types/iframe is for Frontend.
-// The user said: "Use Tavern Helper's own functions".
-// If this is running in Frontend (Iframe), we might need to use `SillyTavern.getContext()...` or trigger slash commands?
-// BUT, the user pointed to `@types/function/worldbook.d.ts` which are typically Server-Side/Plugin functions.
-// IF this code runs in the Frontend (Vue), it cannot directly call Server functions unless exposed.
-// However, Tavern Helper scripts often run in a context where they can access specific APIs.
-// User said: "Check @types/function/worldbook.d.ts... not your imagination".
-// This implies these functions ARE available to me.
-// I will assume they are globally available or I need to import them?
-// Typically these are global in the scripting environment.
+// Helper to find the current character's worldbook
+async function getTargetWorldbookName(): Promise<string> {
+  try {
+    const result = await getCharWorldbookNames('current');
+    if (result.primary) return result.primary;
+    if (result.additional && result.additional.length > 0) return result.additional[0];
+    throw new Error('未找到当前角色绑定的世界书');
+  } catch (error) {
+    console.error('[ARK_Manager] Failed to get target worldbook:', error);
+    throw error;
+  }
+}
+
+export type WorldbookStatus = 'original' | 'single_char_closed' | 'modified';
 
 export const WorldbookManager = {
   /**
-   * Reset Worldbook to its baseline state (defined in config/baseline.ts)
+   * Get the current status of the Worldbook compared to Baseline
+   */
+  async getWorldbookStatus(): Promise<WorldbookStatus> {
+    try {
+      const targetBook = await getTargetWorldbookName();
+      const entries = await getWorldbook(targetBook);
+      
+      let isOriginal = true;
+      let isSingleCharClosed = true;
+
+      // Iterate only over keys present in BASELINE_STATE (Ignore user added entries)
+      for (const key of Object.keys(BASELINE_STATE)) {
+        const entry = entries.find(e => e.name === key);
+        if (!entry) continue; // Skip if entry missing in current book (shouldn't happen often)
+
+        const baselineEnabled = BASELINE_STATE[key];
+        const currentEnabled = entry.enabled;
+
+        // Check for 'original' mismatch
+        if (currentEnabled !== baselineEnabled) {
+          isOriginal = false;
+        }
+
+        // Check for 'single_char_closed' logic
+        const isSingleChar = SINGLE_CHAR_ENTRIES.includes(key);
+        if (isSingleChar) {
+            // For single char closed state, this MUST be false
+            if (currentEnabled !== false) {
+                isSingleCharClosed = false;
+            }
+        } else {
+            // For non-single char, it MUST match baseline
+            if (currentEnabled !== baselineEnabled) {
+                isSingleCharClosed = false;
+            }
+        }
+      }
+
+      if (isOriginal) return 'original';
+      if (isSingleCharClosed) return 'single_char_closed';
+      return 'modified';
+
+    } catch (error) {
+      console.error('[ARK_Manager] Get Status failed:', error);
+      return 'modified'; // Default to modified on error for safety
+    }
+  },
+
+  /**
+   * Reset Worldbook to its baseline state
    */
   async resetToBaseline(): Promise<void> {
     console.info('[ARK_Manager] Resetting Worldbook to Baseline...');
     try {
-      await updateWorldbookWith(DEFAULT_WORLDBOOK_NAME, (entries) => {
+      const targetBook = await getTargetWorldbookName();
+      await updateWorldbookWith(targetBook, (entries) => {
         entries.forEach(entry => {
           if (entry.name && BASELINE_STATE.hasOwnProperty(entry.name)) {
             entry.enabled = BASELINE_STATE[entry.name];
@@ -39,9 +90,17 @@ export const WorldbookManager = {
   },
 
   /**
-   * Apply a specific scenario: Reset -> Apply Delta (Open Linked, Close Disabled)
+   * Apply a specific scenario
+   * Warning: This throws an error if status is 'modified', caller must handle confirmation.
    */
-  async applyScenario(swipeId: number): Promise<void> {
+  async applyScenario(swipeId: number, force: boolean = false): Promise<void> {
+    if (!force) {
+        const status = await this.getWorldbookStatus();
+        if (status === 'modified') {
+            throw new Error('STATUS_MODIFIED');
+        }
+    }
+
     const scenario = STARTUP_SCENARIOS.find(s => s.swipeId === swipeId);
     if (!scenario) {
       console.error(`[ARK_Manager] Scenario #${swipeId} not found.`);
@@ -52,23 +111,20 @@ export const WorldbookManager = {
     toastr.info(`正在应用开局设置: ${scenario.title}...`);
 
     try {
-      // Single Atomic Update: Calculate Baseline + Delta
-      await updateWorldbookWith(DEFAULT_WORLDBOOK_NAME, (entries) => {
+      const targetBook = await getTargetWorldbookName();
+      await updateWorldbookWith(targetBook, (entries) => {
         entries.forEach(entry => {
           const name = entry.name;
           if (!name) return;
 
-          // 1. Reset to Baseline (if exists in baseline)
-          if (BASELINE_STATE.hasOwnProperty(name)) {
-            entry.enabled = BASELINE_STATE[name];
-          }
-
-          // 2. Apply Enable Delta
+          // Note: We DO NOT reset to baseline here. We only apply deltas.
+          
+          // 1. Apply Enable Delta
           if (scenario.linkedWorldInfo.includes(name)) {
             entry.enabled = true;
           }
 
-          // 3. Apply Disable Delta
+          // 2. Apply Disable Delta
           if (scenario.disabledWorldInfo && scenario.disabledWorldInfo.includes(name)) {
             entry.enabled = false;
           }
@@ -82,16 +138,18 @@ export const WorldbookManager = {
     } catch (error) {
       console.error('[ARK_Manager] Apply Scenario failed:', error);
       toastr.error('应用开局失败: ' + (error as Error).message);
+      throw error;
     }
   },
 
   /**
-   * Close all single-character entries (Bulk Action)
+   * Close all single-character entries
    */
   async closeSingleCharEntries(): Promise<void> {
     console.info('[ARK_Manager] Closing all single-character entries...');
     try {
-      await updateWorldbookWith(DEFAULT_WORLDBOOK_NAME, (entries) => {
+      const targetBook = await getTargetWorldbookName();
+      await updateWorldbookWith(targetBook, (entries) => {
         entries.forEach(entry => {
           if (entry.name && SINGLE_CHAR_ENTRIES.includes(entry.name)) {
             entry.enabled = false;
