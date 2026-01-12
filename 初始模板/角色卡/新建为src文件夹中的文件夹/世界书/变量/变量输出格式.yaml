@@ -5,7 +5,11 @@
     - the update commands works like the **JSON Patch (RFC 6902)** standard, must be a valid JSON array containing operation objects, but supports the following operations instead:
       - replace: replace the value of existing paths
       - delta: update the value of existing number paths by a delta value
+<<<<<<< HEAD
       - insert: insert new items into an object or array
+=======
+      - insert: insert new items into an object or array (using `-` as array index intends appending to the end)
+>>>>>>> e0122030df488a5403fb83e8cd5b4d1a5110a013
       - remove
     - don't update field names starts with `_` as they are readonly, such as `_变量`
   format: |-
@@ -20,6 +24,11 @@
       { "op": "replace", "path": "${/path/to/variable}", "value": "${new_value}" },
       { "op": "delta", "path": "${/path/to/number/variable}", "value": "${positve_or_negative_delta}" },
       { "op": "insert", "path": "${/path/to/object/new_key}", "value": "${new_value}" },
+<<<<<<< HEAD
+=======
+      { "op": "insert", "path": "${/path/to/array/-}", "value": "${new_value}" },
+      { "op": "remove", "path": "${/path/to/object/key}" },
+>>>>>>> e0122030df488a5403fb83e8cd5b4d1a5110a013
       { "op": "remove", "path": "${/path/to/array/0}" },
       ...
     ]
