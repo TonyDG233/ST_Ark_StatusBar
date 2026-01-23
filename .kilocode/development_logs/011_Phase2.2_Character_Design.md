@@ -73,11 +73,10 @@ const CharacterFullSchema = CharacterDynamicSchema.extend({
   skills: z.record(z.string(), z.string().describe('技能描述'))
 });
 
-// 维护任务队列 (存储在每个角色的变量空间内，或全局维护)
+// 维护任务队列 (全局维护，不再存储于角色内部)
 const MaintenanceSchema = z.object({
   _internal: z.object({
     last_update_turn: z.number().int().default(0).describe('最后更新轮次'),
-    pending_repairs: z.array(z.string()).describe('待修复的缺失字段路径列表，如 ["status.mood", "profile.race"]')
   })
 });
 
@@ -88,6 +87,15 @@ export const CharacterSchema = z.intersection(
   ]),
   MaintenanceSchema
 );
+
+// 全局角色任务队列 Schema (与 Chronicle 并行)
+export const CharacterTaskQueueSchema = z.array(z.object({
+    id: z.string(),
+    type: z.enum(['init_profile', 'repair_profile', 'summarize_memory']),
+    priority: z.number().int(),
+    target_char: z.string().describe('任务目标角色名'),
+    payload: z.any().describe('任务所需的上下文数据')
+})).describe('待处理的全局角色任务队列');
 ```
 
 ---
@@ -125,7 +133,6 @@ characters:
       notes: {}
     _internal:
       last_update_turn: 0
-      pending_repairs: []
 
   _TEMPLATE_DYNAMIC_:
     has_static_profile: false
@@ -166,26 +173,29 @@ characters:
 
 ## 4. 后端处理逻辑 (Backend Logic)
 * **模块**: `src/ARK_STATUSBAR/logic/updaters/character.ts`
+* **核心架构**: 采用**全局统一任务队列**模式。
 
-### 4.1 强制初始化 (Mandatory Initialization)
-* **触发条件**: 监听 `render` 或 `generation_after` 阶段。检测 `SillyTavern.getContext().chat.length <= 2`。
+### 4.1 新角色初始化 (New Character Initialization)
+* **触发条件**: 监听 `VARIABLE_UPDATE_ENDED` 事件。`global.presence` 数组中出现 `characters` 对象中不存在的新角色名。
 * **逻辑**: 
-  1. 无论当前 `presence.active_chars` 状态如何，强制向 LLM 推送一个高优先级的 **Inject Prompt**。
-  2. 要求 LLM 为所有在场角色生成**完整档案 (`CharacterFullSchema`)**。
-  3. 此时不区分是否有静态档案，先全部作为动态档案存入变量。
+  1. 后端脚本检测到新角色出现。
+  2. 立即向全局 `task_queue` 推送一个高优先级的 `init_profile` 任务，`target_char` 指向该新角色。
+  3. EJS 模板 (`任务执行器.ejs`) 将捕获此任务，并指示 LLM 根据当前上下文创建该角色的基础档案。
 
 ### 4.2 档案存储与修复机制 (Storage & Repair Loop)
-* **触发条件**: 接收到 LLM 返回的 JSON Patch 或完整变量对象。
+* **触发条件**: 监听 `VARIABLE_UPDATE_ENDED` 事件，当 `oldVariables.characters[charName]` 与 `newVariables.characters[charName]` 不相等时。
 * **逻辑**:
-  1. **Zod 校验**: 使用 `CharacterFullSchema.safeParse(data)`。
-  2. **缺漏检测**: 如果校验失败，分析 `error.issues`，识别缺失的字段（例如 `profile.race` 缺失）。
-  3. **空值填充**: 后端脚本先用默认值（如 `"UNKNOWN"` 或 `null`）填充缺失字段，确保 MVU 变量能成功写入，防止崩溃。
-  4. **任务生成**: 将缺失字段的路径（`path`）推入该角色的 `_internal.pending_repairs` 数组。
-  5. **推送修复任务**: 在下一轮生成前，通过 `injectPrompt` 插入系统指令：
-     > "系统检测到角色 [Name] 的档案存在缺失数据：[List of Missing Fields]。请根据当前上下文或设定进行补全。"
-  6. **循环**: 重复上述步骤，直到 `pending_repairs` 清空。
+  1. **Zod 校验**: 使用 `CharacterSchema.safeParse(data)` 对新数据进行校验。
+  2. **缺漏检测**: 如果校验失败，分析 `error.issues`，识别出真正损坏的字段路径。
+  3. **任务生成**: 将损坏字段的路径和目标角色名打包，作为 `repair_profile` 任务推送到**全局 `task_queue`**。
 
-### 4.3 三阶段上下文管理 (Context Lifecycle)
+### 4.3 记忆总结机制 (Memory Summarization)
+* **触发条件**: 监听 `VARIABLE_UPDATE_ENDED` 事件，当某角色的 `short_term_buffer.length >= 12` 时。
+* **逻辑**:
+  1. 提取 `short_term_buffer` 中最早的6条记忆。
+  2. 将这些记忆打包，作为 `summarize_memory` 任务推送到**全局 `task_queue`**。
+
+### 4.4 三阶段上下文管理 (Context Lifecycle)
 * **状态定义**:
   * **Active**: 在 `global.presence.active_chars` 中。注入**完整动态状态 + 记忆**。
   * **Nearby**: 在 `global.presence.nearby_chars` 中。仅注入**基础状态 (Location/Action)**，不注入记忆和深度认知。
@@ -194,7 +204,7 @@ characters:
   * `Active -> Nearby`: `total_turns - last_update_turn > 5`。
   * `Nearby -> Unload`: `total_turns - last_update_turn > 10`。
 
-### 4.4 静态/动态分离 (Static/Dynamic Split)
+### 4.5 静态/动态分离 (Static/Dynamic Split)
 * **执行时机**: 仅在构建提示词上下文（Context Injection）时执行，而非存储时。
 * **逻辑**: 
   1. 脚本遍历 `active_chars`。
@@ -205,33 +215,44 @@ characters:
 ---
 
 ## 5. 提示词设计 (Prompt Design)
-利用 **EJS Prompt Template** 插件的特性。
+利用 **EJS Prompt Template** 插件的特性，从全局的 `task_queue` 中读取并渲染任务。
 
-* **初始化/修复 Prompt (Dynamic Inject)**:
+* **初始化/修复/记忆总结 Prompt (由 `[mvu_update]任务执行器.ejs` 统一处理)**:
 ```javascript
 <%
-const pending = variables.characters[name]._internal.pending_repairs;
-if (pending && pending.length > 0) {
-    injectPrompt("repair_task", 
-        `[系统指令] 角色 ${name} 的档案数据不完整，缺少以下字段：${pending.join(', ')}。请立即根据设定补全这些信息。`,
-        0 // High priority
-    );
-}
-%>
-```
+// (伪代码 - 实际实现在 `任务执行器.ejs` 中)
+const all_tasks = variables.task_queue || [];
+const MAX_CHAR_TASKS_PER_TURN = 2; // 每轮最多处理2个角色任务
+let memoryTaskCount = 0;
 
-* **记忆压缩 (Memory Consolidation)**:
-```javascript
-<%
-const mem = variables.characters[name].memory;
-if (mem.short_term_buffer.length >= 12) {
-    const to_summarize = mem.short_term_buffer.slice(0, 6);
-    injectPrompt("memory_task",
-        `[系统指令] 角色 ${name} 的短期记忆已满。请将以下 6 条近期记忆概括为一条长期记忆，重点保留关键事件和对角色的影响：\n${JSON.stringify(to_summarize)}`,
-        10
-    );
-    // 后端脚本会在下一次 update 时清理这 6 条
-}
+// 筛选出与角色相关的任务
+const character_tasks = all_tasks.filter(t => ['init_profile', 'repair_profile', 'summarize_memory'].includes(t.type));
+const tasksToProcess = character_tasks.slice(0, MAX_CHAR_TASKS_PER_TURN);
+
+tasksToProcess.forEach(task => {
+    // 限制记忆任务每轮只有一个
+    if (task.type === 'summarize_memory') {
+        if (memoryTaskCount > 0) return;
+        memoryTaskCount++;
+    }
+
+    // 根据任务类型生成不同的提示词
+    switch (task.type) {
+        case 'repair_profile':
+            injectPrompt(`repair_${task.target_char}`, 
+                `[系统指令] 角色 ${task.target_char} 的档案数据不完整，缺少字段：${task.payload.fields.join(', ')}。请补全。`,
+                task.priority
+            );
+            break;
+        case 'summarize_memory':
+            injectPrompt(`memory_${task.target_char}`,
+                `[系统指令] 角色 ${task.target_char} 的短期记忆已满。请将以下记忆概括为一条长期记忆：\n${JSON.stringify(task.payload.memories)}`,
+                task.priority
+            );
+            break;
+        // ... 其他任务类型
+    }
+});
 %>
 ```
 

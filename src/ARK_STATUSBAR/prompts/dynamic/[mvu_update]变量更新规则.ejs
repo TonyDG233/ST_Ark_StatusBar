@@ -1,0 +1,210 @@
+---
+变量更新规则:
+  global:
+    time:
+      format: "YYYY-MM-DD HH:mm:ss"
+      check:
+        - "根据剧情的逻辑流逝来更新时间，例如：'几分钟后'、'第二天早上'。"
+    location:
+      type: |-
+        {
+          region: string;
+          city: string;
+          area: string;
+          spot: string;
+        }
+      check:
+        - "当角色从一个地点移动到另一个地点时，必须更新此变量的所有四个层级。"
+    weather:
+      check:
+        - "仅当主LLM的回复中明确描述了天气变化，或角色转移到气候截然不同的地区时，才进行更新。"
+    environment_status:
+      check:
+        - "仅当主LLM明确描述周围环境发生了显著变化时，才用不超过50字的客观描述来更新此项。"
+    presence:
+      type: |-
+        {
+          active_chars: string[];
+          nearby_chars: string[];
+        }
+      check:
+        - "【核心感知 - 必须更新】: 通读主LLM的最新回复，识别出所有直接参与对话或行动的角色，将他们的名字填入 'active_chars'。识别出那些在场但未直接参与互动的角色，或有可能出现的角色，填入 'nearby_chars'。"
+  player:
+    attributes:
+      type: |-
+        {
+          physical_strength: string; // 物理强度
+          mobility: string; // 战场机动
+          physiological_endurance: string; // 生理耐受
+          tactical_planning: string; // 战术规划
+          combat_skill: string; // 战斗技巧
+          originium_arts_adaptability: string; // 源石技艺适应性
+          power_level_desc: string; // e.g., '层级5-上位战场中坚'
+        }
+      check:
+        - "【自主评估】: 根据玩家在剧情中的行为表现，适当调整六维属性。评级必须在 ['缺陷', '普通', '标准', '优良', '卓越'] 中选择。"
+        - "【强制引用】: 评估 'power_level_desc' 时，必须检索并参考《战力分级标准》世界书条目。"
+    status:
+      mood:
+        type: number
+        range: -100~100
+        check:
+          - "根据玩家的言行和遭遇更新情绪。-100(极度负面) ~ 0(平静) ~ 100(极度正面)。"
+      physiological_state:
+        type: "string[]"
+        check:
+          - "根据剧情描述更新玩家的生理状态标签 (如: '健康', '轻伤', '疲劳', '感染抑制中')。"
+      current_action:
+        check:
+          - "【必须更新】: 用简短的动宾短语描述玩家当前正在做什么。"
+    inventory:
+      items:
+        type: |-
+          {
+            [itemName: string]: { 
+              count: number; // 数量 (>=0)
+              description: string; // 描述/用途
+              status?: string; // 状态 (如: 已损坏)
+            }
+          }
+        check:
+          - "获得物品时: 添加新条目或增加 count。"
+          - "消耗/丢失物品时: 减少 count。若 count 归零，则移除条目。"
+      equipment:
+        type: |-
+          {
+            main_hand?: string;
+            off_hand?: string;
+            outerwear: string;
+            innerwear: string;
+            accessories?: string[];
+          }
+        check:
+          - "当剧情中明确描述玩家更换装备时，更新对应部位。"
+    social:
+      type: |-
+        {
+          [charName: string]: { 
+            relation: string; // (如: 盟友, 敌人)
+            trust: number; // 0-200
+            impressions: string[]; // (最多5个)
+            notes?: string;
+          }
+        }
+      range: "trust: 0(死敌) ~ 50(中立) ~ 100(信赖) ~ 200(灵魂伴侣)"
+      check:
+        - "当玩家与角色有实质性互动时，评估关系进展、信任度变化和印象标签。"
+    skills:
+      type: |-
+        {
+          [skillName: string]: {
+            type: '源石技艺' | '武技' | '指挥技能' | '生活技能' | '被动天赋' | '特殊能力' | '其他';
+            description: string;
+            proficiency?: string; // 熟练度
+          }
+        }
+      check:
+        - "当玩家在剧情中通过学习、训练或顿悟获得了新技能时，向该对象中添加新的键值对。"
+  characters:
+    type: |-
+      {
+        [characterName: string]: CharacterSchema // The structure of 'CharacterSchema' is detailed below in the 'data' section
+      }
+    check:
+      - "该对象用于存储所有在场角色的动态信息，键为角色名。"
+      - "请只更新在当前剧情中处于 'active_chars' 列表内的角色数据。"
+    data.profile:
+      check:
+        - "【条件性修改】: 仅在接到 `init_profile` 或 `repair_profile` 任务时，或剧情发生重大生理变故时，才可修改此部分内容。"
+    data.status:
+      type: |-
+        {
+          location: string;
+          posture: string;
+          action: string;
+          mood: number; // -100 ~ 100
+          attire: string;
+        }
+      check:
+        - "【必须更新】: 必须根据角色在剧情中的位置、姿态、动作、情绪和着装变化，更新所有字段。"
+        - "mood 范围: -100(极度负面) ~ 0(平静) ~ 100(极度正面)。"
+    data.cognition:
+      towards_player:
+        type: |-
+          {
+            trust: number; // 0-200
+            attitude: string;
+            known_facts: string[]; // max 5
+            unknown_facts: string[]; // max 5
+            misconceptions: string[]; // max 5
+          }
+        range: "trust: 0(死敌) ~ 50(中立) ~ 100(信赖) ~ 200(灵魂伴侣)"
+        check:
+          - "根据角色与玩家的互动，更新角色对玩家的信任度、态度和认知。仅在发生有意义的互动时更新。"
+          - "known_facts: 记录角色通过观察或交流确认的关于玩家的关键事实。"
+          - "unknown_facts: 记录角色明确意识到自己缺乏的、关于玩家的关键信息（如身世、真实目的）。"
+          - "misconceptions: 记录角色对玩家的主观臆断或错误理解。"
+      from_player:
+        type: |-
+          {
+            unlocked_secrets: string[];
+            misconceptions: string[]; // max 5
+          }
+        check:
+          - "当玩家通过剧情明确获知了角色的核心秘密或过往经历时，向 'unlocked_secrets' 添加条目。"
+          - "当玩家对角色产生了明显的错误认知时，向 'misconceptions' 添加条目。"
+    data.memory:
+      short_term_buffer:
+        type: |-
+          Array<{
+            time: string; // e.g., "1097-07-16 15:30:00"
+            content: string;
+          }>
+        check:
+          - "【必须写入】: 每轮交互结束时，必须将本轮处于'active_chars'的角色的核心事件、对话或心理活动，作为一条新的短期记忆追加到此数组中。"
+      long_term:
+        check:
+          - "【严禁修改】: 此字段只能由 `summarize_memory` 任务进行写入。"
+    data.combat:
+      power_level_desc:
+        check:
+          - "【强制引用】: 评估战力时，必须检索并参考《战力分级标准》世界书条目。"
+    data.skills:
+      type: |-
+        {
+          [skillName: string]: {
+            description: string;
+          }
+        }
+      check:
+        - "当角色在剧情中通过学习、训练或顿悟获得了新技能时，向该对象中添加新的键值对。"
+  chronicle:
+    round_buffer:
+      type: |-
+        Array<{
+          id: string; // UUID
+          time: string; // YYYY-MM-DD HH:mm
+          location: string;
+          headline: string; // 简短标题
+          content: string; // 详细描述
+          key_dialogue: string[]; // max 5
+          tags: string[]; // 如: 战斗, 探索, 社交
+        }>
+      check:
+        - "【核心职责 - 必须写入】: 在每次回复结束时，你必须分析本轮交互的核心内容，生成一条新的 RoundSummary 对象，并将其添加到此数组的末尾。"
+        - "填写指导: 内容应保持客观、中立的叙述风格。重点记录玩家的关键决策、角色的重要反应以及剧情的转折点。"
+    small_summary_buffer:
+      check:
+        - "【严禁修改】: 此缓冲区由后端脚本通过分派 'ten_round_summary' 任务进行管理和写入。你只能读取它们，不得直接修改。"
+    daily_summary_buffer:
+      check:
+        - "【严禁修改】: 此缓冲区由后端脚本通过分派 'daily_summary' 任务进行管理和写入。你只能读取它们，不得直接修改。"
+    weekly_summary_buffer:
+      check:
+        - "【严禁修改】: 此缓冲区由后端脚本通过分派 'weekly_summary' 任务进行管理和写入。你只能读取它们，不得直接修改。"
+    monthly_summary_buffer:
+      check:
+        - "【严禁修改】: 此缓冲区由后端脚本通过分派 'monthly_summary' 任务进行管理和写入。你只能读取它们，不得直接修改。"
+    yearly_summary_buffer:
+      check:
+        - "【严禁修改】: 此缓冲区由后端脚本通过分派 'yearly_summary' 任务进行管理和写入。你只能读取它们，不得直接修改。"

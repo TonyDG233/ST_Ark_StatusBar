@@ -59,14 +59,7 @@ export const ChronicleSchema = z.object({
   small_summary_buffer: z.array(TenRoundSummarySchema).describe('十轮小结缓冲区'),
   daily_summary_buffer: z.array(DailySummarySchema).describe('每日总结缓冲区'),
   
-  // 任务队列 (Task Queue) - 核心调度机制
-  // 采用优先队列模式，每次只处理头部的一个任务，避免LLM过载
-  task_queue: z.array(z.object({
-    id: z.string(),
-    type: z.enum(['ten_round', 'daily', 'weekly', 'monthly', 'yearly', 'repair']),
-    priority: z.number().int().describe('优先级：数值越大越高'),
-    payload: z.any().describe('任务所需的上下文数据，如时间跨度、源ID列表')
-  })).describe('待处理的任务队列'),
+  // 任务队列 (Task Queue) - 已移至 global.ts
   
   // 系统状态
   system: z.object({
@@ -84,7 +77,6 @@ chronicle:
   round_buffer: []
   small_summary_buffer: []
   daily_summary_buffer: []
-  task_queue: []
   system:
     last_processed_turn: 0
     is_processing: false
@@ -102,9 +94,9 @@ chronicle:
     round_buffer:
       check:
         - "在每次回复结束时，必须生成一条新的 RoundSummary。"
-    task_queue:
-      check:
-        - "任务队列由后端脚本全权管理，LLM仅负责读取当前激活的任务并生成结果，不得自行修改队列。"
+  task_queue:
+    check:
+      - "任务队列由后端脚本全权管理，LLM仅负责读取当前激活的任务并生成结果，不得自行修改队列。"
 ```
 
 ---
@@ -117,54 +109,49 @@ chronicle:
 ```typescript
 function scheduleTasks(variables) {
     const chronicle = variables.chronicle;
+    const task_queue = variables.task_queue || [];
     
-    // 1. 如果已有任务正在处理中，跳过调度，等待LLM返回
-    if (chronicle.task_queue.length > 0) return;
+    // 1. 如果已有编年史任务正在处理中，跳过调度
+    if (task_queue.some(task => task.target_char === 'chronicle')) return;
 
     // 2. 自底向上检查触发条件 (Check Triggers)
     
     // [检查A] 日变更 (高优先级)
-    // 逻辑：检查 round_buffer 中是否存在与 global.time 日期不同的记录
     const { hasDayChange, pastRounds } = checkDayChange(chronicle.round_buffer);
     if (hasDayChange) {
-        // 策略：大鱼吃小鱼。日变更直接“吞噬”所有未处理轮次，无需再做10轮小结
         pushTask({
-            type: 'daily',
+            type: 'daily_summary',
             priority: 20,
             payload: { source_rounds: pastRounds }
         });
-        return; // 调度结束，等待下一轮处理
+        return; 
     }
 
     // [检查B] 10轮小结 (中优先级)
     if (chronicle.round_buffer.length >= 10) {
         pushTask({
-            type: 'ten_round',
+            type: 'ten_round_summary',
             priority: 10,
             payload: { source_rounds: chronicle.round_buffer.slice(0, 10) }
         });
         return;
     }
 
-    // [检查C] 周/月/年变更 (更高优先级)
-    // 逻辑：检查 small_summary_buffer / daily_summary_buffer
-    // ...
+    // ... (更高层级的周/月/年检查逻辑)
 }
 ```
 
 ### 4.2 任务执行与递归 (Execution & Recursion)
-* **时机**: 在 `onVariableUpdateEnded` 中，如果发现 `task_queue` 不为空。
+* **时机**: 在 `onVariableUpdateEnded` 中，如果发现 `task_queue` 中有 `target_char === 'chronicle'` 的任务。
 * **流程**:
-    1.  **取任务**: 获取队首任务 (Task A)。
+    1.  **取任务**: EJS 从 `task_queue` 获取队首的编年史任务 (Task A)。
     2.  **注入提示词**: 将 Task A 的要求和数据注入 Prompt。
     3.  **等待生成**: LLM 生成 Task A 的结果 (如 DailySummary)。
-    4.  **后处理**: 
-        -   脚本将结果存入 `daily_summary_buffer`，并自动分配唯一 `id`。
-        -   脚本从 `round_buffer` 中**移除**已被总结的源数据。
-        -   脚本从 `task_queue` 中**移除** Task A。
-    5.  **递归检查**: 任务完成后，脚本立即再次调用 `scheduleTasks()`，确保产生的任何新触发条件（如周变更）都能被捕捉并推入队列。
-        -   如果新生成的 `DailySummary` 触发了周总结条件，`scheduleTasks` 会立即生成一个 `weekly` 任务推入队列。
-        -   这样就实现了 `日 -> 下一轮 -> 周 -> 下一轮 -> 月` 的自然递进，且每轮只处理一件事。
+    4.  **后处理**: (由另一个专门监听LLM输出的脚本或模块处理)
+        -   将结果存入 `daily_summary_buffer`。
+        -   从 `round_buffer` 中**移除**已被总结的源数据。
+        -   从 `task_queue` 中**移除** Task A。
+    5.  **递归检查**: 在 `VARIABLE_UPDATE_ENDED` 事件中，脚本会再次调用 `scheduleTasks()`，检查是否需要生成新的更高层级任务。
 
 ---
 
@@ -172,14 +159,14 @@ function scheduleTasks(variables) {
 
 ```javascript
 <%
-const queue = variables.chronicle.task_queue;
-if (queue && queue.length > 0) {
-    const currentTask = queue[0]; // 只处理队首任务
-    
-    if (currentTask.type === 'daily') {
-        const data = currentTask.payload;
+const all_tasks = variables.task_queue || [];
+const chronicle_task = all_tasks.find(t => t.target_char === 'chronicle'); // 假设每轮只处理一个
+
+if (chronicle_task) {
+    if (chronicle_task.type === 'daily_summary') {
+        const data = chronicle_task.payload;
         injectPrompt("chronicle_task",
-            `[系统指令 - 优先级: ${currentTask.priority}]\n` +
+            `[系统指令 - 优先级: ${chronicle_task.priority}]\n` +
             `检测到日期变更，需要生成“每日总结”。\n` +
             `请处理以下 ${data.source_rounds.length} 条轮次记录...\n` + 
             `...`, 

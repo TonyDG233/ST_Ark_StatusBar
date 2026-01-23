@@ -1,0 +1,126 @@
+<%
+    // 在文件顶部使用 define 建立全局 EJS 变量，作为后续所有渲染的数据源中枢
+    define('worldState', getvar('stat_data'));
+    
+    const globalState = worldState.global;
+%>
+[全局状态]
+当前时间: <%- globalState.time %>
+当前地点: <%- `${globalState.location.region}, ${globalState.location.city}, ${globalState.location.area}, ${globalState.location.spot}` %>
+天气: <%- globalState.weather %>
+环境: <%- globalState.environment_status %>
+游戏总轮次: <%- globalState.game_progress.total_turns %>
+在场角色: <%- (globalState.presence.active_chars).join(', ') || '无' %>
+附近角色: <%- (globalState.presence.nearby_chars).join(', ') || '无' %>
+
+<%# ================================= Player ================================= %>
+<% 
+    const player = worldState.player;
+    if (player) {
+%>
+[玩家档案: <%- player.profile.name %>]
+<%-
+    const cleanedPlayer = _.omit(player, ['_internal']); 
+    print(JSON.stringify(cleanedPlayer, null, 2));
+%>
+<% 
+    }
+%>
+
+<%# ================================= Characters ================================= %>
+<%
+    const allCharacters = worldState.characters || {};
+    const activeChars = [];
+    const nearbyChars = [];
+    const unloadedChars = [];
+
+    for (const charName in allCharacters) {
+        if (charName.startsWith('_TEMPLATE_')) continue;
+        const character = allCharacters[charName];
+        const turnsSinceUpdate = character._internal ? (character._internal.turns_since_last_update || 0) : 0;
+        
+        if (turnsSinceUpdate <= 5) {
+            activeChars.push({ name: charName, character: character });
+        } else if (turnsSinceUpdate <= 15) {
+            nearbyChars.push({ name: charName, character: character });
+        } else {
+            unloadedChars.push({ name: charName, character: character });
+        }
+    }
+%>
+
+[角色档案]
+
+<% if (activeChars.length > 0) { %>
+--- 在场角色 (Active) ---
+<% activeChars.forEach(char => { %>
+<%- `## ${char.name}` %>
+<%-
+    // 确保 data 存在，避免报错
+    if (char.character.data) {
+        const cleanedData = _.omit(char.character.data, ['_internal']);
+        print(JSON.stringify(cleanedData, null, 2));
+    }
+%>
+<% }); %>
+<% } %>
+
+<% if (nearbyChars.length > 0) { %>
+--- 附近角色 (Nearby) ---
+<% nearbyChars.forEach(char => { %>
+<%- `## ${char.name}` %>
+<%-
+    if (char.character.data && char.character.data.profile) {
+        print(JSON.stringify(char.character.data.profile, null, 2));
+    } else {
+        print(`(档案未生成)`);
+    }
+%>
+<% }); %>
+<% } %>
+
+<% if (unloadedChars.length > 0) { %>
+--- 已不在场的角色 (Unloaded) ---
+<%- unloadedChars.map(char => char.name).join(', ') %>
+<% } %>
+
+<%# ================================= Chronicle ================================= %>
+<%
+    const chronicle = worldState.chronicle;
+    if (chronicle) {
+%>
+[历史回顾 (Chronicle)]
+
+<% if (chronicle.round_buffer && chronicle.round_buffer.length > 0) { %>
+## 轮次记忆 (Last <%- chronicle.round_buffer.length %> Turns)
+<%- print(JSON.stringify(chronicle.round_buffer, null, 2)) %>
+<% } %>
+
+<% if (chronicle.small_summary_buffer && chronicle.small_summary_buffer.length > 0) { %>
+## 十轮总结
+<%- print(JSON.stringify(chronicle.small_summary_buffer, null, 2)) %>
+<% } %>
+
+<% if (chronicle.daily_summary_buffer && chronicle.daily_summary_buffer.length > 0) { %>
+## 每日总结
+<%- print(JSON.stringify(chronicle.daily_summary_buffer, null, 2)) %>
+<% } %>
+
+<% if (chronicle.weekly_summary_buffer && chronicle.weekly_summary_buffer.length > 0) { %>
+## 每周总结
+<%- print(JSON.stringify(chronicle.weekly_summary_buffer, null, 2)) %>
+<% } %>
+
+<% if (chronicle.monthly_summary_buffer && chronicle.monthly_summary_buffer.length > 0) { %>
+## 每月总结
+<%- print(JSON.stringify(chronicle.monthly_summary_buffer, null, 2)) %>
+<% } %>
+
+<% if (chronicle.yearly_summary_buffer && chronicle.yearly_summary_buffer.length > 0) { %>
+## 年度总结
+<%- print(JSON.stringify(chronicle.yearly_summary_buffer, null, 2)) %>
+<% } %>
+
+<%
+    }
+%>

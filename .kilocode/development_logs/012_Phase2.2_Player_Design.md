@@ -78,20 +78,17 @@ const StatusSchema = z.object({
 export const PlayerSchema = z.object({
   profile: ProfileSchema,
   attributes: AttributesSchema,
-  skills: SkillsSchema,
+  skills: SkillsSchema.default({}),
   inventory: InventorySchema,
-  social: SocialSchema,
-  status: StatusSchema,
-  _internal: z.object({
-    last_update_turn: z.number().int().default(0),
-    pending_repairs: z.array(z.string()).default([])
-  })
+  social: SocialSchema.default({}),
+  status: StatusSchema
+  // _internal has been removed in favor of a global task queue.
 });
 ```
 
 ---
 
-## 2. 初始设置 (InitVar)
+## 2. 初始设置 (initvar)
 * **文件**: 世界书条目 `[initvar]变量初始化勿开`
 * **描述**: 提供全空的玩家档案模板，等待用户输入或LLM初始化。
 
@@ -128,9 +125,6 @@ player:
     mood: 0
     physiological_state: ["健康"]
     current_action: "等待开始"
-  _internal:
-    last_update_turn: 0
-    pending_repairs: []
 ```
 
 ---
@@ -181,18 +175,22 @@ player:
 ---
 
 ## 4. 后端处理逻辑 (Backend Logic)
-* **模块**: `src/ARK_STATUSBAR/logic/updaters/player.ts`
+* **模块**: `src/ARK_STATUSBAR/logic/upadapters/player.ts`
+* **核心架构**: 与 `Character` 模块完全一致，采用**全局任务队列**模式。
 
 ### 4.1 智能初始化 (Smart Initialization)
-* **目的**: 确保玩家档案与当前扮演的角色一致，无论是自定义角色还是特定剧本角色。
+* **目的**: 确保玩家档案至少存在，并且在开局时能根据上下文进行初步填充。
 * **逻辑**:
-  1. **开局检测**: 在楼层<=2时触发。
-  2. **用户输入优先**: 如果UI提供了玩家档案填写表单（后续开发），脚本优先读取表单数据填充 `profile`。
-  3. **LLM 补全**: 如果 `profile` 中仍有字段为 "待定"（即用户未填写），脚本向额外解析 LLM 推送任务，要求其根据开场白、第一条回复以及当前语境，反向推断玩家的设定。
-     * *例如*：如果开场白是“你醒来时发现自己躺在龙门的贫民窟”，LLM 可能会将背景推断为“流浪者”或“落魄感染者”。
+  1. **存在性检查**: 监听 `VARIABLE_UPDATE_ENDED` 事件。检查 `stat_data.player` 是否存在。
+  2. **任务生成**: 如果 `player` 对象不存在，立即向全局的 `task_queue` 推送一个高优先级的 `init_player_profile` 任务。
+  3. **后续处理**: EJS 模板 (`任务执行器.ejs`) 将捕获此任务，并指示 LLM 根据开场白和用户第一句话来创建玩家的基础档案。
 
-### 4.2 档案修复机制
-* **逻辑**: 与 `Character` 模块完全共用一套“Check -> Fill Null -> Push Task”机制。一旦检测到玩家档案有缺失（且非初始化阶段），自动生成修复任务。
+### 4.2 档案修复机制 (Repair Loop)
+* **逻辑**: 与 `Character` 模块的机制统一。
+  1. **触发**: 监听 `VARIABLE_UPDATE_ENDED` 事件，当 `oldVariables.player` 和 `newVariables.player` 不相等时触发。
+  2. **Zod 校验**: 使用 `PlayerSchema.safeParse(data)` 对新的玩家数据进行校验。
+  3. **空值/可选字段处理**: Zod Schema 已通过 `.default({})` 等方式明确区分哪些字段（如 `skills`, `inventory.items`）是允许为空的。因此，只有当**必填字段缺失**或**数据类型错误**时，校验才会失败。
+  4. **任务生成**: 如果校验失败，分析 `error.issues`，识别出真正损坏的字段路径。将这些路径打包，作为 `repair_player_profile` 任务推送到**全局 `task_queue`**。
 
 ---
 

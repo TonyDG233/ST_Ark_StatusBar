@@ -1,0 +1,194 @@
+<%
+    // ========================================================================
+    // 任务执行器 (Task Executor)
+    // ========================================================================
+
+    // ------------------------------------------------------------------------
+    // [Part 1: 统一任务调度]
+    // ------------------------------------------------------------------------
+    // 本模板假定 `变量列表.ejs` 已通过 define() 创建了全局可访问的 `worldState` 对象。
+
+    // --- 配置中心 ---
+    // !! 注意: 此处暂时硬编码。未来该值应从 worldState.global.config.max_tasks_per_turn 读取。
+    const MAX_TASKS_PER_TURN = 3;
+
+    // --- 任务读取与筛选 ---
+    const taskQueue = worldState.global.task_queue || [];
+    const tasksToProcess = taskQueue.slice(0, MAX_TASKS_PER_TURN);
+
+    // --- 任务渲染策略分类 ---
+    // 根据 `027` 号设计文档，我们将任务按渲染策略进行分类处理。
+    // 这不是简单的按模块分组，而是按处理方式。
+    
+    // 任务计数器，用于处理 EXCLUSIVE 任务
+    let chronicleSummaryCount = 0;
+%>
+
+<% if (tasksToProcess.length > 0) { %>
+---
+### **第三部分：本轮行动指令**
+*你必须严格按照以下任务指令行动，并在最终的 `<JSONPatch>` 块中完成所有要求。*
+<% tasksToProcess.forEach((task, index) => { %>
+
+<%# === Player Tasks === %>
+<% if (task.type === 'init_player_profile') { %>
+---
+#### **[高优先级任务 <%= index + 1 %>: 玩家档案初始化]**
+**任务**: 系统检测到玩家档案为空，请根据开场白和用户的初始输入，创建玩家档案。
+**核心要求**: 档案必须信息详实、逻辑自洽。
+**指令模板 (必须严格按照此结构填充所有字段):**
+```json
+{
+  "op": "replace", 
+  "path": "/player",
+  "value": {
+    "profile": { "name": "【代号/姓名】", "gender": "【性别】", "age": "【年龄】", "race": "【种族】", "appearance": "【外貌】", "background": "【背景】", "personality": "【性格】", "infection_status": "【非感染者/感染者/未公开】" },
+    "attributes": { "physical_strength": "标准", "mobility": "标准", "physiological_endurance": "标准", "tactical_planning": "标准", "combat_skill": "标准", "originium_arts_adaptability": "标准", "power_level_desc": "未评估" },
+    "skills": {},
+    "inventory": { "items": {}, "equipment": { "main_hand": "无", "off_hand": "无", "outerwear": "无", "innerwear": "日常便服", "accessories": [] } },
+    "social": {},
+    "status": { "mood": 0, "physiological_state": ["健康"], "current_action": "开始行动" }
+  }
+}
+```
+<% } %>
+
+<% if (task.type === 'repair_player_profile') { %>
+---
+#### **[维护任务 <%= index + 1 %>: 玩家档案修复]**
+**任务**: 系统检测到玩家档案数据不完整或格式错误。
+**缺失或错误的字段**: <%= task.payload.fields.join(', ') %>
+**你的行动**: 请根据上下文，为上述字段提供正确的值，并通过 `replace` 或 `add` 操作进行修复。
+<% } %>
+
+<%# === Character Tasks === %>
+<% if (task.type === 'init_profile') { %>
+---
+#### **[高优先级任务 <%= index + 1 %>: 新角色档案初始化 - <%= task.target_char %>]**
+**任务**: 检测到新角色 **`<%= task.target_char %>`** 首次登场，你必须为其创建完整的、明日方舟风格的档案。
+**核心要求**: 档案必须信息详实、风格统一、逻辑自洽。
+**指令模板 (必须严格按照此结构填充所有字段):**
+```json
+{
+  "op": "add",
+  "path": "/characters/<%= task.target_char %>",
+  "value": {
+    "has_static_profile": false,
+    "_internal": { "turns_since_last_update": 0 },
+    "data": {
+      "profile": {
+        "name": "<%= task.target_char %>", "gender": "【性别】", "race": "【种族】", "appearance": "【极其详细的外貌描述】", "background": "【客观的背景履历】", "personality": "【性格特点】", "infection_status": "【非感染者/感染者/未公开】"
+      },
+      "skills": {},
+      "status": { "location": "【当前所在精确位置】", "posture": "【姿势】", "action": "【正在进行的动作】", "mood": 0, "attire": "【当前着装】" },
+      "cognition": { "towards_player": { "trust": 50, "attitude": "中立", "known_facts": [], "unknown_facts": [], "misconceptions": [] }, "from_player": { "unlocked_secrets": [], "misconceptions": [] } },
+      "memory": { "short_term_buffer": [], "long_term": [] },
+      "combat": { "power_level_desc": "【基于《战力分级标准》的评估】" },
+      "notes": {}
+    }
+  }
+}
+```
+<% } %>
+
+<% if (task.type === 'repair_profile') { %>
+---
+#### **[维护任务 <%= index + 1 %>: 档案修复 - <%= task.target_char %>]**
+**任务**: 系统检测到角色 **`<%= task.target_char %>`** 的档案数据不完整。
+**缺失或错误的字段**: <%= task.payload.fields.join(', ') %>
+**你的行动**: 请根据上下文，为上述字段提供正确的值，并通过 `replace` 或 `add` 操作进行修复。
+<% } %>
+
+<% if (task.type === 'summarize_memory') { %>
+---
+#### **[任务 <%= index + 1 %>: 角色记忆总结 - <%= task.target_char %>]**
+**任务**: 角色 **`<%= task.target_char %>`** 的短期记忆已累积，请为他/她总结为一条长期记忆。
+**待总结的短期记忆**:
+<% (task.payload.memories || []).forEach(mem => { %>
+- [<%- mem.time %>] <%- mem.content %>
+<% }); %>
+**指令模板 (请填充 "【...】" 中的内容):**
+```json
+{
+  "op": "add",
+  "path": "/characters/<%= task.target_char %>/data/memory/long_term/-",
+  "value": {
+    "title": "【你为该记忆提炼的标题】",
+    "summary": "【你总结的记忆内容】",
+    "time_span": ["<%= (task.payload.memories[0] || {}).time %>", "<%= (task.payload.memories.slice(-1)[0] || {}).time %>"],
+    "impact": "【该记忆对角色的影响】"
+  }
+}
+```
+<% } %>
+
+<%# === Chronicle Tasks (EXCLUSIVE) === %>
+<% if (task.type.includes('summary') && !task.type.includes('memory')) { 
+    if (chronicleSummaryCount > 0) return; // 每轮只处理一个总结任务
+    chronicleSummaryCount++;
+
+    // --- 1. 构建基础模板对象 ---
+    const baseValue = {
+        id: "【生成一个唯一ID】",
+        time_span: [`<%= task.payload.start_time %>`, `<%= task.payload.end_time %>`],
+        headline: "【总结的标题】",
+        content: "【剧情综述】",
+        key_events: [ 
+            { time: "...", location: "...", description: "..." },
+            { time: "...", location: "...", description: "..." } 
+        ],
+        updates: { 
+            characters: { "角色A": "【状态变化】", "角色B": "【状态变化】" }, 
+            factions: { "势力A": "【关系变化】" }, 
+            quests: { "任务A": "【进度变化】" }, 
+            unresolved: ["【新的谜团或未解线索】"] 
+        },
+        source_summaries: <%- JSON.stringify(task.payload.source_ids) %>
+    };
+
+    // --- 2. 根据不同层级，动态调整模板 ---
+    if (task.payload.level === 'TenRound') {
+        baseValue.source_rounds = <%- JSON.stringify(task.payload.source_ids) %>;
+        delete baseValue.source_summaries;
+    } else if (task.payload.level === 'Daily') {
+        baseValue.date = `<%= worldState.global.time.split(' ')[0] %>`;
+    } else if (task.payload.level === 'Weekly') {
+        baseValue.week = `【格式: YYYY-Www】`;
+    } else if (task.payload.level === 'Monthly') {
+        baseValue.month = `【格式: YYYY-MM】`;
+    } else if (task.payload.level === 'Yearly') {
+        baseValue.year = `【格式: YYYY】`;
+    }
+%>
+---
+#### **[高优先级任务 <%= index + 1 %>: 历史回顾总结 - <%= task.payload.level %>]**
+**任务**: 系统检测到历史进程已达到 **<%- task.payload.level %>** 的总结标准。
+**你的行动**: 请根据以下源数据，生成一份结构完整的总结，并添加到 `chronicle` 对应的缓冲区中。
+
+**待总结的源数据**:
+```json
+<%- JSON.stringify(task.payload.summaries, null, 2) %>
+```
+
+**指令模板 (必须严格按照此结构填充所有字段):**
+```json
+{
+  "op": "add",
+  "path": "/chronicle/<%= task.payload.target_buffer %>/-",
+  "value": <%- JSON.stringify(baseValue, null, 2).replace(/"/g, '\"') %>
+}
+```
+<% } %>
+<%
+    // ------------------------------------------------------------------------
+    // [Part 2: 各模块任务渲染]
+    // (后续步骤将在此处追加具体渲染逻辑, 使用 forEach 遍历和独立 if 块)
+    // ------------------------------------------------------------------------
+%>
+<% }); %>
+<% } else { %>
+---
+### **第三部分：本轮行动指令**
+[常规任务：状态更新]
+*当前无高优先级任务。请根据你的`<Analysis>`分析，在`<JSONPatch>`中更新相关变量。*
+<% } %>
