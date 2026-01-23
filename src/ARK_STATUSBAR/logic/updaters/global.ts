@@ -15,9 +15,9 @@ const LOG_PREFIX = '[ARK_Global]';
  * @param {object} variables - The full MVU variables object.
  */
 function incrementTurnCounter(variables) {
-    const totalTurns = get(variables, 'stat_data.global.game_progress.total_turns', 0);
-    set(variables, 'stat_data.global.game_progress.total_turns', totalTurns + 1);
-    console.log(`${LOG_PREFIX} Total turns incremented to ${totalTurns + 1}.`);
+  const totalTurns = get(variables, 'stat_data.global.game_progress.total_turns', 0);
+  set(variables, 'stat_data.global.game_progress.total_turns', totalTurns + 1);
+  console.log(`${LOG_PREFIX} Total turns incremented to ${totalTurns + 1}.`);
 }
 
 /**
@@ -27,70 +27,69 @@ function incrementTurnCounter(variables) {
  * @param {object} oldVariables - The MVU variables from before the update.
  */
 async function postProcessCompletedTasks(newVariables, oldVariables) {
-    let currentQueue = get(newVariables, 'stat_data.task_queue', []);
-    if (currentQueue.length === 0) return;
+  let currentQueue = get(newVariables, 'stat_data.task_queue', []);
+  if (currentQueue.length === 0) return;
 
-    console.log(`${LOG_PREFIX} Post-processing ${currentQueue.length} tasks...`);
-    
-    const tasksToRemove = [];
+  console.log(`${LOG_PREFIX} Post-processing ${currentQueue.length} tasks...`);
 
-    for (const task of currentQueue) {
-        let isCompleted = false;
-        try {
-            switch (task.type) {
-                case 'init_profile':
-                case 'repair_profile':
-                case 'summarize_memory':
-                    isCompleted = await isCharacterTaskCompleted(task, newVariables, oldVariables);
-                    break;
-                case 'ten_round_summary':
-                case 'daily_summary':
-                case 'weekly_summary':
-                case 'monthly_summary':
-                case 'yearly_summary':
-                    isCompleted = await isChronicleTaskCompleted(task, newVariables, oldVariables);
-                    break;
-                case 'init_player_profile':
-                case 'repair_player_profile':
-                    isCompleted = await isPlayerTaskCompleted(task, newVariables, oldVariables);
-                    break;
-                default:
-                    console.warn(`${LOG_PREFIX} Unknown task type: ${task.type}`);
-            }
-        } catch (e) {
-            console.error(`${LOG_PREFIX} Error checking task completion for ${task.id}:`, e);
-        }
+  const tasksToRemove = [];
 
-        if (isCompleted) {
-            tasksToRemove.push(task.id);
-        }
+  for (const task of currentQueue) {
+    let isCompleted = false;
+    try {
+      switch (task.type) {
+        case 'init_profile':
+        case 'repair_profile':
+        case 'summarize_memory':
+          isCompleted = await isCharacterTaskCompleted(task, newVariables, oldVariables);
+          break;
+        case 'ten_round_summary':
+        case 'daily_summary':
+        case 'weekly_summary':
+        case 'monthly_summary':
+        case 'yearly_summary':
+          isCompleted = await isChronicleTaskCompleted(task, newVariables, oldVariables);
+          break;
+        case 'init_player_profile':
+        case 'repair_player_profile':
+          isCompleted = await isPlayerTaskCompleted(task, newVariables, oldVariables);
+          break;
+        default:
+          console.warn(`${LOG_PREFIX} Unknown task type: ${task.type}`);
+      }
+    } catch (e) {
+      console.error(`${LOG_PREFIX} Error checking task completion for ${task.id}:`, e);
     }
 
-    if (tasksToRemove.length > 0) {
-        const updatedQueue = currentQueue.filter(task => !tasksToRemove.includes(task.id));
-        set(newVariables, 'stat_data.task_queue', updatedQueue);
-        console.log(`${LOG_PREFIX} Removed ${tasksToRemove.length} completed tasks: ${tasksToRemove.join(', ')}.`);
+    if (isCompleted) {
+      tasksToRemove.push(task.id);
     }
+  }
+
+  if (tasksToRemove.length > 0) {
+    const updatedQueue = currentQueue.filter(task => !tasksToRemove.includes(task.id));
+    set(newVariables, 'stat_data.task_queue', updatedQueue);
+    console.log(`${LOG_PREFIX} Removed ${tasksToRemove.length} completed tasks: ${tasksToRemove.join(', ')}.`);
+  }
 }
-
 
 // =======================================================================
 // Main Event Handler
 // =======================================================================
 
 eventOn(Mvu.events.VARIABLE_UPDATE_ENDED, async (newVariables, oldVariables) => {
-    console.log(`${LOG_PREFIX} VARIABLE_UPDATE_ENDED triggered.`);
-    
-    const mutableVariables = cloneDeep(newVariables);
+  console.log(`${LOG_PREFIX} VARIABLE_UPDATE_ENDED triggered.`);
 
-    // 1. Increment game turn counter.
-    incrementTurnCounter(mutableVariables);
-    
-    // 2. Process and clean up any completed tasks from the queue.
-    await postProcessCompletedTasks(mutableVariables, oldVariables);
+  const mutableVariables = cloneDeep(newVariables);
 
-    // Replace variables once at the end.
-    Mvu.replaceMvuData(mutableVariables);
-    
-    console.log(`${LOG_PREFIX} Global update cycle finished.`);
+  // 1. Increment game turn counter.
+  incrementTurnCounter(mutableVariables);
+
+  // 2. Process and clean up any completed tasks from the queue.
+  await postProcessCompletedTasks(mutableVariables, oldVariables);
+
+  // Replace variables once at the end.
+  Mvu.replaceMvuData(mutableVariables);
+
+  console.log(`${LOG_PREFIX} Global update cycle finished.`);
 });

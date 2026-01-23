@@ -16,7 +16,7 @@ const StatusUpdateSchema = z.object({
 const EventNodeSchema = z.object({
   time: z.string().describe('事件发生的时间'),
   location: z.string().optional().describe('事件发生的地点'),
-  description: z.string().describe('事件描述')
+  description: z.string().describe('事件描述'),
 });
 
 // ============================================================================
@@ -93,7 +93,6 @@ const YearlySummarySchema = z.object({
   source_summaries: z.array(z.string()).describe('包含的MonthlySummary ID列表'),
 });
 
-
 // ============================================================================
 // 3. 最终导出 (Export)
 // ============================================================================
@@ -106,9 +105,9 @@ export const ChronicleSchema = z.object({
   weekly_summary_buffer: z.array(WeeklySummarySchema).describe('每周总结缓冲区'),
   monthly_summary_buffer: z.array(MonthlySummarySchema).describe('每月总结缓冲区'),
   yearly_summary_buffer: z.array(YearlySummarySchema).describe('年度总结缓冲区'),
-  
+
   // 系统状态
   system: z.object({
-    is_processing: z.boolean().default(false)
-  })
+    is_processing: z.boolean().default(false),
+  }),
 });
