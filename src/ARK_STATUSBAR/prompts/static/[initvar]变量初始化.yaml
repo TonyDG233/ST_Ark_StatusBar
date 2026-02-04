@@ -2,85 +2,94 @@
 # It is loaded once at the beginning of a new chat.
 
 global:
-  time: "1096-12-23 18:00:00"
+  time: "0000-00-00 00:00:00"
   location:
-    region: "乌萨斯"
-    city: "切尔诺伯格"
-    area: "城市废墟"
-    spot: "第四中学附近"
-  weather: "阴"
-  environment_status: "空气中弥漫着灰尘，远处传来建筑倒塌的回响。"
+    region: ""
+    city: ""
+    area: ""
+    spot: ""
+  weather: ""
+  environment_status: ""
   presence:
-    active_chars: ["阿米娅"]
+    active_chars: []
     nearby_chars: []
   game_progress:
     total_turns: 0
+  _internal:
+    backend_logic_enabled: true
 
 task_queue: []
 
 characters:
   _TEMPLATE_STATIC_:
     has_static_profile: true
-    data:
-      status:
-        location: "根据上下文判断当前位置"
-        posture: "根据上下文判断姿势"
-        action: "根据上下文判断当前动作"
-        mood: 0
-        attire: "根据上下文判断着装"
-      cognition:
-        towards_player:
-          trust: 50
-          attitude: "中立"
-          known_facts: []
-          unknown_facts: []
-          misconceptions: []
-        from_player:
-          unlocked_secrets: []
-          misconceptions: []
-      memory:
-        short_term_buffer: []
-        long_term: []
-      combat:
-        power_level_desc: "未评估"
-      notes: {}
+    profile:
+      name: "静态角色模板"
+      gender: "未知"
+      race: "未知"
+      appearance: "见世界书"
+      background: "见世界书"
+      personality: "见世界书"
+      infection_status: "未公开"
+    status:
+      location: ""
+      posture: ""
+      action: ""
+      mood: 0
+      attire: ""
+    cognition:
+      towards_player:
+        trust: 50
+        attitude: "中立"
+        known_facts: []
+        unknown_facts: []
+        misconceptions: []
+      from_player:
+        unlocked_secrets: []
+        misconceptions: []
+    memory:
+      short_term_buffer: []
+      long_term: []
+    combat:
+      power_level_desc: "未评估"
+    skills: {}
+    notes: {}
     _internal:
       turns_since_last_update: 0
 
   _TEMPLATE_DYNAMIC_:
     has_static_profile: false
-    data:
-      profile:
-        name: "角色名"
-        gender: "未知"
-        race: "未知"
-        appearance: "根据上下文描述"
-        background: "根据上下文提取"
-        personality: "根据上下文分析"
-        infection_status: "未公开"
-      skills: {}
-      status:
-        location: "根据上下文判断当前位置"
-        posture: "根据上下文判断姿势"
-        action: "根据上下文判断当前动作"
-        mood: 0
-        attire: "根据上下文判断着装"
-      cognition:
-        towards_player:
-          trust: 50
-          attitude: "中立"
-          known_facts: []
-          unknown_facts: []
-          misconceptions: []
-        from_player:
-          unlocked_secrets: []
-          misconceptions: []
-      memory:
-        short_term_buffer: []
-        long_term: []
-      combat:
-        power_level_desc: "未评估"
-      notes: {}
+    profile:
+      name: "角色名"
+      gender: "未知"
+      race: "未知"
+      appearance: ""
+      background: ""
+      personality: ""
+      infection_status: "未公开"
+    skills: {}
+    status:
+      location: ""
+      posture: ""
+      action: ""
+      mood: 0
+      attire: ""
+    cognition:
+      towards_player:
+        trust: 50
+        attitude: "中立"
+        known_facts: []
+        unknown_facts: []
+        misconceptions: []
+      from_player:
+        unlocked_secrets: []
+        misconceptions: []
+    memory:
+      short_term_buffer: []
+      long_term: []
+    combat:
+      power_level_desc: "未评估"
+    notes: {}
     _internal:
       turns_since_last_update: 0
 
@@ -90,9 +99,9 @@ player:
     gender: "待定"
     age: "待定"
     race: "待定"
-    appearance: "待定"
-    background: "待定"
-    personality: "待定"
+    appearance: ""
+    background: ""
+    personality: ""
     infection_status: "未公开"
   attributes:
     physical_strength: "标准"
@@ -115,7 +124,7 @@ player:
   status:
     mood: 0
     physiological_state: ["健康"]
-    current_action: "等待开始"
+    current_action: ""
 
 chronicle:
   round_buffer: []

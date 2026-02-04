@@ -1,48 +1,127 @@
 <%
     // ========================================================================
-    // 任务执行器 (Task Executor)
+    // [Part 1: Pre-computation & Flag Initialization]
     // ========================================================================
+    var hasPrintedTask = false;
 
-    // ------------------------------------------------------------------------
-    // [Part 1: 统一任务调度]
-    // ------------------------------------------------------------------------
-    // 本模板假定 `变量列表.ejs` 已通过 define() 创建了全局可访问的 `worldState` 对象。
-
-    // --- 配置中心 ---
-    // !! 注意: 此处暂时硬编码。未来该值应从 worldState.global.config.max_tasks_per_turn 读取。
-    const MAX_TASKS_PER_TURN = 3;
-
-    // --- 任务读取与筛选 ---
-    const taskQueue = worldState.global.task_queue || [];
-    const tasksToProcess = taskQueue.slice(0, MAX_TASKS_PER_TURN);
-
-    // --- 任务渲染策略分类 ---
-    // 根据 `027` 号设计文档，我们将任务按渲染策略进行分类处理。
-    // 这不是简单的按模块分组，而是按处理方式。
+    // --- 防御性编程：检查核心对象是否存在 ---
+    if (typeof worldState === 'undefined') {
+        var worldState = getvar('stat_data');
+    }
     
-    // 任务计数器，用于处理 EXCLUSIVE 任务
-    let chronicleSummaryCount = 0;
+    // --- 任务读取与筛选 ---
+    var taskQueue = (worldState && worldState.task_queue) ? worldState.task_queue : [];
+    // 兼容旧版配置读取
+    var MAX_TASKS_PER_TURN = (worldState && worldState.global && worldState.global.config) ? worldState.global.config.max_tasks_per_turn : 3;
+    var tasksToProcess = taskQueue.slice(0, MAX_TASKS_PER_TURN);
 %>
-
-<% if (tasksToProcess.length > 0) { %>
 ---
-### **第三部分：本轮行动指令**
+特殊变量更新规则：
+### **本轮行动指令**
 *你必须严格按照以下任务指令行动，并在最终的 `<JSONPatch>` 块中完成所有要求。*
-<% tasksToProcess.forEach((task, index) => { %>
 
-<%# === Player Tasks === %>
-<% if (task.type === 'init_player_profile') { %>
+<%
+    // ========================================================================
+    // [Part 2: Instant Initialization Logic (Hotfix)]
+    // ========================================================================
+    // 为了解决后端逻辑延迟一回合的问题，我们将开局初始化逻辑前置到 EJS 层。
+    // 此逻辑将在 LLM 生成提示词前执行，实现零延迟的角色/玩家档案创建。
+    try {
+        // 精确计算用户发送的消息数量
+        var userMessageCount = SillyTavern.chat.filter(m => m.is_user).length;
+
+        // --- A. 玩家档案即时初始化 ---
+        // 触发条件：用户第一条消息 && 常规生成
+        if (userMessageCount === 1 && generateType === 'normal') {
+            hasPrintedTask = true;
+%>
 ---
-#### **[高优先级任务 <%= index + 1 %>: 玩家档案初始化]**
+#### **[最高优先级任务: 玩家档案初始化]**
 **任务**: 系统检测到玩家档案为空，请根据开场白和用户的初始输入，创建玩家档案。
-**核心要求**: 档案必须信息详实、逻辑自洽。
+**核心要求**: 档案必须信息详实、逻辑自洽。请避免使用“未知”或空泛的描述，尽量根据侧面信息进行合理的推断和补全。
 **指令模板 (必须严格按照此结构填充所有字段):**
 ```json
 {
   "op": "replace", 
   "path": "/player",
   "value": {
-    "profile": { "name": "【代号/姓名】", "gender": "【性别】", "age": "【年龄】", "race": "【种族】", "appearance": "【外貌】", "background": "【背景】", "personality": "【性格】", "infection_status": "【非感染者/感染者/未公开】" },
+    "profile": { "name": "【代号/姓名】", "gender": "【性别】", "age": "【年龄】", "race": "【种族】", "appearance": "【请详细描述外貌特征，至少20字】", "background": "【请概括玩家的背景，至少20字】", "personality": "【请描述性格特点，至少15字】", "infection_status": "【非感染者/感染者/未公开】" },
+    "attributes": { "physical_strength": "标准", "mobility": "标准", "physiological_endurance": "标准", "tactical_planning": "标准", "combat_skill": "标准", "originium_arts_adaptability": "标准", "power_level_desc": "未评估" },
+    "skills": {},
+    "inventory": { "items": {}, "equipment": { "main_hand": "无", "off_hand": "无", "outerwear": "无", "innerwear": "日常便服", "accessories": [] } },
+    "social": {},
+    "status": { "mood": 0, "physiological_state": ["健康"], "current_action": "开始行动" }
+  }
+}
+```
+<%
+        }
+
+        // --- B. 角色档案即时初始化 ---
+        // 触发条件：用户第一条消息 && 常规生成
+        if (userMessageCount === 1 && generateType === 'normal') {
+            hasPrintedTask = true;
+%>
+---
+#### **[最高优先级任务: 开局角色档案初始化]**
+**任务**: 这是游戏的开局阶段。请仔细分析当前的对话上下文，识别出所有在场或被提及的核心角色，并为他们创建完整的、明日方舟风格的档案。
+**注意**: 你需要为每一个识别出的角色生成一个独立的 JSON Patch 操作。
+**核心要求**: 档案必须信息详实、风格统一、逻辑自洽。每个字段都必须填充有意义的、不少于15个字的内容。
+**指令模板 (必须严格按照此结构为每个角色填充所有字段):**
+```json
+{
+  "op": "insert",
+  "path": "/characters/【角色名】",
+  "value": {
+    "profile": {
+      "name": "【角色名】", "gender": "【性别】", "race": "【种族】", "appearance": "【请提供一段详尽的外貌描述，包括发型、瞳色、身材、衣着特征等，至少25个字】", "background": "【请提供一段客观的角色背景履历，包括其出身、经历的关键事件等，至少25个字】", "personality": "【请提供一段关于角色性格的详细描述，至少25个字】", "infection_status": "【非感染者/感染者/未公开】"
+    },
+    "skills": { "【技能1】": "【技能1的详细描述】", "【技能2】": "【技能2的详细描述】" },
+    "status": { "location": "【当前所在精确位置】", "posture": "【姿势】", "action": "【正在进行的动作】", "mood": 0, "attire": "【当前着装的详细描述】" },
+    "cognition": { "towards_player": { "trust": 50, "attitude": "中立", "known_facts": [], "unknown_facts": [], "misconceptions": [] }, "from_player": { "unlocked_secrets": [], "misconceptions": [] } },
+    "memory": { "short_term_buffer": [], "long_term": [] },
+    "combat": { "power_level_desc": "【基于《战力分级标准》给出一个明确的战力层级评估】" },
+    "notes": {},
+    "has_static_profile": false,
+    "_internal": { "turns_since_last_update": 0 }
+  }
+}
+```
+<%
+        }
+    } catch (e) {
+        // 防御性编程
+        print(`[EJS Hotfix Error] An error occurred during instant character init: ${e.message}`);
+    }
+%>
+
+<%
+    // ========================================================================
+    // [Part 3: Queued Task Execution]
+    // ========================================================================
+    // 处理后端推送到任务队列中的任务
+    if (tasksToProcess.length > 0) {
+        hasPrintedTask = true;
+        
+        // 任务计数器，用于处理 EXCLUSIVE 任务
+        var chronicleSummaryCount = 0;
+
+        tasksToProcess.forEach((task, index) => {
+%>
+
+<%# === Player Tasks === %>
+<% if (task.type === 'init_player_profile') { %>
+---
+#### **[高优先级任务 <%= index + 1 %>: 玩家档案初始化]**
+**任务**: 系统检测到玩家档案为空，请根据开场白和用户的初始输入，创建玩家档案。
+**核心要求**: 档案必须信息详实、逻辑自洽。请避免使用“未知”或空泛的描述，尽量根据侧面信息进行合理的推断和补全。
+**指令模板 (必须严格按照此结构填充所有字段):**
+```json
+{
+  "op": "replace", 
+  "path": "/player",
+  "value": {
+    "profile": { "name": "【代号/姓名】", "gender": "【性别】", "age": "【年龄】", "race": "【种族】", "appearance": "【请详细描述外貌特征，至少20字】", "background": "【请概括玩家的背景，至少20字】", "personality": "【请描述性格特点，至少15字】", "infection_status": "【非感染者/感染者/未公开】" },
     "attributes": { "physical_strength": "标准", "mobility": "标准", "physiological_endurance": "标准", "tactical_planning": "标准", "combat_skill": "标准", "originium_arts_adaptability": "标准", "power_level_desc": "未评估" },
     "skills": {},
     "inventory": { "items": {}, "equipment": { "main_hand": "无", "off_hand": "无", "outerwear": "无", "innerwear": "日常便服", "accessories": [] } },
@@ -58,34 +137,41 @@
 #### **[维护任务 <%= index + 1 %>: 玩家档案修复]**
 **任务**: 系统检测到玩家档案数据不完整或格式错误。
 **缺失或错误的字段**: <%= task.payload.fields.join(', ') %>
-**你的行动**: 请根据上下文，为上述字段提供正确的值，并通过 `replace` 或 `add` 操作进行修复。
+**你的行动**: 请根据上下文，为上述字段提供正确且详细的值，并通过 `replace` 或 `add` 操作进行修复。
 <% } %>
 
 <%# === Character Tasks === %>
 <% if (task.type === 'init_profile') { %>
 ---
+<% if (task.target_char === '__AUTO_DETECT__') { %>
+#### **[高优先级任务 <%= index + 1 %>: 开局角色档案初始化]**
+**任务**: 这是游戏的开局阶段。请仔细分析当前的对话上下文，识别出所有在场或被提及的核心角色，并为他们创建完整的、明日方舟风格的档案。
+**注意**: 你需要为每一个识别出的角色生成一个独立的 JSON Patch 操作。
+<% } else { %>
 #### **[高优先级任务 <%= index + 1 %>: 新角色档案初始化 - <%= task.target_char %>]**
 **任务**: 检测到新角色 **`<%= task.target_char %>`** 首次登场，你必须为其创建完整的、明日方舟风格的档案。
-**核心要求**: 档案必须信息详实、风格统一、逻辑自洽。
+<% } %>
+**核心要求**: 档案必须信息详实、风格统一、逻辑自洽。每个字段都必须填充有意义的、不少于15个字的内容。
 **指令模板 (必须严格按照此结构填充所有字段):**
 ```json
 {
-  "op": "add",
-  "path": "/characters/<%= task.target_char %>",
+  "op": "insert",
+  "path": "/characters/<%= task.target_char === '__AUTO_DETECT__' ? '【角色名】' : task.target_char %>",
   "value": {
+    "profile": {
+      "name": "<%= task.target_char === '__AUTO_DETECT__' ? '【角色名】' : task.target_char %>", "gender": "【性别】", "race": "【种族】", "appearance": "【请提供一段详尽的外貌描述，包括发型、瞳色、身材、衣着特征等，至少25个字】", "background": "【请提供一段客观的角色背景履历，包括其出身、经历的关键事件等，至少25个字】", "personality": "【请提供一段关于角色性格的详细描述，至少25个字】", "infection_status": "【非感染者/感染者/未公开】"
+    },
+    "skills": {
+        "【技能1】": "【技能1的详细描述】",
+        "【技能2】": "【技能2的详细描述】"
+    },
+    "status": { "location": "【当前所在精确位置】", "posture": "【姿势】", "action": "【正在进行的动作】", "mood": 0, "attire": "【当前着装的详细描述】" },
+    "cognition": { "towards_player": { "trust": 50, "attitude": "中立", "known_facts": [], "unknown_facts": [], "misconceptions": [] }, "from_player": { "unlocked_secrets": [], "misconceptions": [] } },
+    "memory": { "short_term_buffer": [], "long_term": [] },
+    "combat": { "power_level_desc": "【基于《战力分级标准》给出一个明确的战力层级评估】" },
+    "notes": {},
     "has_static_profile": false,
-    "_internal": { "turns_since_last_update": 0 },
-    "data": {
-      "profile": {
-        "name": "<%= task.target_char %>", "gender": "【性别】", "race": "【种族】", "appearance": "【极其详细的外貌描述】", "background": "【客观的背景履历】", "personality": "【性格特点】", "infection_status": "【非感染者/感染者/未公开】"
-      },
-      "skills": {},
-      "status": { "location": "【当前所在精确位置】", "posture": "【姿势】", "action": "【正在进行的动作】", "mood": 0, "attire": "【当前着装】" },
-      "cognition": { "towards_player": { "trust": 50, "attitude": "中立", "known_facts": [], "unknown_facts": [], "misconceptions": [] }, "from_player": { "unlocked_secrets": [], "misconceptions": [] } },
-      "memory": { "short_term_buffer": [], "long_term": [] },
-      "combat": { "power_level_desc": "【基于《战力分级标准》的评估】" },
-      "notes": {}
-    }
+    "_internal": { "turns_since_last_update": 0 }
   }
 }
 ```
@@ -96,7 +182,7 @@
 #### **[维护任务 <%= index + 1 %>: 档案修复 - <%= task.target_char %>]**
 **任务**: 系统检测到角色 **`<%= task.target_char %>`** 的档案数据不完整。
 **缺失或错误的字段**: <%= task.payload.fields.join(', ') %>
-**你的行动**: 请根据上下文，为上述字段提供正确的值，并通过 `replace` 或 `add` 操作进行修复。
+**你的行动**: 请根据上下文，为上述字段提供正确且详细的值，并通过 `replace` 或 `add` 操作进行修复。
 <% } %>
 
 <% if (task.type === 'summarize_memory') { %>
@@ -110,13 +196,13 @@
 **指令模板 (请填充 "【...】" 中的内容):**
 ```json
 {
-  "op": "add",
-  "path": "/characters/<%= task.target_char %>/data/memory/long_term/-",
+  "op": "insert",
+  "path": "/characters/<%= task.target_char %>/memory/long_term/-",
   "value": {
     "title": "【你为该记忆提炼的标题】",
-    "summary": "【你总结的记忆内容】",
+    "summary": "【你对这段记忆内容的详细总结，至少20个字】",
     "time_span": ["<%= (task.payload.memories[0] || {}).time %>", "<%= (task.payload.memories.slice(-1)[0] || {}).time %>"],
-    "impact": "【该记忆对角色的影响】"
+    "impact": "【该记忆对角色的长期影响，至少15个字】"
   }
 }
 ```
@@ -128,11 +214,12 @@
     chronicleSummaryCount++;
 
     // --- 1. 构建基础模板对象 ---
-    const baseValue = {
+    // 注意：这里使用 var 而不是 const 以避免 MVU 环境下的潜在问题，尽管在闭包内 const 通常是安全的
+    var baseValue = {
         id: "【生成一个唯一ID】",
-        time_span: [`<%= task.payload.start_time %>`, `<%= task.payload.end_time %>`],
+        time_span: [task.payload.start_time, task.payload.end_time],
         headline: "【总结的标题】",
-        content: "【剧情综述】",
+        content: "【详尽的剧情综述，涵盖关键转折点，至少50字】",
         key_events: [ 
             { time: "...", location: "...", description: "..." },
             { time: "...", location: "...", description: "..." } 
@@ -143,15 +230,15 @@
             quests: { "任务A": "【进度变化】" }, 
             unresolved: ["【新的谜团或未解线索】"] 
         },
-        source_summaries: <%- JSON.stringify(task.payload.source_ids) %>
+        source_summaries: task.payload.source_ids
     };
 
     // --- 2. 根据不同层级，动态调整模板 ---
     if (task.payload.level === 'TenRound') {
-        baseValue.source_rounds = <%- JSON.stringify(task.payload.source_ids) %>;
+        baseValue.source_rounds = task.payload.source_ids;
         delete baseValue.source_summaries;
     } else if (task.payload.level === 'Daily') {
-        baseValue.date = `<%= worldState.global.time.split(' ')[0] %>`;
+        baseValue.date = worldState.global.time.split(' ')[0];
     } else if (task.payload.level === 'Weekly') {
         baseValue.week = `【格式: YYYY-Www】`;
     } else if (task.payload.level === 'Monthly') {
@@ -163,6 +250,7 @@
 ---
 #### **[高优先级任务 <%= index + 1 %>: 历史回顾总结 - <%= task.payload.level %>]**
 **任务**: 系统检测到历史进程已达到 **<%- task.payload.level %>** 的总结标准。
+**核心要求**: 请根据以下源数据，生成一份结构完整、信息详实的总结。总结内容(`content`)必须是一篇连贯的、有深度的综述，涵盖所有关键转折点，避免流水账。字数不应少于50字。
 **你的行动**: 请根据以下源数据，生成一份结构完整的总结，并添加到 `chronicle` 对应的缓冲区中。
 
 **待总结的源数据**:
@@ -173,22 +261,28 @@
 **指令模板 (必须严格按照此结构填充所有字段):**
 ```json
 {
-  "op": "add",
+  "op": "insert",
   "path": "/chronicle/<%= task.payload.target_buffer %>/-",
-  "value": <%- JSON.stringify(baseValue, null, 2).replace(/"/g, '\"') %>
+  "value": <%- JSON.stringify(baseValue, null, 2) %>
 }
 ```
 <% } %>
+
 <%
-    // ------------------------------------------------------------------------
-    // [Part 2: 各模块任务渲染]
-    // (后续步骤将在此处追加具体渲染逻辑, 使用 forEach 遍历和独立 if 块)
-    // ------------------------------------------------------------------------
+    }); // End of tasksToProcess.forEach
+    } // End of if (tasksToProcess.length > 0)
 %>
-<% }); %>
-<% } else { %>
+
+<%
+    // ========================================================================
+    // [Part 4: Default Action (No Tasks)]
+    // ========================================================================
+    // 只有在以上所有即时任务和队列任务都未触发时，才显示此默认提示。
+    if (!hasPrintedTask) {
+%>
 ---
-### **第三部分：本轮行动指令**
 [常规任务：状态更新]
 *当前无高优先级任务。请根据你的`<Analysis>`分析，在`<JSONPatch>`中更新相关变量。*
-<% } %>
+<%
+    }
+%>

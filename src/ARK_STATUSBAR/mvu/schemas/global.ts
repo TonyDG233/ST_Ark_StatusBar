@@ -63,4 +63,12 @@ export const GlobalStateSchema = z.object({
       total_turns: z.number().int().default(0).describe('总交互轮次，用于触发周期性事件'),
     })
     .describe('由后端脚本在每轮交互后自动递增'),
+
+  // 内部配置与状态 (新增强制性字段)
+  _internal: z
+    .object({
+      backend_logic_enabled: z.boolean().default(true).describe('是否启用后端逻辑脚本'),
+      session_started: z.boolean().default(false).describe('会话是否已由用户通过发送第一条消息来启动'),
+    })
+    .describe('供UI使用的持久化设置或内部状态的统一注入路径'),
 });

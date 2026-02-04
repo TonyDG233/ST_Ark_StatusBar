@@ -17,10 +17,10 @@
         - "当角色从一个地点移动到另一个地点时，必须更新此变量的所有四个层级。"
     weather:
       check:
-        - "仅当主LLM的回复中明确描述了天气变化，或角色转移到气候截然不同的地区时，才进行更新。"
+        - "仅当主LLM的回复中明确描述了天气变化，或角色转移到气候截然不同的地区时，才进行更新。描述应具体，如'从阴天转为小雨'。"
     environment_status:
       check:
-        - "仅当主LLM明确描述周围环境发生了显著变化时，才用不超过50字的客观描述来更新此项。"
+        - "仅当主LLM明确描述周围环境发生了显著变化时，才用不少于20字的客观描述来更新此项。"
     presence:
       type: |-
         {
@@ -28,7 +28,7 @@
           nearby_chars: string[];
         }
       check:
-        - "【核心感知 - 必须更新】: 通读主LLM的最新回复，识别出所有直接参与对话或行动的角色，将他们的名字填入 'active_chars'。识别出那些在场但未直接参与互动的角色，或有可能出现的角色，填入 'nearby_chars'。"
+        - "【！！！最高优先级！！！】你必须在每一轮更新此变量。请通读主LLM的最新回复，将所有直接参与对话或行动的角色名填入 'active_chars'；将在场但未直接互动、或可能很快出现的角色名填入 'nearby_chars'。此变量的准确性对系统至关重要，任何遗漏都将导致角色状态停滞，破坏沉浸感！"
   player:
     attributes:
       type: |-
@@ -56,7 +56,7 @@
           - "根据剧情描述更新玩家的生理状态标签 (如: '健康', '轻伤', '疲劳', '感染抑制中')。"
       current_action:
         check:
-          - "【必须更新】: 用简短的动宾短语描述玩家当前正在做什么。"
+          - "【必须更新】: 用详尽的动宾短语描述玩家当前正在做什么，而不仅仅是简单的'对话'或'思考'。"
     inventory:
       items:
         type: |-
@@ -68,7 +68,7 @@
             }
           }
         check:
-          - "获得物品时: 添加新条目或增加 count。"
+          - "获得物品时: 添加新条目或增加 count。描述需具体。"
           - "消耗/丢失物品时: 减少 count。若 count 归零，则移除条目。"
       equipment:
         type: |-
@@ -80,7 +80,7 @@
             accessories?: string[];
           }
         check:
-          - "当剧情中明确描述玩家更换装备时，更新对应部位。"
+          - "当剧情中明确描述玩家更换装备时，更新对应部位。描述需具体。"
     social:
       type: |-
         {
@@ -93,7 +93,7 @@
         }
       range: "trust: 0(死敌) ~ 50(中立) ~ 100(信赖) ~ 200(灵魂伴侣)"
       check:
-        - "当玩家与角色有实质性互动时，评估关系进展、信任度变化和印象标签。"
+        - "当玩家与角色有实质性互动时，评估关系进展、信任度变化和印象标签。印象标签应精炼且准确。"
     skills:
       type: |-
         {
@@ -104,19 +104,28 @@
           }
         }
       check:
-        - "当玩家在剧情中通过学习、训练或顿悟获得了新技能时，向该对象中添加新的键值对。"
+        - "当玩家在剧情中通过学习、训练或顿悟获得了新技能时，向该对象中添加新的键值对。描述需详尽。"
   characters:
     type: |-
       {
-        [characterName: string]: CharacterSchema // The structure of 'CharacterSchema' is detailed below in the 'data' section
+        [characterName: string]: {
+          profile: CharacterSchema.profile;
+          status: CharacterSchema.status;
+          cognition: CharacterSchema.cognition;
+          memory: CharacterSchema.memory;
+          combat: CharacterSchema.combat;
+          notes: CharacterSchema.notes;
+        }
       }
     check:
       - "该对象用于存储所有在场角色的动态信息，键为角色名。"
       - "请只更新在当前剧情中处于 'active_chars' 列表内的角色数据。"
-    data.profile:
+    
+    profile:
       check:
-        - "【条件性修改】: 仅在接到 `init_profile` 或 `repair_profile` 任务时，或剧情发生重大生理变故时，才可修改此部分内容。"
-    data.status:
+        - "【条件性修改】: 仅在接到 `init_profile` 或 `repair_profile` 任务时，或剧情发生重大生理变故（如外貌改变、身份揭露）时，才可修改此部分内容。修改内容必须详实。"
+    
+    status:
       type: |-
         {
           location: string;
@@ -127,8 +136,10 @@
         }
       check:
         - "【必须更新】: 必须根据角色在剧情中的位置、姿态、动作、情绪和着装变化，更新所有字段。"
+        - "action: 用生动的语言描述正在进行的动作。"
         - "mood 范围: -100(极度负面) ~ 0(平静) ~ 100(极度正面)。"
-    data.cognition:
+    
+    cognition:
       towards_player:
         type: |-
           {
@@ -153,7 +164,8 @@
         check:
           - "当玩家通过剧情明确获知了角色的核心秘密或过往经历时，向 'unlocked_secrets' 添加条目。"
           - "当玩家对角色产生了明显的错误认知时，向 'misconceptions' 添加条目。"
-    data.memory:
+    
+    memory:
       short_term_buffer:
         type: |-
           Array<{
@@ -161,15 +173,17 @@
             content: string;
           }>
         check:
-          - "【必须写入】: 每轮交互结束时，必须将本轮处于'active_chars'的角色的核心事件、对话或心理活动，作为一条新的短期记忆追加到此数组中。"
+          - "【必须写入】: 每轮交互结束时，必须将本轮处于'active_chars'的角色的核心事件、对话或心理活动，作为一条新的短期记忆追加到此数组中。内容应详实，不少于20字。"
       long_term:
         check:
           - "【严禁修改】: 此字段只能由 `summarize_memory` 任务进行写入。"
-    data.combat:
+    
+    combat:
       power_level_desc:
         check:
           - "【强制引用】: 评估战力时，必须检索并参考《战力分级标准》世界书条目。"
-    data.skills:
+    
+    skills:
       type: |-
         {
           [skillName: string]: {
@@ -177,7 +191,7 @@
           }
         }
       check:
-        - "当角色在剧情中通过学习、训练或顿悟获得了新技能时，向该对象中添加新的键值对。"
+        - "当角色在剧情中通过学习、训练或顿悟获得了新技能时，向该对象中添加新的键值对。描述需具体。"
   chronicle:
     round_buffer:
       type: |-
@@ -192,7 +206,28 @@
         }>
       check:
         - "【核心职责 - 必须写入】: 在每次回复结束时，你必须分析本轮交互的核心内容，生成一条新的 RoundSummary 对象，并将其添加到此数组的末尾。"
-        - "填写指导: 内容应保持客观、中立的叙述风格。重点记录玩家的关键决策、角色的重要反应以及剧情的转折点。"
+        - "填写指导: 内容(`content`)应保持客观、中立的叙述风格，重点记录玩家的关键决策、角色的重要反应以及剧情的转折点，避免流水账，字数建议不少于30字。"
+        - |
+          指令模板: 你必须使用以下格式的 `insert` 操作将新总结添加到数组末尾:
+          ```json
+          {
+            "op": "insert", 
+            "path": "/chronicle/round_buffer/-", 
+            "value": {
+              "id": "【生成一个唯一的UUID】",
+              "time": "【YYYY-MM-DD HH:mm格式的当前时间】",
+              "location": "【事件发生的具体地点】",
+              "headline": "【简短精炼的事件标题】",
+              "content": "【详细、客观地描述本轮发生的核心事件，至少30字】",
+              "key_dialogue": [
+                "【记录3-5句最关键的对话】"
+              ],
+              "tags": [
+                "【从'战斗', '探索', '社交', '剧情', '个人'中选择合适的标签】"
+              ]
+            }
+          }
+          ```
     small_summary_buffer:
       check:
         - "【严禁修改】: 此缓冲区由后端脚本通过分派 'ten_round_summary' 任务进行管理和写入。你只能读取它们，不得直接修改。"

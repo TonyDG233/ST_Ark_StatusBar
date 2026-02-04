@@ -84,13 +84,32 @@ const startMountingLoop = () => {
   }, MOUNT_INTERVAL_MS);
 };
 
+let isBackendInitialized = false;
+
 // Start the loop when the script loads
 $(() => {
-  console.info('[ARK_STATUSBAR] Module Loaded. Starting mount loop...');
+  console.info('[ARK_STATUSBAR] Module Loaded. Initializing...');
 
-  // Fix: Teleport styles from iframe to main window
+/*   
+// --- Initial Backend Logic Initialization ---
+  if (!isBackendInitialized) {
+    initializeBackendLogic();
+    isBackendInitialized = true;
+  }
+
+  // --- Listen for Chat Changes to Re-initialize Backend ---
+  eventOn(tavern_events.CHAT_CHANGED, () => {
+    console.info('[ARK_STATUSBAR] Chat changed. Re-initializing backend logic...');
+    // No need to check the flag here, as we ALWAYS want to re-init on chat change.
+    initializeBackendLogic();
+  });
+ */
+
+  // --- Frontend Initialization (Immediate) ---
+  // 1. Teleport styles from iframe to main window
   teleportStyle();
 
+  // 2. Start Frontend Mounting Loop
   startMountingLoop();
 });
 

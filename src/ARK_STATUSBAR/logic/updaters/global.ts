@@ -1,17 +1,41 @@
 // @ts-nocheck
-import { cloneDeep, get, set } from 'lodash';
-import { isCharacterTaskCompleted } from './character';
-import { isChronicleTaskCompleted } from './chronicle';
-import { isPlayerTaskCompleted } from './player';
+import { cloneDeep, get, isEqual, set } from 'lodash';
+// 导入其他模块的处理函数
+import { isCharacterTaskCompleted, processCharacterUpdates } from './character';
+import { isChronicleTaskCompleted, processChronicleUpdates } from './chronicle';
+import { isPlayerTaskCompleted, processPlayerUpdates } from './player';
 
 const LOG_PREFIX = '[ARK_Global]';
+
+// A module-level flag to ensure event listeners are not registered multiple times.
+let isBackendInitialized = false;
+let isFirstMessageSent = false;
+
+// Store listener references to be able to remove them later
+let variableUpdateListener = null;
+let messageSentListener = null;
 
 // =======================================================================
 // Section 1: Core Logic Modules
 // =======================================================================
 
 /**
- * Increments the total turn count.
+ * Checks if the backend logic should proceed based on variable changes.
+ * This acts as a "pendulum" to process updates only once per turn (in the 'update' phase).
+ * @param {object} newVariables 
+ * @param {object} oldVariables 
+ * @returns {boolean}
+ */
+function shouldProcessUpdates(newVariables, oldVariables) {
+    if (isEqual(newVariables, oldVariables)) {
+        console.log(`${LOG_PREFIX} No variable changes detected (plot phase). Skipping backend logic.`);
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Increments the total turn counter.
  * @param {object} variables - The full MVU variables object.
  */
 function incrementTurnCounter(variables) {
@@ -73,23 +97,88 @@ async function postProcessCompletedTasks(newVariables, oldVariables) {
   }
 }
 
+/**
+ * Contains the logic from the original global.ts listener.
+ */
+async function processGlobalUpdates(newVariables, oldVariables) {
+  incrementTurnCounter(newVariables);
+  await postProcessCompletedTasks(newVariables, oldVariables);
+}
+
 // =======================================================================
-// Main Event Handler
+// Main Entry Point for Backend Logic
 // =======================================================================
 
-eventOn(Mvu.events.VARIABLE_UPDATE_ENDED, async (newVariables, oldVariables) => {
-  console.log(`${LOG_PREFIX} VARIABLE_UPDATE_ENDED triggered.`);
+/**
+ * Initializes all backend logic.
+ * This is the SINGLE entry point for all backend systems.
+ */
+export async function initializeBackendLogic() {
+  // 1. Cleanup old listeners to ensure a clean state, especially on chat change.
+  if (variableUpdateListener) {
+    eventRemoveListener(Mvu.events.VARIABLE_UPDATE_ENDED, variableUpdateListener);
+    variableUpdateListener = null;
+  }
+  if (messageSentListener) {
+    eventRemove-listener(tavern_events.MESSAGE_SENT, messageSentListener);
+    messageSentListener = null;
+  }
+  
+  // 2. Reset state flags for the new session.
+  isFirstMessageSent = false;
+  console.log(`${LOG_PREFIX} Backend logic (re)initializing... State flags reset.`);
 
-  const mutableVariables = cloneDeep(newVariables);
+  try {
+    // 3. Wait for MVU to be available.
+    await waitGlobalInitialized('Mvu');
+    console.log(`${LOG_PREFIX} MVU is ready. Registering new listeners...`);
 
-  // 1. Increment game turn counter.
-  incrementTurnCounter(mutableVariables);
+    // 4. Register the Main Event Loop.
+    variableUpdateListener = async (newVariables, oldVariables) => {
+      // Pendulum check
+      if (!shouldProcessUpdates(newVariables, oldVariables)) {
+        return;
+      }
+      
+      // Set session_started flag on the first valid update after the first message.
+      if (isFirstMessageSent && !get(newVariables, 'stat_data.global._internal.session_started', false)) {
+          set(newVariables, 'stat_data.global._internal.session_started', true);
+          console.log(`${LOG_PREFIX} Session started flag has been set directly within the main loop.`);
+          isFirstMessageSent = false; // Consume the flag
+      }
 
-  // 2. Process and clean up any completed tasks from the queue.
-  await postProcessCompletedTasks(mutableVariables, oldVariables);
+      // Main Gate
+      if (
+          !get(newVariables, 'stat_data.global._internal.session_started', false) ||
+          !get(newVariables, 'stat_data.global._internal.backend_logic_enabled', true)
+      ) {
+        return;
+      }
+      
+      console.log(`${LOG_PREFIX} Main Backend Loop Triggered.`);
+      
+      await processCharacterUpdates(newVariables, oldVariables);
+      await processPlayerUpdates(newVariables, oldVariables);
+      await processChronicleUpdates(newVariables, oldVariables);
+      await processGlobalUpdates(newVariables, oldVariables);
 
-  // Replace variables once at the end.
-  Mvu.replaceMvuData(mutableVariables);
+      console.log(`${LOG_PREFIX} Main Backend Loop Finished.`);
+    };
+    eventOn(Mvu.events.VARIABLE_UPDATE_ENDED, variableUpdateListener);
 
-  console.log(`${LOG_PREFIX} Global update cycle finished.`);
-});
+    // 5. Register the one-time listener that just flips the flag.
+    messageSentListener = () => {
+        console.log(`${LOG_PREFIX} First message sent. Flag set.`);
+        isFirstMessageSent = true;
+        // This listener should only ever fire once per chat session.
+        eventRemoveListener(tavern_events.MESSAGE_SENT, messageSentListener);
+        messageSentListener = null;
+    };
+    eventOn(tavern_events.MESSAGE_SENT, messageSentListener);
+
+    console.log(`${LOG_PREFIX} Backend logic initialized and waiting for session start.`);
+
+  } catch (err) {
+      console.error(`${LOG_PREFIX} Failed to initialize backend logic:`, err);
+  }
+}

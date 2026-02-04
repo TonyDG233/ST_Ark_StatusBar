@@ -12,43 +12,55 @@ const outputFile = path.resolve(__dirname, '../../../dist/artifacts/mvu_schema_b
 async function build() {
   console.log('Starting schema bundle build...');
 
-  // 1. Bundle all schemas into a single file using esbuild
+  // 1. Bundle all schemas into a single ESM file
   const result = await esbuild.build({
     entryPoints: [entryPoint],
     bundle: true,
     write: false,
-    format: 'iife',
+    format: 'esm',
     target: 'esnext',
-    external: ['zod'],
+    external: ['zod', 'lodash'],
     charset: 'utf8',
-    globalName: 'MVUSchemas', // Expose schemas to a global object
-    banner: {
-      js: `import { registerMvuSchema } from 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/util/mvu_zod.js';`
-    },
-    footer: {
-      js: `
-// Late registration after document is ready
-$(() => {
-  if (window.registerMvuSchema && MVUSchemas.Schema) {
-    console.log('Registering MVU Schema...');
-    registerMvuSchema(MVUSchemas.Schema);
-    console.log('✅ MVU Schema registered.');
-  } else {
-    console.error('❌ Could not register MVU Schema. registerMvuSchema or Schema not found.');
-  }
-});
-      `,
-    },
   });
 
-  const bundledCode = result.outputFiles[0].text;
+  let bundledCode = result.outputFiles[0].text;
 
-  // 2. Remove all instances of "import { z } from 'zod';"
-  const finalContent = bundledCode.replace(/import\s*{\s*z\s*}\s*from\s*['"]zod['"];?/g, '');
+  // 2. Remove import statements for external globals
+  bundledCode = bundledCode.replace(/import\s*.*?from\s*['"]zod['"];?/g, '');
+  bundledCode = bundledCode.replace(/import\s*.*?from\s*['"]lodash['"];?/g, '');
   
-  // 3. Write the final bundle to the dist directory
+  // 3. CRITICAL: Replace all aliased variables (e.g., z2, z3, _2) back to the global variables (z, _)
+  // esbuild renames imports to avoid collisions, we need to revert this.
+  // This regex finds variables like z2, z3, _2, etc., and replaces them with z, _.
+  bundledCode = bundledCode.replace(/\b(z)\d+\b/g, '$1');
+  bundledCode = bundledCode.replace(/\b(_)\d+\b/g, '$1');
+
+  // 4. Convert exports to local variables for script format
+  bundledCode = bundledCode.replace(/export\s+const\s+/g, 'const ');
+  bundledCode = bundledCode.replace(/export\s*{[^}]*};?/g, '');
+
+  // 5. Wrap in the MVU registration boilerplate
+  const finalContent = `
+import { registerMvuSchema } from 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/util/mvu_zod.js';
+
+// --- Start of Bundled Schemas ---
+${bundledCode.trim()}
+// --- End of Bundled Schemas ---
+
+$(() => {
+  if (typeof Schema !== 'undefined') {
+    console.log('Registering MVU Schema...');
+    registerMvuSchema(Schema);
+    console.log('✅ MVU Schema registered.');
+  } else {
+    console.error('❌ Schema variable is undefined. Check bundle logic.');
+  }
+});
+`;
+
+  // 6. Write the final bundle
   await fs.mkdir(path.dirname(outputFile), { recursive: true });
-  await fs.writeFile(outputFile, finalContent);
+  await fs.writeFile(outputFile, finalContent.trim());
 
   console.log(`✅ Schema bundle created successfully at ${outputFile}`);
 }
@@ -57,3 +69,4 @@ build().catch(error => {
   console.error('❌ Schema bundle build failed:', error);
   process.exit(1);
 });
+

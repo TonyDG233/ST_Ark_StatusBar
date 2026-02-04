@@ -48,38 +48,6 @@ const MemorySchema = z.object({
     .describe('长期记忆库'),
 });
 
-// 角色的动态数据
-const CharacterDynamicSchema = z.object({
-  status: z.object({
-    location: z.string().describe('当前所在精确位置'),
-    posture: z.string().describe('姿势'),
-    action: z.string().describe('正在进行的动作'),
-    mood: z.coerce.number().min(-100).max(100).describe('情绪值'),
-    attire: z.string().describe('当前着装'),
-  }),
-  cognition: CognitionSchema,
-  memory: MemorySchema,
-  combat: z.object({
-    // 提示词需强调：基于 references/tools/明日方舟/战力分级标准.yaml 判断
-    power_level_desc: z.string().default('未评估').describe('基于28级战力标准的文字描述 (如: 层级13-上位王牌战力)'),
-  }),
-  notes: z.record(z.string(), z.string()).default({}).describe('关于该角色的杂项记录'),
-});
-
-// 角色的完整数据结构
-const CharacterFullSchema = CharacterDynamicSchema.extend({
-  profile: z.object({
-    name: z.string(),
-    gender: z.string(),
-    race: z.string(),
-    appearance: z.string(),
-    background: z.string(),
-    personality: z.string(),
-    infection_status: z.enum(['非感染者', '感染者', '未公开']),
-  }),
-  skills: z.record(z.string(), z.string().describe('技能描述')).default({}),
-});
-
 // 维护任务队列 (全局维护，不再存储于角色内部)
 const MaintenanceSchema = z.object({
   _internal: z.object({
@@ -87,11 +55,39 @@ const MaintenanceSchema = z.object({
   }),
 });
 
+// 新的、扁平化的角色 Schema
 export const CharacterSchema = z.intersection(
-  z.discriminatedUnion('has_static_profile', [
-    z.object({ has_static_profile: z.literal(true), data: CharacterDynamicSchema }),
-    z.object({ has_static_profile: z.literal(false), data: CharacterFullSchema }),
-  ]),
+  z.object({
+    // 静态档案数据 (非 optional，保证动态角色档案完整性)
+    profile: z.object({
+      name: z.string(),
+      gender: z.string(),
+      race: z.string(),
+      appearance: z.string(),
+      background: z.string(),
+      personality: z.string(),
+      infection_status: z.enum(['非感染者', '感染者', '未公开']),
+    }),
+    skills: z.record(z.string(), z.string().describe('技能描述')).default({}),
+
+    // 动态数据
+    status: z.object({
+      location: z.string().describe('当前所在精确位置'),
+      posture: z.string().describe('姿势'),
+      action: z.string().describe('正在进行的动作'),
+      mood: z.coerce.number().min(-100).max(100).describe('情绪值'),
+      attire: z.string().describe('当前着装'),
+    }),
+    cognition: CognitionSchema,
+    memory: MemorySchema,
+    combat: z.object({
+      power_level_desc: z.string().default('未评估').describe('基于28级战力标准的文字描述 (如: 层级13-上位王牌战力)'),
+    }),
+    notes: z.record(z.string(), z.string()).default({}).describe('关于该角色的杂项记录'),
+
+    // 类型标志 (由后端脚本维护)
+    has_static_profile: z.boolean().default(false).describe('该角色的档案是否存在于世界书中'),
+  }),
   MaintenanceSchema,
 );
 

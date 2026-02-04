@@ -1,27 +1,22 @@
 // @ts-nocheck
-import { cloneDeep, get, set } from 'lodash';
+import { get } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 
 const LOG_PREFIX = '[ARK_Chronicle]';
 
 /**
  * Pushes a new task to the global task queue.
+ * @param {Array} queue - The task queue to modify.
  * @param {object} task - The task object to push.
  */
-function pushTask(task) {
+function pushTask(queue, task) {
   console.log(`${LOG_PREFIX} Pushing new task of type "${task.type}" with priority ${task.priority}.`);
-  const variables = Mvu.getMvuData();
-  const newVariables = cloneDeep(variables);
-  const queue = get(newVariables, 'stat_data.task_queue', []);
-
+  
   const taskWithId = { id: uuidv4(), target_char: 'chronicle', ...task };
   queue.push(taskWithId);
 
   queue.sort((a, b) => b.priority - a.priority);
-
-  set(newVariables, 'stat_data.task_queue', queue);
-  Mvu.replaceMvuData(newVariables);
-  console.log(`${LOG_PREFIX} Task pushed and variables updated.`);
+  return queue;
 }
 
 // Helper function to parse dates, robust against format variations.
@@ -92,14 +87,13 @@ function checkTimeTriggers(chronicle, globalTime) {
 
 /**
  * The main scheduler function for the Chronicle module.
+ * Modified to accept taskQueue directly.
  */
-function scheduleTasks() {
+function scheduleTasks(variables, taskQueue) {
   console.log(`${LOG_PREFIX} Scheduler invoked.`);
-  const variables = Mvu.getMvuData();
   const chronicle = get(variables, 'stat_data.chronicle');
   const globalTime = get(variables, 'stat_data.global.time');
-  const taskQueue = get(variables, 'stat_data.task_queue', []);
-
+  
   if (!chronicle || !globalTime) {
     console.warn(`${LOG_PREFIX} Missing chronicle or global time data. Aborting.`);
     return;
@@ -128,14 +122,14 @@ function scheduleTasks() {
         priority = 20;
         break;
     }
-    pushTask({ type: timeTrigger.taskType, priority, payload: timeTrigger.payload });
+    pushTask(taskQueue, { type: timeTrigger.taskType, priority, payload: timeTrigger.payload });
     return;
   }
 
   // Check buffer-based Triggers (Ten-Round)
   if (chronicle.round_buffer.length >= 10) {
     console.log(`${LOG_PREFIX} 10+ rounds in buffer. Pushing ten-round summary task.`);
-    pushTask({
+    pushTask(taskQueue, {
       type: 'ten_round_summary',
       priority: 10,
       payload: { source_ids: chronicle.round_buffer.slice(0, 10).map(r => r.id) },
@@ -146,11 +140,30 @@ function scheduleTasks() {
   console.log(`${LOG_PREFIX} No new tasks to schedule.`);
 }
 
-// Main entry point
-eventOn(Mvu.events.VARIABLE_UPDATE_ENDED, () => {
-  console.log(`${LOG_PREFIX} VARIABLE_UPDATE_ENDED triggered.`);
-  scheduleTasks();
-});
+// =======================================================================
+// Main Exported Function
+// =======================================================================
+
+/**
+ * Main processing function for chronicle-related updates.
+ * This is called by the global updater.
+ * @param {object} newVariables - The new MVU variables (mutable).
+ * @param {object} oldVariables - The old MVU variables (read-only).
+ */
+export async function processChronicleUpdates(newVariables, oldVariables) {
+  console.log(`${LOG_PREFIX} Processing chronicle updates...`);
+  
+  // Initialize task queue reference (In-Place modification)
+  const taskQueue = get(newVariables, 'stat_data.task_queue', []);
+
+  // Pass variables and taskQueue to the scheduler
+  scheduleTasks(newVariables, taskQueue);
+
+  // Note: taskQueue is a reference to the array inside newVariables.
+  // No need to explicitly write it back.
+  
+  console.log(`${LOG_PREFIX} Chronicle update cycle finished.`);
+}
 
 /**
  * Checks if a chronicle-related task has been successfully completed.

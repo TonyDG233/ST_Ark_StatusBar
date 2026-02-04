@@ -9,19 +9,23 @@
 变量输出格式:
   rule:
     - you must output the update analysis and the actual update commands at once in the end of the next reply
+    - all string values in the JSONPatch MUST be in CHINESE.
+    - descriptive string fields (like 'appearance', 'background', 'personality') MUST be detailed, precise, and logically self-consistent, containing at least 20 CHINESE characters to be considered sufficient. Vague or generic descriptions are unacceptable.
     - the update commands works like the **JSON Patch (RFC 6902)** standard, must be a valid JSON array containing operation objects, but supports the following operations instead:
       - replace: replace the value of existing paths
       - delta: update the value of existing number paths by a delta value
       - insert: insert new items into an object or array
       - remove
     - don't update field names starts with `_` as they are readonly, such as `_变量`
+    - Before outputting, you MUST double-check your generated JSONPatch against ALL `本轮行动指令` and variable update rules (`变量更新规则`). Ensure every task is addressed, all format requirements are met, and every value is logical and sufficient in detail.
   format: |-
     <UpdateVariable>
-    <Analysis>$(IN ENGLISH, no more than 150 words)
+    <Analysis>$(IN ENGLISH)
       - ${calculate time passed: ...}
       - ${decide whether dramatic updates are allowed as it's in a special case or the time passed is more than usual: yes/no}
       - ${analyze every variable based on its corresponding `check`, according only to current reply instead of previous plots: ...}
       - ${CHECK AND PLAN FOR TASKS: Check the high-priority tasks from the task executor and incorporate their required updates into the JSONPatch plan.}
+      - ${SELF-CORRECTION: Review the planned JSONPatch. Does it fully address all tasks? Does it comply with ALL variable update rules? Are all string values in Chinese and sufficiently detailed? Is the format correct?}
     </Analysis>
     <JSONPatch>
     [
