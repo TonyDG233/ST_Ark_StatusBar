@@ -102,10 +102,7 @@ declare class RawCharacter {
  * @param allowAvatar 是否允许通过头像ID查找
  * @returns 角色卡数据
  */
-declare function getCharData(
-  name: LiteralUnion<'current', string>,
-  allowAvatar?: boolean,
-): SillyTavern.v1CharData | null;
+declare function getCharData(name: LiteralUnion<'current', string>): SillyTavern.v1CharData | null;
 
 /**
  * 获取角色头像路径
@@ -113,7 +110,7 @@ declare function getCharData(
  * @param allowAvatar 是否允许通过头像ID查找
  * @returns 角色头像路径
  */
-declare function getCharAvatarPath(name: LiteralUnion<'current', string>, allowAvatar?: boolean): string | null;
+declare function getCharAvatarPath(name: LiteralUnion<'current', string>): string | null;
 
 /**
  * 获取角色聊天历史摘要
