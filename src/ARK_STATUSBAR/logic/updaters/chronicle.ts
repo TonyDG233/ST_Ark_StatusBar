@@ -11,7 +11,7 @@ const LOG_PREFIX = '[ARK_Chronicle]';
  */
 function pushTask(queue, task) {
   console.log(`${LOG_PREFIX} Pushing new task of type "${task.type}" with priority ${task.priority}.`);
-  
+
   const taskWithId = { id: uuidv4(), target_char: 'chronicle', ...task };
   queue.push(taskWithId);
 
@@ -93,7 +93,7 @@ function scheduleTasks(variables, taskQueue) {
   console.log(`${LOG_PREFIX} Scheduler invoked.`);
   const chronicle = get(variables, 'stat_data.chronicle');
   const globalTime = get(variables, 'stat_data.global.time');
-  
+
   if (!chronicle || !globalTime) {
     console.warn(`${LOG_PREFIX} Missing chronicle or global time data. Aborting.`);
     return;
@@ -152,7 +152,7 @@ function scheduleTasks(variables, taskQueue) {
  */
 export async function processChronicleUpdates(newVariables, oldVariables) {
   console.log(`${LOG_PREFIX} Processing chronicle updates...`);
-  
+
   // Initialize task queue reference (In-Place modification)
   const taskQueue = get(newVariables, 'stat_data.task_queue', []);
 
@@ -161,7 +161,7 @@ export async function processChronicleUpdates(newVariables, oldVariables) {
 
   // Note: taskQueue is a reference to the array inside newVariables.
   // No need to explicitly write it back.
-  
+
   console.log(`${LOG_PREFIX} Chronicle update cycle finished.`);
 }
 

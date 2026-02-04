@@ -11,7 +11,7 @@ const LOG_PREFIX = '[ARK_Character]';
 
 function pushTask(queue, task) {
   console.log(`${LOG_PREFIX} Pushing new task of type "${task.type}" for target "${task.target_char}".`);
-  
+
   const taskWithId = { id: uuidv4(), ...task };
   queue.push(taskWithId);
   queue.sort((a, b) => b.priority - a.priority);
@@ -34,26 +34,26 @@ function initializeNewCharacters(variables, taskQueue) {
   const { active_chars = [], nearby_chars = [] } = get(variables, 'stat_data.global.presence', {});
   const allPresentChars = [...new Set([...active_chars, ...nearby_chars])];
   const existingCharsData = get(variables, 'stat_data.characters', {});
-  
+
   // EJS 模板现在负责处理开局初始化。
   // 此函数仅负责检测游戏进行中新出现的角色。
 
   const existingCharNames = Object.keys(existingCharsData);
   const newChars = difference(allPresentChars, existingCharNames);
-  
+
   if (newChars.length > 0) {
     const finalTargets = [...new Set(newChars)];
     console.log(`${LOG_PREFIX} New characters detected: ${finalTargets.join(', ')}. Pushing init tasks.`);
-    
+
     finalTargets.forEach(charName => {
-        if (!existingCharsData[charName]) {
-            pushTask(taskQueue, {
-                type: 'init_profile',
-                priority: 100,
-                target_char: charName,
-                payload: {},
-            });
-        }
+      if (!existingCharsData[charName]) {
+        pushTask(taskQueue, {
+          type: 'init_profile',
+          priority: 100,
+          target_char: charName,
+          payload: {},
+        });
+      }
     });
   }
 }
@@ -160,7 +160,7 @@ export async function processCharacterUpdates(newVariables, oldVariables) {
   // 4. Loop through characters to run validation and other checks, but only if they have changed.
   const characters = get(newVariables, 'stat_data.characters', {});
   const oldCharacters = get(oldVariables, 'stat_data.characters', {});
-  
+
   for (const charName in characters) {
     if (!isEqual(characters[charName], oldCharacters[charName])) {
       console.log(`${LOG_PREFIX} Data changed for ${charName}. Running checks...`);
@@ -223,37 +223,37 @@ export async function isCharacterTaskCompleted(task, newVariables, oldVariables)
  * @returns {Promise<{worldbookName: string, uid: number} | null>}
  */
 async function findStaticCharacterEntry(charName) {
-    if (!charName) return null;
-    const targetKey = charName.toLowerCase();
+  if (!charName) return null;
+  const targetKey = charName.toLowerCase();
 
-    // Get worldbooks bound to the current character card
-    const charBooks = getCharWorldbookNames('current');
-    const bookNames = [...new Set([charBooks.primary, ...charBooks.additional].filter(Boolean))];
-    
-    for (const bookName of bookNames) {
-        try {
-            const entries = await getWorldbook(bookName);
-            
-            for (const entry of entries) {
-                // Correctly access strategy keys based on @types/function/worldbook.d.ts
-                const keys = entry.strategy?.keys || [];
+  // Get worldbooks bound to the current character card
+  const charBooks = getCharWorldbookNames('current');
+  const bookNames = [...new Set([charBooks.primary, ...charBooks.additional].filter(Boolean))];
 
-                // Filter out disabled entries and templates
-                if (!entry.enabled || keys.some(k => typeof k === 'string' && k.includes('_TEMPLATE_'))) {
-                    continue;
-                }
+  for (const bookName of bookNames) {
+    try {
+      const entries = await getWorldbook(bookName);
 
-                // Check if any key matches the character name
-                const isMatch = keys.some(k => typeof k === 'string' && k.toLowerCase() === targetKey);
-                if (isMatch) {
-                    return { worldbookName: bookName, uid: entry.uid };
-                }
-            }
-        } catch (error) {
-            console.warn(`${LOG_PREFIX} Could not get character worldbook "${bookName}":`, error);
+      for (const entry of entries) {
+        // Correctly access strategy keys based on @types/function/worldbook.d.ts
+        const keys = entry.strategy?.keys || [];
+
+        // Filter out disabled entries and templates
+        if (!entry.enabled || keys.some(k => typeof k === 'string' && k.includes('_TEMPLATE_'))) {
+          continue;
         }
+
+        // Check if any key matches the character name
+        const isMatch = keys.some(k => typeof k === 'string' && k.toLowerCase() === targetKey);
+        if (isMatch) {
+          return { worldbookName: bookName, uid: entry.uid };
+        }
+      }
+    } catch (error) {
+      console.warn(`${LOG_PREFIX} Could not get character worldbook "${bookName}":`, error);
     }
-    return null;
+  }
+  return null;
 }
 
 // =======================================================================
@@ -267,24 +267,23 @@ async function findStaticCharacterEntry(charName) {
  * @param {object} oldVariables - The old MVU variables (read-only).
  */
 async function postProcessNewCharacters(newVariables, oldVariables) {
-    const newChars = get(newVariables, 'stat_data.characters', {});
-    const oldChars = get(oldVariables, 'stat_data.characters', {});
+  const newChars = get(newVariables, 'stat_data.characters', {});
+  const oldChars = get(oldVariables, 'stat_data.characters', {});
 
-    // Find characters that are newly created in this turn
-    const newlyCreatedCharNames = Object.keys(newChars).filter(name => !oldChars[name]);
+  // Find characters that are newly created in this turn
+  const newlyCreatedCharNames = Object.keys(newChars).filter(name => !oldChars[name]);
 
-    if (newlyCreatedCharNames.length === 0) return;
+  if (newlyCreatedCharNames.length === 0) return;
 
-    console.log(`${LOG_PREFIX} Processing newly created characters: ${newlyCreatedCharNames.join(', ')}`);
+  console.log(`${LOG_PREFIX} Processing newly created characters: ${newlyCreatedCharNames.join(', ')}`);
 
-    for (const charName of newlyCreatedCharNames) {
-        // Check if this character has a static worldbook entry
-        const entryInfo = await findStaticCharacterEntry(charName);
-        
-        if (entryInfo) {
-            console.log(`${LOG_PREFIX} New character ${charName} is a static character. Setting flag.`);
-            set(newVariables, `stat_data.characters.${charName}.has_static_profile`, true);
-        }
+  for (const charName of newlyCreatedCharNames) {
+    // Check if this character has a static worldbook entry
+    const entryInfo = await findStaticCharacterEntry(charName);
+
+    if (entryInfo) {
+      console.log(`${LOG_PREFIX} New character ${charName} is a static character. Setting flag.`);
+      set(newVariables, `stat_data.characters.${charName}.has_static_profile`, true);
     }
+  }
 }
-

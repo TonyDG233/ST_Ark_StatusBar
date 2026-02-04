@@ -22,16 +22,16 @@ let messageSentListener = null;
 /**
  * Checks if the backend logic should proceed based on variable changes.
  * This acts as a "pendulum" to process updates only once per turn (in the 'update' phase).
- * @param {object} newVariables 
- * @param {object} oldVariables 
+ * @param {object} newVariables
+ * @param {object} oldVariables
  * @returns {boolean}
  */
 function shouldProcessUpdates(newVariables, oldVariables) {
-    if (isEqual(newVariables, oldVariables)) {
-        console.log(`${LOG_PREFIX} No variable changes detected (plot phase). Skipping backend logic.`);
-        return false;
-    }
-    return true;
+  if (isEqual(newVariables, oldVariables)) {
+    console.log(`${LOG_PREFIX} No variable changes detected (plot phase). Skipping backend logic.`);
+    return false;
+  }
+  return true;
 }
 
 /**
@@ -120,10 +120,10 @@ export async function initializeBackendLogic() {
     variableUpdateListener = null;
   }
   if (messageSentListener) {
-    eventRemove-listener(tavern_events.MESSAGE_SENT, messageSentListener);
+    eventRemove - listener(tavern_events.MESSAGE_SENT, messageSentListener);
     messageSentListener = null;
   }
-  
+
   // 2. Reset state flags for the new session.
   isFirstMessageSent = false;
   console.log(`${LOG_PREFIX} Backend logic (re)initializing... State flags reset.`);
@@ -139,24 +139,24 @@ export async function initializeBackendLogic() {
       if (!shouldProcessUpdates(newVariables, oldVariables)) {
         return;
       }
-      
+
       // Set session_started flag on the first valid update after the first message.
       if (isFirstMessageSent && !get(newVariables, 'stat_data.global._internal.session_started', false)) {
-          set(newVariables, 'stat_data.global._internal.session_started', true);
-          console.log(`${LOG_PREFIX} Session started flag has been set directly within the main loop.`);
-          isFirstMessageSent = false; // Consume the flag
+        set(newVariables, 'stat_data.global._internal.session_started', true);
+        console.log(`${LOG_PREFIX} Session started flag has been set directly within the main loop.`);
+        isFirstMessageSent = false; // Consume the flag
       }
 
       // Main Gate
       if (
-          !get(newVariables, 'stat_data.global._internal.session_started', false) ||
-          !get(newVariables, 'stat_data.global._internal.backend_logic_enabled', true)
+        !get(newVariables, 'stat_data.global._internal.session_started', false) ||
+        !get(newVariables, 'stat_data.global._internal.backend_logic_enabled', true)
       ) {
         return;
       }
-      
+
       console.log(`${LOG_PREFIX} Main Backend Loop Triggered.`);
-      
+
       await processCharacterUpdates(newVariables, oldVariables);
       await processPlayerUpdates(newVariables, oldVariables);
       await processChronicleUpdates(newVariables, oldVariables);
@@ -168,17 +168,16 @@ export async function initializeBackendLogic() {
 
     // 5. Register the one-time listener that just flips the flag.
     messageSentListener = () => {
-        console.log(`${LOG_PREFIX} First message sent. Flag set.`);
-        isFirstMessageSent = true;
-        // This listener should only ever fire once per chat session.
-        eventRemoveListener(tavern_events.MESSAGE_SENT, messageSentListener);
-        messageSentListener = null;
+      console.log(`${LOG_PREFIX} First message sent. Flag set.`);
+      isFirstMessageSent = true;
+      // This listener should only ever fire once per chat session.
+      eventRemoveListener(tavern_events.MESSAGE_SENT, messageSentListener);
+      messageSentListener = null;
     };
     eventOn(tavern_events.MESSAGE_SENT, messageSentListener);
 
     console.log(`${LOG_PREFIX} Backend logic initialized and waiting for session start.`);
-
   } catch (err) {
-      console.error(`${LOG_PREFIX} Failed to initialize backend logic:`, err);
+    console.error(`${LOG_PREFIX} Failed to initialize backend logic:`, err);
   }
 }

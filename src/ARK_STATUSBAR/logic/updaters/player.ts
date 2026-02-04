@@ -11,7 +11,7 @@ const LOG_PREFIX = '[ARK_Player]';
 
 function pushTask(queue, task) {
   console.log(`${LOG_PREFIX} Pushing new task of type "${task.type}".`);
-  
+
   const taskWithId = { id: uuidv4(), ...task };
   queue.push(taskWithId);
   queue.sort((a, b) => b.priority - a.priority);

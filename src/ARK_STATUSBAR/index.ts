@@ -90,7 +90,7 @@ let isBackendInitialized = false;
 $(() => {
   console.info('[ARK_STATUSBAR] Module Loaded. Initializing...');
 
-/*   
+  /*   
 // --- Initial Backend Logic Initialization ---
   if (!isBackendInitialized) {
     initializeBackendLogic();
