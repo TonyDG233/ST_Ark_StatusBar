@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { cloneDeep, get, isEqual, set } from 'lodash';
+import { get, isEqual, set } from 'lodash';
 // 导入其他模块的处理函数
 import { isCharacterTaskCompleted, processCharacterUpdates } from './character';
 import { isChronicleTaskCompleted, processChronicleUpdates } from './chronicle';
@@ -114,6 +114,13 @@ async function processGlobalUpdates(newVariables, oldVariables) {
  * This is the SINGLE entry point for all backend systems.
  */
 export async function initializeBackendLogic() {
+  // --- LOGIC ISOLATION ---
+  // To prevent Initialization Storm on turn 0, and to isolate failed backend logic
+  if (SillyTavern.getContext().turn === 0) {
+    console.log(`[ARK_Logic_Global] Turn 0 detected. Skipping backend logic initialization to allow clean MVU init.`);
+    return;
+  }
+
   // 1. Cleanup old listeners to ensure a clean state, especially on chat change.
   if (variableUpdateListener) {
     eventRemoveListener(Mvu.events.VARIABLE_UPDATE_ENDED, variableUpdateListener);
