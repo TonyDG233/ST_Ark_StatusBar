@@ -1,6 +1,7 @@
 import { BASELINE_STATE } from '../config/baseline';
 import { STARTUP_SCENARIOS } from '../config/scenarios';
 import { SINGLE_CHAR_ENTRIES } from '../config/single_char_entries';
+import { StatusBarManager } from './statusbar_manager';
 
 // Helper to find the current character's worldbook
 async function getTargetWorldbookName(): Promise<string> {
@@ -119,12 +120,18 @@ export const WorldbookManager = {
           // Note: We DO NOT reset to baseline here. We only apply deltas.
 
           // 1. Apply Enable Delta
-          if (scenario.linkedWorldInfo.includes(name)) {
+          if (scenario.linkedWorldInfo.some(keyword => {
+              const keys = (entry as any).key || (entry as any).keys || [];
+              return name === keyword || keys.includes(keyword);
+          })) {
             entry.enabled = true;
           }
 
           // 2. Apply Disable Delta
-          if (scenario.disabledWorldInfo && scenario.disabledWorldInfo.includes(name)) {
+          if (scenario.disabledWorldInfo && scenario.disabledWorldInfo.some(keyword => {
+              const keys = (entry as any).key || (entry as any).keys || [];
+              return name === keyword || keys.includes(keyword);
+          })) {
             entry.enabled = false;
           }
         });
@@ -133,6 +140,20 @@ export const WorldbookManager = {
 
       toastr.success(`开局设置应用成功`);
       console.info('[ARK_Manager] Scenario applied successfully.');
+
+      // Log commit to StatusBarManager
+      const manager = StatusBarManager.getInstance();
+      if (manager.currentConfig) {
+          const newCommit = {
+              id: Math.random().toString(36).substr(2, 6),
+              timestamp: Date.now(),
+              description: `[Apply Scenario] ${scenario.title}`,
+              changes: [] // We can omit detailed changes for scenario for brevity, or add them if tracked
+          };
+          const commits = [...manager.currentConfig.commits, newCommit];
+          manager.saveConfig({ commits });
+      }
+
     } catch (error) {
       console.error('[ARK_Manager] Apply Scenario failed:', error);
       toastr.error('应用开局失败: ' + (error as Error).message);

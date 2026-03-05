@@ -127,19 +127,21 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { ASSETS } from '../config/assets';
 import { STARTUP_SCENARIOS, type Scenario } from '../config/scenarios';
+import { StatusBarManager } from '../logic/statusbar_manager';
 import { WorldbookManager, type WorldbookStatus } from '../logic/worldbook_manager';
 
 // Constants
-const STORAGE_KEY_THEME = 'ark_statusbar_theme';
 
 // State
 const scenarios = ref(STARTUP_SCENARIOS);
-const theme = ref<'light' | 'dark'>('dark');
 const isSettingsOpen = ref(false);
 const wbStatus = ref<WorldbookStatus>('original');
+
+const manager = StatusBarManager.getInstance();
+const theme = computed(() => manager.currentConfig?.theme || 'dark');
 
 // Computed
 const wbStatusText = computed(() => {
@@ -178,8 +180,7 @@ const toggleSettings = () => {
 };
 
 const setTheme = (newTheme: 'light' | 'dark') => {
-  theme.value = newTheme;
-  localStorage.setItem(STORAGE_KEY_THEME, newTheme);
+  manager.saveConfig({ theme: newTheme });
 };
 
 const checkWbStatus = async () => {
@@ -200,10 +201,6 @@ const handleRestoreWorldbook = async () => {
 
 // Initialize
 onMounted(() => {
-  const savedTheme = localStorage.getItem(STORAGE_KEY_THEME);
-  if (savedTheme === 'light' || savedTheme === 'dark') {
-    theme.value = savedTheme;
-  }
   checkWbStatus();
 });
 
