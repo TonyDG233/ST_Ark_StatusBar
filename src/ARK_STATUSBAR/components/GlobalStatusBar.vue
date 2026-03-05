@@ -2,18 +2,10 @@
   <div v-if="isSystemEnabled"
        class="ark-global-statusbar"
        v-show="isVisible"
-       :class="{ 'light-theme': currentConfig?.theme === 'light', 'dark-theme': currentConfig?.theme === 'dark', 'transparent-theme': currentConfig?.theme === 'transparent', 'mini-mode': isMiniMode, 'absolute-positioned': hasAbsolutePos }"
-       :style="{
-         width: isMiniMode ? 'auto' : displayWidth + 'px',
-         fontSize: displayFontSize + 'px',
-         transform: `translate(${transformX}px, ${transformY}px)`,
-         left: absoluteLeft !== null ? absoluteLeft + 'px' : 'auto',
-         top: absoluteTop !== null ? absoluteTop + 'px' : 'auto',
-         bottom: absoluteTop !== null ? 'auto' : '60px',
-         right: absoluteLeft !== null ? 'auto' : '20px'
-       }"
+       :class="{ 'light-theme': currentConfig?.theme === 'light', 'dark-theme': currentConfig?.theme === 'dark', 'transparent-theme': currentConfig?.theme === 'transparent', 'mini-mode': isMiniMode }"
+       :style="{ width: isMiniMode ? 'auto' : displayWidth + 'px', fontSize: displayFontSize + 'px', transform: `translate(${transformX}px, ${transformY}px)` }"
        ref="statusBarEl">
-    <div class="statusbar-header" @mousedown="startDrag" @touchstart="startDrag">
+    <div class="statusbar-header" @mousedown="startDrag" @touchstart="startDrag" @dblclick="resetPosition" title="拖拽移动，双击还原位置">
       <div class="title" v-if="!isMiniMode">
         <span class="icon">📖</span> 罗德岛终端控制台
       </div>
@@ -396,13 +388,6 @@ const startDrag = (e: MouseEvent | TouchEvent) => {
         startY = (e as MouseEvent).clientY;
     }
     
-    // Convert to absolute positioning on first interaction so it expands downwards instead of upwards
-    if (absoluteLeft.value === null && statusBarEl.value) {
-        const rect = statusBarEl.value.getBoundingClientRect();
-        absoluteLeft.value = rect.left - transformX.value;
-        absoluteTop.value = rect.top - transformY.value;
-    }
-    
     initialX = transformX.value;
     initialY = transformY.value;
     
@@ -459,9 +444,12 @@ const checkBounds = () => {
     if (rect.bottom > viewportHeight) {
         deltaY = viewportHeight - rect.bottom;
     }
+    
     // 4. Top edge check (Priority: Ensure top edge/drag handle is ALWAYS visible)
-    if (rect.top + deltaY < 0) {
-        deltaY = 0 - rect.top;
+    // Add 70px safe margin to avoid being covered by ST's top navbar
+    const SAFE_TOP = 70;
+    if (rect.top + deltaY < SAFE_TOP) {
+        deltaY = SAFE_TOP - rect.top;
     }
 
     if (deltaX !== 0 || deltaY !== 0) {
@@ -481,6 +469,11 @@ const stopDrag = () => {
     requestAnimationFrame(() => {
         checkBounds();
     });
+};
+
+const resetPosition = () => {
+    transformX.value = 0;
+    transformY.value = 0;
 };
 // --- End Drag Logic ---
 
@@ -526,6 +519,18 @@ onMounted(() => {
         }
     }) as EventListener);
 
+    // Handle dynamic size changes (e.g. switching tabs, which changes height)
+    // This ensures if it expands upwards and hits the top, it gets pushed back down
+    if (statusBarEl.value) {
+        const resizeObserver = new ResizeObserver(() => {
+            requestAnimationFrame(() => {
+                checkBounds();
+            });
+        });
+        resizeObserver.observe(statusBarEl.value);
+    }
+
+    // Fix for mobile where UI might spawn off-screen initially
     requestAnimationFrame(() => {
         checkBounds();
     });
@@ -554,8 +559,13 @@ onMounted(() => {
         }
     });
     
+    // Handle window resize (e.g. mobile orientation change)
     const ST_WIN = window.parent || window;
-    ST_WIN.addEventListener('resize', checkBounds);
+    ST_WIN.addEventListener('resize', () => {
+        requestAnimationFrame(() => {
+            checkBounds();
+        });
+    });
 });
 
 const closePanel = () => {
@@ -635,8 +645,11 @@ const toggleEntry = async (entry: any) => {
 <style scoped>
 .ark-global-statusbar {
   position: fixed;
+  bottom: 60px;
+  right: 20px;
   width: 400px;
   max-width: 90vw;
+  max-height: calc(100dvh - 80px); /* Prevents expanding upwards out of screen */
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   z-index: 9999;
@@ -645,11 +658,6 @@ const toggleEntry = async (entry: any) => {
   overflow: hidden;
   font-family: sans-serif;
   transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, opacity 0.3s ease;
-}
-
-.ark-global-statusbar:not(.absolute-positioned) {
-  bottom: 60px;
-  right: 20px;
 }
 
 .ark-global-statusbar.light-theme {
@@ -678,11 +686,6 @@ const toggleEntry = async (entry: any) => {
     border-radius: 20px;
     opacity: 0.8;
     font-size: 0.85em;
-}
-
-.ark-global-statusbar.mini-mode:not(.absolute-positioned) {
-    bottom: 60px;
-    right: 20px;
 }
 
 .ark-global-statusbar.mini-mode .tab-header {
