@@ -189,7 +189,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { StatusBarManager, type ArkConfig } from '../logic/statusbar_manager';
+import { CONFIG_ENTRY_PREFIX, StatusBarManager, type ArkConfig } from '../logic/statusbar_manager';
 import { WorldbookManager } from '../logic/worldbook_manager';
 
 const isVisible = ref(true); // Now controlled by system state and toggle
@@ -492,7 +492,10 @@ const loadAllEntries = async () => {
         if (targetWorldbook) {
             const entries = await getWorldbook(targetWorldbook);
             // Filter out system config
-            allEntries.value = entries.filter((e: any) => e.name !== '[ARK_SYS_CONFIG]' && e.comment !== '[ARK_SYS_CONFIG]');
+            allEntries.value = entries.filter((e: any) => 
+                !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) && 
+                !(e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX))
+            );
         }
     } catch (e) {
         console.error("Failed to load worldbook entries", e);
@@ -582,6 +585,13 @@ onMounted(() => {
                 'ARK_STATUSBAR 提示',
                 { timeOut: 8000, positionClass: "toast-top-center" }
             );
+        }
+    });
+
+    // Listen for chat change to reload entries
+    document.addEventListener('ark-chat-changed', () => {
+        if (currentConfig.value?.isSystemEnabled) {
+            loadAllEntries();
         }
     });
 
