@@ -8,7 +8,7 @@
             <img :src="ASSETS.LOGO_URL" alt="Arknights Logo" class="arknights-logo" />
           </div>
           <p class="author-info">初版作者：打不准的豌豆射手 | v版核心作者：F.o.x.i.o</p>
-          <p class="author-info">项目贡献者：TonyDG233(UI), 晚鸢尾(UI), 暗中观察信长(剧情), 政委x(剧情), Rylan(剧情)</p>
+          <p class="author-info">项目贡献者：TonyDG233(UI), 晚鸢尾(UI), 暗中观察信长(剧情), 政委x(剧情), Rylan(剧情), rdq9909(剧情), "你"(剧情)</p>
           <p class="author-info">UI重构项目：ARK_STATUSBAR</p>
         </div>
 
