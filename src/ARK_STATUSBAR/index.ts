@@ -111,7 +111,8 @@ $(() => {
           const btnEvent = getEventFn(BTN_NAME);
           if (globalEventOn) {
               globalEventOn(btnEvent, () => {
-                  document.dispatchEvent(new CustomEvent('ark-toggle-statusbar'));
+                  // Dispatch a new event to toggle the entire system
+                  document.dispatchEvent(new CustomEvent('ark-toggle-system'));
               });
           }
       } catch (e) {
@@ -127,6 +128,8 @@ $(() => {
       globalContainer.className = GLOBAL_STATUSBAR_CONTAINER_CLASS;
       ST_DOC.body.appendChild(globalContainer);
   }
+  
+  // Note: We mount it immediately, but its visibility and functionality is controlled by its own state
   globalStatusBarApp = createApp(GlobalStatusBar);
   globalStatusBarApp.mount(globalContainer);
 

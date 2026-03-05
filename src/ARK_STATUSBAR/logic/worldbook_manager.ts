@@ -35,11 +35,12 @@ export const WorldbookManager = {
         const entry = entries.find(e => e.name === key);
         if (!entry) continue; // Skip if entry missing in current book (shouldn't happen often)
 
-        const baselineEnabled = BASELINE_STATE[key];
+        const baseline = BASELINE_STATE[key];
         const currentEnabled = entry.enabled;
+        const currentType = entry.strategy?.type || 'selective';
 
         // Check for 'original' mismatch
-        if (currentEnabled !== baselineEnabled) {
+        if (currentEnabled !== baseline.enabled || currentType !== baseline.type) {
           isOriginal = false;
         }
 
@@ -52,7 +53,7 @@ export const WorldbookManager = {
           }
         } else {
           // For non-single char, it MUST match baseline
-          if (currentEnabled !== baselineEnabled) {
+          if (currentEnabled !== baseline.enabled || currentType !== baseline.type) {
             isSingleCharClosed = false;
           }
         }
@@ -77,7 +78,11 @@ export const WorldbookManager = {
       await updateWorldbookWith(targetBook, entries => {
         entries.forEach(entry => {
           if (entry.name && BASELINE_STATE.hasOwnProperty(entry.name)) {
-            entry.enabled = BASELINE_STATE[entry.name];
+            const baseline = BASELINE_STATE[entry.name];
+            entry.enabled = baseline.enabled;
+            if (entry.strategy) {
+                entry.strategy.type = baseline.type;
+            }
           }
         });
         return entries;
@@ -112,19 +117,21 @@ export const WorldbookManager = {
 
     try {
       const targetBook = await getTargetWorldbookName();
+      let diffChanges: any[] = [];
       await updateWorldbookWith(targetBook, entries => {
         entries.forEach(entry => {
           const name = entry.name;
           if (!name) return;
 
-          // Note: We DO NOT reset to baseline here. We only apply deltas.
+          const originalState = !!entry.enabled;
+          let newState = originalState;
 
           // 1. Apply Enable Delta
           if (scenario.linkedWorldInfo.some(keyword => {
               const keys = (entry as any).key || (entry as any).keys || [];
               return name === keyword || keys.includes(keyword);
           })) {
-            entry.enabled = true;
+            newState = true;
           }
 
           // 2. Apply Disable Delta
@@ -132,7 +139,17 @@ export const WorldbookManager = {
               const keys = (entry as any).key || (entry as any).keys || [];
               return name === keyword || keys.includes(keyword);
           })) {
-            entry.enabled = false;
+            newState = false;
+          }
+
+          if (originalState !== newState) {
+            entry.enabled = newState;
+            diffChanges.push({
+                uid: entry.uid,
+                comment: (entry as any).comment || name,
+                from: originalState,
+                to: newState
+            });
           }
         });
         return entries;
@@ -147,8 +164,8 @@ export const WorldbookManager = {
           const newCommit = {
               id: Math.random().toString(36).substr(2, 6),
               timestamp: Date.now(),
-              description: `[Apply Scenario] ${scenario.title}`,
-              changes: [] // We can omit detailed changes for scenario for brevity, or add them if tracked
+              description: `[Apply Scenario] “${scenario.title}”`,
+              changes: diffChanges
           };
           const commits = [...manager.currentConfig.commits, newCommit];
           manager.saveConfig({ commits });
@@ -168,15 +185,36 @@ export const WorldbookManager = {
     console.info('[ARK_Manager] Closing all single-character entries...');
     try {
       const targetBook = await getTargetWorldbookName();
+      let diffChanges: any[] = [];
       await updateWorldbookWith(targetBook, entries => {
         entries.forEach(entry => {
           if (entry.name && SINGLE_CHAR_ENTRIES.includes(entry.name)) {
-            entry.enabled = false;
+            if (entry.enabled) {
+              entry.enabled = false;
+              diffChanges.push({
+                  uid: entry.uid,
+                  comment: (entry as any).comment || entry.name,
+                  from: true,
+                  to: false
+              });
+            }
           }
         });
         return entries;
       });
       toastr.success('已关闭所有单字条目');
+
+      const manager = StatusBarManager.getInstance();
+      if (manager.currentConfig && diffChanges.length > 0) {
+          const newCommit = {
+              id: Math.random().toString(36).substr(2, 6),
+              timestamp: Date.now(),
+              description: `[Bulk Close] 关闭了所有单字干员 (${diffChanges.length}项)`,
+              changes: diffChanges
+          };
+          const commits = [...manager.currentConfig.commits, newCommit];
+          manager.saveConfig({ commits });
+      }
     } catch (error) {
       console.error('[ARK_Manager] Bulk close failed:', error);
       toastr.error('操作失败: ' + (error as Error).message);

@@ -1,14 +1,29 @@
 import { BASELINE_STATE } from '../config/baseline';
 
-export const CONFIG_ENTRY_NAME = "[ARK_SYS_CONFIG]";
+export const CONFIG_ENTRY_PREFIX = "[SYS_CONFIG]";
+export const CONFIG_ENTRY_FULL_NAME = "[SYS_CONFIG]系统配置文件请勿打开";
 
 export interface ArkConfig {
     _desc: string;
-    theme: 'light' | 'dark';
+    theme: 'light' | 'dark' | 'transparent';
+    isSystemEnabled: boolean;
     isInterceptorEnabled: boolean;
+    uiWidth: number;
+    uiFontSize: number;
     commits: ArkCommit[];
     lastUpdateTime: number;
 }
+
+const DEFAULT_CONFIG: ArkConfig = {
+    _desc: "这是ARK_STATUSBAR的自动备份条目，请勿手动修改",
+    theme: "light", // Default to light/white as requested
+    isSystemEnabled: true,
+    isInterceptorEnabled: true,
+    uiWidth: 400,
+    uiFontSize: 14,
+    commits: [],
+    lastUpdateTime: 0
+};
 
 export interface ArkCommit {
     id: string;
@@ -27,7 +42,7 @@ export class StatusBarManager {
     private targetWorldbook: string | null = null;
     private interceptorBound: boolean = false;
     public currentConfig: ArkConfig | null = null;
-    public onConfigUpdate?: (config: ArkConfig) => void;
+    public onConfigUpdate?: (config: ArkConfig) => void; // Deprecated, use events
 
     private constructor() {}
 
@@ -52,9 +67,7 @@ export class StatusBarManager {
 
             await this.loadOrInitConfig();
             this.setupEvents();
-            if (this.currentConfig?.isInterceptorEnabled) {
-                this.bindInterceptor();
-            }
+            // Bind interceptor handled inside loadOrInitConfig
         } catch (error) {
             console.error('[ARK_StatusBar] Init failed:', error);
         }
@@ -63,21 +76,15 @@ export class StatusBarManager {
     private async loadOrInitConfig() {
         if (!this.targetWorldbook) return;
         let entries = await getWorldbook(this.targetWorldbook);
-        let configEntry = entries.find((e: any) => e.name === CONFIG_ENTRY_NAME || e.comment === CONFIG_ENTRY_NAME);
+        let configEntry = entries.find((e: any) => (e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) || (e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX)));
 
         if (!configEntry) {
-            console.info(`[ARK_StatusBar] Creating ${CONFIG_ENTRY_NAME}...`);
-            const initConfig: ArkConfig = {
-                _desc: "这是ARK_STATUSBAR的自动备份条目，请勿手动修改",
-                theme: "dark",
-                isInterceptorEnabled: true,
-                commits: [],
-                lastUpdateTime: Date.now()
-            };
+            console.info(`[ARK_StatusBar] Creating ${CONFIG_ENTRY_FULL_NAME}...`);
+            const initConfig: ArkConfig = { ...DEFAULT_CONFIG, lastUpdateTime: Date.now() };
             
             await createWorldbookEntries(this.targetWorldbook, [{
-                name: CONFIG_ENTRY_NAME,
-                comment: CONFIG_ENTRY_NAME,
+                name: CONFIG_ENTRY_FULL_NAME,
+                comment: CONFIG_ENTRY_FULL_NAME,
                 content: JSON.stringify(initConfig, null, 2),
                 enabled: false,
                 constant: false
@@ -86,19 +93,21 @@ export class StatusBarManager {
         } else {
             try {
                 this.currentConfig = JSON.parse(configEntry.content);
-                // Migrate missing fields
-                if (this.currentConfig) {
-                    if (this.currentConfig.isInterceptorEnabled === undefined) this.currentConfig.isInterceptorEnabled = true;
-                    if (!this.currentConfig.commits) this.currentConfig.commits = [];
-                }
+                // Migrate missing fields from default config
+                this.currentConfig = { ...DEFAULT_CONFIG, ...this.currentConfig };
             } catch (e) {
-                console.error("[ARK_StatusBar] Failed to parse config JSON:", e);
-                this.currentConfig = null;
+                console.error("[ARK_StatusBar] Failed to parse config JSON, using default:", e);
+                this.currentConfig = { ...DEFAULT_CONFIG, lastUpdateTime: Date.now() };
             }
         }
         
         if (this.onConfigUpdate && this.currentConfig) {
             this.onConfigUpdate(this.currentConfig);
+        }
+        document.dispatchEvent(new CustomEvent('ark-config-updated', { detail: this.currentConfig }));
+        
+        if (this.currentConfig?.isSystemEnabled && this.currentConfig?.isInterceptorEnabled) {
+            this.bindInterceptor();
         }
     }
 
@@ -108,7 +117,7 @@ export class StatusBarManager {
         
         try {
             await updateWorldbookWith(this.targetWorldbook, (wbEntries: any[]) => {
-                const entry = wbEntries.find(e => e.name === CONFIG_ENTRY_NAME || e.comment === CONFIG_ENTRY_NAME);
+                const entry = wbEntries.find(e => (e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) || (e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX)));
                 if (entry) {
                     entry.content = JSON.stringify(this.currentConfig, null, 2);
                     entry.enabled = false;
@@ -118,8 +127,9 @@ export class StatusBarManager {
             if (this.onConfigUpdate) {
                 this.onConfigUpdate(this.currentConfig);
             }
+            document.dispatchEvent(new CustomEvent('ark-config-updated', { detail: this.currentConfig }));
             
-            if (this.currentConfig.isInterceptorEnabled) {
+            if (this.currentConfig.isSystemEnabled && this.currentConfig.isInterceptorEnabled) {
                 this.bindInterceptor();
             } else {
                 this.unbindInterceptor();
@@ -144,9 +154,14 @@ export class StatusBarManager {
             let hasDiff = false;
             for (const key of Object.keys(BASELINE_STATE)) {
                 const entry = entries.find((e: any) => e.name === key || e.comment === key);
-                if (entry && entry.enabled !== BASELINE_STATE[key]) {
-                    hasDiff = true;
-                    break;
+                const baseline = BASELINE_STATE[key];
+                
+                if (entry) {
+                    const currentType = entry.strategy?.type || 'selective';
+                    if (entry.enabled !== baseline.enabled || currentType !== baseline.type) {
+                        hasDiff = true;
+                        break;
+                    }
                 }
             }
             

@@ -1,5 +1,5 @@
 <template>
-  <div class="ark-startup-container" :class="{ 'dark-theme': theme === 'dark' }">
+  <div class="ark-startup-container" :class="{ 'dark-theme': theme === 'dark', 'transparent-theme': theme === 'transparent' }">
     <div class="main-container">
       <div class="content-wrapper">
         <!-- Header Section -->
@@ -79,6 +79,11 @@
         <div class="wb-status-display" :class="wbStatusClass">
           <div class="status-label">SYSTEM STATUS</div>
           <div class="status-value">{{ wbStatusText }}</div>
+          <div class="status-diff" v-if="manager.currentConfig?.commits?.length">
+            最近修改: {{ manager.currentConfig.commits[manager.currentConfig.commits.length - 1].description }}
+            <br>
+            共计 {{ manager.currentConfig.commits.length }} 条修改记录
+          </div>
           <div class="status-decor"></div>
         </div>
 
@@ -112,13 +117,30 @@
 
         <div class="settings-divider"></div>
 
-        <h3>页面主题</h3>
+        <h3>全局系统控制</h3>
+        <div class="setting-item" style="margin-top: 10px;">
+          <label>控制台总开关</label>
+          <label class="switch">
+            <input type="checkbox" :checked="isSystemEnabled" @change="toggleSystem">
+            <span class="slider round"></span>
+          </label>
+        </div>
+        <p style="font-size: 0.8em; color: var(--ui-text-secondary); margin-bottom: 20px;">
+          关闭后将彻底隐藏罗德岛终端控制台，并暂停预检拦截系统。
+        </p>
+
+        <div class="settings-divider"></div>
+
+        <h3>终端主题</h3>
         <div class="theme-buttons-container">
           <div class="theme-button light" :class="{ active: theme === 'light' }" @click="setTheme('light')">
-            <span>默认</span>
+            <span>默认(白)</span>
           </div>
           <div class="theme-button dark" :class="{ active: theme === 'dark' }" @click="setTheme('dark')">
-            <span>夜间</span>
+            <span>夜间(黑)</span>
+          </div>
+          <div class="theme-button transparent" :class="{ active: theme === 'transparent' }" @click="setTheme('transparent')">
+            <span>透明</span>
           </div>
         </div>
       </div>
@@ -140,8 +162,13 @@ const scenarios = ref(STARTUP_SCENARIOS);
 const isSettingsOpen = ref(false);
 const wbStatus = ref<WorldbookStatus>('original');
 
+import { type ArkConfig } from '../logic/statusbar_manager';
+
 const manager = StatusBarManager.getInstance();
-const theme = computed(() => manager.currentConfig?.theme || 'dark');
+const currentConfig = ref<ArkConfig | null>(manager.currentConfig);
+
+const theme = computed(() => currentConfig.value?.theme || 'dark');
+const isSystemEnabled = computed(() => currentConfig.value?.isSystemEnabled ?? true);
 
 // Computed
 const wbStatusText = computed(() => {
@@ -179,8 +206,13 @@ const toggleSettings = () => {
   }
 };
 
-const setTheme = (newTheme: 'light' | 'dark') => {
+const setTheme = (newTheme: 'light' | 'dark' | 'transparent') => {
   manager.saveConfig({ theme: newTheme });
+};
+
+const toggleSystem = (e: Event) => {
+  const checked = (e.target as HTMLInputElement).checked;
+  manager.saveConfig({ isSystemEnabled: checked });
 };
 
 const checkWbStatus = async () => {
@@ -202,6 +234,11 @@ const handleRestoreWorldbook = async () => {
 // Initialize
 onMounted(() => {
   checkWbStatus();
+  
+  // Listen for config updates (like theme changes)
+  manager.onConfigUpdate = (config) => {
+      currentConfig.value = config;
+  };
 });
 
 const handleScenarioClick = async (scenario: Scenario) => {
@@ -278,6 +315,18 @@ const handleScenarioClick = async (scenario: Scenario) => {
   --ui-text-secondary: #b0b0b0;
   --ui-border-primary: #444;
   --ui-accent: #4fc3f7;
+}
+
+.ark-startup-container.transparent-theme {
+  --ui-bg: rgba(44, 47, 51, 0.4);
+  --ui-text-main: #eee;
+  --ui-text-secondary: #ccc;
+  --ui-border-primary: rgba(255, 255, 255, 0.1);
+  --ui-accent: #4fc3f7;
+}
+
+.ark-startup-container.transparent-theme .main-container {
+  backdrop-filter: blur(8px);
 }
 
 .main-container {
@@ -497,6 +546,11 @@ const handleScenarioClick = async (scenario: Scenario) => {
   background-color: #2a2a2a;
   color: #e0e0e0;
 }
+.theme-button.transparent {
+  background: linear-gradient(135deg, rgba(200,200,200,0.1), rgba(100,100,100,0.1));
+  color: var(--ui-text-main);
+  backdrop-filter: blur(4px);
+}
 .theme-button.active {
   border-color: var(--ui-accent);
 }
@@ -519,6 +573,34 @@ const handleScenarioClick = async (scenario: Scenario) => {
   align-items: center;
   margin-bottom: 20px;
 }
+
+/* Switch style */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+}
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px; width: 16px;
+  left: 2px; bottom: 2px;
+  background-color: white;
+  transition: .4s;
+}
+input:checked + .slider { background-color: #007bff; }
+input:checked + .slider:before { transform: translateX(20px); }
+.slider.round { border-radius: 20px; }
+.slider.round:before { border-radius: 50%; }
 
 h3 {
   color: var(--ui-text-main);
@@ -549,6 +631,13 @@ h3 {
   font-size: 1.2em;
   font-weight: bold;
   letter-spacing: 1px;
+}
+
+.wb-status-display .status-diff {
+  margin-top: 8px;
+  font-size: 0.8em;
+  opacity: 0.8;
+  line-height: 1.4;
 }
 
 .wb-status-display .status-decor {
