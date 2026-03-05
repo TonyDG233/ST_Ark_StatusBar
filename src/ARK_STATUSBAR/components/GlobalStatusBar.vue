@@ -443,28 +443,31 @@ const checkBounds = () => {
     const viewportWidth = ST_WIN.innerWidth;
     const viewportHeight = ST_WIN.innerHeight;
 
-    let newX = transformX.value;
-    let newY = transformY.value;
+    let deltaX = 0;
+    let deltaY = 0;
 
-    // Check right edge
+    // 1. Right edge check
     if (rect.right > viewportWidth) {
-        newX -= (rect.right - viewportWidth);
+        deltaX = viewportWidth - rect.right;
     }
-    // Check left edge
-    if (rect.left < 0) {
-        newX += (0 - rect.left);
-    }
-    // Check bottom edge
-    if (rect.bottom > viewportHeight) {
-        newY -= (rect.bottom - viewportHeight);
-    }
-    // Check top edge
-    if (rect.top < 0) {
-        newY += (0 - rect.top);
+    // 2. Left edge check (Priority: Ensure left edge is visible)
+    if (rect.left + deltaX < 0) {
+        deltaX = 0 - rect.left;
     }
 
-    transformX.value = newX;
-    transformY.value = newY;
+    // 3. Bottom edge check
+    if (rect.bottom > viewportHeight) {
+        deltaY = viewportHeight - rect.bottom;
+    }
+    // 4. Top edge check (Priority: Ensure top edge/drag handle is ALWAYS visible)
+    if (rect.top + deltaY < 0) {
+        deltaY = 0 - rect.top;
+    }
+
+    if (deltaX !== 0 || deltaY !== 0) {
+        transformX.value += deltaX;
+        transformY.value += deltaY;
+    }
 };
 
 const stopDrag = () => {
