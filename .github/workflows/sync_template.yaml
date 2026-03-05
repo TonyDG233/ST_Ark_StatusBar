@@ -21,6 +21,7 @@ jobs:
           fetch-depth: 0
       - uses: AndreasAugustin/actions-template-sync@v2
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           source_repo_path: StageDog/tavern_helper_template
           pr_title: '[bot] 同步模板仓库的更新'
           pr_commit_msg: '[bot] bump template repository update'
