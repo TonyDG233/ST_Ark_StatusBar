@@ -12,6 +12,7 @@ export interface ArkConfig {
     uiFontSize: number;
     commits: ArkCommit[];
     lastUpdateTime: number;
+    suppressNextDiffWarning?: boolean;
 }
 
 const DEFAULT_CONFIG: ArkConfig = {
@@ -150,6 +151,13 @@ export class StatusBarManager {
     public async checkBaselineDiff() {
         if (!this.targetWorldbook) return;
         try {
+            // Check if we need to suppress the warning
+            if (this.currentConfig?.suppressNextDiffWarning) {
+                console.info('[ARK_StatusBar] Suppressing diff warning as requested.');
+                await this.saveConfig({ suppressNextDiffWarning: false });
+                return;
+            }
+
             const entries = await getWorldbook(this.targetWorldbook);
             let hasDiff = false;
             for (const key of Object.keys(BASELINE_STATE)) {
@@ -224,7 +232,7 @@ export class StatusBarManager {
         if (globalEventOff) globalEventOff('world_info_activated', tempListener);
 
         if (activatedEntries && activatedEntries.length > 0) {
-            // Trigger UI to show pending entries
+            // Trigger UI to show pending entries. GlobalStatusBar will handle mapping to real entries and filtering out constant ones.
             const event = new CustomEvent('ark-interceptor-triggered', { detail: { entries: activatedEntries } });
             document.dispatchEvent(event);
         } else {

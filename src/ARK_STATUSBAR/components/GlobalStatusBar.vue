@@ -50,14 +50,22 @@
             <p>本次回复将触发以下世界书条目：</p>
           </div>
           <ul class="entry-list">
-            <li v-for="entry in pendingEntries" :key="entry.uid">
-              <span class="entry-name">{{ entry.comment || (entry.key ? entry.key[0] : '未知') }}</span>
-              <span class="badge">将被发送</span>
+            <li v-for="entry in pendingEntries" :key="entry.uid || Math.random()" :class="{ 'disabled-entry': !entry.enabled }">
+              <div class="entry-info">
+                <span class="entry-name">{{ entry.comment || entry.name || (entry.key && entry.key.length ? entry.key[0] : '未知') }}</span>
+                <span class="badge" v-if="entry.enabled !== false">将被发送</span>
+                <span class="badge blocked" v-else>已阻断</span>
+              </div>
+              <button class="icon-btn tiny" 
+                :title="entry.enabled !== false ? '阻断此条目' : '重新开启此条目'" 
+                @click="togglePendingEntry(entry)">
+                {{ entry.enabled !== false ? '❎ 阻断' : '✅ 开启' }}
+              </button>
             </li>
           </ul>
           <div class="action-bar compact">
-            <button class="btn-success icon-only" @click="confirmSend" title="确认放行 (发送)">✅ 放行</button>
-            <button class="btn-danger icon-only" @click="cancelSend" title="取消发送">❎ 阻断</button>
+            <button class="btn-success" @click="confirmSend" title="确认发送">确认发送</button>
+            <button class="btn-danger" @click="cancelSend" title="取消发送">取消发送</button>
           </div>
         </div>
       </div>
@@ -78,7 +86,7 @@
                 </select>
             </div>
             <div class="filter-row" style="margin-top: 5px;">
-                <button class="btn-danger tiny" @click="resetToBaseline" style="flex:1; padding: 4px; font-size: 0.9em;">↺ 恢复 Baseline</button>
+                <button class="btn-danger tiny" @click="resetToBaseline" style="flex:1; padding: 4px; font-size: 0.9em;">↺ 恢复初始状态</button>
                 <button class="btn-warning tiny" @click="closeSingleChar" style="flex:1; padding: 4px; font-size: 0.9em;">⚡ 关闭单字干员</button>
             </div>
         </div>
@@ -171,7 +179,7 @@
         </div>
 
         <div class="setting-action">
-          <button class="btn-danger" @click="resetToBaseline">重置世界书至基准线</button>
+          <button class="btn-danger" @click="resetToBaseline">重置世界书至初始状态</button>
           <p class="hint warning">将清除所有手动修改记录和开局预设，恢复至角色卡最初的干净状态。</p>
         </div>
       </div>
@@ -510,12 +518,43 @@ onMounted(() => {
 
     // Listen for interceptor trigger
     document.addEventListener('ark-interceptor-triggered', ((e: CustomEvent) => {
-        pendingEntries.value = e.detail.entries || [];
-        currentTab.value = 'interceptor';
-        isMiniMode.value = false;
-        // Make sure it's fully visible (not hidden by system off)
-        if (!isSystemEnabled.value) {
-           manager.saveConfig({ isSystemEnabled: true });
+        const triggered = e.detail.entries || [];
+        
+        // Map to real entries from allEntries to preserve reactivity and `enabled` state,
+        // fallback to raw if not found. Then filter out constant (blue light) entries.
+        const matchedEntries = triggered.map((raw: any) => {
+            // Match by uid first
+            let found = allEntries.value.find(e => e.uid !== undefined && raw.uid !== undefined && e.uid == raw.uid);
+            
+            // Fallback match by name or comment if uid fails (ST might not provide uid in the event)
+            if (!found) {
+                found = allEntries.value.find(e => 
+                    (e.name && raw.name && e.name === raw.name) || 
+                    (e.comment && raw.comment && e.comment === raw.comment) ||
+                    (e.comment && raw.name && e.comment === raw.name) ||
+                    (e.name && raw.comment && e.name === raw.comment)
+                );
+            }
+            
+            // If still not found, make sure we use raw but set enabled to true explicitly since it was triggered
+            if (!found) {
+                raw.enabled = raw.enabled !== false; // ensure it's not undefined
+            }
+            
+            return found || raw;
+        }).filter((entry: any) => getEntryType(entry) !== 'constant');
+
+        if (matchedEntries.length > 0) {
+            pendingEntries.value = matchedEntries;
+            currentTab.value = 'interceptor';
+            isMiniMode.value = false;
+            // Make sure it's fully visible (not hidden by system off)
+            if (!isSystemEnabled.value) {
+               manager.saveConfig({ isSystemEnabled: true });
+            }
+        } else {
+            // If all were constant or empty, just release and send
+            manager.releaseInterceptAndSend();
         }
     }) as EventListener);
 
@@ -639,6 +678,11 @@ const toggleEntry = async (entry: any) => {
         console.error("Failed to toggle entry", e);
         entry.enabled = !entry.enabled; // revert UI
     }
+};
+
+const togglePendingEntry = async (entry: any) => {
+    entry.enabled = !entry.enabled;
+    await toggleEntry(entry);
 };
 </script>
 
@@ -802,11 +846,32 @@ const toggleEntry = async (entry: any) => {
     align-items: center;
 }
 
+.entry-list .entry-info {
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+    margin-right: 10px;
+}
+
+.entry-list .entry-name {
+    word-break: break-all;
+}
+
 .entry-list .badge {
     font-size: 0.8em;
     background: #007bff;
     padding: 2px 6px;
     border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.entry-list .badge.blocked {
+    background: var(--ui-border-primary);
+    color: var(--ui-text-secondary);
 }
 
 .action-bar {

@@ -66,3 +66,9 @@
   - 增加 `SAFE_TOP = 70` 缓冲区避开酒馆顶部 Navbar，确保头部拖拽区域永远可用。
   - 通过 ResizeObserver 解决由于 bottom 锚定导致切换大 Tab 时 UI 向上溢出的问题，触发高度变化时自动将 UI 推向下侧。
   - 双击头部支持重置 UI 坐标到默认态。
+
+## MVP v2 最终确认修复 (修复 "Unknown" 条目与拦截预警问题)
+- **修复 `world_info_activated` 事件拦截的数据缺失问题**：由于酒馆抛出的事件数据是不含 `enabled` 和 `strategy` 的阉割版拷贝，导致拦截预警面板大量显示 "Unknown" 并带有错误的红/绿灯状态。
+- **解决方案**：在 `GlobalStatusBar.vue` 接收到拦截事件后，将其与全量的 `allEntries` 进行匹配（优先使用 `uid`，若缺失则降级使用 `name` 和 `comment` 模糊匹配），从而还原完整的世界书条目信息。
+- **蓝灯过滤**：由于蓝灯（Constant 状态）一定会触发，不需要人工干预，在匹配逻辑中增加了 `.filter(entry => getEntryType(entry) !== 'constant')`，将蓝灯条目从预警面板中剔除，保持面板整洁。
+- **透明主题 Logo 修复**：在 `StartupNavigator.vue` 为 `.transparent-theme .arknights-logo` 增加了 `filter: invert(1)` 反色处理，确保黑色 Logo 在透明/深色背景下清晰可见。

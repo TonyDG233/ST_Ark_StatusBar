@@ -227,6 +227,7 @@ const handleCloseSingleChar = async () => {
 const handleRestoreWorldbook = async () => {
   if (confirm('确定要将世界书重置为初始状态吗？这将丢失所有自定义修改。')) {
     await WorldbookManager.resetToBaseline();
+    await manager.saveConfig({ commits: [] });
     await checkWbStatus();
   }
 };
@@ -281,6 +282,9 @@ const handleScenarioClick = async (scenario: Scenario) => {
     // Update the message content to the selected swipe
     firstMessage.swipe_id = scenario.swipeId;
     firstMessage.mes = firstMessage.swipes[scenario.swipeId];
+
+    // Suppress diff warning for the upcoming chat reload
+    manager.saveConfig({ suppressNextDiffWarning: true });
 
     // Save and Reload
     await SillyTavern.saveChat();
@@ -363,7 +367,8 @@ const handleScenarioClick = async (scenario: Scenario) => {
   transition: filter 0.3s;
 }
 
-.dark-theme .arknights-logo {
+.dark-theme .arknights-logo,
+.transparent-theme .arknights-logo {
   filter: invert(1) brightness(0.8);
 }
 
