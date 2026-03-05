@@ -523,6 +523,10 @@ onMounted(() => {
         }
     }) as EventListener);
 
+    requestAnimationFrame(() => {
+        checkBounds();
+    });
+
     // Listen for baseline diff
     document.addEventListener('ark-baseline-diff-detected', () => {
         if (typeof toastr !== 'undefined') {
