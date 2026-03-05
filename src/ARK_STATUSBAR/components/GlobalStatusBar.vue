@@ -7,10 +7,10 @@
        ref="statusBarEl">
     <div class="statusbar-header" @mousedown="startDrag" @touchstart="startDrag" @dblclick="resetPosition" title="拖拽移动，双击还原位置">
       <div class="title" v-if="!isMiniMode">
-        <span class="icon">📖</span> 罗德岛终端控制台
+        <span class="icon">📖</span> 方舟世界书控制台
       </div>
       <div class="title mini" v-else>
-        <span class="icon">📖</span> 终端 (预警: {{pendingEntries.length}})
+        <span class="icon">📖</span> 世界书 (预警: {{pendingEntries.length}})
       </div>
       <div class="controls">
         <button class="icon-btn" @click="toggleMinimize" title="折叠/展开">

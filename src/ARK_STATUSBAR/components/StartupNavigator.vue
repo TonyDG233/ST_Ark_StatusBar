@@ -7,8 +7,9 @@
           <div class="arknights-logo-container">
             <img :src="ASSETS.LOGO_URL" alt="Arknights Logo" class="arknights-logo" />
           </div>
-          <p class="author-info">初版作者：打不准的豌豆射手 | v版作者：F.o.x.i.o</p>
-          <p class="author-info">UI重构：ARK_STATUSBAR Project</p>
+          <p class="author-info">初版作者：打不准的豌豆射手 | v版核心作者：F.o.x.i.o</p>
+          <p class="author-info">项目贡献者：TonyDG233(UI), 晚鸢尾(UI), 暗中观察信长(剧情), 政委x(剧情), Rylan(剧情)</p>
+          <p class="author-info">UI重构项目：ARK_STATUSBAR</p>
         </div>
 
         <div class="copyright-notice">
@@ -18,10 +19,8 @@
 
         <div class="usage-instructions">
           <strong>使用说明</strong><br />
-          请第一次使用本角色卡的用户，务必前往最后一个开局阅读<strong style="color: var(--warning-accent)"
-            >“狐の言（在首次游玩前请一定要看！）”</strong
-          >。<br />
-          若需管理单字干员或重置世界书状态，请点击右下角按钮打开侧边栏进行操作。
+          请第一次使用本角色卡的用户，务必前往最后一个开局阅读<strong style="color: var(--warning-accent)">“狐の言（在首次游玩前请一定要看！）”</strong>。<br />
+          若需管理单字干员/重置世界书状态，或管理悬浮窗UI，请点击右下角按钮打开侧边栏进行操作。
         </div>
 
         <div class="section-title">◆ 简介</div>
@@ -110,23 +109,22 @@
             本面板会智能识别并管理当前角色的世界书状态。
           </p>
           <p style="font-size: 0.85em; margin-top: 5px; line-height: 1.6">
-            若您手动修改了世界书（如自行开启了某些条目），状态将显示为<strong style="color: #ff9800">“已修改”</strong
-            >。此时切换开局可能会触发冲突警告，请按需选择继续或重置。
+            若您手动修改了世界书（如自行开启了某些条目），状态将显示为<strong style="color: #ff9800">“已修改”</strong>。此时切换开局可能会触发冲突警告，请按需选择继续或重置。
           </p>
         </div>
 
         <div class="settings-divider"></div>
 
-        <h3>全局系统控制</h3>
+        <h3>功能组件控制</h3>
         <div class="setting-item" style="margin-top: 10px;">
-          <label>控制台总开关</label>
+          <label>世界书控制台开关</label>
           <label class="switch">
             <input type="checkbox" :checked="isSystemEnabled" @change="toggleSystem">
             <span class="slider round"></span>
           </label>
         </div>
         <p style="font-size: 0.8em; color: var(--ui-text-secondary); margin-bottom: 20px;">
-          关闭后将彻底隐藏罗德岛终端控制台，并暂停预检拦截系统。
+          关闭后将彻底隐藏方舟世界书控制台，并暂停预检拦截系统。
         </p>
 
         <div class="settings-divider"></div>
