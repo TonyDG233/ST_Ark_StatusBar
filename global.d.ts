@@ -34,5 +34,9 @@ declare namespace z {
 }
 
 declare module 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/util/mvu_zod.js' {
+<<<<<<< HEAD
   export function registerMvuSchema(schema: z.ZodObject | (() => z.ZodObject)): void;
+=======
+  export function registerMvuSchema(schema: z.ZodType<Record<string, any>> | (() => z.ZodType<Record<string, any>>)): void;
+>>>>>>> b0dafaa424fd6b2abbf4f32eab5bb8f9ad970e3d
 }
