@@ -58,6 +58,7 @@ export class StatusBarManager {
 
     async init() {
         console.info('[ARK_StatusBar] Initializing Manager...');
+        // this.patchST();
         try {
             const result = await getCharWorldbookNames('current');
             if (result.primary) this.targetWorldbook = result.primary;
@@ -209,6 +210,26 @@ export class StatusBarManager {
     }
 
     // --- Interceptor Logic ---
+    /*     
+    private patchST() {
+        const st = (window.parent as any)?.SillyTavern || (window as any).SillyTavern;
+        const context = st?.getContext?.();
+        if (context && context.getWorldInfoPrompt && !(context.getWorldInfoPrompt as any).__patched) {
+            const original = context.getWorldInfoPrompt;
+            context.getWorldInfoPrompt = async function (chat: any, maxCtx: any, dryRun: any, ...args: any[]) {
+                if (!dryRun && !(chat as any).__isMock) {
+                    console.log("[ARK_StatusBar] ST native getWorldInfoPrompt called!");
+                    console.log("  -> Native chat param:", chat);
+                    console.log("  -> Native maxCtx:", maxCtx, "dryRun:", dryRun);
+                }
+                return await original.apply(this, [chat, maxCtx, dryRun, ...args]);
+            };
+            (context.getWorldInfoPrompt as any).__patched = true;
+            console.info("[ARK_StatusBar] ST getWorldInfoPrompt patched for debugging.");
+        }
+    } 
+    */
+
     public async runManualTest() {
         console.info('[ARK_StatusBar] Running manual test...');
         const ST_DOC = window.parent?.document || document;
@@ -225,8 +246,30 @@ export class StatusBarManager {
         }
 
         const rawChat = context.chat || [];
-        const chatStrings = rawChat.map((msg: any) => (msg.mes !== undefined ? msg.mes : String(msg)));
-        const mockChat = [...chatStrings, text];
+        const chatStrings = rawChat.map((msg: any) => {
+            if (typeof msg === 'string') return msg;
+            if (msg && msg.mes !== undefined) {
+                let name = msg.name;
+                if (!name && st) {
+                    name = msg.is_user ? st.name1 : st.name2;
+                }
+                return name ? `${name}: ${msg.mes}` : String(msg.mes);
+            }
+            return String(msg);
+        });
+
+        const mockChat = [...chatStrings];
+        if (text) {
+            const userName = st?.name1 || "User";
+            mockChat.push(`${userName}: ${text}`);
+        }
+
+        // CRITICAL FIX: SillyTavern's getWorldInfoPrompt expects the chat array in REVERSE order!
+        // depth 0 = messages[0] = newest message
+        mockChat.reverse();
+
+        (mockChat as any).__isMock = true;
+        console.log("[ARK_StatusBar] Mock chat for manual test:", mockChat);
 
         let activatedEntries: any[] = [];
         const tempListener = (evt: any) => {
@@ -274,8 +317,25 @@ export class StatusBarManager {
         }
 
         const rawChat = context.chat || [];
-        const chatStrings = rawChat.map((msg: any) => (msg.mes !== undefined ? msg.mes : String(msg)));
-        const mockChat = [...chatStrings, text];
+        const chatStrings = rawChat.map((msg: any) => {
+            if (typeof msg === 'string') return msg;
+            if (msg && msg.mes !== undefined) {
+                let name = msg.name;
+                if (!name && st) {
+                    name = msg.is_user ? st.name1 : st.name2;
+                }
+                return name ? `${name}: ${msg.mes}` : String(msg.mes);
+            }
+            return String(msg);
+        });
+
+        const mockChat = [...chatStrings];
+        if (text) {
+            const userName = st?.name1 || "User";
+            mockChat.push(`${userName}: ${text}`);
+        }
+
+        mockChat.reverse();
 
         let activatedEntries: any[] = [];
         const tempListener = (evt: any) => {
