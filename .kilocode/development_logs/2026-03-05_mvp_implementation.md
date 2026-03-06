@@ -87,3 +87,12 @@
   - 在所有列表渲染（包括全部条目、拦截预警、快照列表）中，被置顶的条目都会优先排在最上方。
   - 设置页签新增了“清空所有偏好置顶”的快捷按钮。
 - **分类排序优化**：在下拉筛选中，特殊分类 `[未分类]` 现已固定沉底排列。
+
+## 2026-03-06: Manual Intercept Test Feature
+- **可行性与上下文分析**：
+  - 经分析确认，SillyTavern 原生的 Worldbook 触发检测，深度完全依赖于世界书条目自身配置中的 `Search Range` 参数。
+  - 我们传递了全量上下文。为了绝对确保后端不截断，将传递给 `getWorldInfoPrompt` 的 `maxContextTokens` 由 `100000` 再次拔高至 `1000000`。
+- **功能实装**：
+  - 在 `StatusBarManager` 新增 `runManualTest()` 暴露干预入口，并在事件流中附加 `{ isManualTest: true }`。
+  - 在 `GlobalStatusBar.vue` 界面（拦截预警 Tab）中新增了 `[🔍 主动检测]` 按钮。
+  - UI 针对测试模式（`isTestMode`）做了隔离渲染，隐去“确认/取消发送”等动作按钮，提供专用的“清除测试结果”操作，防止污染正常发送生命周期。

@@ -209,6 +209,49 @@ export class StatusBarManager {
     }
 
     // --- Interceptor Logic ---
+    public async runManualTest() {
+        console.info('[ARK_StatusBar] Running manual test...');
+        const ST_DOC = window.parent?.document || document;
+        const textarea = ST_DOC.querySelector('#send_textarea') as HTMLTextAreaElement;
+        const text = textarea?.value?.trim() || "";
+
+        const st = (window.parent as any)?.SillyTavern || (window as any).SillyTavern;
+        const context = st?.getContext?.();
+        if (!context || !context.getWorldInfoPrompt) {
+            console.warn("[ARK_StatusBar] Context or getWorldInfoPrompt not available for manual test.");
+            const event = new CustomEvent('ark-interceptor-triggered', { detail: { entries: [], isManualTest: true } });
+            document.dispatchEvent(event);
+            return;
+        }
+
+        const rawChat = context.chat || [];
+        const chatStrings = rawChat.map((msg: any) => (msg.mes !== undefined ? msg.mes : String(msg)));
+        const mockChat = [...chatStrings, text];
+
+        let activatedEntries: any[] = [];
+        const tempListener = (evt: any) => {
+            activatedEntries = evt.detail || evt;
+        };
+
+        const eventTarget = window.parent?.document || document;
+        eventTarget.addEventListener('world_info_activated', tempListener);
+        const globalEventOn = (window.parent as any)?.eventOn || (window as any).eventOn;
+        if (globalEventOn) globalEventOn('world_info_activated', tempListener);
+
+        try {
+            await context.getWorldInfoPrompt(mockChat, 1000000, false);
+        } catch (error) {
+            console.error('[ARK_StatusBar] Dry run failed', error);
+        }
+
+        eventTarget.removeEventListener('world_info_activated', tempListener);
+        const globalEventOff = (window.parent as any)?.eventOff || (window as any).eventOff;
+        if (globalEventOff) globalEventOff('world_info_activated', tempListener);
+
+        const event = new CustomEvent('ark-interceptor-triggered', { detail: { entries: activatedEntries || [], isManualTest: true } });
+        document.dispatchEvent(event);
+    }
+
     private handleIntercept = async (e: Event) => {
         const keyboardEvent = e as KeyboardEvent;
         if (e.type === 'keydown' && (keyboardEvent.key !== 'Enter' || keyboardEvent.shiftKey)) return;
@@ -245,7 +288,7 @@ export class StatusBarManager {
         if (globalEventOn) globalEventOn('world_info_activated', tempListener);
 
         try {
-            await context.getWorldInfoPrompt(mockChat, 100000, false);
+            await context.getWorldInfoPrompt(mockChat, 1000000, false);
         } catch (error) {
             console.error('[ARK_StatusBar] Dry run failed', error);
         }

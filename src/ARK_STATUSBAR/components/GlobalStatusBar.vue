@@ -29,22 +29,36 @@
     <div class="statusbar-content" v-show="!isMiniMode">
       <!-- Tab 1: Interceptor -->
       <div v-show="currentTab === 'interceptor'" class="tab-panel flex-col">
-        <div class="panel-header-action" style="display: flex; align-items: center; gap: 10px;">
-          <label>发送预检拦截</label>
-          <label class="switch">
-            <input type="checkbox" :checked="currentConfig?.isInterceptorEnabled" @change="toggleInterceptor">
-            <span class="slider round"></span>
-          </label>
+        <div class="panel-header-action" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <label>发送预检拦截</label>
+            <label class="switch">
+              <input type="checkbox" :checked="currentConfig?.isInterceptorEnabled" @change="toggleInterceptor">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <button class="icon-btn tiny" style="border: 1px solid var(--SmartThemeBorderColor, #444); padding: 4px 8px;" @click="runManualTest" title="主动测试当前输入和上下文会触发的条目">
+            🔍 主动检测
+          </button>
         </div>
         
-        <div v-if="!currentConfig?.isInterceptorEnabled" class="empty-state">
+        <div v-if="!currentConfig?.isInterceptorEnabled && !isTestMode" class="empty-state">
             ⚠️ 预检拦截已关闭，发送请求将直接通行。
         </div>
         <div v-else-if="pendingEntries.length === 0" class="empty-state">
-          当前没有被拦截的发送请求。
-          <p class="hint">点击发送按钮时，即将触发的条目将在此等待确认。</p>
+          <div v-if="!isTestMode">
+            当前没有被拦截的发送请求。
+            <p class="hint">点击发送按钮时，即将触发的条目将在此等待确认。</p>
+          </div>
+          <div v-else>
+            <strong style="color: #007bff;">🔍 测试结果</strong>
+            <p>根据当前上下文，未触发任何条件世界书条目。</p>
+            <div class="action-bar compact" style="margin-top: 15px;">
+              <button class="btn-primary" @click="clearTestResults" title="清除测试结果">清除测试结果</button>
+            </div>
+          </div>
 
-          <div v-if="lastTriggeredEntries.length > 0" class="last-record-box">
+          <div v-if="!isTestMode && lastTriggeredEntries.length > 0" class="last-record-box">
               <hr class="record-divider" />
               <strong>上一轮触发记录</strong>
               <ul class="entry-list read-only">
@@ -62,9 +76,11 @@
           </div>
         </div>
         <div v-else>
-          <div class="warning-box">
-            <strong>⚠️ 拦截预警</strong>
-            <p>本次回复将触发以下世界书条目：</p>
+          <div class="warning-box" :style="isTestMode ? 'background: rgba(0, 123, 255, 0.2); border-left-color: #007bff;' : ''">
+            <strong v-if="!isTestMode">⚠️ 拦截预警</strong>
+            <strong v-else>🔍 测试结果</strong>
+            <p v-if="!isTestMode">本次回复将触发以下世界书条目：</p>
+            <p v-else>根据当前上下文，模拟检测触发了以下条目：</p>
           </div>
           <ul class="entry-list">
             <li v-for="entry in sortedPendingEntries" :key="entry.uid || Math.random()" :class="{ 'disabled-entry': !entry.enabled }">
@@ -83,9 +99,12 @@
               </button>
             </li>
           </ul>
-          <div class="action-bar compact">
+          <div class="action-bar compact" v-if="!isTestMode">
             <button class="btn-success" @click="confirmSend" title="确认发送">确认发送</button>
             <button class="btn-danger" @click="cancelSend" title="取消发送">取消发送</button>
+          </div>
+          <div class="action-bar compact" v-else>
+            <button class="btn-primary" @click="clearTestResults" title="清除测试结果">清除测试结果</button>
           </div>
         </div>
       </div>
@@ -241,6 +260,17 @@ const isVisible = ref(true); // Now controlled by system state and toggle
 const isMiniMode = ref(true);
 const currentTab = ref('interceptor');
 const pendingEntries = ref<any[]>([]);
+const isTestMode = ref(false);
+
+const runManualTest = () => {
+    isTestMode.value = true;
+    manager.runManualTest();
+};
+
+const clearTestResults = () => {
+    pendingEntries.value = [];
+    isTestMode.value = false;
+};
 
 // <!-- [FEATURE: MINI_SNAPSHOT] --> Keep track of last triggered entries to show in mini mode
 const lastTriggeredEntries = ref<any[]>([]);
@@ -618,6 +648,8 @@ onMounted(() => {
     // Listen for interceptor trigger
     document.addEventListener('ark-interceptor-triggered', ((e: CustomEvent) => {
         const triggered = e.detail.entries || [];
+        const isManualTest = !!e.detail.isManualTest;
+        isTestMode.value = isManualTest;
         
         // Map to real entries from allEntries to preserve reactivity and `enabled` state,
         // fallback to raw if not found. Then filter out constant (blue light) entries.
@@ -643,13 +675,16 @@ onMounted(() => {
             return found || raw;
         }).filter((entry: any) => getEntryType(entry) !== 'constant');
 
-        if (matchedEntries.length > 0) {
+        if (matchedEntries.length > 0 || isManualTest) {
             pendingEntries.value = matchedEntries;
             currentTab.value = 'interceptor';
             isMiniMode.value = false;
             // Make sure it's fully visible (not hidden by system off)
             if (!isSystemEnabled.value) {
                manager.saveConfig({ isSystemEnabled: true });
+            }
+            if (isManualTest && typeof toastr !== 'undefined') {
+               toastr.success('检测完成。', 'ARK_STATUSBAR');
             }
         } else {
             // If all were constant or empty, just release and send
