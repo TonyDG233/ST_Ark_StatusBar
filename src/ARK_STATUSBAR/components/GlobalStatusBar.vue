@@ -26,7 +26,7 @@
       <button :class="{ active: currentTab === 'settings' }" @click="currentTab = 'settings'">设置</button>
     </div>
 
-    <div class="statusbar-content">
+    <div class="statusbar-content" v-show="!isMiniMode">
       <!-- Tab 1: Interceptor -->
       <div v-show="currentTab === 'interceptor'" class="tab-panel flex-col">
         <div class="panel-header-action" style="display: flex; align-items: center; gap: 10px;">
@@ -43,6 +43,23 @@
         <div v-else-if="pendingEntries.length === 0" class="empty-state">
           当前没有被拦截的发送请求。
           <p class="hint">点击发送按钮时，即将触发的条目将在此等待确认。</p>
+
+          <div v-if="lastTriggeredEntries.length > 0" class="last-record-box">
+              <hr class="record-divider" />
+              <strong>上一轮触发记录</strong>
+              <ul class="entry-list read-only">
+                  <li v-for="entry in sortedLastTriggeredEntries" :key="entry.uid || Math.random()" :class="{ 'disabled-entry': !entry.enabled }">
+                    <div class="entry-info">
+                        <span class="entry-name">
+                            <span v-if="isPinned(entry)" class="pin-icon">📌</span>
+                            {{ entry.comment || entry.name || (entry.key && entry.key.length ? entry.key[0] : '未知') }}
+                        </span>
+                        <span class="badge" v-if="entry.enabled !== false">已发送</span>
+                        <span class="badge blocked" v-else>已阻断</span>
+                    </div>
+                  </li>
+              </ul>
+          </div>
         </div>
         <div v-else>
           <div class="warning-box">
@@ -50,9 +67,12 @@
             <p>本次回复将触发以下世界书条目：</p>
           </div>
           <ul class="entry-list">
-            <li v-for="entry in pendingEntries" :key="entry.uid || Math.random()" :class="{ 'disabled-entry': !entry.enabled }">
+            <li v-for="entry in sortedPendingEntries" :key="entry.uid || Math.random()" :class="{ 'disabled-entry': !entry.enabled }">
               <div class="entry-info">
-                <span class="entry-name">{{ entry.comment || entry.name || (entry.key && entry.key.length ? entry.key[0] : '未知') }}</span>
+                <span class="entry-name">
+                    <span v-if="isPinned(entry)" class="pin-icon">📌</span>
+                    {{ entry.comment || entry.name || (entry.key && entry.key.length ? entry.key[0] : '未知') }}
+                </span>
                 <span class="badge" v-if="entry.enabled !== false">将被发送</span>
                 <span class="badge blocked" v-else>已阻断</span>
               </div>
@@ -94,11 +114,15 @@
             <div v-for="entry in filteredEntries" :key="entry.uid" class="wb-item" :class="{ 'disabled-entry': !entry.enabled }">
                 <div class="wb-info">
                     <div class="wb-name">
+                        <span v-if="isPinned(entry)" class="pin-icon">📌</span>
                         {{ entry.comment || entry.name || (entry.key ? entry.key[0] : '未知') }}
                     </div>
                     <div class="wb-keys" v-if="entry.key && entry.key.length">触发词: {{ entry.key.join(', ') }}</div>
                 </div>
                 <div class="wb-action">
+                    <button class="icon-btn tiny pin-btn" @click="togglePin(entry)" :title="isPinned(entry) ? '取消置顶' : '偏好置顶'" :class="{ 'pinned': isPinned(entry) }">
+                        {{ isPinned(entry) ? '📌' : '📍' }}
+                    </button>
                     <button class="icon-btn tiny" @click="toggleEntryType(entry)" :title="getEntryType(entry) === 'constant' ? '当前：蓝灯(常驻)，点击切换' : '当前：绿灯(条件)，点击切换'">
                         {{ getEntryType(entry) === 'constant' ? '🔵' : '🟢' }}
                     </button>
@@ -179,11 +203,32 @@
         </div>
 
         <div class="setting-action">
-          <button class="btn-danger" @click="resetToBaseline">重置世界书至初始状态</button>
-          <p class="hint warning">将清除所有手动修改记录和开局预设，恢复至角色卡最初的干净状态。</p>
+          <div style="margin-bottom: 15px;">
+            <button class="btn-warning" @click="clearPins">清空所有偏好置顶</button>
+            <p class="hint">取消全部条目的置顶状态。</p>
+          </div>
+          
+          <div style="border-top: 1px dashed rgba(128, 128, 128, 0.3); padding-top: 15px;">
+            <button class="btn-danger" @click="resetToBaseline">重置世界书至初始状态</button>
+            <p class="hint warning">将清除所有手动修改记录和开局预设，恢复至角色卡最初的干净状态。</p>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- [FEATURE: MINI_SNAPSHOT] -> Compact list shown ONLY in mini mode -->
+    <div class="statusbar-mini-content" v-show="isMiniMode">
+        <div v-if="(pendingEntries.length > 0 ? pendingEntries : lastTriggeredEntries).length === 0" class="mini-empty">
+            无近期触发记录
+        </div>
+        <ul v-else class="mini-entry-list">
+            <li v-for="entry in (pendingEntries.length > 0 ? pendingEntries : lastTriggeredEntries)" :key="entry.uid || Math.random()">
+                <span class="indicator" :class="{ blocked: entry.enabled === false }"></span>
+                <span class="text">{{ entry.comment || entry.name || (entry.key && entry.key.length ? entry.key[0] : '未知') }}</span>
+            </li>
+        </ul>
+    </div>
+    <!-- [FEATURE: MINI_SNAPSHOT] END -->
   </div>
 </template>
 
@@ -196,6 +241,19 @@ const isVisible = ref(true); // Now controlled by system state and toggle
 const isMiniMode = ref(true);
 const currentTab = ref('interceptor');
 const pendingEntries = ref<any[]>([]);
+
+// <!-- [FEATURE: MINI_SNAPSHOT] --> Keep track of last triggered entries to show in mini mode
+const lastTriggeredEntries = ref<any[]>([]);
+
+const sortedPendingEntries = computed(() => {
+    return [...pendingEntries.value].sort((a, b) => (isPinned(b) ? 1 : 0) - (isPinned(a) ? 1 : 0));
+});
+
+const sortedLastTriggeredEntries = computed(() => {
+    return [...lastTriggeredEntries.value].sort((a, b) => (isPinned(b) ? 1 : 0) - (isPinned(a) ? 1 : 0));
+});
+// <!-- [FEATURE: MINI_SNAPSHOT] END -->
+
 const currentConfig = ref<ArkConfig | null>(null);
 const allEntries = ref<any[]>([]);
 
@@ -264,15 +322,44 @@ const availableCategories = computed(() => {
         if (match) cats.add(match[1]);
         else cats.add('未分类');
     });
-    return Array.from(cats).sort();
+    const sorted = Array.from(cats).sort();
+    // Sink "未分类" to the bottom
+    const uncatIndex = sorted.indexOf('未分类');
+    if (uncatIndex !== -1) {
+        sorted.splice(uncatIndex, 1);
+        sorted.push('未分类');
+    }
+    return sorted;
 });
 
 const getEntryType = (entry: any) => {
     return entry.strategy?.type || 'selective';
 };
 
+const isPinned = (entry: any) => {
+    return currentConfig.value?.pinnedEntries?.includes(entry.uid) || false;
+};
+
+const togglePin = (entry: any) => {
+    const pinned = currentConfig.value?.pinnedEntries || [];
+    const index = pinned.indexOf(entry.uid);
+    let newPinned = [...pinned];
+    if (index === -1) {
+        newPinned.push(entry.uid);
+    } else {
+        newPinned.splice(index, 1);
+    }
+    manager.saveConfig({ pinnedEntries: newPinned });
+};
+
+const clearPins = () => {
+    if (confirm('确定要清空所有置顶的偏好条目吗？')) {
+        manager.saveConfig({ pinnedEntries: [] });
+    }
+};
+
 const filteredEntries = computed(() => {
-    return allEntries.value.filter(entry => {
+    let result = allEntries.value.filter(entry => {
         // 1. Text filter
         if (filterText.value) {
             const query = filterText.value.toLowerCase();
@@ -293,6 +380,15 @@ const filteredEntries = computed(() => {
         }
         return true;
     });
+
+    // Sort by pinned status (pinned items first)
+    result.sort((a, b) => {
+        const pinA = isPinned(a) ? 1 : 0;
+        const pinB = isPinned(b) ? 1 : 0;
+        return pinB - pinA; // true (1) before false (0)
+    });
+
+    return result;
 });
 
 const toggleEntryType = async (entry: any) => {
@@ -622,12 +718,18 @@ const closePanel = () => {
 };
 
 const confirmSend = () => {
+    // <!-- [FEATURE: MINI_SNAPSHOT] -->
+    lastTriggeredEntries.value = [...pendingEntries.value];
+    // <!-- [FEATURE: MINI_SNAPSHOT] END -->
     pendingEntries.value = [];
     manager.releaseInterceptAndSend();
     closePanel();
 };
 
 const cancelSend = () => {
+    // <!-- [FEATURE: MINI_SNAPSHOT] -->
+    lastTriggeredEntries.value = [...pendingEntries.value];
+    // <!-- [FEATURE: MINI_SNAPSHOT] END -->
     pendingEntries.value = [];
     closePanel();
 };
@@ -734,13 +836,67 @@ const togglePendingEntry = async (entry: any) => {
 }
 
 .ark-global-statusbar.mini-mode {
+    /* Let the width be controlled by auto (content) but limited by max-width */
     width: auto;
-    min-width: 150px;
-    max-width: 250px;
+    max-width: 180px; /* Reduced from 300px to ensure it's a small pill */
     border-radius: 20px;
     opacity: 0.8;
-    font-size: 0.85em;
+    /* Removed hardcoded font-size: 0.85em to allow UI settings to control it */
 }
+
+/* <!-- [FEATURE: MINI_SNAPSHOT] --> */
+.statusbar-mini-content {
+    padding: 0 10px 10px 10px;
+    max-height: 90px; /* Roughly 4 lines */
+    overflow-y: auto;
+    font-size: 0.9em;
+}
+
+.mini-empty {
+    text-align: center;
+    opacity: 0.5;
+    padding: 5px;
+    font-size: 0.9em;
+}
+
+.mini-entry-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.mini-entry-list li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 0;
+    border-bottom: 1px dashed rgba(128, 128, 128, 0.3);
+}
+
+.mini-entry-list li:last-child {
+    border-bottom: none;
+}
+
+.mini-entry-list .indicator {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #007bff; /* green light/sent indicator */
+    flex-shrink: 0;
+}
+
+.mini-entry-list .indicator.blocked {
+    background-color: #dc3545; /* red light/blocked indicator */
+}
+
+.mini-entry-list .text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+/* <!-- [FEATURE: MINI_SNAPSHOT] END --> */
 
 .ark-global-statusbar.mini-mode .tab-header {
     display: none; /* Hide tabs in mini mode to save space */
@@ -889,7 +1045,7 @@ const togglePendingEntry = async (entry: any) => {
     gap: 10px;
 }
 
-.btn-primary, .btn-danger, .btn-success {
+.btn-primary, .btn-danger, .btn-success, .btn-warning {
     flex: 1;
     padding: 10px;
     border: none;
@@ -904,6 +1060,8 @@ const togglePendingEntry = async (entry: any) => {
 .btn-danger:hover { background: #a71d2a; }
 .btn-success { background: #28a745; }
 .btn-success:hover { background: #218838; }
+.btn-warning { background: #ff9800; }
+.btn-warning:hover { background: #e68a00; }
 
 .all-wbs-list .wb-item {
     display: flex;
@@ -1012,8 +1170,6 @@ input:checked + .slider:before { transform: translateX(20px); }
     width: 100%;
     cursor: pointer;
 }
-.btn-warning { background: #ff9800; border: none; border-radius: 4px; color: white; cursor: pointer; }
-.btn-warning:hover { background: #e68a00; }
 
 .setting-action {
     margin-top: 25px;
@@ -1080,6 +1236,32 @@ input:checked + .slider:before { transform: translateX(20px); }
     flex: 1;
     font-size: 1.2em;
     padding: 5px;
+}
+
+.pin-icon {
+    font-size: 0.9em;
+    margin-right: 4px;
+}
+
+.pin-btn {
+    opacity: 0.5;
+}
+.pin-btn.pinned {
+    opacity: 1;
+    background: rgba(255, 165, 0, 0.2);
+}
+
+.last-record-box {
+    margin-top: 15px;
+    text-align: left;
+}
+.record-divider {
+    border: none;
+    border-top: 1px dashed rgba(255,255,255,0.2);
+    margin: 15px 0;
+}
+.entry-list.read-only li {
+    opacity: 0.8;
 }
 
 .panel-header-action {

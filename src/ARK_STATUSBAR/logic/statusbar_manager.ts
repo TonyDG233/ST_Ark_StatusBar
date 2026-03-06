@@ -13,6 +13,7 @@ export interface ArkConfig {
     commits: ArkCommit[];
     lastUpdateTime: number;
     suppressNextDiffWarning?: boolean;
+    pinnedEntries?: number[]; // Added for user preferences/pinning
 }
 
 const DEFAULT_CONFIG: ArkConfig = {
@@ -23,7 +24,8 @@ const DEFAULT_CONFIG: ArkConfig = {
     uiWidth: 400,
     uiFontSize: 14,
     commits: [],
-    lastUpdateTime: 0
+    lastUpdateTime: 0,
+    pinnedEntries: []
 };
 
 export interface ArkCommit {
