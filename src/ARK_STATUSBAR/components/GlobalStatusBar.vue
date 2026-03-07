@@ -256,40 +256,54 @@ import { computed, onMounted, ref } from 'vue';
 import { CONFIG_ENTRY_PREFIX, StatusBarManager, type ArkConfig } from '../logic/statusbar_manager';
 import { WorldbookManager } from '../logic/worldbook_manager';
 
-const isVisible = ref(true); // Now controlled by system state and toggle
-const isMiniMode = ref(true);
-const currentTab = ref('interceptor');
-const pendingEntries = ref<any[]>([]);
-const isTestMode = ref(false);
+// --- 全局与 UI 状态 ---
+const isVisible = ref(true); // 控制整个面板的显示与隐藏，受系统总开关控制
+const isMiniMode = ref(true); // 控制面板是否处于缩小(胶囊)模式
+const currentTab = ref('interceptor'); // 当前选中的标签页: interceptor, all, history, settings
+const pendingEntries = ref<any[]>([]); // 拦截器捕获到的，即将被发送的世界书条目
+const isTestMode = ref(false); // 是否处于“主动检测”模式
 
+/**
+ * 触发“主动检测”：运行一次 Dry Run 并在拦截器面板显示将被触发的条目，但不实际发送。
+ */
 const runManualTest = () => {
     isTestMode.value = true;
     manager.runManualTest();
 };
 
+/**
+ * 清除“主动检测”的结果，退出测试模式。
+ */
 const clearTestResults = () => {
     pendingEntries.value = [];
     isTestMode.value = false;
 };
 
-// <!-- [FEATURE: MINI_SNAPSHOT] --> Keep track of last triggered entries to show in mini mode
+// --- [FEATURE: MINI_SNAPSHOT] 快照功能 ---
+// 记录上一轮真实发送时触发的世界书条目，用于在迷你模式下或拦截列表为空时展示快照。
 const lastTriggeredEntries = ref<any[]>([]);
 
+// 对即将触发的条目进行排序：被用户“置顶 (Pinned)”的条目排在最前面
 const sortedPendingEntries = computed(() => {
     return [...pendingEntries.value].sort((a, b) => (isPinned(b) ? 1 : 0) - (isPinned(a) ? 1 : 0));
 });
 
+// 对快照条目进行排序：同样置顶优先
 const sortedLastTriggeredEntries = computed(() => {
     return [...lastTriggeredEntries.value].sort((a, b) => (isPinned(b) ? 1 : 0) - (isPinned(a) ? 1 : 0));
 });
-// <!-- [FEATURE: MINI_SNAPSHOT] END -->
+// --- [FEATURE: MINI_SNAPSHOT] END ---
 
-const currentConfig = ref<ArkConfig | null>(null);
-const allEntries = ref<any[]>([]);
+const currentConfig = ref<ArkConfig | null>(null); // 本地缓存的系统配置
+const allEntries = ref<any[]>([]); // 所有的世界书条目 (剔除了系统配置本身)
 
 const manager = StatusBarManager.getInstance();
 const isSystemEnabled = computed(() => currentConfig.value?.isSystemEnabled ?? true);
 
+/**
+ * 切换缩小(Mini) / 展开状态。
+ * 当从缩小恢复展开时，默认切回拦截预警页签。
+ */
 const toggleMinimize = () => {
     isMiniMode.value = !isMiniMode.value;
     if (isMiniMode.value) {
@@ -297,6 +311,9 @@ const toggleMinimize = () => {
     }
 };
 
+/**
+ * 格式化历史记录(Commit)中文本的变化描述
+ */
 const getChangeText = (commit: any, value: boolean) => {
     if (commit.description?.includes('changed type')) {
         return value ? '蓝灯(常驻)' : '绿灯(条件)';
@@ -304,7 +321,8 @@ const getChangeText = (commit: any, value: boolean) => {
     return value ? '开启' : '关闭';
 };
 
-// Use local refs for smooth dragging without spamming Worldbook saves
+// --- 性能优化：拖动条 ---
+// 使用局部 ref 处理滑动条拖拽，避免在拖动过程中高频触发世界书读写保存
 const localUiWidth = ref<number | null>(null);
 const localUiFontSize = ref<number | null>(null);
 
@@ -331,19 +349,24 @@ const commitUiFontSize = () => {
     }
 };
 
+// --- DOM 节点与拖拽坐标 ---
 const statusBarEl = ref<HTMLElement | null>(null);
 
-const transformX = ref(0);
-const transformY = ref(0);
+const transformX = ref(0); // 整体 UI 横向偏移量
+const transformY = ref(0); // 整体 UI 纵向偏移量
 const absoluteLeft = ref<number | null>(null);
 const absoluteTop = ref<number | null>(null);
 const hasAbsolutePos = computed(() => absoluteLeft.value !== null && absoluteTop.value !== null);
 
-// --- Tab 2 Filters & Logic ---
-const filterText = ref('');
-const filterCategory = ref('');
-const filterType = ref('');
+// --- Tab 2: 全部条目 (Filters & Logic) ---
+const filterText = ref(''); // 文本搜索框内容
+const filterCategory = ref(''); // 分类筛选下拉框值
+const filterType = ref(''); // 状态筛选下拉框值
 
+/**
+ * 动态计算所有可用的分类。
+ * 根据条目名称中的前缀 (如 "[角色]", "[设定]") 进行分组。
+ */
 const availableCategories = computed(() => {
     const cats = new Set<string>();
     allEntries.value.forEach(e => {
@@ -353,7 +376,7 @@ const availableCategories = computed(() => {
         else cats.add('未分类');
     });
     const sorted = Array.from(cats).sort();
-    // Sink "未分类" to the bottom
+    // 强制将 "未分类" 排在下拉框的最底部
     const uncatIndex = sorted.indexOf('未分类');
     if (uncatIndex !== -1) {
         sorted.splice(uncatIndex, 1);
@@ -362,14 +385,23 @@ const availableCategories = computed(() => {
     return sorted;
 });
 
+/**
+ * 获取世界书条目的触发类型 (constant=蓝灯常驻, selective=绿灯条件触发)
+ */
 const getEntryType = (entry: any) => {
     return entry.strategy?.type || 'selective';
 };
 
+/**
+ * 检查条目是否被用户置顶
+ */
 const isPinned = (entry: any) => {
     return currentConfig.value?.pinnedEntries?.includes(entry.uid) || false;
 };
 
+/**
+ * 切换条目的置顶状态并保存到配置中
+ */
 const togglePin = (entry: any) => {
     const pinned = currentConfig.value?.pinnedEntries || [];
     const index = pinned.indexOf(entry.uid);
@@ -382,45 +414,54 @@ const togglePin = (entry: any) => {
     manager.saveConfig({ pinnedEntries: newPinned });
 };
 
+/**
+ * 一键清空所有的置顶设置
+ */
 const clearPins = () => {
     if (confirm('确定要清空所有置顶的偏好条目吗？')) {
         manager.saveConfig({ pinnedEntries: [] });
     }
 };
 
+/**
+ * 计算应用了搜索、分类、状态和置顶排序后的最终条目列表
+ */
 const filteredEntries = computed(() => {
     let result = allEntries.value.filter(entry => {
-        // 1. Text filter
+        // 1. 文本模糊搜索 (匹配名称或关键字)
         if (filterText.value) {
             const query = filterText.value.toLowerCase();
             const name = (entry.comment || entry.name || '').toLowerCase();
             const keys = (entry.key || []).join(' ').toLowerCase();
             if (!name.includes(query) && !keys.includes(query)) return false;
         }
-        // 2. Category filter
+        // 2. 分类筛选
         if (filterCategory.value) {
             const name = entry.name || entry.comment || '';
             const match = name.match(/^\[(.*?)\]/);
             const cat = match ? match[1] : '未分类';
             if (cat !== filterCategory.value) return false;
         }
-        // 3. Type filter
+        // 3. 触发类型筛选 (蓝灯/绿灯)
         if (filterType.value) {
             if (getEntryType(entry) !== filterType.value) return false;
         }
         return true;
     });
 
-    // Sort by pinned status (pinned items first)
+    // 排序：被置顶的排在最上方
     result.sort((a, b) => {
         const pinA = isPinned(a) ? 1 : 0;
         const pinB = isPinned(b) ? 1 : 0;
-        return pinB - pinA; // true (1) before false (0)
+        return pinB - pinA;
     });
 
     return result;
 });
 
+/**
+ * 切换条目的蓝灯(constant)与绿灯(selective)属性
+ */
 const toggleEntryType = async (entry: any) => {
     try {
         const currentType = getEntryType(entry);
@@ -430,6 +471,7 @@ const toggleEntryType = async (entry: any) => {
         const targetWorldbook = result.primary || (result.additional && result.additional.length > 0 ? result.additional[0] : null);
         if (!targetWorldbook) return;
 
+        // 执行写入：修改世界书该条目的 strategy.type
         await updateWorldbookWith(targetWorldbook, (wbEntries: any[]) => {
             const e = wbEntries.find(x => x.uid === entry.uid);
             if (e) {
@@ -439,15 +481,15 @@ const toggleEntryType = async (entry: any) => {
             return wbEntries;
         });
 
-        // Update local state
+        // 乐观更新本地 UI 状态
         if (!entry.strategy) entry.strategy = {};
         entry.strategy.type = newType;
 
-        // Add to commit log
+        // 记录修改历史 (Commit)
         const newCommit = {
             id: Math.random().toString(36).substr(2, 6),
             timestamp: Date.now(),
-            description: `[User manually changed type] ${entry.comment || entry.name}`,
+            description: `[用户手动修改触发类型] ${entry.comment || entry.name}`,
             changes: [{
                 uid: entry.uid,
                 comment: entry.comment || entry.name,
@@ -462,9 +504,13 @@ const toggleEntryType = async (entry: any) => {
         console.error("Failed to toggle entry type", e);
     }
 };
-// --- End Tab 2 Logic ---
+// --- 结束: Tab 2 (全部条目) 逻辑 ---
 
-// --- Tab 3 Logic ---
+// --- Tab 3 (历史记录) 逻辑 ---
+/**
+ * 撤销某一次特定的历史修改操作 (类似 git revert)
+ * @param commit 要撤销的提交记录
+ */
 const revertCommit = async (commit: any) => {
     if (!confirm(`确定要撤销操作: ${commit.description} 吗？`)) return;
 
@@ -473,44 +519,46 @@ const revertCommit = async (commit: any) => {
         const targetWorldbook = result.primary || (result.additional && result.additional.length > 0 ? result.additional[0] : null);
         if (!targetWorldbook) return;
 
-        // Apply inverse changes
+        // 应用反向变更 (Inverse changes)
         await updateWorldbookWith(targetWorldbook, (wbEntries: any[]) => {
             for (const change of commit.changes) {
                 const e = wbEntries.find(x => x.uid === change.uid);
                 if (e) {
-                    // It could be an enabled toggle or a type toggle.
-                    // Let's infer it from the description
-                    if (commit.description.includes('changed type')) {
+                    // 通过提交描述判断这次是开启/关闭的切换，还是蓝/绿灯类型的切换
+                    if (commit.description.includes('changed type') || commit.description.includes('修改触发类型')) {
                         if (!e.strategy) e.strategy = {};
                         e.strategy.type = change.from ? 'constant' : 'selective';
                     } else {
-                        e.enabled = change.from;
+                        e.enabled = change.from; // 恢复为 from 的状态
                     }
                 }
             }
             return wbEntries;
         });
 
-        // Actually drop the commit from history (like a Git hard reset for that specific commit)
+        // 从记录历史中删除该次提交
         const commits = (currentConfig.value?.commits || []).filter((c: any) => c.id !== commit.id);
         manager.saveConfig({ commits });
         
-        await loadAllEntries(); // refresh the view
+        await loadAllEntries(); // 刷新视图
         toastr.success('撤销成功并已从记录中移除。');
     } catch (e) {
         console.error("Failed to revert commit", e);
         toastr.error('撤销失败，详见控制台。');
     }
 };
-// --- End Tab 3 Logic ---
+// --- 结束: Tab 3 (历史记录) 逻辑 ---
 
-// --- Drag Logic ---
+// --- 拖拽交互 (Drag) 逻辑 ---
 let isDragging = false;
 let startX = 0;
 let startY = 0;
 let initialX = 0;
 let initialY = 0;
 
+/**
+ * 开始拖拽：记录鼠标或触摸的初始坐标
+ */
 const startDrag = (e: MouseEvent | TouchEvent) => {
     isDragging = true;
     if (e.type === 'touchstart') {
@@ -525,6 +573,7 @@ const startDrag = (e: MouseEvent | TouchEvent) => {
     initialX = transformX.value;
     initialY = transformY.value;
     
+    // 绑定到父级 document (酒馆宿主) 以支持在 iframe 外继续拖拽
     const ST_DOC = window.parent?.document || document;
     ST_DOC.addEventListener('mousemove', onDrag);
     ST_DOC.addEventListener('touchmove', onDrag, { passive: false });
@@ -532,9 +581,12 @@ const startDrag = (e: MouseEvent | TouchEvent) => {
     ST_DOC.addEventListener('touchend', stopDrag);
 };
 
+/**
+ * 拖拽中：计算偏移量并更新 UI 位置
+ */
 const onDrag = (e: MouseEvent | TouchEvent) => {
     if (!isDragging || !statusBarEl.value) return;
-    e.preventDefault(); // Prevent scrolling on mobile
+    e.preventDefault(); // 阻止移动端的默认滚动行为
     
     let clientX = 0;
     let clientY = 0;
@@ -554,6 +606,10 @@ const onDrag = (e: MouseEvent | TouchEvent) => {
     transformY.value = initialY + dy;
 };
 
+/**
+ * 边界检查：确保面板不会被拖出屏幕可见区域之外。
+ * 尤其保证顶部的标题栏(拖拽手柄)永远可用。
+ */
 const checkBounds = () => {
     if (!statusBarEl.value) return;
     const rect = statusBarEl.value.getBoundingClientRect();
@@ -565,33 +621,37 @@ const checkBounds = () => {
     let deltaX = 0;
     let deltaY = 0;
 
-    // 1. Right edge check
+    // 1. 检查右边界
     if (rect.right > viewportWidth) {
         deltaX = viewportWidth - rect.right;
     }
-    // 2. Left edge check (Priority: Ensure left edge is visible)
+    // 2. 检查左边界 (优先级更高：确保左侧始终可见)
     if (rect.left + deltaX < 0) {
         deltaX = 0 - rect.left;
     }
 
-    // 3. Bottom edge check
+    // 3. 检查下边界
     if (rect.bottom > viewportHeight) {
         deltaY = viewportHeight - rect.bottom;
     }
     
-    // 4. Top edge check (Priority: Ensure top edge/drag handle is ALWAYS visible)
-    // Add 70px safe margin to avoid being covered by ST's top navbar
+    // 4. 检查上边界 (最高优先级：必须保证拖动区域不被酒馆的原生 Navbar 遮挡)
+    // 增加 70px 安全高度缓冲区
     const SAFE_TOP = 70;
     if (rect.top + deltaY < SAFE_TOP) {
         deltaY = SAFE_TOP - rect.top;
     }
 
+    // 如果超出了边界，则回推坐标
     if (deltaX !== 0 || deltaY !== 0) {
         transformX.value += deltaX;
         transformY.value += deltaY;
     }
 };
 
+/**
+ * 结束拖拽：解绑事件并执行最终的边界修正
+ */
 const stopDrag = () => {
     isDragging = false;
     const ST_DOC = window.parent?.document || document;
@@ -605,19 +665,25 @@ const stopDrag = () => {
     });
 };
 
+/**
+ * 双击头部重置面板位置到默认状态
+ */
 const resetPosition = () => {
     transformX.value = 0;
     transformY.value = 0;
 };
-// --- End Drag Logic ---
+// --- 结束: 拖拽逻辑 ---
 
+/**
+ * 加载当前角色的所有世界书条目（剔除系统配置自身）
+ */
 const loadAllEntries = async () => {
     try {
         const result = await getCharWorldbookNames('current');
         const targetWorldbook = result.primary || (result.additional && result.additional.length > 0 ? result.additional[0] : null);
         if (targetWorldbook) {
             const entries = await getWorldbook(targetWorldbook);
-            // Filter out system config
+            // 过滤掉包含配置项前缀 [SYS_CONFIG] 的条目
             allEntries.value = entries.filter((e: any) => 
                 !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) && 
                 !(e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX))
@@ -629,6 +695,7 @@ const loadAllEntries = async () => {
 };
 
 onMounted(() => {
+    // 监听配置更新事件（如外部切换了主题或宽度）
     document.addEventListener('ark-config-updated', ((e: CustomEvent) => {
         const config = e.detail;
         const wasNull = !currentConfig.value;
@@ -645,19 +712,19 @@ onMounted(() => {
         }
     }
 
-    // Listen for interceptor trigger
+    // 监听拦截器触发预警的事件
     document.addEventListener('ark-interceptor-triggered', ((e: CustomEvent) => {
         const triggered = e.detail.entries || [];
-        const isManualTest = !!e.detail.isManualTest;
+        const isManualTest = !!e.detail.isManualTest; // 判断是否是来自"主动检测"的触发
         isTestMode.value = isManualTest;
         
-        // Map to real entries from allEntries to preserve reactivity and `enabled` state,
-        // fallback to raw if not found. Then filter out constant (blue light) entries.
+        // 映射：将拦截到的原始数据与 allEntries 进行匹配，以获取完整的 enabled 和 strategy 状态
+        // 过滤：将类型为 constant (蓝灯/常驻) 的条目从预警列表中剔除，因为它们是一定会触发的，不需要人工确认。
         const matchedEntries = triggered.map((raw: any) => {
-            // Match by uid first
+            // 优先通过 UID 匹配
             let found = allEntries.value.find(e => e.uid !== undefined && raw.uid !== undefined && e.uid == raw.uid);
             
-            // Fallback match by name or comment if uid fails (ST might not provide uid in the event)
+            // 降级匹配：如果酒馆抛出的事件不带 UID，则根据 name 或 comment 模糊匹配
             if (!found) {
                 found = allEntries.value.find(e => 
                     (e.name && raw.name && e.name === raw.name) || 
@@ -667,19 +734,21 @@ onMounted(() => {
                 );
             }
             
-            // If still not found, make sure we use raw but set enabled to true explicitly since it was triggered
+            // 兜底：如果完全匹配不到，使用原始数据，但由于它被触发了，强制赋予 enabled = true
             if (!found) {
-                raw.enabled = raw.enabled !== false; // ensure it's not undefined
+                raw.enabled = raw.enabled !== false; 
             }
             
             return found || raw;
         }).filter((entry: any) => getEntryType(entry) !== 'constant');
 
+        // 如果存在需要预警的绿灯条目，或者正处于主动测试模式
         if (matchedEntries.length > 0 || isManualTest) {
             pendingEntries.value = matchedEntries;
-            currentTab.value = 'interceptor';
-            isMiniMode.value = false;
-            // Make sure it's fully visible (not hidden by system off)
+            currentTab.value = 'interceptor'; // 强制切回拦截预警页签
+            isMiniMode.value = false; // 强制展开面板
+            
+            // 确保系统总开关处于开启状态以免界面不可见
             if (!isSystemEnabled.value) {
                manager.saveConfig({ isSystemEnabled: true });
             }
@@ -687,13 +756,13 @@ onMounted(() => {
                toastr.success('检测完成。', 'ARK_STATUSBAR');
             }
         } else {
-            // If all were constant or empty, just release and send
+            // 如果只有蓝灯条目或空列表，无需阻拦，静默放行
             manager.releaseInterceptAndSend();
         }
     }) as EventListener);
 
-    // Handle dynamic size changes (e.g. switching tabs, which changes height)
-    // This ensures if it expands upwards and hits the top, it gets pushed back down
+    // 处理面板尺寸动态变化时的边界检查 (例如切换 Tab 导致高度变化)
+    // 防止内容增加时顶部溢出屏幕
     if (statusBarEl.value) {
         const resizeObserver = new ResizeObserver(() => {
             requestAnimationFrame(() => {
@@ -703,12 +772,12 @@ onMounted(() => {
         resizeObserver.observe(statusBarEl.value);
     }
 
-    // Fix for mobile where UI might spawn off-screen initially
+    // 初始化时执行一次边界修正，防止移动端初始渲染在屏幕外部
     requestAnimationFrame(() => {
         checkBounds();
     });
 
-    // Listen for baseline diff
+    // 监听：检测到与 Baseline(基准线) 不符时的提示事件
     document.addEventListener('ark-baseline-diff-detected', () => {
         if (typeof toastr !== 'undefined') {
             toastr.warning(
@@ -719,14 +788,14 @@ onMounted(() => {
         }
     });
 
-    // Listen for chat change to reload entries
+    // 监听：切换聊天记录时重新加载所有条目
     document.addEventListener('ark-chat-changed', () => {
         if (currentConfig.value?.isSystemEnabled) {
             loadAllEntries();
         }
     });
 
-    // Listen for toggle visibility from TavernHelper button
+    // 监听：侧边栏扩展按钮发出的系统总开关切换事件
     document.addEventListener('ark-toggle-system', () => {
         const newState = !(currentConfig.value?.isSystemEnabled ?? true);
         manager.saveConfig({ isSystemEnabled: newState });
@@ -739,7 +808,7 @@ onMounted(() => {
         }
     });
     
-    // Handle window resize (e.g. mobile orientation change)
+    // 处理窗口尺寸改变 (例如手机横竖屏切换)
     const ST_WIN = window.parent || window;
     ST_WIN.addEventListener('resize', () => {
         requestAnimationFrame(() => {
@@ -748,36 +817,52 @@ onMounted(() => {
     });
 });
 
+/**
+ * 关闭拦截预警面板（将其缩小为胶囊状态）
+ */
 const closePanel = () => {
     isMiniMode.value = true;
 };
 
+/**
+ * 确认发送：将当前列表存入快照记录，并通知管理器释放拦截
+ */
 const confirmSend = () => {
-    // <!-- [FEATURE: MINI_SNAPSHOT] -->
+    // 存入快照
     lastTriggeredEntries.value = [...pendingEntries.value];
-    // <!-- [FEATURE: MINI_SNAPSHOT] END -->
     pendingEntries.value = [];
     manager.releaseInterceptAndSend();
     closePanel();
 };
 
+/**
+ * 取消发送：不释放拦截，仅清空当前列表并收起面板
+ */
 const cancelSend = () => {
-    // <!-- [FEATURE: MINI_SNAPSHOT] -->
+    // 取消也存入快照以便查看
     lastTriggeredEntries.value = [...pendingEntries.value];
-    // <!-- [FEATURE: MINI_SNAPSHOT] END -->
     pendingEntries.value = [];
     closePanel();
 };
 
+/**
+ * 切换系统 UI 主题
+ */
 const updateTheme = (theme: 'light' | 'dark' | 'transparent') => {
     manager.saveConfig({ theme });
 };
 
+/**
+ * 切换拦截器功能的总开关
+ */
 const toggleInterceptor = (e: Event) => {
     const checked = (e.target as HTMLInputElement).checked;
     manager.saveConfig({ isInterceptorEnabled: checked });
 };
 
+/**
+ * 一键重置所有世界书状态到最初的基准线，并清空历史记录
+ */
 const resetToBaseline = async () => {
     if (confirm('确定要一键还原至初始状态吗？这将清空历史修改记录。')) {
         await WorldbookManager.resetToBaseline();
@@ -787,6 +872,9 @@ const resetToBaseline = async () => {
     }
 };
 
+/**
+ * 一键屏蔽所有单字干员（防止误触）
+ */
 const closeSingleChar = async () => {
     if (confirm('确定要一键关闭所有单字干员世界书吗？')) {
         await WorldbookManager.closeSingleCharEntries();
@@ -794,23 +882,27 @@ const closeSingleChar = async () => {
     }
 };
 
+/**
+ * 切换任意世界书条目的开关 (enabled) 状态，并记录进提交历史
+ */
 const toggleEntry = async (entry: any) => {
     try {
         const result = await getCharWorldbookNames('current');
         const targetWorldbook = result.primary || (result.additional && result.additional.length > 0 ? result.additional[0] : null);
         if (!targetWorldbook) return;
 
+        // 更新真实的世界书对象
         await updateWorldbookWith(targetWorldbook, (wbEntries: any[]) => {
             const e = wbEntries.find(x => x.uid === entry.uid);
             if (e) e.enabled = entry.enabled;
             return wbEntries;
         });
 
-        // Add to commit log
+        // 将该操作添加到历史修改记录 (Commit)
         const newCommit = {
             id: Math.random().toString(36).substr(2, 6),
             timestamp: Date.now(),
-            description: `[User manually toggled] ${entry.comment || entry.name}`,
+            description: `[用户手动切换开关] ${entry.comment || entry.name}`,
             changes: [{
                 uid: entry.uid,
                 comment: entry.comment || entry.name,
@@ -823,10 +915,13 @@ const toggleEntry = async (entry: any) => {
 
     } catch (e) {
         console.error("Failed to toggle entry", e);
-        entry.enabled = !entry.enabled; // revert UI
+        entry.enabled = !entry.enabled; // 如果失败则恢复 UI 状态
     }
 };
 
+/**
+ * 拦截预警面板中使用的快捷开关功能，关联上面的 toggleEntry
+ */
 const togglePendingEntry = async (entry: any) => {
     entry.enabled = !entry.enabled;
     await toggleEntry(entry);

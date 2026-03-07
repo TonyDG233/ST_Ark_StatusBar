@@ -1,1 +1,0 @@
-../../.kilocode/rules/mcp.md

@@ -153,11 +153,13 @@ import { STARTUP_SCENARIOS, type Scenario } from '../config/scenarios';
 import { StatusBarManager } from '../logic/statusbar_manager';
 import { WorldbookManager, type WorldbookStatus } from '../logic/worldbook_manager';
 
-// Constants
+// --- 状态与变量定义 ---
 
-// State
+// 开局剧本数据源
 const scenarios = ref(STARTUP_SCENARIOS);
+// 控制侧边栏设置面板的展开/收起状态
 const isSettingsOpen = ref(false);
+// 记录当前世界书状态 (初始/被修改/单字关闭等)
 const wbStatus = ref<WorldbookStatus>('original');
 
 import { type ArkConfig } from '../logic/statusbar_manager';
@@ -165,10 +167,13 @@ import { type ArkConfig } from '../logic/statusbar_manager';
 const manager = StatusBarManager.getInstance();
 const currentConfig = ref<ArkConfig | null>(manager.currentConfig);
 
+// 响应式的当前主题和系统总开关计算属性
 const theme = computed(() => currentConfig.value?.theme || 'dark');
 const isSystemEnabled = computed(() => currentConfig.value?.isSystemEnabled ?? true);
 
-// Computed
+// --- 计算属性 ---
+
+// 世界书状态的中文显示文本映射
 const wbStatusText = computed(() => {
   switch (wbStatus.value) {
     case 'original':
@@ -182,6 +187,7 @@ const wbStatusText = computed(() => {
   }
 });
 
+// 世界书状态对应的 CSS 类名，用于修改状态指示灯颜色
 const wbStatusClass = computed(() => {
   switch (wbStatus.value) {
     case 'original':
@@ -195,33 +201,53 @@ const wbStatusClass = computed(() => {
   }
 });
 
-// Methods
+// --- 方法 ---
+
+/**
+ * 切换设置面板的显示隐藏状态
+ */
 const toggleSettings = () => {
   isSettingsOpen.value = !isSettingsOpen.value;
-  // Refresh status when opening settings
+  // 打开设置面板时，自动重新检查一次世界书状态
   if (isSettingsOpen.value) {
     checkWbStatus();
   }
 };
 
+/**
+ * 切换 UI 主题，并持久化到世界书配置中
+ * @param newTheme 目标主题 ('light' | 'dark' | 'transparent')
+ */
 const setTheme = (newTheme: 'light' | 'dark' | 'transparent') => {
   manager.saveConfig({ theme: newTheme });
 };
 
+/**
+ * 切换整个状态栏系统的开启/关闭状态
+ */
 const toggleSystem = (e: Event) => {
   const checked = (e.target as HTMLInputElement).checked;
   manager.saveConfig({ isSystemEnabled: checked });
 };
 
+/**
+ * 获取并更新当前世界书是否偏离了基准线配置的状态
+ */
 const checkWbStatus = async () => {
   wbStatus.value = await WorldbookManager.getWorldbookStatus();
 };
 
+/**
+ * 一键屏蔽所有单字干员（防止日常用语误触发）
+ */
 const handleCloseSingleChar = async () => {
   await WorldbookManager.closeSingleCharEntries();
   await checkWbStatus();
 };
 
+/**
+ * 还原世界书到初始基准线状态，并清空 Commit 修改历史
+ */
 const handleRestoreWorldbook = async () => {
   if (confirm('确定要将世界书重置为初始状态吗？这将丢失所有自定义修改。')) {
     await WorldbookManager.resetToBaseline();
@@ -230,46 +256,54 @@ const handleRestoreWorldbook = async () => {
   }
 };
 
-// Initialize
+// --- 生命周期钩子 ---
+
 onMounted(() => {
   checkWbStatus();
   
-  // Listen for config updates (like theme changes)
+  // 注册回调，当配置(如主题、系统开关)在外部被更新时同步更新本地状态
   manager.onConfigUpdate = (config) => {
       currentConfig.value = config;
   };
 });
 
+/**
+ * 点击开局剧本（Scenario）卡片时的核心处理逻辑
+ * @param scenario 用户选择的开局配置数据
+ */
 const handleScenarioClick = async (scenario: Scenario) => {
   try {
-    // 1. Apply Worldbook Logic
+    // 1. 世界书逻辑应用阶段
     try {
       await WorldbookManager.applyScenario(scenario.swipeId);
     } catch (e) {
+      // 捕获 STATUS_MODIFIED 异常，提示用户当前世界书存在非标准修改
       if ((e as Error).message === 'STATUS_MODIFIED') {
         if (
           confirm(
             '检测到世界书包含非标准修改（可能是您手动开启了某些条目）。\n直接跳转开局可能会在当前基础上叠加设置，导致状态混乱。\n\n是否继续？',
           )
         ) {
-          await WorldbookManager.applyScenario(scenario.swipeId, true); // Force apply
+          // 用户确认继续，强制(force)应用该剧本
+          await WorldbookManager.applyScenario(scenario.swipeId, true);
         } else {
-          return; // User cancelled
+          return; // 用户取消，终止流程
         }
       } else {
-        throw e;
+        throw e; // 其它未知错误继续向上抛出
       }
     }
 
-    // Update status after apply
+    // 更新世界书状态显示
     await checkWbStatus();
 
-    // 2. Switch Swipe (Legacy Logic)
-    // We assume SillyTavern global is available
+    // 2. 切换酒馆开局语（Swipe）阶段
+    // 确保当前环境确实是在 SillyTavern 中且存在 chat 数据
     if (typeof SillyTavern === 'undefined' || !SillyTavern.chat) {
       throw new Error('SillyTavern environment not found.');
     }
 
+    // 酒馆的第 0 条消息通常是开场白（Greeting）
     const firstMessage = SillyTavern.chat[0];
     if (!firstMessage || !firstMessage.swipes || typeof firstMessage.swipes[scenario.swipeId] !== 'string') {
       throw new Error(`Swipe #${scenario.swipeId} content not found.`);
@@ -277,14 +311,14 @@ const handleScenarioClick = async (scenario: Scenario) => {
 
     console.info(`[Startup] Switching to Swipe #${scenario.swipeId}`);
 
-    // Update the message content to the selected swipe
+    // 将首条消息的内容(mes)替换为对应 swipeId 的开局文本
     firstMessage.swipe_id = scenario.swipeId;
     firstMessage.mes = firstMessage.swipes[scenario.swipeId];
 
-    // Suppress diff warning for the upcoming chat reload
+    // 因为切换了开局语可能会导致 CHAT_CHANGED 事件触发从而引起 Baseline 变化告警，因此主动屏蔽下一次警告
     manager.saveConfig({ suppressNextDiffWarning: true });
 
-    // Save and Reload
+    // 保存聊天记录并强制重载当前聊天以刷新前端 UI
     await SillyTavern.saveChat();
     await SillyTavern.reloadCurrentChat();
   } catch (error) {

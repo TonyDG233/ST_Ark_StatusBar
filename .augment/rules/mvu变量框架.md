@@ -1,1 +1,0 @@
-../../.kilocode/rules/mvu变量框架.md
