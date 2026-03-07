@@ -1,8 +1,15 @@
 import { BASELINE_STATE } from '../config/baseline';
 import { STARTUP_SCENARIOS } from '../config/scenarios';
 import { SINGLE_CHAR_ENTRIES } from '../config/single_char_entries';
+import { StatusBarManager } from './statusbar_manager';
 
-// Helper to find the current character's worldbook
+/**
+ * 辅助函数：获取当前角色绑定的世界书名称。
+ * 会优先返回主世界书 (primary)，如果没有则尝试返回附加世界书 (additional) 的第一项。
+ * 
+ * @returns {Promise<string>} 绑定的世界书名称
+ * @throws 如果未找到任何绑定的世界书，则抛出错误。
+ */
 async function getTargetWorldbookName(): Promise<string> {
   try {
     const result = await getCharWorldbookNames('current');
@@ -15,11 +22,21 @@ async function getTargetWorldbookName(): Promise<string> {
   }
 }
 
+// 定义世界书的三种状态：
+// 'original': 完全符合预设的基准线 (Baseline)
+// 'single_char_closed': 基准线一致，且所有的“单字干员”世界书条目都已被关闭
+// 'modified': 处于上述两者之外的任何被修改的状态
 export type WorldbookStatus = 'original' | 'single_char_closed' | 'modified';
 
+/**
+ * WorldbookManager
+ * 专门用于处理世界书内容的更新、状态比对、一键应用剧本（开局设置）和恢复初始化等功能。
+ */
 export const WorldbookManager = {
   /**
-   * Get the current status of the Worldbook compared to Baseline
+   * 获取当前世界书状态，通过对比 Baseline (基准线) 数据来判断是否被修改过。
+   * 
+   * @returns {Promise<WorldbookStatus>} 返回比对后的状态
    */
   async getWorldbookStatus(): Promise<WorldbookStatus> {
     try {
@@ -29,29 +46,31 @@ export const WorldbookManager = {
       let isOriginal = true;
       let isSingleCharClosed = true;
 
-      // Iterate only over keys present in BASELINE_STATE (Ignore user added entries)
+      // 仅遍历在基准线（BASELINE_STATE）中定义过的关键条目，忽略用户自行添加的扩展条目
       for (const key of Object.keys(BASELINE_STATE)) {
         const entry = entries.find(e => e.name === key);
-        if (!entry) continue; // Skip if entry missing in current book (shouldn't happen often)
+        if (!entry) continue; // 如果当前世界书缺失该条目，则跳过（正常情况下不应发生）
 
-        const baselineEnabled = BASELINE_STATE[key];
+        const baseline = BASELINE_STATE[key];
         const currentEnabled = entry.enabled;
+        // 获取当前触发类型策略，如果不存在默认视作 selective（选择性触发）
+        const currentType = entry.strategy?.type || 'selective';
 
-        // Check for 'original' mismatch
-        if (currentEnabled !== baselineEnabled) {
+        // 检查 'original' 状态：开启状态或蓝绿灯(触发策略)不匹配，即视为已修改
+        if (currentEnabled !== baseline.enabled || currentType !== baseline.type) {
           isOriginal = false;
         }
 
-        // Check for 'single_char_closed' logic
+        // 检查 'single_char_closed' 状态逻辑
         const isSingleChar = SINGLE_CHAR_ENTRIES.includes(key);
         if (isSingleChar) {
-          // For single char closed state, this MUST be false
+          // 对于单字干员条目，要满足 single_char_closed 状态，它必须是被关闭的(false)
           if (currentEnabled !== false) {
             isSingleCharClosed = false;
           }
         } else {
-          // For non-single char, it MUST match baseline
-          if (currentEnabled !== baselineEnabled) {
+          // 对于非单字干员的普通条目，它必须严格匹配 Baseline 设定的状态
+          if (currentEnabled !== baseline.enabled || currentType !== baseline.type) {
             isSingleCharClosed = false;
           }
         }
@@ -62,12 +81,12 @@ export const WorldbookManager = {
       return 'modified';
     } catch (error) {
       console.error('[ARK_Manager] Get Status failed:', error);
-      return 'modified'; // Default to modified on error for safety
+      return 'modified'; // 为了安全，发生错误时默认判定为已修改状态
     }
   },
 
   /**
-   * Reset Worldbook to its baseline state
+   * 将世界书条目状态全部重置为基准线（Baseline）配置的初始状态。
    */
   async resetToBaseline(): Promise<void> {
     console.info('[ARK_Manager] Resetting Worldbook to Baseline...');
@@ -75,8 +94,13 @@ export const WorldbookManager = {
       const targetBook = await getTargetWorldbookName();
       await updateWorldbookWith(targetBook, entries => {
         entries.forEach(entry => {
+          // 只重置那些记录在基准线中的核心条目
           if (entry.name && BASELINE_STATE.hasOwnProperty(entry.name)) {
-            entry.enabled = BASELINE_STATE[entry.name];
+            const baseline = BASELINE_STATE[entry.name];
+            entry.enabled = baseline.enabled;
+            if (entry.strategy) {
+              entry.strategy.type = baseline.type; // 恢复蓝/绿灯策略
+            }
           }
         });
         return entries;
@@ -89,10 +113,14 @@ export const WorldbookManager = {
   },
 
   /**
-   * Apply a specific scenario
-   * Warning: This throws an error if status is 'modified', caller must handle confirmation.
+   * 一键应用特定的开局设定 (Scenario)
+   * 警告：如果当前状态已经是 'modified' 且 force 参数未开启，则抛出异常，这通常由调用者处理弹窗确认。
+   * 
+   * @param swipeId 设定的唯一标识 ID
+   * @param force 是否强制覆盖当前修改
    */
   async applyScenario(swipeId: number, force: boolean = false): Promise<void> {
+    // 检查是否在未强制(force)的情况下，世界书已经被玩家手动改动过了
     if (!force) {
       const status = await this.getWorldbookStatus();
       if (status === 'modified') {
@@ -100,6 +128,7 @@ export const WorldbookManager = {
       }
     }
 
+    // 查找需要应用的场景配置
     const scenario = STARTUP_SCENARIOS.find(s => s.swipeId === swipeId);
     if (!scenario) {
       console.error(`[ARK_Manager] Scenario #${swipeId} not found.`);
@@ -111,21 +140,41 @@ export const WorldbookManager = {
 
     try {
       const targetBook = await getTargetWorldbookName();
+      let diffChanges: any[] = []; // 收集修改差异，以便推入 StatusBar 的 Git 历史
+
       await updateWorldbookWith(targetBook, entries => {
         entries.forEach(entry => {
           const name = entry.name;
           if (!name) return;
 
-          // Note: We DO NOT reset to baseline here. We only apply deltas.
+          const originalState = !!entry.enabled;
+          let newState = originalState;
 
-          // 1. Apply Enable Delta
-          if (scenario.linkedWorldInfo.includes(name)) {
-            entry.enabled = true;
+          // 1. 应用 Enable (开启) 逻辑：检查条目名或关键字是否命中需要开启的列表
+          if (scenario.linkedWorldInfo.some(keyword => {
+            const keys = (entry as any).key || (entry as any).keys || [];
+            return name === keyword || keys.includes(keyword);
+          })) {
+            newState = true;
           }
 
-          // 2. Apply Disable Delta
-          if (scenario.disabledWorldInfo && scenario.disabledWorldInfo.includes(name)) {
-            entry.enabled = false;
+          // 2. 应用 Disable (关闭) 逻辑：检查是否命中需要关闭的列表
+          if (scenario.disabledWorldInfo && scenario.disabledWorldInfo.some(keyword => {
+            const keys = (entry as any).key || (entry as any).keys || [];
+            return name === keyword || keys.includes(keyword);
+          })) {
+            newState = false;
+          }
+
+          // 如果状态发生变化，应用它并记录到差异数组中
+          if (originalState !== newState) {
+            entry.enabled = newState;
+            diffChanges.push({
+              uid: entry.uid,
+              comment: (entry as any).comment || name, // 优先使用 comment 备注
+              from: originalState,
+              to: newState
+            });
           }
         });
         return entries;
@@ -133,6 +182,20 @@ export const WorldbookManager = {
 
       toastr.success(`开局设置应用成功`);
       console.info('[ARK_Manager] Scenario applied successfully.');
+
+      // 将本次批量修改作为一次 Commit 推送到状态栏管理器中，方便玩家溯源或撤回
+      const manager = StatusBarManager.getInstance();
+      if (manager.currentConfig) {
+        const newCommit = {
+          id: Math.random().toString(36).substr(2, 6), // 随机生成短位 commit ID
+          timestamp: Date.now(),
+          description: `[Apply Scenario] “${scenario.title}”`,
+          changes: diffChanges
+        };
+        const commits = [...manager.currentConfig.commits, newCommit];
+        manager.saveConfig({ commits });
+      }
+
     } catch (error) {
       console.error('[ARK_Manager] Apply Scenario failed:', error);
       toastr.error('应用开局失败: ' + (error as Error).message);
@@ -141,21 +204,47 @@ export const WorldbookManager = {
   },
 
   /**
-   * Close all single-character entries
+   * 一键关闭所有的“单字干员”世界书条目。
+   * 单字干员容易因日常用语造成误触发，此功能可批量规避。
    */
   async closeSingleCharEntries(): Promise<void> {
     console.info('[ARK_Manager] Closing all single-character entries...');
     try {
       const targetBook = await getTargetWorldbookName();
+      let diffChanges: any[] = [];
+
       await updateWorldbookWith(targetBook, entries => {
         entries.forEach(entry => {
+          // 如果条目名称在单字干员列表中，且当前为开启状态
           if (entry.name && SINGLE_CHAR_ENTRIES.includes(entry.name)) {
-            entry.enabled = false;
+            if (entry.enabled) {
+              entry.enabled = false; // 关闭它
+              // 记录变更以便提交历史
+              diffChanges.push({
+                uid: entry.uid,
+                comment: (entry as any).comment || entry.name,
+                from: true,
+                to: false
+              });
+            }
           }
         });
         return entries;
       });
       toastr.success('已关闭所有单字条目');
+
+      // 将批量关闭动作记录到操作历史
+      const manager = StatusBarManager.getInstance();
+      if (manager.currentConfig && diffChanges.length > 0) {
+        const newCommit = {
+          id: Math.random().toString(36).substr(2, 6),
+          timestamp: Date.now(),
+          description: `[Bulk Close] 关闭了所有单字干员 (${diffChanges.length}项)`,
+          changes: diffChanges
+        };
+        const commits = [...manager.currentConfig.commits, newCommit];
+        manager.saveConfig({ commits });
+      }
     } catch (error) {
       console.error('[ARK_Manager] Bulk close failed:', error);
       toastr.error('操作失败: ' + (error as Error).message);

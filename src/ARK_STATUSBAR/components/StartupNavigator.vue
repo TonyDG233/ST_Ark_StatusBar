@@ -1,5 +1,5 @@
 <template>
-  <div class="ark-startup-container" :class="{ 'dark-theme': theme === 'dark' }">
+  <div class="ark-startup-container" :class="{ 'dark-theme': theme === 'dark', 'transparent-theme': theme === 'transparent' }">
     <div class="main-container">
       <div class="content-wrapper">
         <!-- Header Section -->
@@ -7,8 +7,9 @@
           <div class="arknights-logo-container">
             <img :src="ASSETS.LOGO_URL" alt="Arknights Logo" class="arknights-logo" />
           </div>
-          <p class="author-info">初版作者：打不准的豌豆射手 | v版作者：F.o.x.i.o</p>
-          <p class="author-info">UI重构：ARK_STATUSBAR Project</p>
+          <p class="author-info">初版作者：打不准的豌豆射手 | v版核心作者：F.o.x.i.o</p>
+          <p class="author-info">项目贡献者：TonyDG233(UI), 晚鸢尾(UI), 暗中观察信长(剧情), 政委x(剧情), Rylan(剧情), rdq9909(剧情), "你"(剧情)</p>
+          <p class="author-info">UI重构项目：ARK_STATUSBAR</p>
         </div>
 
         <div class="copyright-notice">
@@ -18,10 +19,8 @@
 
         <div class="usage-instructions">
           <strong>使用说明</strong><br />
-          请第一次使用本角色卡的用户，务必前往最后一个开局阅读<strong style="color: var(--warning-accent)"
-            >“狐の言（在首次游玩前请一定要看！）”</strong
-          >。<br />
-          若需管理单字干员或重置世界书状态，请点击右下角按钮打开侧边栏进行操作。
+          请第一次使用本角色卡的用户，务必前往最后一个开局阅读<strong style="color: var(--warning-accent)">“狐の言（在首次游玩前请一定要看！）”</strong>。<br />
+          若需管理单字干员/重置世界书状态，或管理悬浮窗UI，请点击右下角按钮打开侧边栏进行操作。
         </div>
 
         <div class="section-title">◆ 简介</div>
@@ -79,6 +78,11 @@
         <div class="wb-status-display" :class="wbStatusClass">
           <div class="status-label">SYSTEM STATUS</div>
           <div class="status-value">{{ wbStatusText }}</div>
+          <div class="status-diff" v-if="manager.currentConfig?.commits?.length">
+            最近修改: {{ manager.currentConfig.commits[manager.currentConfig.commits.length - 1].description }}
+            <br>
+            共计 {{ manager.currentConfig.commits.length }} 条修改记录
+          </div>
           <div class="status-decor"></div>
         </div>
 
@@ -105,20 +109,36 @@
             本面板会智能识别并管理当前角色的世界书状态。
           </p>
           <p style="font-size: 0.85em; margin-top: 5px; line-height: 1.6">
-            若您手动修改了世界书（如自行开启了某些条目），状态将显示为<strong style="color: #ff9800">“已修改”</strong
-            >。此时切换开局可能会触发冲突警告，请按需选择继续或重置。
+            若您手动修改了世界书（如自行开启了某些条目），状态将显示为<strong style="color: #ff9800">“已修改”</strong>。此时切换开局可能会触发冲突警告，请按需选择继续或重置。
           </p>
         </div>
 
         <div class="settings-divider"></div>
 
-        <h3>页面主题</h3>
+        <h3>功能组件控制</h3>
+        <div class="setting-item" style="margin-top: 10px;">
+          <label>世界书控制台开关</label>
+          <label class="switch">
+            <input type="checkbox" :checked="isSystemEnabled" @change="toggleSystem">
+            <span class="slider round"></span>
+          </label>
+        </div>
+        <p style="font-size: 0.8em; color: var(--ui-text-secondary); margin-bottom: 20px;">
+          关闭后将彻底隐藏方舟世界书控制台，并暂停预检拦截系统。
+        </p>
+
+        <div class="settings-divider"></div>
+
+        <h3>终端主题</h3>
         <div class="theme-buttons-container">
           <div class="theme-button light" :class="{ active: theme === 'light' }" @click="setTheme('light')">
-            <span>默认</span>
+            <span>默认(白)</span>
           </div>
           <div class="theme-button dark" :class="{ active: theme === 'dark' }" @click="setTheme('dark')">
-            <span>夜间</span>
+            <span>夜间(黑)</span>
+          </div>
+          <div class="theme-button transparent" :class="{ active: theme === 'transparent' }" @click="setTheme('transparent')">
+            <span>透明</span>
           </div>
         </div>
       </div>
@@ -127,21 +147,33 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { ASSETS } from '../config/assets';
 import { STARTUP_SCENARIOS, type Scenario } from '../config/scenarios';
+import { StatusBarManager } from '../logic/statusbar_manager';
 import { WorldbookManager, type WorldbookStatus } from '../logic/worldbook_manager';
 
-// Constants
-const STORAGE_KEY_THEME = 'ark_statusbar_theme';
+// --- 状态与变量定义 ---
 
-// State
+// 开局剧本数据源
 const scenarios = ref(STARTUP_SCENARIOS);
-const theme = ref<'light' | 'dark'>('dark');
+// 控制侧边栏设置面板的展开/收起状态
 const isSettingsOpen = ref(false);
+// 记录当前世界书状态 (初始/被修改/单字关闭等)
 const wbStatus = ref<WorldbookStatus>('original');
 
-// Computed
+import { type ArkConfig } from '../logic/statusbar_manager';
+
+const manager = StatusBarManager.getInstance();
+const currentConfig = ref<ArkConfig | null>(manager.currentConfig);
+
+// 响应式的当前主题和系统总开关计算属性
+const theme = computed(() => currentConfig.value?.theme || 'dark');
+const isSystemEnabled = computed(() => currentConfig.value?.isSystemEnabled ?? true);
+
+// --- 计算属性 ---
+
+// 世界书状态的中文显示文本映射
 const wbStatusText = computed(() => {
   switch (wbStatus.value) {
     case 'original':
@@ -155,6 +187,7 @@ const wbStatusText = computed(() => {
   }
 });
 
+// 世界书状态对应的 CSS 类名，用于修改状态指示灯颜色
 const wbStatusClass = computed(() => {
   switch (wbStatus.value) {
     case 'original':
@@ -168,75 +201,109 @@ const wbStatusClass = computed(() => {
   }
 });
 
-// Methods
+// --- 方法 ---
+
+/**
+ * 切换设置面板的显示隐藏状态
+ */
 const toggleSettings = () => {
   isSettingsOpen.value = !isSettingsOpen.value;
-  // Refresh status when opening settings
+  // 打开设置面板时，自动重新检查一次世界书状态
   if (isSettingsOpen.value) {
     checkWbStatus();
   }
 };
 
-const setTheme = (newTheme: 'light' | 'dark') => {
-  theme.value = newTheme;
-  localStorage.setItem(STORAGE_KEY_THEME, newTheme);
+/**
+ * 切换 UI 主题，并持久化到世界书配置中
+ * @param newTheme 目标主题 ('light' | 'dark' | 'transparent')
+ */
+const setTheme = (newTheme: 'light' | 'dark' | 'transparent') => {
+  manager.saveConfig({ theme: newTheme });
 };
 
+/**
+ * 切换整个状态栏系统的开启/关闭状态
+ */
+const toggleSystem = (e: Event) => {
+  const checked = (e.target as HTMLInputElement).checked;
+  manager.saveConfig({ isSystemEnabled: checked });
+};
+
+/**
+ * 获取并更新当前世界书是否偏离了基准线配置的状态
+ */
 const checkWbStatus = async () => {
   wbStatus.value = await WorldbookManager.getWorldbookStatus();
 };
 
+/**
+ * 一键屏蔽所有单字干员（防止日常用语误触发）
+ */
 const handleCloseSingleChar = async () => {
   await WorldbookManager.closeSingleCharEntries();
   await checkWbStatus();
 };
 
+/**
+ * 还原世界书到初始基准线状态，并清空 Commit 修改历史
+ */
 const handleRestoreWorldbook = async () => {
   if (confirm('确定要将世界书重置为初始状态吗？这将丢失所有自定义修改。')) {
     await WorldbookManager.resetToBaseline();
+    await manager.saveConfig({ commits: [] });
     await checkWbStatus();
   }
 };
 
-// Initialize
+// --- 生命周期钩子 ---
+
 onMounted(() => {
-  const savedTheme = localStorage.getItem(STORAGE_KEY_THEME);
-  if (savedTheme === 'light' || savedTheme === 'dark') {
-    theme.value = savedTheme;
-  }
   checkWbStatus();
+  
+  // 注册回调，当配置(如主题、系统开关)在外部被更新时同步更新本地状态
+  manager.onConfigUpdate = (config) => {
+      currentConfig.value = config;
+  };
 });
 
+/**
+ * 点击开局剧本（Scenario）卡片时的核心处理逻辑
+ * @param scenario 用户选择的开局配置数据
+ */
 const handleScenarioClick = async (scenario: Scenario) => {
   try {
-    // 1. Apply Worldbook Logic
+    // 1. 世界书逻辑应用阶段
     try {
       await WorldbookManager.applyScenario(scenario.swipeId);
     } catch (e) {
+      // 捕获 STATUS_MODIFIED 异常，提示用户当前世界书存在非标准修改
       if ((e as Error).message === 'STATUS_MODIFIED') {
         if (
           confirm(
             '检测到世界书包含非标准修改（可能是您手动开启了某些条目）。\n直接跳转开局可能会在当前基础上叠加设置，导致状态混乱。\n\n是否继续？',
           )
         ) {
-          await WorldbookManager.applyScenario(scenario.swipeId, true); // Force apply
+          // 用户确认继续，强制(force)应用该剧本
+          await WorldbookManager.applyScenario(scenario.swipeId, true);
         } else {
-          return; // User cancelled
+          return; // 用户取消，终止流程
         }
       } else {
-        throw e;
+        throw e; // 其它未知错误继续向上抛出
       }
     }
 
-    // Update status after apply
+    // 更新世界书状态显示
     await checkWbStatus();
 
-    // 2. Switch Swipe (Legacy Logic)
-    // We assume SillyTavern global is available
+    // 2. 切换酒馆开局语（Swipe）阶段
+    // 确保当前环境确实是在 SillyTavern 中且存在 chat 数据
     if (typeof SillyTavern === 'undefined' || !SillyTavern.chat) {
       throw new Error('SillyTavern environment not found.');
     }
 
+    // 酒馆的第 0 条消息通常是开场白（Greeting）
     const firstMessage = SillyTavern.chat[0];
     if (!firstMessage || !firstMessage.swipes || typeof firstMessage.swipes[scenario.swipeId] !== 'string') {
       throw new Error(`Swipe #${scenario.swipeId} content not found.`);
@@ -244,11 +311,14 @@ const handleScenarioClick = async (scenario: Scenario) => {
 
     console.info(`[Startup] Switching to Swipe #${scenario.swipeId}`);
 
-    // Update the message content to the selected swipe
+    // 将首条消息的内容(mes)替换为对应 swipeId 的开局文本
     firstMessage.swipe_id = scenario.swipeId;
     firstMessage.mes = firstMessage.swipes[scenario.swipeId];
 
-    // Save and Reload
+    // 因为切换了开局语可能会导致 CHAT_CHANGED 事件触发从而引起 Baseline 变化告警，因此主动屏蔽下一次警告
+    manager.saveConfig({ suppressNextDiffWarning: true });
+
+    // 保存聊天记录并强制重载当前聊天以刷新前端 UI
     await SillyTavern.saveChat();
     await SillyTavern.reloadCurrentChat();
   } catch (error) {
@@ -281,6 +351,18 @@ const handleScenarioClick = async (scenario: Scenario) => {
   --ui-text-secondary: #b0b0b0;
   --ui-border-primary: #444;
   --ui-accent: #4fc3f7;
+}
+
+.ark-startup-container.transparent-theme {
+  --ui-bg: rgba(44, 47, 51, 0.4);
+  --ui-text-main: #eee;
+  --ui-text-secondary: #ccc;
+  --ui-border-primary: rgba(255, 255, 255, 0.1);
+  --ui-accent: #4fc3f7;
+}
+
+.ark-startup-container.transparent-theme .main-container {
+  backdrop-filter: blur(8px);
 }
 
 .main-container {
@@ -317,7 +399,8 @@ const handleScenarioClick = async (scenario: Scenario) => {
   transition: filter 0.3s;
 }
 
-.dark-theme .arknights-logo {
+.dark-theme .arknights-logo,
+.transparent-theme .arknights-logo {
   filter: invert(1) brightness(0.8);
 }
 
@@ -500,6 +583,11 @@ const handleScenarioClick = async (scenario: Scenario) => {
   background-color: #2a2a2a;
   color: #e0e0e0;
 }
+.theme-button.transparent {
+  background: linear-gradient(135deg, rgba(200,200,200,0.1), rgba(100,100,100,0.1));
+  color: var(--ui-text-main);
+  backdrop-filter: blur(4px);
+}
 .theme-button.active {
   border-color: var(--ui-accent);
 }
@@ -522,6 +610,34 @@ const handleScenarioClick = async (scenario: Scenario) => {
   align-items: center;
   margin-bottom: 20px;
 }
+
+/* Switch style */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+}
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px; width: 16px;
+  left: 2px; bottom: 2px;
+  background-color: white;
+  transition: .4s;
+}
+input:checked + .slider { background-color: #007bff; }
+input:checked + .slider:before { transform: translateX(20px); }
+.slider.round { border-radius: 20px; }
+.slider.round:before { border-radius: 50%; }
 
 h3 {
   color: var(--ui-text-main);
@@ -552,6 +668,13 @@ h3 {
   font-size: 1.2em;
   font-weight: bold;
   letter-spacing: 1px;
+}
+
+.wb-status-display .status-diff {
+  margin-top: 8px;
+  font-size: 0.8em;
+  opacity: 0.8;
+  line-height: 1.4;
 }
 
 .wb-status-display .status-decor {

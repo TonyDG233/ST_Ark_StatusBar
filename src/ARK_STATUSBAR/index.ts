@@ -1,7 +1,9 @@
 import { createApp } from 'vue';
 import { deteleportStyle, teleportStyle } from '../util/script';
+import GlobalStatusBar from './components/GlobalStatusBar.vue';
 import ReturnButton from './components/ReturnButton.vue';
 import StartupNavigator from './components/StartupNavigator.vue';
+import { StatusBarManager } from './logic/statusbar_manager';
 
 // Global styles
 import './components/StartupNavigator.vue';
@@ -86,9 +88,50 @@ const startMountingLoop = () => {
 
 let isBackendInitialized = false;
 
+let globalStatusBarApp: ReturnType<typeof createApp> | null = null;
+const GLOBAL_STATUSBAR_CONTAINER_CLASS = 'ark-global-statusbar-mount-point';
+
 // Start the loop when the script loads
 $(() => {
   console.info('[ARK_STATUSBAR] Module Loaded. Initializing...');
+
+  // --- Initialize Manager ---
+  const manager = StatusBarManager.getInstance();
+  manager.init();
+
+  // --- Inject Button via TavernHelper ---
+  const BTN_NAME = "📖 控制台开关";
+  if (typeof (window.parent as any).appendInexistentScriptButtons === 'function' || typeof (window as any).appendInexistentScriptButtons === 'function') {
+    const appendFn = (window.parent as any).appendInexistentScriptButtons || (window as any).appendInexistentScriptButtons;
+    const getEventFn = (window.parent as any).getButtonEvent || (window as any).getButtonEvent;
+    const globalEventOn = (window.parent as any).eventOn || (window as any).eventOn;
+
+    try {
+      appendFn([{ name: BTN_NAME, visible: true }]);
+      const btnEvent = getEventFn(BTN_NAME);
+      if (globalEventOn) {
+        globalEventOn(btnEvent, () => {
+          // Dispatch a new event to toggle the entire system
+          document.dispatchEvent(new CustomEvent('ark-toggle-system'));
+        });
+      }
+    } catch (e) {
+      console.error("[ARK_STATUSBAR] Failed to inject button:", e);
+    }
+  }
+
+  // --- Mount Global Status Bar ---
+  const ST_DOC = window.parent?.document || document;
+  let globalContainer = ST_DOC.querySelector(`.${GLOBAL_STATUSBAR_CONTAINER_CLASS}`);
+  if (!globalContainer) {
+    globalContainer = ST_DOC.createElement('div');
+    globalContainer.className = GLOBAL_STATUSBAR_CONTAINER_CLASS;
+    ST_DOC.body.appendChild(globalContainer);
+  }
+
+  // Note: We mount it immediately, but its visibility and functionality is controlled by its own state
+  globalStatusBarApp = createApp(GlobalStatusBar);
+  globalStatusBarApp.mount(globalContainer);
 
   /*   
 // --- Initial Backend Logic Initialization ---

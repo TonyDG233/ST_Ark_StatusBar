@@ -1,1 +1,0 @@
-../../.kilocode/rules/mvu角色卡.md
