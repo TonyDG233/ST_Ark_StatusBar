@@ -100,9 +100,13 @@ $(() => {
   manager.init();
 
   // --- Inject Button via TavernHelper ---
-  const BTN_NAME = "📖 控制台开关";
-  if (typeof (window.parent as any).appendInexistentScriptButtons === 'function' || typeof (window as any).appendInexistentScriptButtons === 'function') {
-    const appendFn = (window.parent as any).appendInexistentScriptButtons || (window as any).appendInexistentScriptButtons;
+  const BTN_NAME = '📖 控制台开关';
+  if (
+    typeof (window.parent as any).appendInexistentScriptButtons === 'function' ||
+    typeof (window as any).appendInexistentScriptButtons === 'function'
+  ) {
+    const appendFn =
+      (window.parent as any).appendInexistentScriptButtons || (window as any).appendInexistentScriptButtons;
     const getEventFn = (window.parent as any).getButtonEvent || (window as any).getButtonEvent;
     const globalEventOn = (window.parent as any).eventOn || (window as any).eventOn;
 
@@ -116,7 +120,7 @@ $(() => {
         });
       }
     } catch (e) {
-      console.error("[ARK_STATUSBAR] Failed to inject button:", e);
+      console.error('[ARK_STATUSBAR] Failed to inject button:', e);
     }
   }
 

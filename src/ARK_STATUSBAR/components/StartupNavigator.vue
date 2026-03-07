@@ -1,5 +1,8 @@
 <template>
-  <div class="ark-startup-container" :class="{ 'dark-theme': theme === 'dark', 'transparent-theme': theme === 'transparent' }">
+  <div
+    class="ark-startup-container"
+    :class="{ 'dark-theme': theme === 'dark', 'transparent-theme': theme === 'transparent' }"
+  >
     <div class="main-container">
       <div class="content-wrapper">
         <!-- Header Section -->
@@ -8,7 +11,10 @@
             <img :src="ASSETS.LOGO_URL" alt="Arknights Logo" class="arknights-logo" />
           </div>
           <p class="author-info">初版作者：打不准的豌豆射手 | v版核心作者：F.o.x.i.o</p>
-          <p class="author-info">项目贡献者：TonyDG233(UI), 晚鸢尾(UI), 暗中观察信长(剧情), 政委x(剧情), Rylan(剧情), rdq9909(剧情), "你"(剧情)</p>
+          <p class="author-info">
+            项目贡献者：TonyDG233(UI), 晚鸢尾(UI), 暗中观察信长(剧情), 政委x(剧情), Rylan(剧情), rdq9909(剧情),
+            "你"(剧情)
+          </p>
           <p class="author-info">UI重构项目：ARK_STATUSBAR</p>
         </div>
 
@@ -19,7 +25,9 @@
 
         <div class="usage-instructions">
           <strong>使用说明</strong><br />
-          请第一次使用本角色卡的用户，务必前往最后一个开局阅读<strong style="color: var(--warning-accent)">“狐の言（在首次游玩前请一定要看！）”</strong>。<br />
+          请第一次使用本角色卡的用户，务必前往最后一个开局阅读<strong style="color: var(--warning-accent)"
+            >“狐の言（在首次游玩前请一定要看！）”</strong
+          >。<br />
           若需管理单字干员/重置世界书状态，或管理悬浮窗UI，请点击右下角按钮打开侧边栏进行操作。
         </div>
 
@@ -80,7 +88,7 @@
           <div class="status-value">{{ wbStatusText }}</div>
           <div class="status-diff" v-if="manager.currentConfig?.commits?.length">
             最近修改: {{ manager.currentConfig.commits[manager.currentConfig.commits.length - 1].description }}
-            <br>
+            <br />
             共计 {{ manager.currentConfig.commits.length }} 条修改记录
           </div>
           <div class="status-decor"></div>
@@ -109,21 +117,22 @@
             本面板会智能识别并管理当前角色的世界书状态。
           </p>
           <p style="font-size: 0.85em; margin-top: 5px; line-height: 1.6">
-            若您手动修改了世界书（如自行开启了某些条目），状态将显示为<strong style="color: #ff9800">“已修改”</strong>。此时切换开局可能会触发冲突警告，请按需选择继续或重置。
+            若您手动修改了世界书（如自行开启了某些条目），状态将显示为<strong style="color: #ff9800">“已修改”</strong
+            >。此时切换开局可能会触发冲突警告，请按需选择继续或重置。
           </p>
         </div>
 
         <div class="settings-divider"></div>
 
         <h3>功能组件控制</h3>
-        <div class="setting-item" style="margin-top: 10px;">
+        <div class="setting-item" style="margin-top: 10px">
           <label>世界书控制台开关</label>
           <label class="switch">
-            <input type="checkbox" :checked="isSystemEnabled" @change="toggleSystem">
+            <input type="checkbox" :checked="isSystemEnabled" @change="toggleSystem" />
             <span class="slider round"></span>
           </label>
         </div>
-        <p style="font-size: 0.8em; color: var(--ui-text-secondary); margin-bottom: 20px;">
+        <p style="font-size: 0.8em; color: var(--ui-text-secondary); margin-bottom: 20px">
           关闭后将彻底隐藏方舟世界书控制台，并暂停预检拦截系统。
         </p>
 
@@ -137,7 +146,11 @@
           <div class="theme-button dark" :class="{ active: theme === 'dark' }" @click="setTheme('dark')">
             <span>夜间(黑)</span>
           </div>
-          <div class="theme-button transparent" :class="{ active: theme === 'transparent' }" @click="setTheme('transparent')">
+          <div
+            class="theme-button transparent"
+            :class="{ active: theme === 'transparent' }"
+            @click="setTheme('transparent')"
+          >
             <span>透明</span>
           </div>
         </div>
@@ -260,10 +273,10 @@ const handleRestoreWorldbook = async () => {
 
 onMounted(() => {
   checkWbStatus();
-  
+
   // 注册回调，当配置(如主题、系统开关)在外部被更新时同步更新本地状态
-  manager.onConfigUpdate = (config) => {
-      currentConfig.value = config;
+  manager.onConfigUpdate = config => {
+    currentConfig.value = config;
   };
 });
 
@@ -584,7 +597,7 @@ const handleScenarioClick = async (scenario: Scenario) => {
   color: #e0e0e0;
 }
 .theme-button.transparent {
-  background: linear-gradient(135deg, rgba(200,200,200,0.1), rgba(100,100,100,0.1));
+  background: linear-gradient(135deg, rgba(200, 200, 200, 0.1), rgba(100, 100, 100, 0.1));
   color: var(--ui-text-main);
   backdrop-filter: blur(4px);
 }
@@ -618,26 +631,43 @@ const handleScenarioClick = async (scenario: Scenario) => {
   width: 40px;
   height: 20px;
 }
-.switch input { opacity: 0; width: 0; height: 0; }
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
 .slider {
   position: absolute;
   cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-color: #ccc;
-  transition: .4s;
+  transition: 0.4s;
 }
 .slider:before {
   position: absolute;
-  content: "";
-  height: 16px; width: 16px;
-  left: 2px; bottom: 2px;
+  content: '';
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
   background-color: white;
-  transition: .4s;
+  transition: 0.4s;
 }
-input:checked + .slider { background-color: #007bff; }
-input:checked + .slider:before { transform: translateX(20px); }
-.slider.round { border-radius: 20px; }
-.slider.round:before { border-radius: 50%; }
+input:checked + .slider {
+  background-color: #007bff;
+}
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+.slider.round {
+  border-radius: 20px;
+}
+.slider.round:before {
+  border-radius: 50%;
+}
 
 h3 {
   color: var(--ui-text-main);

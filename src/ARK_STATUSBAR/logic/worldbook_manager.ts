@@ -6,7 +6,7 @@ import { StatusBarManager } from './statusbar_manager';
 /**
  * 辅助函数：获取当前角色绑定的世界书名称。
  * 会优先返回主世界书 (primary)，如果没有则尝试返回附加世界书 (additional) 的第一项。
- * 
+ *
  * @returns {Promise<string>} 绑定的世界书名称
  * @throws 如果未找到任何绑定的世界书，则抛出错误。
  */
@@ -35,7 +35,7 @@ export type WorldbookStatus = 'original' | 'single_char_closed' | 'modified';
 export const WorldbookManager = {
   /**
    * 获取当前世界书状态，通过对比 Baseline (基准线) 数据来判断是否被修改过。
-   * 
+   *
    * @returns {Promise<WorldbookStatus>} 返回比对后的状态
    */
   async getWorldbookStatus(): Promise<WorldbookStatus> {
@@ -115,7 +115,7 @@ export const WorldbookManager = {
   /**
    * 一键应用特定的开局设定 (Scenario)
    * 警告：如果当前状态已经是 'modified' 且 force 参数未开启，则抛出异常，这通常由调用者处理弹窗确认。
-   * 
+   *
    * @param swipeId 设定的唯一标识 ID
    * @param force 是否强制覆盖当前修改
    */
@@ -151,18 +151,23 @@ export const WorldbookManager = {
           let newState = originalState;
 
           // 1. 应用 Enable (开启) 逻辑：检查条目名或关键字是否命中需要开启的列表
-          if (scenario.linkedWorldInfo.some(keyword => {
-            const keys = (entry as any).key || (entry as any).keys || [];
-            return name === keyword || keys.includes(keyword);
-          })) {
+          if (
+            scenario.linkedWorldInfo.some(keyword => {
+              const keys = (entry as any).key || (entry as any).keys || [];
+              return name === keyword || keys.includes(keyword);
+            })
+          ) {
             newState = true;
           }
 
           // 2. 应用 Disable (关闭) 逻辑：检查是否命中需要关闭的列表
-          if (scenario.disabledWorldInfo && scenario.disabledWorldInfo.some(keyword => {
-            const keys = (entry as any).key || (entry as any).keys || [];
-            return name === keyword || keys.includes(keyword);
-          })) {
+          if (
+            scenario.disabledWorldInfo &&
+            scenario.disabledWorldInfo.some(keyword => {
+              const keys = (entry as any).key || (entry as any).keys || [];
+              return name === keyword || keys.includes(keyword);
+            })
+          ) {
             newState = false;
           }
 
@@ -173,7 +178,7 @@ export const WorldbookManager = {
               uid: entry.uid,
               comment: (entry as any).comment || name, // 优先使用 comment 备注
               from: originalState,
-              to: newState
+              to: newState,
             });
           }
         });
@@ -190,12 +195,11 @@ export const WorldbookManager = {
           id: Math.random().toString(36).substr(2, 6), // 随机生成短位 commit ID
           timestamp: Date.now(),
           description: `[Apply Scenario] “${scenario.title}”`,
-          changes: diffChanges
+          changes: diffChanges,
         };
         const commits = [...manager.currentConfig.commits, newCommit];
         manager.saveConfig({ commits });
       }
-
     } catch (error) {
       console.error('[ARK_Manager] Apply Scenario failed:', error);
       toastr.error('应用开局失败: ' + (error as Error).message);
@@ -224,7 +228,7 @@ export const WorldbookManager = {
                 uid: entry.uid,
                 comment: (entry as any).comment || entry.name,
                 from: true,
-                to: false
+                to: false,
               });
             }
           }
@@ -240,7 +244,7 @@ export const WorldbookManager = {
           id: Math.random().toString(36).substr(2, 6),
           timestamp: Date.now(),
           description: `[Bulk Close] 关闭了所有单字干员 (${diffChanges.length}项)`,
-          changes: diffChanges
+          changes: diffChanges,
         };
         const commits = [...manager.currentConfig.commits, newCommit];
         manager.saveConfig({ commits });
