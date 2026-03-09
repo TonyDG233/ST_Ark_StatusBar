@@ -37,19 +37,21 @@
 ## 需求 4: 主动扫描时的 Token 计算展示
 **背景:** 用户希望利用该插件不仅能预览条目，还能预估消耗的 Token，以便控制上下文。
 **计划:**
-1. 探索酒馆 `window.SillyTavern.getTokenCountAsync(string, padding)` API。
-2. 触发一次假生成 (Dry Run)。
-3. 将计算结果展现在 Tab 1 (拦截预警) 的 UI 中。
-**PoC 结论 (通过):**
-*   经 `poc_token_counter_v6.ts` 反复验证，利用助手封装好的 `generate('normal', {}, true)` 配合监听 `tavern_events.CHAT_COMPLETION_PROMPT_READY`（或普通文本事件）可以安全触发官方的 DryRun 流程。
-*   从载荷 (`data.chat` 或 `data.prompt`) 中提取拼接出的纯文本，喂给 `SillyTavern.getTokenCountAsync` 后，得出的 Token 数与酒馆原生统计精确一致。
+1. 探索获取 Token 计算的正确接口（不依赖编译器的虚拟类型引入）。
+2. 在触发拦截时，设法安全地计算预期的 Token 消耗。
+**PoC 结论 (已通过):**
+*   【警告】先前的所有 PoC（包括 v6 到 v9）由于混淆了局部代理对象、伪造 import 路径以及异步时序问题，均被判定为无效且具有误导性。
+*   【最终真相】Tavern Helper 在脚本执行时，直接在全局沙盒中注入了名为 `SillyTavern` 的代理对象。**绝对禁止**使用任何 `import` 语句，也**绝对禁止**从 `window` 或 `window.parent` 上裸抓取 `SillyTavern`。
+*   经 `poc_token_counter_v10.js` 验证，直接使用 `SillyTavern.getTokenCountAsync` 并直接调用 `SillyTavern.getContext().generate('normal', {}, true)`，能够完美干跑流水线并算出 Token（257518）。双轨并行策略证实可行。
 
 ---
 
 ## 执行步骤 (Action Items)
 
-1. [x] 编写独立的 `poc_token_counter` 脚本并在控制台测试 Token 计算的准确性与性能。
-2. [x] 编写独立的 `poc_temp_disable` 脚本测试 `GENERATION_ENDED` 事件监听及世界书状态恢复。
-3. [x] 编写独立的 `poc_match_state` 脚本测试回传数据与本地状态的吻合度。
-4. [x] 根据 PoC 结果出具报告 (已更新至本文档)。
-5. [ ] 在获得绿灯后，开始重构 `GlobalStatusBar.vue` 和 `statusbar_manager.ts` 落实上述 4 个需求。
+1. [x] 编写独立的 `poc_temp_disable` 脚本测试 `GENERATION_ENDED` 事件监听及世界书状态恢复。
+2. [x] 编写独立的 `poc_match_state` 脚本测试回传数据与本地状态的吻合度。
+3. [x] [重制] 编写真正的 `poc_token_counter_v10.js`，验证全局注入对象的存在，并在干跑中成功获取 Token（结果与原生一致）。
+4. [x] 根据新的 PoC 结果出具详细报告 (本文档已更新)。
+5. [ ] 在获得绿灯后，开始重构 `GlobalStatusBar.vue` 和 `statusbar_manager.ts` 落实上述需求：
+       - **Vue端**：将临时阻断逻辑改为“点击按钮即时写入关闭，并计入待恢复列表；生成结束后恢复”。
+       - **TS端**：清除虚假的全局对象抓取，直接利用项目已声明的全局代理 `SillyTavern` 和 `eventOnce` 实现双轨检测。
