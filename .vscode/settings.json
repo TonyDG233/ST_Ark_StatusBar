@@ -35,7 +35,11 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[typescript]": {
+<<<<<<< HEAD
     "editor.defaultFormatter": "vscode.typescript-language-features"
+=======
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+>>>>>>> da0118dfd92c2c94f015b40b73e9666c996c3fe8
   },
   "[html]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
