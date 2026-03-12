@@ -5,6 +5,9 @@ export const CONFIG_ENTRY_PREFIX = '[SYS_CONFIG]';
 // 系统配置条目的完整名称
 export const CONFIG_ENTRY_FULL_NAME = '[SYS_CONFIG]系统配置文件请勿打开';
 
+export const DEBUG_ENTRY_PREFIX = '[SYS_DEBUG]';
+export const DEBUG_ENTRY_FULL_NAME = '[SYS_DEBUG]系统调试日志导出';
+
 /**
  * 状态栏的全局配置接口，所有持久化配置都会保存在世界书的 [SYS_CONFIG] 条目中。
  */
@@ -14,6 +17,7 @@ export interface ArkConfig {
   isSystemEnabled: boolean; // 系统总开关，控制整个状态栏是否启用
   isInterceptorEnabled: boolean; // 拦截器开关，控制是否在发送时拦截预警
   enableEnterToIntercept: boolean; // 是否拦截回车键 (默认关闭)
+  isDebugMode?: boolean; // 新增：是否开启调试模式
   uiWidth: number; // 状态栏 UI 的宽度
   uiFontSize: number; // 状态栏 UI 的基础字体大小
   commits: ArkCommit[]; // 操作历史记录（类似 Git commit）
@@ -29,6 +33,7 @@ const DEFAULT_CONFIG: ArkConfig = {
   isSystemEnabled: true,
   isInterceptorEnabled: true,
   enableEnterToIntercept: false, // 默认关闭回车拦截，不打扰习惯回车发送的用户
+  isDebugMode: false, // 默认关闭调试模式
   uiWidth: 400,
   uiFontSize: 14,
   commits: [],
@@ -62,6 +67,84 @@ export class StatusBarManager {
   public currentConfig: ArkConfig | null = null; // 内存中缓存的当前配置
   public onConfigUpdate?: (config: ArkConfig) => void; // 配置更新的回调 (已弃用，建议监听 ark-config-updated 事件)
   public tempDisabledUids: number[] = []; // 单次临时阻断的条目 UID 列表
+
+  private debugLogQueue: any[] = [];
+  private flushTimeout: any = null;
+  private isDryRunning: boolean = false; // 防重入和防并发的干跑锁
+
+  /**
+   * 追加调试日志到内存队列，并延迟持久化到世界书
+   */
+  public logDebug(action: string, data: any) {
+    if (!this.currentConfig?.isDebugMode) return;
+
+    // 控制台也打印一份
+    console.log(`[ARK_DEBUG] ${action}`, data);
+
+    // 推入内存队列
+    this.debugLogQueue.push({
+      time: new Date().toISOString(),
+      action,
+      data: data ? JSON.parse(JSON.stringify(data, (key, value) => {
+        // 防止循环引用报错
+        if (typeof value === 'object' && value !== null) {
+          if (value === window || value === document) return '[DOM Node]';
+        }
+        // 压缩冗长的文本字段，防止日志文件体积爆炸
+        if (typeof value === 'string' && value.length > 50) {
+          if (key === 'content' || key === 'prompt' || key === 'mes' || key === 'text') {
+            return value.substring(0, 50) + '...[已截断]';
+          }
+        }
+        return value;
+      })) : null
+    });
+
+    // 限制单次记录最大条目防止卡死
+    if (this.debugLogQueue.length > 50) {
+      this.debugLogQueue.splice(0, this.debugLogQueue.length - 50);
+    }
+
+    this.scheduleFlushDebugLogs();
+  }
+
+  private scheduleFlushDebugLogs() {
+    if (this.flushTimeout) clearTimeout(this.flushTimeout);
+    this.flushTimeout = setTimeout(() => {
+      this.flushDebugLogsToWorldbook();
+    }, 2000); // 防抖 2 秒
+  }
+
+  private async flushDebugLogsToWorldbook() {
+    if (!this.targetWorldbook || this.debugLogQueue.length === 0) return;
+    try {
+      let entries = await getWorldbook(this.targetWorldbook);
+      let debugEntry = entries.find((e: any) => e.name === DEBUG_ENTRY_FULL_NAME);
+
+      const logContent = JSON.stringify(this.debugLogQueue, null, 2);
+
+      if (!debugEntry) {
+        await createWorldbookEntries(this.targetWorldbook, [{
+          name: DEBUG_ENTRY_FULL_NAME,
+          comment: '调试日志内容。如果需要提交bug，请复制此内容或导出包含此条目的世界书。',
+          content: logContent,
+          enabled: false,
+          constant: false
+        }]);
+      } else {
+        await updateWorldbookWith(this.targetWorldbook, (wbEntries: any[]) => {
+          const e = wbEntries.find(x => x.name === DEBUG_ENTRY_FULL_NAME);
+          if (e) {
+            e.content = logContent;
+            e.enabled = false;
+          }
+          return wbEntries;
+        });
+      }
+    } catch (e) {
+      console.error('[ARK_DEBUG] Failed to flush logs', e);
+    }
+  }
 
   private constructor() { }
 
@@ -285,149 +368,219 @@ export class StatusBarManager {
 
   /**
    * 提取公共的双轨并行干跑流程 (需求1 & 需求4)
+   * 
+   * @note [给后续 Agent 的警告]：此函数在移动端极易发生异步执行流死锁（由于酒馆内核超时或异常未回传）。
+   * 所有新增的异步逻辑，必须包裹在 `Promise.race` 超时防假死结构中。
+   * 同时，任何改变执行流的新逻辑，必须调用 `this.logDebug()` 埋点，以便开发者定位问题。
    */
   private async executeDualTrackDryRun(isManualTest: boolean, text: string) {
-    // 兼容获取 context (避免裸取导致代理对象遗失)
-    // @ts-ignore
-    const globalGetContext = typeof getContext === 'function' ? getContext : null;
-    const context = globalGetContext
-      ? globalGetContext()
-      : (typeof SillyTavern !== 'undefined' && typeof (SillyTavern as any).getContext === 'function' ? (SillyTavern as any).getContext() : null);
-
-    const worldInfoFn = context?.getWorldInfoPrompt;
-    const generateFn = context?.generate;
-
-    if (!worldInfoFn) {
-      console.warn('[ARK_StatusBar] Required API getWorldInfoPrompt not available.');
-      if (!isManualTest) this.releaseInterceptAndSend();
-      else {
-        const event = new CustomEvent('ark-interceptor-triggered', { detail: { entries: [], isManualTest: true, tokenCount: 0 } });
-        document.dispatchEvent(event);
-      }
+    if (this.isDryRunning) {
+      console.warn('[ARK_StatusBar] Dry run is already in progress. Ignoring concurrent request.');
+      this.logDebug('executeDualTrackDryRun_IGNORE_CONCURRENT', null);
       return;
     }
 
-    // ==========================================
-    // 第一轨：提取精确世界书阵列 (使用 getWorldInfoPrompt)
-    // ==========================================
-    const rawChat = context.chat || [];
-    const chatStrings = rawChat.map((msg: any) => {
-      if (typeof msg === 'string') return msg;
-      if (msg && msg.mes !== undefined) {
-        let name = msg.name;
-        if (!name && typeof SillyTavern !== 'undefined') {
-          name = msg.is_user ? SillyTavern.name1 : SillyTavern.name2;
-        }
-        // 重要: 酒馆扫描严格要求 "Name: Message" 格式
-        return name ? `${name}: ${msg.mes}` : String(msg.mes);
-      }
-      return String(msg);
-    });
-
-    const mockChat = [...chatStrings];
-    if (text) {
-      const userName = typeof SillyTavern !== 'undefined' ? SillyTavern.name1 : 'User';
-      mockChat.push(`${userName}: ${text}`);
-    }
-
-    // CRITICAL FIX: SillyTavern 原生 `getWorldInfoPrompt` 扫描 Depth 时，严格要求数组倒序，索引 0 为最新消息。
-    mockChat.reverse();
-    (mockChat as any).__isMock = true;
-
-    let activatedEntries: any[] = [];
-    const worldInfoListener = (evt: any) => {
-      const raw = evt.detail || evt;
-      // 需求1: 精确匹配 world 名称，抛弃不属于目标世界书的乱入词条
-      const targetWb = this.targetWorldbook;
-      activatedEntries = raw.filter((e: any) => e.world === targetWb);
-    };
-
-    const eventTarget = window.parent?.document || document;
-    eventTarget.addEventListener('world_info_activated', worldInfoListener);
-    // @ts-ignore
-    if (typeof eventOn === 'function') eventOn('world_info_activated', worldInfoListener);
+    this.isDryRunning = true;
+    this.logDebug('executeDualTrackDryRun_START', { isManualTest, textLength: text.length });
 
     try {
-      await worldInfoFn(mockChat, 1000000, false);
-    } catch (error) {
-      console.error('[ARK_StatusBar] World Info dry run failed', error);
-    }
+      // 兼容获取 context (避免裸取导致代理对象遗失)
+      // @ts-ignore
+      const globalGetContext = typeof getContext === 'function' ? getContext : null;
+      const context = globalGetContext
+        ? globalGetContext()
+        : (typeof SillyTavern !== 'undefined' && typeof (SillyTavern as any).getContext === 'function' ? (SillyTavern as any).getContext() : null);
 
-    eventTarget.removeEventListener('world_info_activated', worldInfoListener);
-    // @ts-ignore
-    if (typeof eventOff === 'function') eventOff('world_info_activated', worldInfoListener);
+      const worldInfoFn = context?.getWorldInfoPrompt;
+      const generateFn = context?.generate;
 
-
-    // ==========================================
-    // 第二轨：获取完整的组装聚合 Token (使用 generate)
-    // ==========================================
-    let tokenCount: number | string = 0;
-    const promptReadyListener = async (evt: any) => {
-      const data = evt.detail || evt;
-      if (!data.dryRun) return;
-      const payloadStrings = data.chat || data.prompt || [];
-      let fullText = '';
-      if (Array.isArray(payloadStrings)) {
-        if (payloadStrings.length > 0 && typeof payloadStrings[0] === 'object') {
-          fullText = payloadStrings.map((m: any) => m.content || `${m.name}: ${m.mes}`).join('\n');
-        } else {
-          fullText = payloadStrings.join('\n');
-        }
-      } else {
-        fullText = String(payloadStrings);
-      }
-      try {
-        if (typeof SillyTavern !== 'undefined' && typeof (SillyTavern as any).getTokenCountAsync === 'function') {
-          tokenCount = await (SillyTavern as any).getTokenCountAsync(fullText);
-        } else {
-          tokenCount = 'API失效';
-        }
-      } catch (e) {
-        console.error('[ARK_StatusBar] Failed to count tokens', e);
-        tokenCount = '计算失败';
-      }
-    };
-
-    eventTarget.addEventListener('chat_completion_prompt_ready', promptReadyListener);
-    // @ts-ignore
-    if (typeof eventOn === 'function') eventOn('chat_completion_prompt_ready', promptReadyListener);
-
-    try {
-      // 执行原生的真实干跑，此时它不仅会聚合之前的 mock 还需要的数据，还能处理格式转化
-      if (generateFn) {
-        await generateFn('normal', {}, true);
-      } else {
-        console.warn('[ARK_StatusBar] generate API not available, skipping precise token count.');
-        tokenCount = '未获取到API';
-      }
-    } catch (error) {
-      console.error('[ARK_StatusBar] Prompt Token dry run failed', error);
-      tokenCount = '干跑失败';
-    }
-
-    eventTarget.removeEventListener('chat_completion_prompt_ready', promptReadyListener);
-    // @ts-ignore
-    if (typeof eventOff === 'function') eventOff('chat_completion_prompt_ready', promptReadyListener);
-
-
-    // ==========================================
-    // 终点：统合抛出预警结果
-    // ==========================================
-    if (isManualTest) {
-      const event = new CustomEvent('ark-interceptor-triggered', {
-        detail: { entries: activatedEntries, isManualTest: true, tokenCount },
+      this.logDebug('executeDualTrackDryRun_CONTEXT', {
+        hasContext: !!context,
+        hasWorldInfoFn: !!worldInfoFn,
+        hasGenerateFn: !!generateFn
       });
-      document.dispatchEvent(event);
-    } else {
-      if (activatedEntries && activatedEntries.length > 0) {
+
+      if (!worldInfoFn) {
+        console.warn('[ARK_StatusBar] Required API getWorldInfoPrompt not available.');
+        if (!isManualTest) this.releaseInterceptAndSend();
+        else {
+          const event = new CustomEvent('ark-interceptor-triggered', { detail: { entries: [], isManualTest: true, tokenCount: 0 } });
+          document.dispatchEvent(event);
+        }
+        return;
+      }
+
+      // ==========================================
+      // 第一轨：提取精确世界书阵列 (使用 getWorldInfoPrompt)
+      // ==========================================
+      const rawChat = context.chat || [];
+      const chatStrings = rawChat.map((msg: any) => {
+        if (typeof msg === 'string') return msg;
+        if (msg && msg.mes !== undefined) {
+          let name = msg.name;
+          if (!name && typeof SillyTavern !== 'undefined') {
+            name = msg.is_user ? SillyTavern.name1 : SillyTavern.name2;
+          }
+          // 重要: 酒馆扫描严格要求 "Name: Message" 格式
+          return name ? `${name}: ${msg.mes}` : String(msg.mes);
+        }
+        return String(msg);
+      });
+
+      const mockChat = [...chatStrings];
+      if (text) {
+        const userName = typeof SillyTavern !== 'undefined' ? SillyTavern.name1 : 'User';
+        mockChat.push(`${userName}: ${text}`);
+      }
+
+      // CRITICAL FIX: SillyTavern 原生 `getWorldInfoPrompt` 扫描 Depth 时，严格要求数组倒序，索引 0 为最新消息。
+      mockChat.reverse();
+      (mockChat as any).__isMock = true;
+
+      let activatedEntries: any[] = [];
+      const worldInfoListener = (evt: any) => {
+        const raw = evt.detail || evt;
+        this.logDebug('executeDualTrackDryRun_RAW_ENTRIES_RECEIVED', raw);
+
+        // 需求1: 精确匹配 world 名称，抛弃不属于目标世界书的乱入词条
+        const targetWb = this.targetWorldbook;
+        activatedEntries = raw.filter((e: any) => e.world === targetWb);
+        this.logDebug('executeDualTrackDryRun_FILTERED_ENTRIES', { targetWb, filteredCount: activatedEntries.length });
+      };
+
+      const eventTarget = window.parent?.document || document;
+      eventTarget.addEventListener('world_info_activated', worldInfoListener);
+      // @ts-ignore
+      if (typeof eventOn === 'function') eventOn('world_info_activated', worldInfoListener);
+
+      const timeoutError = new Error('DRY_RUN_TIMEOUT');
+
+      // 包装世界书干跑为带超时的 Promise
+      const worldInfoPromise = async () => {
+        this.logDebug('executeDualTrackDryRun_BEFORE_AWAIT_WORLDINFO', null);
+        await worldInfoFn(mockChat, 1000000, false);
+        this.logDebug('executeDualTrackDryRun_AFTER_AWAIT_WORLDINFO', null);
+      };
+
+      try {
+        await Promise.race([
+          worldInfoPromise(),
+          new Promise((_, reject) => setTimeout(() => reject(timeoutError), 5000))
+        ]);
+      } catch (error) {
+        if (error === timeoutError) {
+          console.warn('[ARK_StatusBar] World Info dry run timeout after 5s.');
+          this.logDebug('executeDualTrackDryRun_TIMEOUT_WORLDINFO', null);
+        } else {
+          console.error('[ARK_StatusBar] World Info dry run failed', error);
+          this.logDebug('executeDualTrackDryRun_ERROR_WORLDINFO', error);
+        }
+      } finally {
+        eventTarget.removeEventListener('world_info_activated', worldInfoListener);
+        // @ts-ignore
+        if (typeof eventOff === 'function') eventOff('world_info_activated', worldInfoListener);
+      }
+
+
+      // ==========================================
+      // 第二轨：获取完整的组装聚合 Token (使用 generate)
+      // ==========================================
+      let tokenCount: number | string = 0;
+      const promptReadyListener = async (evt: any) => {
+        const data = evt.detail || evt;
+        if (!data.dryRun) return;
+
+        this.logDebug('executeDualTrackDryRun_PROMPT_READY', { chatLength: data.chat?.length, promptLength: data.prompt?.length });
+
+        const payloadStrings = data.chat || data.prompt || [];
+        let fullText = '';
+        if (Array.isArray(payloadStrings)) {
+          if (payloadStrings.length > 0 && typeof payloadStrings[0] === 'object') {
+            fullText = payloadStrings.map((m: any) => m.content || `${m.name}: ${m.mes}`).join('\n');
+          } else {
+            fullText = payloadStrings.join('\n');
+          }
+        } else {
+          fullText = String(payloadStrings);
+        }
+        try {
+          if (typeof SillyTavern !== 'undefined' && typeof (SillyTavern as any).getTokenCountAsync === 'function') {
+            tokenCount = await (SillyTavern as any).getTokenCountAsync(fullText);
+            this.logDebug('executeDualTrackDryRun_TOKEN_CALCULATED', tokenCount);
+          } else {
+            tokenCount = 'API失效';
+          }
+        } catch (e) {
+          console.error('[ARK_StatusBar] Failed to count tokens', e);
+          tokenCount = '计算失败';
+        }
+      };
+
+      eventTarget.addEventListener('chat_completion_prompt_ready', promptReadyListener);
+      // @ts-ignore
+      if (typeof eventOn === 'function') eventOn('chat_completion_prompt_ready', promptReadyListener);
+
+      const generatePromise = async () => {
+        if (generateFn) {
+          this.logDebug('executeDualTrackDryRun_BEFORE_AWAIT_GENERATE', null);
+          await generateFn('normal', {}, true);
+          this.logDebug('executeDualTrackDryRun_AFTER_AWAIT_GENERATE', null);
+        } else {
+          console.warn('[ARK_StatusBar] generate API not available, skipping precise token count.');
+          tokenCount = '未获取到API';
+        }
+      };
+
+      try {
+        await Promise.race([
+          generatePromise(),
+          new Promise((_, reject) => setTimeout(() => reject(timeoutError), 8000))
+        ]);
+      } catch (error) {
+        if (error === timeoutError) {
+          console.warn('[ARK_StatusBar] Prompt Token dry run timeout after 8s.');
+          tokenCount = '计算超时';
+          this.logDebug('executeDualTrackDryRun_TIMEOUT_GENERATE', null);
+        } else {
+          console.error('[ARK_StatusBar] Prompt Token dry run failed', error);
+          tokenCount = '干跑失败';
+          this.logDebug('executeDualTrackDryRun_ERROR_GENERATE', error);
+        }
+      } finally {
+        eventTarget.removeEventListener('chat_completion_prompt_ready', promptReadyListener);
+        // @ts-ignore
+        if (typeof eventOff === 'function') eventOff('chat_completion_prompt_ready', promptReadyListener);
+      }
+
+      this.logDebug('executeDualTrackDryRun_END_DISPATCH', {
+        finalActivatedCount: activatedEntries?.length,
+        tokenCount
+      });
+
+      // ==========================================
+      // 终点：统合抛出预警结果
+      // ==========================================
+      if (isManualTest) {
         const event = new CustomEvent('ark-interceptor-triggered', {
-          detail: { entries: activatedEntries, isManualTest: false, tokenCount },
+          detail: { entries: activatedEntries, isManualTest: true, tokenCount },
         });
         document.dispatchEvent(event);
       } else {
-        // 没有触发任何目标词条，静默放行
-        this.releaseInterceptAndSend();
+        if (activatedEntries && activatedEntries.length > 0) {
+          const event = new CustomEvent('ark-interceptor-triggered', {
+            detail: { entries: activatedEntries, isManualTest: false, tokenCount },
+          });
+          document.dispatchEvent(event);
+        } else {
+          // 没有触发任何目标词条，静默放行
+          this.logDebug('executeDualTrackDryRun_SILENT_PASS', null);
+          this.releaseInterceptAndSend();
+        }
       }
+    } finally {
+      // 无论成功、失败还是超时，永远释放干跑锁
+      this.isDryRunning = false;
+      this.logDebug('executeDualTrackDryRun_FINALLY_UNLOCK', null);
     }
   }
 

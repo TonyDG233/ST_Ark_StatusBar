@@ -323,6 +323,19 @@
           </p>
         </div>
 
+        <div class="setting-item">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <label style="color: #dc3545; font-weight: bold;">🔧 开启调试日志导出</label>
+            <label class="switch">
+              <input type="checkbox" :checked="currentConfig?.isDebugMode" @change="toggleDebugMode" />
+              <span class="slider round" :style="currentConfig?.isDebugMode ? 'background-color: #dc3545;' : ''"></span>
+            </label>
+          </div>
+          <p class="hint" style="margin-top: 5px; font-size: 0.85em; opacity: 0.8; color: #dc3545;">
+            开启后将记录所有底层检测流。当遇到检测失效等 Bug 时，请开启此项，进行一次检测，然后检查名为 "[SYS_DEBUG]系统调试日志导出" 的世界书条目内容并反馈给开发者。
+          </p>
+        </div>
+
         <div class="setting-item flex-col-align-start">
           <label>UI 宽度 ({{ displayWidth }}px)</label>
           <input
@@ -1003,6 +1016,14 @@ const toggleTempDisable = (entry: any) => {
 const toggleEnterInterceptor = (e: Event) => {
   const checked = (e.target as HTMLInputElement).checked;
   manager.saveConfig({ enableEnterToIntercept: checked });
+};
+
+const toggleDebugMode = (e: Event) => {
+  const checked = (e.target as HTMLInputElement).checked;
+  manager.saveConfig({ isDebugMode: checked });
+  if (checked && typeof toastr !== 'undefined') {
+    toastr.warning('调试日志已开启！将在下一次拦截或检测后写入世界书。', 'ARK_DEBUG');
+  }
 };
 
 /**
