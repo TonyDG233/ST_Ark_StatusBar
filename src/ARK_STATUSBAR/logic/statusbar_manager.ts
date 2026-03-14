@@ -85,19 +85,23 @@ export class StatusBarManager {
     this.debugLogQueue.push({
       time: new Date().toISOString(),
       action,
-      data: data ? JSON.parse(JSON.stringify(data, (key, value) => {
-        // 防止循环引用报错
-        if (typeof value === 'object' && value !== null) {
-          if (value === window || value === document) return '[DOM Node]';
-        }
-        // 压缩冗长的文本字段，防止日志文件体积爆炸
-        if (typeof value === 'string' && value.length > 50) {
-          if (key === 'content' || key === 'prompt' || key === 'mes' || key === 'text') {
-            return value.substring(0, 50) + '...[已截断]';
-          }
-        }
-        return value;
-      })) : null
+      data: data
+        ? JSON.parse(
+            JSON.stringify(data, (key, value) => {
+              // 防止循环引用报错
+              if (typeof value === 'object' && value !== null) {
+                if (value === window || value === document) return '[DOM Node]';
+              }
+              // 压缩冗长的文本字段，防止日志文件体积爆炸
+              if (typeof value === 'string' && value.length > 50) {
+                if (key === 'content' || key === 'prompt' || key === 'mes' || key === 'text') {
+                  return value.substring(0, 50) + '...[已截断]';
+                }
+              }
+              return value;
+            }),
+          )
+        : null,
     });
 
     // 限制单次记录最大条目防止卡死
@@ -124,13 +128,15 @@ export class StatusBarManager {
       const logContent = JSON.stringify(this.debugLogQueue, null, 2);
 
       if (!debugEntry) {
-        await createWorldbookEntries(this.targetWorldbook, [{
-          name: DEBUG_ENTRY_FULL_NAME,
-          comment: '调试日志内容。如果需要提交bug，请复制此内容或导出包含此条目的世界书。',
-          content: logContent,
-          enabled: false,
-          constant: false
-        }]);
+        await createWorldbookEntries(this.targetWorldbook, [
+          {
+            name: DEBUG_ENTRY_FULL_NAME,
+            comment: '调试日志内容。如果需要提交bug，请复制此内容或导出包含此条目的世界书。',
+            content: logContent,
+            enabled: false,
+            constant: false,
+          },
+        ]);
       } else {
         await updateWorldbookWith(this.targetWorldbook, (wbEntries: any[]) => {
           const e = wbEntries.find(x => x.name === DEBUG_ENTRY_FULL_NAME);
@@ -146,7 +152,7 @@ export class StatusBarManager {
     }
   }
 
-  private constructor() { }
+  private constructor() {}
 
   // 获取单例实例
   static getInstance(): StatusBarManager {
@@ -368,7 +374,7 @@ export class StatusBarManager {
 
   /**
    * 提取公共的双轨并行干跑流程 (需求1 & 需求4)
-   * 
+   *
    * @note [给后续 Agent 的警告]：此函数在移动端极易发生异步执行流死锁（由于酒馆内核超时或异常未回传）。
    * 所有新增的异步逻辑，必须包裹在 `Promise.race` 超时防假死结构中。
    * 同时，任何改变执行流的新逻辑，必须调用 `this.logDebug()` 埋点，以便开发者定位问题。
@@ -389,7 +395,9 @@ export class StatusBarManager {
       const globalGetContext = typeof getContext === 'function' ? getContext : null;
       const context = globalGetContext
         ? globalGetContext()
-        : (typeof SillyTavern !== 'undefined' && typeof (SillyTavern as any).getContext === 'function' ? (SillyTavern as any).getContext() : null);
+        : typeof SillyTavern !== 'undefined' && typeof (SillyTavern as any).getContext === 'function'
+          ? (SillyTavern as any).getContext()
+          : null;
 
       const worldInfoFn = context?.getWorldInfoPrompt;
       const generateFn = context?.generate;
@@ -397,14 +405,16 @@ export class StatusBarManager {
       this.logDebug('executeDualTrackDryRun_CONTEXT', {
         hasContext: !!context,
         hasWorldInfoFn: !!worldInfoFn,
-        hasGenerateFn: !!generateFn
+        hasGenerateFn: !!generateFn,
       });
 
       if (!worldInfoFn) {
         console.warn('[ARK_StatusBar] Required API getWorldInfoPrompt not available.');
         if (!isManualTest) this.releaseInterceptAndSend();
         else {
-          const event = new CustomEvent('ark-interceptor-triggered', { detail: { entries: [], isManualTest: true, tokenCount: 0 } });
+          const event = new CustomEvent('ark-interceptor-triggered', {
+            detail: { entries: [], isManualTest: true, tokenCount: 0 },
+          });
           document.dispatchEvent(event);
         }
         return;
@@ -465,7 +475,7 @@ export class StatusBarManager {
       try {
         await Promise.race([
           worldInfoPromise(),
-          new Promise((_, reject) => setTimeout(() => reject(timeoutError), 5000))
+          new Promise((_, reject) => setTimeout(() => reject(timeoutError), 5000)),
         ]);
       } catch (error) {
         if (error === timeoutError) {
@@ -481,7 +491,6 @@ export class StatusBarManager {
         if (typeof eventOff === 'function') eventOff('world_info_activated', worldInfoListener);
       }
 
-
       // ==========================================
       // 第二轨：获取完整的组装聚合 Token (使用 generate)
       // ==========================================
@@ -490,7 +499,10 @@ export class StatusBarManager {
         const data = evt.detail || evt;
         if (!data.dryRun) return;
 
-        this.logDebug('executeDualTrackDryRun_PROMPT_READY', { chatLength: data.chat?.length, promptLength: data.prompt?.length });
+        this.logDebug('executeDualTrackDryRun_PROMPT_READY', {
+          chatLength: data.chat?.length,
+          promptLength: data.prompt?.length,
+        });
 
         const payloadStrings = data.chat || data.prompt || [];
         let fullText = '';
@@ -534,7 +546,7 @@ export class StatusBarManager {
       try {
         await Promise.race([
           generatePromise(),
-          new Promise((_, reject) => setTimeout(() => reject(timeoutError), 8000))
+          new Promise((_, reject) => setTimeout(() => reject(timeoutError), 8000)),
         ]);
       } catch (error) {
         if (error === timeoutError) {
@@ -554,7 +566,7 @@ export class StatusBarManager {
 
       this.logDebug('executeDualTrackDryRun_END_DISPATCH', {
         finalActivatedCount: activatedEntries?.length,
-        tokenCount
+        tokenCount,
       });
 
       // ==========================================

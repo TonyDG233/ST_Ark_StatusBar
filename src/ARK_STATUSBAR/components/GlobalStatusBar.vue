@@ -108,12 +108,12 @@
             <strong v-if="!isTestMode">⚠️ 拦截预警</strong>
             <strong v-else>🔍 测试结果</strong>
             <p v-if="!isTestMode">
-              本次回复将触发以下世界书条目：<br/>
-              <span style="opacity:0.8;font-size:0.9em">(预计 Token: {{ currentTokenCount }})</span>
+              本次回复将触发以下世界书条目：<br />
+              <span style="opacity: 0.8; font-size: 0.9em">(预计 Token: {{ currentTokenCount }})</span>
             </p>
             <p v-else>
-              根据当前上下文，模拟检测触发了以下条目：<br/>
-              <span style="opacity:0.8;font-size:0.9em">(预计 Token: {{ currentTokenCount }})</span>
+              根据当前上下文，模拟检测触发了以下条目：<br />
+              <span style="opacity: 0.8; font-size: 0.9em">(预计 Token: {{ currentTokenCount }})</span>
             </p>
           </div>
           <ul class="entry-list stacked">
@@ -137,18 +137,18 @@
                   <button
                     v-if="entry.enabled === false && !entry.tempDisabled"
                     class="icon-btn tiny"
-                    style="color: #28a745; border-color: rgba(40, 167, 69, 0.4);"
+                    style="color: #28a745; border-color: rgba(40, 167, 69, 0.4)"
                     title="重新开启此条目"
                     @click="togglePendingEntry(entry)"
                   >
                     ✅ 开启
                   </button>
-                  
+
                   <template v-else>
                     <button
                       v-if="!entry.tempDisabled"
                       class="icon-btn tiny"
-                      style="color: #ff9800; border-color: rgba(255, 152, 0, 0.4);"
+                      style="color: #ff9800; border-color: rgba(255, 152, 0, 0.4)"
                       title="本次发送阻断，发送后自动恢复"
                       @click="toggleTempDisable(entry)"
                     >
@@ -157,7 +157,7 @@
                     <button
                       v-else
                       class="icon-btn tiny"
-                      style="color: #28a745; border-color: rgba(40, 167, 69, 0.4);"
+                      style="color: #28a745; border-color: rgba(40, 167, 69, 0.4)"
                       title="取消临时阻断，重新加入本次发送"
                       @click="toggleTempDisable(entry)"
                     >
@@ -165,7 +165,7 @@
                     </button>
                     <button
                       class="icon-btn tiny"
-                      style="color: #dc3545; border-color: rgba(220, 53, 69, 0.4);"
+                      style="color: #dc3545; border-color: rgba(220, 53, 69, 0.4)"
                       title="彻底阻断此条目，不再自动恢复"
                       @click="togglePendingEntry(entry)"
                     >
@@ -314,7 +314,11 @@
           <div style="display: flex; align-items: center; gap: 10px">
             <label>回车键拦截预警</label>
             <label class="switch">
-              <input type="checkbox" :checked="currentConfig?.enableEnterToIntercept" @change="toggleEnterInterceptor" />
+              <input
+                type="checkbox"
+                :checked="currentConfig?.enableEnterToIntercept"
+                @change="toggleEnterInterceptor"
+              />
               <span class="slider round"></span>
             </label>
           </div>
@@ -325,14 +329,15 @@
 
         <div class="setting-item">
           <div style="display: flex; align-items: center; gap: 10px">
-            <label style="color: #dc3545; font-weight: bold;">🔧 开启调试日志导出</label>
+            <label style="color: #dc3545; font-weight: bold">🔧 开启调试日志导出</label>
             <label class="switch">
               <input type="checkbox" :checked="currentConfig?.isDebugMode" @change="toggleDebugMode" />
               <span class="slider round" :style="currentConfig?.isDebugMode ? 'background-color: #dc3545;' : ''"></span>
             </label>
           </div>
-          <p class="hint" style="margin-top: 5px; font-size: 0.85em; opacity: 0.8; color: #dc3545;">
-            开启后将记录所有底层检测流。当遇到检测失效等 Bug 时，请开启此项，进行一次检测，然后检查名为 "[SYS_DEBUG]系统调试日志导出" 的世界书条目内容并反馈给开发者。
+          <p class="hint" style="margin-top: 5px; font-size: 0.85em; opacity: 0.8; color: #dc3545">
+            开启后将记录所有底层检测流。当遇到检测失效等 Bug 时，请开启此项，进行一次检测，然后检查名为
+            "[SYS_DEBUG]系统调试日志导出" 的世界书条目内容并反馈给开发者。
           </p>
         </div>
 
@@ -983,7 +988,8 @@ const confirmSend = () => {
 const toggleEntrySilent = async (entry: any) => {
   try {
     const result = await getCharWorldbookNames('current');
-    const targetWorldbook = result.primary || (result.additional && result.additional.length > 0 ? result.additional[0] : null);
+    const targetWorldbook =
+      result.primary || (result.additional && result.additional.length > 0 ? result.additional[0] : null);
     if (!targetWorldbook) return;
     await updateWorldbookWith(targetWorldbook, (wbEntries: any[]) => {
       const e = wbEntries.find(x => x.uid === entry.uid);
