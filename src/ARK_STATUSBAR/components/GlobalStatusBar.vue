@@ -107,30 +107,73 @@
           >
             <strong v-if="!isTestMode">⚠️ 拦截预警</strong>
             <strong v-else>🔍 测试结果</strong>
-            <p v-if="!isTestMode">本次回复将触发以下世界书条目：</p>
-            <p v-else>根据当前上下文，模拟检测触发了以下条目：</p>
+            <p v-if="!isTestMode">
+              本次回复将触发以下世界书条目：<br/>
+              <span style="opacity:0.8;font-size:0.9em">(预计 Token: {{ currentTokenCount }})</span>
+            </p>
+            <p v-else>
+              根据当前上下文，模拟检测触发了以下条目：<br/>
+              <span style="opacity:0.8;font-size:0.9em">(预计 Token: {{ currentTokenCount }})</span>
+            </p>
           </div>
-          <ul class="entry-list">
+          <ul class="entry-list stacked">
             <li
               v-for="entry in sortedPendingEntries"
               :key="entry.uid || Math.random()"
-              :class="{ 'disabled-entry': !entry.enabled }"
+              :class="{ 'disabled-entry': entry.enabled === false && !entry.tempDisabled }"
             >
-              <div class="entry-info">
-                <span class="entry-name">
-                  <span v-if="isPinned(entry)" class="pin-icon">📌</span>
-                  {{ entry.comment || entry.name || (entry.key && entry.key.length ? entry.key[0] : '未知') }}
-                </span>
-                <span class="badge" v-if="entry.enabled !== false">将被发送</span>
-                <span class="badge blocked" v-else>已阻断</span>
+              <div class="entry-name">
+                <span v-if="isPinned(entry)" class="pin-icon">📌</span>
+                {{ entry.comment || entry.name || (entry.key && entry.key.length ? entry.key[0] : '未知') }}
               </div>
-              <button
-                class="icon-btn tiny"
-                :title="entry.enabled !== false ? '阻断此条目' : '重新开启此条目'"
-                @click="togglePendingEntry(entry)"
-              >
-                {{ entry.enabled !== false ? '❎ 阻断' : '✅ 开启' }}
-              </button>
+              <div class="entry-footer">
+                <div class="status-badges">
+                  <span class="badge" v-if="entry.enabled !== false && !entry.tempDisabled">将被发送</span>
+                  <span class="badge warning" v-else-if="entry.tempDisabled">临时阻断</span>
+                  <span class="badge blocked" v-else>已阻断</span>
+                </div>
+                <div class="action-btns">
+                  <!-- 如果当前是彻底关闭状态，只显示恢复开启 -->
+                  <button
+                    v-if="entry.enabled === false && !entry.tempDisabled"
+                    class="icon-btn tiny"
+                    style="color: #28a745; border-color: rgba(40, 167, 69, 0.4);"
+                    title="重新开启此条目"
+                    @click="togglePendingEntry(entry)"
+                  >
+                    ✅ 开启
+                  </button>
+                  
+                  <template v-else>
+                    <button
+                      v-if="!entry.tempDisabled"
+                      class="icon-btn tiny"
+                      style="color: #ff9800; border-color: rgba(255, 152, 0, 0.4);"
+                      title="本次发送阻断，发送后自动恢复"
+                      @click="toggleTempDisable(entry)"
+                    >
+                      ⏳ 单次
+                    </button>
+                    <button
+                      v-else
+                      class="icon-btn tiny"
+                      style="color: #28a745; border-color: rgba(40, 167, 69, 0.4);"
+                      title="取消临时阻断，重新加入本次发送"
+                      @click="toggleTempDisable(entry)"
+                    >
+                      ✅ 恢复
+                    </button>
+                    <button
+                      class="icon-btn tiny"
+                      style="color: #dc3545; border-color: rgba(220, 53, 69, 0.4);"
+                      title="彻底阻断此条目，不再自动恢复"
+                      @click="togglePendingEntry(entry)"
+                    >
+                      ❎ 彻底
+                    </button>
+                  </template>
+                </div>
+              </div>
             </li>
           </ul>
           <div class="action-bar compact" v-if="!isTestMode">
@@ -267,6 +310,32 @@
           </p>
         </div>
 
+        <div class="setting-item">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <label>回车键拦截预警</label>
+            <label class="switch">
+              <input type="checkbox" :checked="currentConfig?.enableEnterToIntercept" @change="toggleEnterInterceptor" />
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <p class="hint" style="margin-top: 5px; font-size: 0.85em; opacity: 0.8">
+            开启后，按下回车键发送也将被拦截预览。默认关闭，以方便习惯回车换行或原生发送的用户。
+          </p>
+        </div>
+
+        <div class="setting-item">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <label style="color: #dc3545; font-weight: bold;">🔧 开启调试日志导出</label>
+            <label class="switch">
+              <input type="checkbox" :checked="currentConfig?.isDebugMode" @change="toggleDebugMode" />
+              <span class="slider round" :style="currentConfig?.isDebugMode ? 'background-color: #dc3545;' : ''"></span>
+            </label>
+          </div>
+          <p class="hint" style="margin-top: 5px; font-size: 0.85em; opacity: 0.8; color: #dc3545;">
+            开启后将记录所有底层检测流。当遇到检测失效等 Bug 时，请开启此项，进行一次检测，然后检查名为 "[SYS_DEBUG]系统调试日志导出" 的世界书条目内容并反馈给开发者。
+          </p>
+        </div>
+
         <div class="setting-item flex-col-align-start">
           <label>UI 宽度 ({{ displayWidth }}px)</label>
           <input
@@ -340,6 +409,7 @@ const isVisible = ref(true); // 控制整个面板的显示与隐藏，受系统
 const isMiniMode = ref(true); // 控制面板是否处于缩小(胶囊)模式
 const currentTab = ref('interceptor'); // 当前选中的标签页: interceptor, all, history, settings
 const pendingEntries = ref<any[]>([]); // 拦截器捕获到的，即将被发送的世界书条目
+const currentTokenCount = ref<number | string>(0); // 当前干跑计算的 Token
 const isTestMode = ref(false); // 是否处于“主动检测”模式
 
 /**
@@ -801,31 +871,17 @@ onMounted(() => {
     const triggered = e.detail.entries || [];
     const isManualTest = !!e.detail.isManualTest; // 判断是否是来自"主动检测"的触发
     isTestMode.value = isManualTest;
+    currentTokenCount.value = e.detail.tokenCount ?? 0;
 
-    // 映射：将拦截到的原始数据与 allEntries 进行匹配，以获取完整的 enabled 和 strategy 状态
-    // 过滤：将类型为 constant (蓝灯/常驻) 的条目从预警列表中剔除，因为它们是一定会触发的，不需要人工确认。
+    // 映射：由于后端已经做了 targetWorldbook 过滤，直接基于 uid 精确匹配即可
     const matchedEntries = triggered
       .map((raw: any) => {
-        // 优先通过 UID 匹配
         let found = allEntries.value.find(e => e.uid !== undefined && raw.uid !== undefined && e.uid == raw.uid);
-
-        // 降级匹配：如果酒馆抛出的事件不带 UID，则根据 name 或 comment 模糊匹配
-        if (!found) {
-          found = allEntries.value.find(
-            e =>
-              (e.name && raw.name && e.name === raw.name) ||
-              (e.comment && raw.comment && e.comment === raw.comment) ||
-              (e.comment && raw.name && e.comment === raw.name) ||
-              (e.name && raw.comment && e.name === raw.comment),
-          );
-        }
-
-        // 兜底：如果完全匹配不到，使用原始数据，但由于它被触发了，强制赋予 enabled = true
         if (!found) {
           raw.enabled = raw.enabled !== false;
+          return raw;
         }
-
-        return found || raw;
+        return found;
       })
       .filter((entry: any) => getEntryType(entry) !== 'constant');
 
@@ -917,17 +973,78 @@ const closePanel = () => {
 const confirmSend = () => {
   // 存入快照
   lastTriggeredEntries.value = [...pendingEntries.value];
+  // 临时阻断条目已经在点击操作时即时写入，无需在此集中处理防竞态
+
   pendingEntries.value = [];
   manager.releaseInterceptAndSend();
   closePanel();
 };
 
+const toggleEntrySilent = async (entry: any) => {
+  try {
+    const result = await getCharWorldbookNames('current');
+    const targetWorldbook = result.primary || (result.additional && result.additional.length > 0 ? result.additional[0] : null);
+    if (!targetWorldbook) return;
+    await updateWorldbookWith(targetWorldbook, (wbEntries: any[]) => {
+      const e = wbEntries.find(x => x.uid === entry.uid);
+      if (e) e.enabled = entry.enabled;
+      return wbEntries;
+    });
+  } catch (e) {
+    console.error('Failed to toggle entry silently', e);
+  }
+};
+
+const toggleTempDisable = (entry: any) => {
+  entry.tempDisabled = !entry.tempDisabled;
+
+  if (entry.tempDisabled) {
+    entry.enabled = false;
+    if (!manager.tempDisabledUids.includes(entry.uid)) {
+      manager.tempDisabledUids.push(entry.uid);
+    }
+    // 即时异步写入，无需 await 阻塞 UI
+    toggleEntrySilent(entry);
+  } else {
+    entry.enabled = true;
+    const idx = manager.tempDisabledUids.indexOf(entry.uid);
+    if (idx !== -1) manager.tempDisabledUids.splice(idx, 1);
+    toggleEntrySilent(entry);
+  }
+};
+
+const toggleEnterInterceptor = (e: Event) => {
+  const checked = (e.target as HTMLInputElement).checked;
+  manager.saveConfig({ enableEnterToIntercept: checked });
+};
+
+const toggleDebugMode = (e: Event) => {
+  const checked = (e.target as HTMLInputElement).checked;
+  manager.saveConfig({ isDebugMode: checked });
+  if (checked && typeof toastr !== 'undefined') {
+    toastr.warning('调试日志已开启！将在下一次拦截或检测后写入世界书。', 'ARK_DEBUG');
+  }
+};
+
 /**
- * 取消发送：不释放拦截，仅清空当前列表并收起面板
+ * 取消发送：不释放拦截，清空当前列表并收起面板。恢复临时阻断。
  */
 const cancelSend = () => {
   // 取消也存入快照以便查看
   lastTriggeredEntries.value = [...pendingEntries.value];
+
+  // 取消发送时，必须将被临时关闭的条目立刻恢复
+  if (manager.tempDisabledUids.length > 0) {
+    pendingEntries.value.forEach(e => {
+      if (e.tempDisabled) {
+        e.tempDisabled = false;
+        e.enabled = true;
+        toggleEntrySilent(e);
+      }
+    });
+    manager.tempDisabledUids = [];
+  }
+
   pendingEntries.value = [];
   closePanel();
 };
@@ -1012,7 +1129,23 @@ const toggleEntry = async (entry: any) => {
  * 拦截预警面板中使用的快捷开关功能，关联上面的 toggleEntry
  */
 const togglePendingEntry = async (entry: any) => {
+  // 修复：如果当前条目处于“临时单次阻断”状态，用户点击了“彻底阻断”
+  if (entry.tempDisabled) {
+    entry.tempDisabled = false;
+    const idx = manager.tempDisabledUids.indexOf(entry.uid);
+    if (idx !== -1) manager.tempDisabledUids.splice(idx, 1);
+    // 此时它的 enabled 本来就是 false，保持为 false，只清除临时标记，并刷新记录
+    await toggleEntry(entry);
+    return;
+  }
+
+  // 正常情况下的反转开关
   entry.enabled = !entry.enabled;
+  if (!entry.enabled) {
+    entry.tempDisabled = false; // 彻底关闭时移除临时阻断标记
+    const idx = manager.tempDisabledUids.indexOf(entry.uid);
+    if (idx !== -1) manager.tempDisabledUids.splice(idx, 1);
+  }
   await toggleEntry(entry);
 };
 </script>
@@ -1540,5 +1673,28 @@ input:checked + .slider:before {
   padding-bottom: 10px;
   margin-bottom: 10px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.entry-list.stacked li {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.entry-list.stacked .entry-name {
+  word-break: break-all;
+  font-weight: 500;
+}
+.entry-list.stacked .entry-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.entry-list.stacked .action-btns {
+  display: flex;
+  gap: 4px;
+}
+.entry-list.stacked .badge.warning {
+  background: #ff9800;
+  color: white;
 }
 </style>
