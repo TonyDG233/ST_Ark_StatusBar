@@ -11,7 +11,10 @@ pnpm-debug.log*
 
 auto-imports.d.ts
 components.d.ts
+<<<<<<< HEAD
 
 references
 
 # local
+=======
+>>>>>>> 68ec069ef06d920c2018e14dffb39c8904448003
