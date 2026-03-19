@@ -1,8 +1,18 @@
+---
+alwaysApply: true
+---
+
 # MCP
 
-你可以通过 browsermcp 自行读取酒馆网页当前的 DOM 情况、实际显示情况和 Console 情况.
+## chrome-devtools: 自行阅读和操控酒馆网页
 
-当提及 browsermcp 时，如果 `npx @agentdeskai/browser-tools-server@latest` 服务尚未运行，你应当自行在新的终端中启动它，并提醒用户按 F12 打开浏览器开发者工具，切换到 `BrowserToolsMCP` 面板，以确保浏览器扩展与本地服务器的通信正常。
+你应该用 chrome-devtools 连接我已经打开的浏览器, 从中读取或操纵连接到的酒馆网页 (其网址与 `.vscode/launch.json` 中配置的 `url` 一致), 来了解当前的界面、脚本情况, 如获取当前的 DOM 情况、实际显示情况、Console 情况、点击界面……
+
+### 检查界面、脚本热重载
+
+打开网页后, 你需要检查 `$('#extensions_settings')` 中的`酒馆助手-实时监听-允许监听`开关是否处于启用状态. 一旦启用, 则界面、脚本代码到酒馆网页的实时同步已经建立好了: 在代码变更后, 酒馆网页上将热重载新的脚本或界面代码, 因此你不需要刷新酒馆网页, 也不需要自己运行 `pnpm build` 来更新代码打包结果, 直接查看网页即可.
+
+### 其他工具指南
 
 当内置的 `edit_file` 或 `write_file` 等文件操作工具因换行符、不可见字符等原因频繁失败时，应当优先切换使用 `mcp-filesystem` 提供的对应工具（如 `mcp_filesystem_edit_file`），因其通常具有更好的鲁棒性。
 
