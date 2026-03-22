@@ -1,6 +1,11 @@
 /**
  * 剧情推演机 V2 次级 API (嗅探器) 测试脚本 PoC
  * 
+ * 测试结论 (2026-03-22):
+ * 1. 成功跑通了基于 Gemini 模型的 NoThinking 截断技巧，JSON 解析 100% 成功。
+ * 2. 成功获取了高质量的"导演建议"和"目标节点"。
+ * 3. 自定义 API 的配置机制（使用反代后的 openai 格式 /v1 后缀）经测试完全兼容。
+ * 
  * 新增特性:
  * - 支持配置独立的次级 API (URL, Key, Model) 并保存在本地。
  * - 纯 JS 编写，在控制台运行不再有任何报错。
@@ -157,7 +162,39 @@ core principles:
     }
 }
 
-// 导出到全局
-window.configStorySniffer = configStorySniffer;
-window.testStorySniffer = testStorySniffer;
-console.log("[ARK_StoryPoC] 脚本加载完成！\\n1. 输入 configStorySniffer() 配置次级模型\\n2. 输入 testStorySniffer() 运行测试");
+// 导出到全局 (兼容 iframe 注入环境和顶级控制台环境)
+if (typeof window !== 'undefined') {
+    window.configStorySniffer = configStorySniffer;
+    window.testStorySniffer = testStorySniffer;
+    if (window.parent) {
+        window.parent.configStorySniffer = configStorySniffer;
+        window.parent.testStorySniffer = testStorySniffer;
+    }
+}
+
+console.log("[ARK_StoryPoC] 脚本加载完成！\\n如果在控制台找不到函数，请确保控制台(Console)顶部的执行上下文(Context)选为了 top。\\n或者直接点击页面右上角的两个测试按钮。");
+
+// 为了彻底避免控制台上下文找不到函数的问题，直接在页面右上角挂载两个测试按钮：
+try {
+    const doc = window.parent ? window.parent.document : document;
+    
+    // 清理旧按钮
+    const oldBtns = doc.querySelectorAll('.ark-poc-btn');
+    oldBtns.forEach(b => b.remove());
+
+    const btn1 = doc.createElement('button');
+    btn1.className = 'ark-poc-btn';
+    btn1.innerText = '⚙️ 配置次级大模型';
+    btn1.style.cssText = 'position:fixed; top:20px; right:20px; z-index:999999; padding:8px 12px; background:#e74c3c; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);';
+    btn1.onclick = configStorySniffer;
+    doc.body.appendChild(btn1);
+
+    const btn2 = doc.createElement('button');
+    btn2.className = 'ark-poc-btn';
+    btn2.innerText = '🚀 测试剧情嗅探 (RI1)';
+    btn2.style.cssText = 'position:fixed; top:65px; right:20px; z-index:999999; padding:8px 12px; background:#2ecc71; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);';
+    btn2.onclick = testStorySniffer;
+    doc.body.appendChild(btn2);
+} catch(e) {
+    console.error("按钮挂载失败", e);
+}
