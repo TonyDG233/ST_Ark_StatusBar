@@ -423,10 +423,9 @@ export class StatusBarManager {
         const raw = evt.detail || evt;
         this.logDebug('executeDualTrackDryRun_RAW_ENTRIES_RECEIVED', raw);
 
-        // 需求1: 精确匹配 world 名称，抛弃不属于目标世界书的乱入词条
-        const targetWb = this.targetWorldbook;
-        activatedEntries = raw.filter((e: any) => e.world === targetWb);
-        this.logDebug('executeDualTrackDryRun_FILTERED_ENTRIES', { targetWb, filteredCount: activatedEntries.length });
+        // 放开限制：接收所有被激活的绿灯条目，在UI中通过 e.world 字段进行溯源展示
+        activatedEntries = raw || [];
+        this.logDebug('executeDualTrackDryRun_ALL_ENTRIES', { filteredCount: activatedEntries.length });
       };
 
       const eventTarget = window.parent?.document || document;

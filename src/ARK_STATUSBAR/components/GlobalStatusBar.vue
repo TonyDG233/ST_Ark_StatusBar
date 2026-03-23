@@ -92,6 +92,7 @@
                   <span class="entry-name">
                     <span v-if="isPinned(entry)" class="pin-icon">📌</span>
                     {{ entry.comment || entry.name || (entry.key && entry.key.length ? entry.key[0] : '未知') }}
+                    <span v-if="entry.world" style="font-size: 0.8em; opacity: 0.7; margin-left: 5px;">({{ entry.world }})</span>
                   </span>
                   <span class="badge" v-if="entry.enabled !== false">已发送</span>
                   <span class="badge blocked" v-else>已阻断</span>
@@ -125,6 +126,9 @@
               <div class="entry-name">
                 <span v-if="isPinned(entry)" class="pin-icon">📌</span>
                 {{ entry.comment || entry.name || (entry.key && entry.key.length ? entry.key[0] : '未知') }}
+                <div v-if="entry.world" style="font-size: 0.75em; color: var(--ui-text-secondary); margin-top: 2px;">
+                  📁 来源: {{ entry.world }}
+                </div>
               </div>
               <div class="entry-footer">
                 <div class="status-badges">
@@ -451,6 +455,7 @@ const sortedLastTriggeredEntries = computed(() => {
 
 const currentConfig = ref<ArkConfig | null>(null); // 本地缓存的系统配置
 const allEntries = ref<any[]>([]); // 所有的世界书条目 (剔除了系统配置本身)
+const currentPrimaryWorldbook = ref<string | null>(null); // 当前角色的主世界书名称
 
 const manager = StatusBarManager.getInstance();
 const isSystemEnabled = computed(() => currentConfig.value?.isSystemEnabled ?? true);
@@ -622,17 +627,22 @@ const toggleEntryType = async (entry: any) => {
     const currentType = getEntryType(entry);
     const newType = currentType === 'constant' ? 'selective' : 'constant';
 
-    const result = await getCharWorldbookNames('current');
-    const targetWorldbook =
-      result.primary || (result.additional && result.additional.length > 0 ? result.additional[0] : null);
-    if (!targetWorldbook) return;
+    // 1. 精确路由：优先操作条目自身携带的 world 属性，如果找不到则回退到当前主世界书
+    const targetWorldbook = entry.world || currentPrimaryWorldbook.value;
+    if (!targetWorldbook) {
+      console.warn('[ARK_UI] 切换条目触发类型失败：无法确定目标世界书', entry);
+      return;
+    }
 
-    // 执行写入：修改世界书该条目的 strategy.type
+    // 2. 复合匹配与后端写入：修改世界书该条目的 strategy.type
     await updateWorldbookWith(targetWorldbook, (wbEntries: any[]) => {
-      const e = wbEntries.find(x => x.uid === entry.uid);
+      const e = wbEntries.find(x => x.uid === entry.uid && (x.name === entry.name || x.comment === entry.comment));
       if (e) {
         if (!e.strategy) e.strategy = {};
         e.strategy.type = newType;
+        console.info(`[ARK_UI] 成功在 ${targetWorldbook} 中切换类型: ${e.name || e.comment} -> ${newType}`);
+      } else {
+        console.warn(`[ARK_UI] 在 ${targetWorldbook} 中未能匹配到条目:`, entry);
       }
       return wbEntries;
     });
@@ -841,6 +851,7 @@ const loadAllEntries = async () => {
     const targetWorldbook =
       result.primary || (result.additional && result.additional.length > 0 ? result.additional[0] : null);
     if (targetWorldbook) {
+      currentPrimaryWorldbook.value = targetWorldbook;
       const entries = await getWorldbook(targetWorldbook);
       // 过滤掉包含配置项前缀 [SYS_CONFIG] 的条目
       allEntries.value = entries.filter(
@@ -879,15 +890,18 @@ onMounted(() => {
     isTestMode.value = isManualTest;
     currentTokenCount.value = e.detail.tokenCount ?? 0;
 
-    // 映射：由于后端已经做了 targetWorldbook 过滤，直接基于 uid 精确匹配即可
+    // 映射与解耦：基于拦截器抛回的 raw 数据直接渲染。不需要回 allEntries 找死引用
     const matchedEntries = triggered
       .map((raw: any) => {
-        let found = allEntries.value.find(e => e.uid !== undefined && raw.uid !== undefined && e.uid == raw.uid);
-        if (!found) {
-          raw.enabled = raw.enabled !== false;
-          return raw;
+        // 1. 确保带有开关状态标识
+        raw.enabled = raw.enabled !== false;
+        // 2. 确保跨书的 fallback
+        if (!raw.world && currentPrimaryWorldbook.value) {
+          raw.world = currentPrimaryWorldbook.value;
         }
-        return found;
+        // 3. 补充 Vue 需要的反应式属性模板，防止直接使用 raw 时出错
+        if (!raw.strategy) raw.strategy = {};
+        return raw;
       })
       .filter((entry: any) => getEntryType(entry) !== 'constant');
 
@@ -988,13 +1002,20 @@ const confirmSend = () => {
 
 const toggleEntrySilent = async (entry: any) => {
   try {
-    const result = await getCharWorldbookNames('current');
-    const targetWorldbook =
-      result.primary || (result.additional && result.additional.length > 0 ? result.additional[0] : null);
-    if (!targetWorldbook) return;
+    // 精确路由定向
+    const targetWorldbook = entry.world || currentPrimaryWorldbook.value;
+    if (!targetWorldbook) {
+      console.warn('[ARK_UI] 临时切换状态失败：无法确定目标世界书', entry);
+      return;
+    }
+
     await updateWorldbookWith(targetWorldbook, (wbEntries: any[]) => {
-      const e = wbEntries.find(x => x.uid === entry.uid);
-      if (e) e.enabled = entry.enabled;
+      const e = wbEntries.find(x => x.uid === entry.uid && (x.name === entry.name || x.comment === entry.comment));
+      if (e) {
+        e.enabled = entry.enabled;
+      } else {
+        console.warn(`[ARK_UI] 临时静默切换：在 ${targetWorldbook} 中未能精确匹配到条目:`, entry);
+      }
       return wbEntries;
     });
   } catch (e) {

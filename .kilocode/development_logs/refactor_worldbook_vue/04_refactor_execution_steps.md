@@ -12,7 +12,7 @@
 
 ---
 
-## 执行步骤拆解 (共 7 步)
+## 执行步骤拆解 (共 8 步)
 
 ### 🐾 Step 0: 清理 1 月份旧重构代码与备份 (已完成)
 **目标文件：**
@@ -28,7 +28,7 @@
 
 ---
 
-### 🐾 Step 1: 拆分系统配置 (解耦 statusbar_manager.ts)
+### 🐾 Step 1: 拆分系统配置 (解耦 statusbar_manager.ts) (已完成)
 **目标文件：**
 - 新建 `src/ARK_STATUSBAR/config/system_config.ts`
 - 修改 `src/ARK_STATUSBAR/logic/statusbar_manager.ts`
@@ -41,7 +41,7 @@
 
 ---
 
-### 🐾 Step 2: 存储引擎平滑迁移 (纯后端逻辑)
+### 🐾 Step 2: 存储引擎平滑迁移 (纯后端逻辑) (已完成)
 **目标文件：** 
 - `src/ARK_STATUSBAR/logic/statusbar_manager.ts`
 - `src/ARK_STATUSBAR/logic/worldbook_manager.ts`
@@ -72,7 +72,37 @@
 
 ---
 
-### 🐾 Step 4: 提取全局公共样式与字体防线 (防止宋体灾难)
+### 🐾 Step 4: 实现世界书抽屉 UI (Accordion) 及全局世界书挂载管理
+**目标文件：**
+- `src/ARK_STATUSBAR/logic/worldbook_manager.ts`
+- `src/ARK_STATUSBAR/components/GlobalStatusBar.vue` (Tab 2 内部)
+
+**核心动作：**
+1. **核心逻辑需求补充（绝不混淆概念）：** 严格区分“角色绑定”和“全局挂载”。在 `worldbook_manager.ts` 中新增获取世界书列表的方法，并提供**全局挂载（Global Mount）**和取消挂载的功能。这与修改角色本身绑定的世界书是两回事，必须调用酒馆环境中的全局/聊天级世界书挂载接口。
+2. 彻底重构 Tab 2 UI，使用 `v-for="(entries, worldName) in groupedWorldbooks"` 渲染外层抽屉。
+3. 实现折叠/展开动画。
+4. **顶层世界书管理：** 显示当前已挂载和已绑定的世界书，并提供界面浏览所有未挂载的世界书，允许用户通过按钮直接进行**全局挂载（Global Mount）**和取消挂载。展开抽屉时支持**按需加载 (On-Demand Fetching)**。
+5. 点击展开某个世界书后，显示其内部具体的普通条目，并允许开关条目状态。
+
+**验收标准：** 用户能够在新界面中看到全局世界书列表，并能正确执行全局挂载/取消挂载世界书的操作，跨世界书管理界面清晰易用，不显得拥挤。
+
+---
+
+### 🐾 Step 5: 全局快照生命周期管理面板
+**目标文件：**
+- `src/ARK_STATUSBAR/logic/worldbook_manager.ts`
+- `src/ARK_STATUSBAR/components/GlobalStatusBar.vue` (Tab 3 内部)
+
+**核心动作：**
+1. 补充缺失的快照 API：在 `worldbook_manager.ts` 补充 `saveCurrentAsSnapshot`, `restoreSnapshot`, `deleteSnapshot` 等核心原子方法。
+2. 将原 Tab 2 的重量级操作（恢复初始状态、关闭单字干员）移入 Tab 3。
+3. 在 Tab 3 新增快照管理面板，渲染 `ArkConfig.worldbookInitialStates` 列表，提供覆盖、删除和快照新建 UI。
+
+**验收标准：** 可以在界面拍摄当前状态，破坏世界书后可以一键恢复拍摄的快照。
+
+---
+
+### 🐾 Step 6: 提取全局公共样式与字体防线 (防止宋体灾难)
 **目标文件：**
 - 新建 `src/ARK_STATUSBAR/components/styles/theme.scss`
 - `src/ARK_STATUSBAR/components/GlobalStatusBar.vue`
@@ -88,7 +118,7 @@
 
 ---
 
-### 🐾 Step 5: 拆分 StartupNavigator.vue
+### 🐾 Step 7: 拆分 StartupNavigator.vue
 **目标文件：**
 - `src/ARK_STATUSBAR/components/StartupNavigator.vue`
 - 新建 `src/ARK_STATUSBAR/components/startup_tabs/StartupSettingsPanel.vue`
@@ -101,7 +131,7 @@
 
 ---
 
-### 🐾 Step 6: 拆分 GlobalStatusBar.vue 为容器
+### 🐾 Step 8: 拆分 GlobalStatusBar.vue 为容器
 **目标文件：**
 - `src/ARK_STATUSBAR/components/GlobalStatusBar.vue`
 - 新建 `components/global_tabs/InterceptorTab.vue`
@@ -112,25 +142,9 @@
 **核心动作：**
 1. 保持 `GlobalStatusBar.vue` 的拖拽、Tabs 切换逻辑和整体 `ArkConfig` 的响应式绑定。
 2. 将每个 `<div v-if="activeTab === X">` 的内容原封不动地移动到对应的子组件中。
-3. 使用 Props 和 Emits 传递状态与事件（如明确定义 `defineProps<{ config: ArkConfig, worldbookEntries: any[] }>()`）。
+3. 使用 Props 和 Emits 传递状态与事件（如明确定义 `defineProps<{ config: ArkConfig }>()`）。
 
 **验收标准：** 各个 Tab 切换流畅，修改任意 Tab 内的状态（如开启/关闭某个世界书条目，或修改设置），数据流能正常运作。
 
 ---
-
-### 🐾 Step 7: 实现世界书抽屉 UI (Accordion) 及全局世界书挂载管理
-**目标文件：**
-- `src/ARK_STATUSBAR/logic/worldbook_manager.ts`
-- `src/ARK_STATUSBAR/components/global_tabs/WorldbookManagerTab.vue`
-
-**核心动作：**
-1. **核心逻辑需求补充（绝不混淆概念）：** 严格区分“角色绑定”和“全局挂载”。在 `worldbook_manager.ts` 中新增获取世界书列表的方法，并提供**全局挂载（Global Mount）**和取消挂载的功能。这与修改角色本身绑定的世界书是两回事，必须调用酒馆环境中的全局/聊天级世界书挂载接口。
-2. 彻底重构 UI，使用 `v-for="(entries, worldName) in groupedWorldbooks"` 渲染外层抽屉。
-3. 实现折叠/展开动画。
-4. **顶层世界书管理：** 显示当前已挂载和已绑定的世界书，并提供界面浏览所有未挂载的世界书，允许用户通过按钮直接进行**全局挂载（Global Mount）**和取消挂载。
-5. 点击展开某个世界书后，显示其内部具体的 `[SYS_...]` 条目或其他普通条目，并允许开关条目状态。
-
-**验收标准：** 用户能够在新界面中看到全局世界书列表，并能正确执行全局挂载/取消挂载世界书的操作，跨世界书管理界面清晰易用，不显得拥挤。
-
----
->> **To Next Agent**: 请在接手任务时，严格按照此文档的 Step 1 至 Step 6 顺序逐项执行。**每一次只执行一个 Step，并请求 User 的审查。**
+>> **To Next Agent**: 请在接手任务时，严格按照此文档的 Step 1 至 Step 8 顺序逐项执行。**每一次只执行一个 Step，并请求 User 的审查。**
