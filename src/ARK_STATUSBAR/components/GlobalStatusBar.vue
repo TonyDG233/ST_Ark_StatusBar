@@ -91,6 +91,7 @@
                 <div class="entry-info">
                   <span class="entry-name">
                     <span v-if="isPinned(entry)" class="pin-icon">📌</span>
+                    <span style="font-size: 0.9em; margin-right: 4px;">{{ getEntryType(entry) === 'constant' ? '🔵' : '🟢' }}</span>
                     {{ entry.comment || entry.name || (entry.key && entry.key.length ? entry.key[0] : '未知') }}
                     <span v-if="entry.world" style="font-size: 0.8em; opacity: 0.7; margin-left: 5px;">({{ entry.world }})</span>
                   </span>
@@ -125,6 +126,7 @@
             >
               <div class="entry-name">
                 <span v-if="isPinned(entry)" class="pin-icon">📌</span>
+                <span style="font-size: 0.9em; margin-right: 4px;">{{ getEntryType(entry) === 'constant' ? '🔵' : '🟢' }}</span>
                 {{ entry.comment || entry.name || (entry.key && entry.key.length ? entry.key[0] : '未知') }}
                 <div v-if="entry.world" style="font-size: 0.75em; color: var(--ui-text-secondary); margin-top: 2px;">
                   📁 来源: {{ entry.world }}
@@ -328,6 +330,23 @@
           </div>
           <p class="hint" style="margin-top: 5px; font-size: 0.85em; opacity: 0.8">
             开启后，按下回车键发送也将被拦截预览。默认关闭，以方便习惯回车换行或原生发送的用户。
+          </p>
+        </div>
+
+        <div class="setting-item">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <label>显示常驻(蓝灯)条目</label>
+            <label class="switch">
+              <input
+                type="checkbox"
+                :checked="currentConfig?.showConstantEntries"
+                @change="toggleShowConstantEntries"
+              />
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <p class="hint" style="margin-top: 5px; font-size: 0.85em; opacity: 0.8">
+            开启后，无论是在被动发送拦截还是主动检测中，都将展示被激活的常驻条目（仅供检查调试）。
           </p>
         </div>
 
@@ -549,6 +568,10 @@ const availableCategories = computed(() => {
  * 获取世界书条目的触发类型 (constant=蓝灯常驻, selective=绿灯条件触发)
  */
 const getEntryType = (entry: any) => {
+  // 优先判断酒馆原生的 constant 属性
+  if (entry.constant === true) return 'constant';
+  if (entry.constant === false) return 'selective';
+  // 兜底判断本项目的自定义 strategy.type
   return entry.strategy?.type || 'selective';
 };
 
@@ -634,12 +657,13 @@ const toggleEntryType = async (entry: any) => {
       return;
     }
 
-    // 2. 复合匹配与后端写入：修改世界书该条目的 strategy.type
+    // 2. 复合匹配与后端写入：修改世界书该条目的 strategy.type 和 constant 属性
     await updateWorldbookWith(targetWorldbook, (wbEntries: any[]) => {
       const e = wbEntries.find(x => x.uid === entry.uid && (x.name === entry.name || x.comment === entry.comment));
       if (e) {
         if (!e.strategy) e.strategy = {};
         e.strategy.type = newType;
+        e.constant = newType === 'constant'; // 同步修改酒馆原生属性
         console.info(`[ARK_UI] 成功在 ${targetWorldbook} 中切换类型: ${e.name || e.comment} -> ${newType}`);
       } else {
         console.warn(`[ARK_UI] 在 ${targetWorldbook} 中未能匹配到条目:`, entry);
@@ -650,6 +674,7 @@ const toggleEntryType = async (entry: any) => {
     // 乐观更新本地 UI 状态
     if (!entry.strategy) entry.strategy = {};
     entry.strategy.type = newType;
+    entry.constant = newType === 'constant';
 
     // 记录修改历史 (Commit)
     const newCommit = {
@@ -891,7 +916,7 @@ onMounted(() => {
     currentTokenCount.value = e.detail.tokenCount ?? 0;
 
     // 映射与解耦：基于拦截器抛回的 raw 数据直接渲染。不需要回 allEntries 找死引用
-    const matchedEntries = triggered
+    let matchedEntries = triggered
       .map((raw: any) => {
         // 1. 确保带有开关状态标识
         raw.enabled = raw.enabled !== false;
@@ -902,8 +927,12 @@ onMounted(() => {
         // 3. 补充 Vue 需要的反应式属性模板，防止直接使用 raw 时出错
         if (!raw.strategy) raw.strategy = {};
         return raw;
-      })
-      .filter((entry: any) => getEntryType(entry) !== 'constant');
+      });
+      
+    // 根据系统配置，决定是否在拦截器中渲染蓝灯(常驻)条目
+    if (!currentConfig.value?.showConstantEntries) {
+      matchedEntries = matchedEntries.filter((entry: any) => getEntryType(entry) !== 'constant');
+    }
 
     // 如果存在需要预警的绿灯条目，或者正处于主动测试模式
     if (matchedEntries.length > 0 || isManualTest) {
@@ -1044,6 +1073,11 @@ const toggleTempDisable = (entry: any) => {
 const toggleEnterInterceptor = (e: Event) => {
   const checked = (e.target as HTMLInputElement).checked;
   manager.saveConfig({ enableEnterToIntercept: checked });
+};
+
+const toggleShowConstantEntries = (e: Event) => {
+  const checked = (e.target as HTMLInputElement).checked;
+  manager.saveConfig({ showConstantEntries: checked });
 };
 
 const toggleDebugMode = (e: Event) => {

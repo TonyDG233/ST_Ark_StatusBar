@@ -18,6 +18,7 @@ export interface ArkConfig {
   isSystemEnabled: boolean; // 系统总开关，控制整个状态栏是否启用
   isInterceptorEnabled: boolean; // 拦截器开关，控制是否在发送时拦截预警
   enableEnterToIntercept: boolean; // 是否拦截回车键 (默认关闭)
+  showConstantEntries: boolean; // 是否在拦截器和主动检测中显示常驻(蓝灯)条目
   isDebugMode?: boolean; // 是否开启调试模式
   uiWidth: number; // 状态栏 UI 的宽度
   uiFontSize: number; // 状态栏 UI 的基础字体大小
@@ -50,6 +51,7 @@ export const DEFAULT_CONFIG: ArkConfig = {
   isSystemEnabled: true,
   isInterceptorEnabled: true,
   enableEnterToIntercept: false, // 默认关闭回车拦截
+  showConstantEntries: false, // 默认隐藏蓝灯条目
   isDebugMode: false,
   uiWidth: 400,
   uiFontSize: 14,
