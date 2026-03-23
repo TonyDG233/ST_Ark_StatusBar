@@ -8,6 +8,14 @@ export const CONFIG_ENTRY_FULL_NAME = '[SYS_CONFIG]系统配置文件请勿打�
 export const DEBUG_ENTRY_PREFIX = '[SYS_DEBUG]';
 export const DEBUG_ENTRY_FULL_NAME = '[SYS_DEBUG]系统调试日志导出';
 
+export interface ArkSnapshot {
+  id: string;
+  name: string; // 拍摄的快照名称
+  timestamp: number;
+  worldbook: string; // 针对哪本世界书
+  states: Record<number, { enabled: boolean; type: string }>; // uid -> state
+}
+
 /**
  * 状态栏的全局配置接口。
  * 原先保存在世界书，现在即将迁移至 SillyTavern.extensionSettings['ark_statusbar_settings']
@@ -26,7 +34,9 @@ export interface ArkConfig {
   lastUpdateTime: number; // 最后一次配置更新的时间戳
   suppressNextDiffWarning?: boolean; // 是否屏蔽下一次的 Baseline 差异警告
   pinnedEntries?: number[]; // 用户置顶偏好的世界书条目 UID 列表
-  worldbookInitialStates?: Record<string, Record<string, { enabled: boolean; type: string }>>; // [即将新增] 世界书快照
+  pinnedWorldbooks?: string[]; // 用户置顶偏好的世界书名称列表
+  worldbookInitialStates?: Record<string, Record<string, { enabled: boolean; type: string }>>; // [旧快照，将废弃]
+  snapshots?: ArkSnapshot[]; // [新版] 世界书快照
 }
 
 /**
@@ -36,6 +46,7 @@ export interface ArkCommit {
   id: string; // 唯一的提交 ID
   timestamp: number; // 提交时间戳
   description: string; // 提交的文字描述
+  worldbook?: string; // [新增] 该次操作针对的世界书名称
   changes: {
     uid: number; // 修改的世界书条目 UID
     comment: string; // 变动的条目名称/备注
@@ -58,5 +69,7 @@ export const DEFAULT_CONFIG: ArkConfig = {
   commits: [],
   lastUpdateTime: 0,
   pinnedEntries: [],
+  pinnedWorldbooks: [],
   worldbookInitialStates: {},
+  snapshots: [],
 };

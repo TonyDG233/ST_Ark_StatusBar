@@ -72,7 +72,7 @@
 
 ---
 
-### 🐾 Step 4: 实现世界书抽屉 UI (Accordion) 及全局世界书挂载管理
+### 🐾 Step 4: 实现世界书抽屉 UI (Accordion) 及全局世界书挂载管理 (已完成)
 **目标文件：**
 - `src/ARK_STATUSBAR/logic/worldbook_manager.ts`
 - `src/ARK_STATUSBAR/components/GlobalStatusBar.vue` (Tab 2 内部)
@@ -88,7 +88,7 @@
 
 ---
 
-### 🐾 Step 5: 全局快照生命周期管理面板
+### 🐾 Step 5: 全局快照生命周期管理面板 (已完成)
 **目标文件：**
 - `src/ARK_STATUSBAR/logic/worldbook_manager.ts`
 - `src/ARK_STATUSBAR/components/GlobalStatusBar.vue` (Tab 3 内部)

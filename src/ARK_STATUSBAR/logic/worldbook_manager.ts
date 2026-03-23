@@ -34,6 +34,68 @@ export type WorldbookStatus = 'original' | 'single_char_closed' | 'modified';
  */
 export const WorldbookManager = {
   /**
+   * 获取所有可用的世界书名称
+   */
+  async getAllAvailableWorldbooks(): Promise<string[]> {
+    try {
+      return getWorldbookNames();
+    } catch (e) {
+      console.error('[ARK_Manager] Failed to get all worldbooks:', e);
+      return [];
+    }
+  },
+
+  /**
+   * 获取已全局挂载的世界书名称
+   */
+  async getGlobalMountedWorldbooks(): Promise<string[]> {
+    try {
+      return getGlobalWorldbookNames();
+    } catch (e) {
+      console.error('[ARK_Manager] Failed to get global mounted worldbooks:', e);
+      return [];
+    }
+  },
+
+  /**
+   * 获取当前角色绑定的世界书名称列表（主世界书 + 附加世界书）
+   */
+  async getCharBoundWorldbooks(): Promise<string[]> {
+    try {
+      const result = await getCharWorldbookNames('current');
+      const list: string[] = [];
+      if (result.primary) list.push(result.primary);
+      if (result.additional && result.additional.length > 0) {
+        list.push(...result.additional);
+      }
+      return list;
+    } catch (error) {
+      console.error('[ARK_Manager] Failed to get char bound worldbooks:', error);
+      return [];
+    }
+  },
+
+  /**
+   * 切换某个世界书的全局挂载状态
+   */
+  async toggleGlobalMount(worldbookName: string, isMount: boolean): Promise<void> {
+    try {
+      const globals = await getGlobalWorldbookNames();
+      const newGlobals = new Set(globals);
+      if (isMount) {
+        newGlobals.add(worldbookName);
+      } else {
+        newGlobals.delete(worldbookName);
+      }
+      await rebindGlobalWorldbooks(Array.from(newGlobals));
+      console.info(`[ARK_Manager] Global mount updated for ${worldbookName}: ${isMount}`);
+    } catch (e) {
+      console.error(`[ARK_Manager] Failed to toggle global mount for ${worldbookName}:`, e);
+      throw e;
+    }
+  },
+
+  /**
    * 获取当前世界书状态，通过对比 Baseline (基准线) 数据来判断是否被修改过。
    *
    * @returns {Promise<WorldbookStatus>} 返回比对后的状态
@@ -244,6 +306,7 @@ export const WorldbookManager = {
           id: Math.random().toString(36).substr(2, 6),
           timestamp: Date.now(),
           description: `[Bulk Close] 关闭了所有单字干员 (${diffChanges.length}项)`,
+          worldbook: targetBook,
           changes: diffChanges,
         };
         const commits = [...manager.currentConfig.commits, newCommit];
@@ -252,6 +315,85 @@ export const WorldbookManager = {
     } catch (error) {
       console.error('[ARK_Manager] Bulk close failed:', error);
       toastr.error('操作失败: ' + (error as Error).message);
+    }
+  },
+
+  /**
+   * 创建快照 (保存指定世界书的当前所有条目状态)
+   */
+  async saveCurrentAsSnapshot(worldbookName: string, snapshotName: string): Promise<void> {
+    try {
+      const entries = await getWorldbook(worldbookName);
+      const states: Record<number, { enabled: boolean; type: string }> = {};
+      entries.forEach(e => {
+        states[e.uid] = {
+          enabled: e.enabled,
+          type: e.strategy?.type || 'selective',
+        };
+      });
+
+      const newSnapshot = {
+        id: Math.random().toString(36).substr(2, 9),
+        name: snapshotName,
+        timestamp: Date.now(),
+        worldbook: worldbookName,
+        states,
+      };
+
+      const manager = StatusBarManager.getInstance();
+      if (manager.currentConfig) {
+        const snapshots = [...(manager.currentConfig.snapshots || []), newSnapshot];
+        manager.saveConfig({ snapshots });
+        toastr.success(`快照 [${snapshotName}] 保存成功`);
+      }
+    } catch (e) {
+      console.error('[ARK_Manager] saveCurrentAsSnapshot failed', e);
+      toastr.error('快照保存失败');
+    }
+  },
+
+  /**
+   * 恢复快照 (将指定世界书的条目状态恢复至快照记录)
+   */
+  async restoreSnapshot(snapshotId: string): Promise<void> {
+    try {
+      const manager = StatusBarManager.getInstance();
+      if (!manager.currentConfig || !manager.currentConfig.snapshots) return;
+      const snapshot = manager.currentConfig.snapshots.find(s => s.id === snapshotId);
+      if (!snapshot) throw new Error('Snapshot not found');
+
+      await updateWorldbookWith(snapshot.worldbook, entries => {
+        entries.forEach(e => {
+          if (snapshot.states[e.uid]) {
+            const st = snapshot.states[e.uid];
+            e.enabled = st.enabled;
+            if (!e.strategy) (e as any).strategy = {};
+            if (e.strategy) e.strategy.type = st.type as any;
+            (e as any).constant = st.type === 'constant';
+          }
+        });
+        return entries;
+      });
+
+      // 从记录历史中删除该世界书的历史操作记录，因为已彻底回滚到了最初的快照状态
+      const commits = manager.currentConfig.commits.filter(c => c.worldbook !== snapshot.worldbook);
+      manager.saveConfig({ commits });
+
+      toastr.success(`快照 [${snapshot.name}] 恢复成功`);
+    } catch (e) {
+      console.error('[ARK_Manager] restoreSnapshot failed', e);
+      toastr.error('快照恢复失败');
+    }
+  },
+
+  /**
+   * 删除快照
+   */
+  async deleteSnapshot(snapshotId: string): Promise<void> {
+    const manager = StatusBarManager.getInstance();
+    if (manager.currentConfig && manager.currentConfig.snapshots) {
+      const snapshots = manager.currentConfig.snapshots.filter(s => s.id !== snapshotId);
+      manager.saveConfig({ snapshots });
     }
   },
 };

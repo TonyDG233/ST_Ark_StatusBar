@@ -17,20 +17,22 @@
 在正式开发剧情引擎（节点解析、拦截解耦、次级 API）之前，**必须先完成底层代码的解耦与重构**，解决 3000 行项目规模带来的技术债务。将全局状态迁移至更稳定的 `SillyTavern.extensionSettings`，拆分臃肿的 UI 组件，并实现跨世界书的全局挂载管理。
 
 ### 当前重构目标 (Refactor Worldbook & Vue)
-- [ ] **Step 1: 拆分系统配置 (解耦 statusbar_manager.ts)**
+- [x] **Step 1: 拆分系统配置 (解耦 statusbar_manager.ts)**
   - 将庞大的 `ArkConfig` 及相关常量抽离至独立的 `config/system_config.ts`。
-- [ ] **Step 2: 存储引擎平滑迁移**
+- [x] **Step 2: 存储引擎平滑迁移**
   - 将基于世界书 `[SYS_CONFIG]` 的存储改为 `SillyTavern.extensionSettings`，实现无损数据迁移。
-- [ ] **Step 3: 跨世界书检测放开**
+- [x] **Step 3: 跨世界书检测放开**
   - 允许状态栏拦截器捕获所有世界书的绿灯条目并标注来源。
-- [ ] **Step 4: 提取全局公共样式与字体防线**
+- [x] **Step 4: 实现全局世界书挂载管理**
+  - 实现对所有原生世界书的扫描，并能在 UI 中直接通过 `rebindGlobalWorldbooks` API 控制全局挂载/卸载，并以手风琴抽屉形式渲染。
+- [x] **Step 5: 全局快照生命周期管理面板**
+  - 补全跨世界书的快照拍摄与回滚删除机制，并将高危操作及操作历史(Git)重置到单独管理区域。
+- [ ] **Step 6: 提取全局公共样式与字体防线**
   - 新建 `theme.scss`，统一移动端字体大小，严防宋体灾难和 CSS 污染。
-- [ ] **Step 5: 拆分 StartupNavigator.vue**
+- [ ] **Step 7: 拆分 StartupNavigator.vue**
   - 将设置面板抽离，严格遵循 Vue 的 Props/Emits 单向数据流防线。
-- [ ] **Step 6: 拆分 GlobalStatusBar.vue 为容器**
+- [ ] **Step 8: 拆分 GlobalStatusBar.vue 为容器**
   - 将臃肿的四合一组件拆分为独立的子 Tabs 组件。
-- [ ] **Step 7: 实现全局世界书挂载管理**
-  - 实现对所有原生世界书的扫描，并能在 UI 中直接通过 `rebindGlobalWorldbooks` API 控制全局挂载/卸载。
 
 ### 核心子目标
 - [ ] **剧本节点规范化 (The Script Engine)**

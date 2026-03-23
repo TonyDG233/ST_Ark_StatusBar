@@ -195,71 +195,169 @@
       <!-- Tab 2: All WBs -->
       <div v-show="currentTab === 'all'" class="tab-panel flex-col">
         <div class="filters">
-          <input type="text" v-model="filterText" placeholder="搜索名称或触发词..." class="search-input" />
-          <div class="filter-row">
-            <select v-model="filterCategory" class="filter-select">
-              <option value="">全部类别</option>
-              <option v-for="cat in availableCategories" :key="cat" :value="cat">{{ cat }}</option>
-            </select>
-            <select v-model="filterType" class="filter-select">
-              <option value="">全部类型(蓝/绿灯)</option>
-              <option value="constant">常驻 (🔵 蓝灯)</option>
-              <option value="selective">条件 (🟢 绿灯)</option>
-            </select>
-          </div>
-          <div class="filter-row" style="margin-top: 5px">
-            <button class="btn-danger tiny" @click="resetToBaseline" style="flex: 1; padding: 4px; font-size: 0.9em">
-              ↺ 恢复初始状态
-            </button>
-            <button class="btn-warning tiny" @click="closeSingleChar" style="flex: 1; padding: 4px; font-size: 0.9em">
-              ⚡ 关闭单字干员
-            </button>
-          </div>
+          <input type="text" v-model="filterText" placeholder="搜索世界书..." class="search-input" />
         </div>
         <div class="all-wbs-list">
-          <div
-            v-for="entry in filteredEntries"
-            :key="entry.uid"
-            class="wb-item"
-            :class="{ 'disabled-entry': !entry.enabled }"
-          >
-            <div class="wb-info">
-              <div class="wb-name">
-                <span v-if="isPinned(entry)" class="pin-icon">📌</span>
-                {{ entry.comment || entry.name || (entry.key ? entry.key[0] : '未知') }}
+          <div v-for="wb in filteredWorldbooks" :key="wb.name" class="wb-accordion-item">
+            <div class="wb-accordion-header" @click="toggleAccordion(wb.name)">
+              <div class="wb-accordion-title">
+                <span v-if="wb.isPinned" class="pin-icon">📌</span>
+                <span class="wb-type-badge" :class="wb.type">
+                  {{ wb.type === 'char' ? '角色绑定' : (wb.type === 'global' ? '已挂载' : '未挂载') }}
+                </span>
+                <span class="wb-name-text">{{ wb.name }}</span>
               </div>
-              <div class="wb-keys" v-if="entry.key && entry.key.length">触发词: {{ entry.key.join(', ') }}</div>
+              <div class="wb-accordion-actions">
+                <button
+                  class="icon-btn tiny pin-btn"
+                  @click.stop="toggleWorldbookPin(wb.name)"
+                  :title="wb.isPinned ? '取消置顶' : '置顶世界书'"
+                  :class="{ pinned: wb.isPinned }"
+                >
+                  {{ wb.isPinned ? '📌' : '📍' }}
+                </button>
+                <button 
+                  v-if="wb.type !== 'char'" 
+                  class="btn-tiny"
+                  :class="wb.type === 'global' ? 'btn-danger' : 'btn-success'"
+                  @click.stop="toggleGlobalMountUI(wb.name, wb.type !== 'global')"
+                >
+                  {{ wb.type === 'global' ? '卸载' : '挂载' }}
+                </button>
+                <span class="accordion-arrow">{{ expandedWorldbooks.includes(wb.name) ? '▼' : '▶' }}</span>
+              </div>
             </div>
-            <div class="wb-action">
-              <button
-                class="icon-btn tiny pin-btn"
-                @click="togglePin(entry)"
-                :title="isPinned(entry) ? '取消置顶' : '偏好置顶'"
-                :class="{ pinned: isPinned(entry) }"
-              >
-                {{ isPinned(entry) ? '📌' : '📍' }}
-              </button>
-              <button
-                class="icon-btn tiny"
-                @click="toggleEntryType(entry)"
-                :title="
-                  getEntryType(entry) === 'constant' ? '当前：蓝灯(常驻)，点击切换' : '当前：绿灯(条件)，点击切换'
-                "
-              >
-                {{ getEntryType(entry) === 'constant' ? '🔵' : '🟢' }}
-              </button>
-              <label class="switch">
-                <input type="checkbox" v-model="entry.enabled" @change="toggleEntry(entry)" />
-                <span class="slider round"></span>
-              </label>
+            
+            <div v-if="expandedWorldbooks.includes(wb.name)" class="wb-accordion-content">
+              <div class="filters" style="margin-bottom: 5px;">
+                  <input type="text" v-model="filterEntryTexts[wb.name]" placeholder="搜索此书内的条目名称或触发词..." class="search-input" style="margin-bottom: 5px;" />
+                  <div class="filter-row">
+                    <select v-model="filterCategory" class="filter-select">
+                      <option value="">全部类别</option>
+                      <option v-for="cat in getAvailableCategories(wb.name)" :key="cat" :value="cat">{{ cat }}</option>
+                    </select>
+                    <select v-model="filterType" class="filter-select">
+                      <option value="">全部类型(蓝/绿灯)</option>
+                      <option value="constant">常驻 (🔵 蓝灯)</option>
+                      <option value="selective">条件 (🟢 绿灯)</option>
+                    </select>
+                  </div>
+              </div>
+              <div v-if="isLoadingWb === wb.name" class="empty-state" style="padding: 10px;">加载中...</div>
+              <div v-else-if="!worldbookEntriesCache[wb.name] || worldbookEntriesCache[wb.name].length === 0" class="empty-state" style="padding: 10px;">
+                此世界书没有包含有效条目。
+              </div>
+              <div v-else class="wb-entries-container">
+                <div
+                  v-for="entry in filterEntries(worldbookEntriesCache[wb.name], wb.name)"
+                  :key="entry.uid"
+                  class="wb-item"
+                  :class="{ 'disabled-entry': !entry.enabled }"
+                >
+                  <div class="wb-info">
+                    <div class="wb-name">
+                      <span v-if="isPinned(entry)" class="pin-icon">📌</span>
+                      {{ entry.comment || entry.name || (entry.key ? entry.key[0] : '未知') }}
+                    </div>
+                    <div class="wb-keys" v-if="entry.key && entry.key.length">触发词: {{ entry.key.join(', ') }}</div>
+                  </div>
+                  <div class="wb-action">
+                    <button
+                      class="icon-btn tiny pin-btn"
+                      @click="togglePin(entry)"
+                      :title="isPinned(entry) ? '取消置顶' : '偏好置顶'"
+                      :class="{ pinned: isPinned(entry) }"
+                    >
+                      {{ isPinned(entry) ? '📌' : '📍' }}
+                    </button>
+                    <button
+                      class="icon-btn tiny"
+                      @click="toggleEntryType(entry, wb.name)"
+                      :title="
+                        getEntryType(entry) === 'constant' ? '当前：蓝灯(常驻)，点击切换' : '当前：绿灯(条件)，点击切换'
+                      "
+                    >
+                      {{ getEntryType(entry) === 'constant' ? '🔵' : '🟢' }}
+                    </button>
+                    <label class="switch">
+                      <input type="checkbox" v-model="entry.enabled" @change="toggleEntry(entry, wb.name)" />
+                      <span class="slider round"></span>
+                    </label>
+                  </div>
+                </div>
+                <div v-if="filterEntries(worldbookEntriesCache[wb.name], wb.name).length === 0" class="empty-state" style="padding: 5px;">没有找到匹配的条目。</div>
+              </div>
             </div>
           </div>
-          <div v-if="filteredEntries.length === 0" class="empty-state">没有找到匹配的条目。</div>
+          <div v-if="filteredWorldbooks.length === 0" class="empty-state">没有找到匹配的世界书。</div>
         </div>
       </div>
 
       <!-- Tab 3: History -->
-      <div v-show="currentTab === 'history'" class="tab-panel">
+      <div v-show="currentTab === 'history'" class="tab-panel flex-col">
+        <!-- 区域 A：快照与高危操作 -->
+        <div class="snapshot-panel" style="margin-bottom: 20px;">
+          
+          <!-- 快照管理顶栏 (黄框介绍) -->
+          <div class="warning-box" style="margin-bottom: 0; padding: 10px; border-radius: 6px 6px 0 0; border-bottom: none;">
+            <strong style="display: block; margin-bottom: 4px;">📸 世界书快照管理</strong>
+            <p style="margin: 0; font-size: 0.9em; opacity: 0.9;">
+              在此处可以对任意世界书拍摄（保存）当前所有条目状态的“快照”，并在日后随时无损恢复。
+            </p>
+          </div>
+
+          <!-- 实际的快照操作区域 -->
+          <div class="snapshot-controls" style="border: 1px solid rgba(255, 165, 0, 0.4); border-top: none; border-radius: 0 0 6px 6px; padding: 15px; background: rgba(0,0,0,0.15);">
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px;">
+              <select v-model="selectedSnapshotWorldbook" class="filter-select" style="width: 100%;">
+                <option value="">选择要拍摄的世界书 (默认主书)</option>
+                <option v-for="wbName in allAvailableWorldbooks" :key="wbName" :value="wbName">{{ wbName }}</option>
+              </select>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" v-model="newSnapshotName" placeholder="输入快照名称 (留空自动生成时间戳)..." class="search-input" style="flex: 1;" />
+                <button class="btn-primary" @click="createSnapshot" style="padding: 6px 12px; white-space: nowrap;">拍摄快照</button>
+              </div>
+            </div>
+            
+            <div v-if="!currentConfig?.snapshots?.length" class="empty-state" style="padding: 10px;">暂无保存的快照。</div>
+            <ul v-else class="entry-list read-only" style="margin: 0; max-height: 200px; overflow-y: auto;">
+              <li v-for="snap in currentConfig?.snapshots" :key="snap.id" style="flex-direction: column; align-items: stretch; background: rgba(255,255,255,0.05); margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                  <strong style="font-size: 0.95em;">{{ snap.name }}</strong>
+                  <span style="font-size: 0.8em; opacity: 0.7;">{{ new Date(snap.timestamp).toLocaleString() }}</span>
+                </div>
+                <div style="font-size: 0.8em; opacity: 0.7; margin-bottom: 8px;">📁 来源: {{ snap.worldbook }}</div>
+                <div class="action-bar compact">
+                  <button class="btn-success tiny" @click="restoreSnapshot(snap.id)" style="padding: 4px; font-size: 0.85em;">✅ 恢复</button>
+                  <button class="btn-danger tiny" @click="deleteSnapshot(snap.id)" style="padding: 4px; font-size: 0.85em;">❌ 删除</button>
+                </div>
+              </li>
+            </ul>
+          </div>
+          
+          <!-- 危险操作区域 (白细框包围) -->
+          <div style="margin-top: 15px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; padding: 12px; background: rgba(0,0,0,0.2);">
+            <div style="font-size: 0.85em; color: rgba(255, 255, 255, 0.8); margin-bottom: 12px; line-height: 1.4;">
+              <span style="color: orange; font-weight: bold;">⚠️ 角色卡主书专属操作</span><br/>
+              以下操作仅作用于当前角色的主世界书: <strong>{{ currentPrimaryWorldbook || '无' }}</strong>。<br/>
+              如果需要大规模修改或回滚状态，强烈建议您优先使用上方更安全的【快照】功能。
+            </div>
+
+            <div class="action-bar compact">
+              <button class="btn-danger tiny" @click="resetToBaseline" style="flex: 1; padding: 8px; font-size: 0.9em">
+                ↺ 恢复初始状态 (Baseline)
+              </button>
+              <button class="btn-warning tiny" @click="closeSingleChar" style="flex: 1; padding: 8px; font-size: 0.9em">
+                ⚡ 屏蔽所有单字干员
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <hr class="record-divider" style="margin-bottom: 15px;" />
+        
+        <!-- 区域 B：操作历史 (Git Log) -->
+        <h4 style="margin-top: 0; margin-bottom: 10px;">📖 操作历史记录</h4>
         <div v-if="!currentConfig?.commits?.length" class="empty-state">暂无修改记录。</div>
         <ul v-else class="commit-list">
           <li v-for="commit in [...(currentConfig?.commits || [])].reverse()" :key="commit.id" class="commit-item">
@@ -268,6 +366,7 @@
               <span class="commit-time">{{ new Date(commit.timestamp).toLocaleString() }}</span>
             </div>
             <div class="commit-desc">{{ commit.description }}</div>
+            <div v-if="commit.worldbook" style="font-size: 0.8em; opacity: 0.7; margin-bottom: 5px;">📁 来源: {{ commit.worldbook }}</div>
             <ul class="commit-changes">
               <li v-for="change in commit.changes" :key="change.uid">
                 {{ change.comment }} : {{ getChangeText(commit, change.from) }} ->
@@ -399,8 +498,8 @@
           </div>
 
           <div style="border-top: 1px dashed rgba(128, 128, 128, 0.3); padding-top: 15px">
-            <button class="btn-danger" @click="resetToBaseline">重置世界书至初始状态</button>
-            <p class="hint warning">将清除所有手动修改记录和开局预设，恢复至角色卡最初的干净状态。</p>
+            <button class="btn-danger" @click="factoryReset">恢复初始设置</button>
+            <p class="hint warning">将清除本插件的所有配置、手动修改记录和快照，彻底恢复至初始状态。此操作不可逆！</p>
           </div>
         </div>
       </div>
@@ -537,32 +636,182 @@ const absoluteLeft = ref<number | null>(null);
 const absoluteTop = ref<number | null>(null);
 const hasAbsolutePos = computed(() => absoluteLeft.value !== null && absoluteTop.value !== null);
 
-// --- Tab 2: 全部条目 (Filters & Logic) ---
+// --- Tab 2: 全部世界书挂载与条目 (Filters & Logic) ---
 const filterText = ref(''); // 文本搜索框内容
 const filterCategory = ref(''); // 分类筛选下拉框值
 const filterType = ref(''); // 状态筛选下拉框值
 
+const filterEntryTexts = ref<Record<string, string>>({}); // 针对抽屉内部特定世界书的搜素文本
+
+// 世界书列表与状态缓存
+const allAvailableWorldbooks = ref<string[]>([]);
+const globalMountedWorldbooks = ref<string[]>([]);
+const charBoundWorldbooks = ref<string[]>([]);
+
+const expandedWorldbooks = ref<string[]>([]); // 手风琴展开的世界书名称列表
+const worldbookEntriesCache = ref<Record<string, any[]>>({}); // 缓存加载过的世界书条目
+const isLoadingWb = ref<string | null>(null);
+
 /**
- * 动态计算所有可用的分类。
- * 根据条目名称中的前缀 (如 "[角色]", "[设定]") 进行分组。
+ * 获取世界书列表并分类
  */
-const availableCategories = computed(() => {
+const loadWorldbookLists = async () => {
+  try {
+    allAvailableWorldbooks.value = await WorldbookManager.getAllAvailableWorldbooks();
+    globalMountedWorldbooks.value = await WorldbookManager.getGlobalMountedWorldbooks();
+    charBoundWorldbooks.value = await WorldbookManager.getCharBoundWorldbooks();
+  } catch (e) {
+    console.error('[ARK_UI] loadWorldbookLists failed', e);
+  }
+};
+
+/**
+ * 构建带有分类和排序状态的世界书列表对象
+ */
+const filteredWorldbooks = computed(() => {
+  let result = allAvailableWorldbooks.value.map(name => {
+    let type = 'unmounted';
+    if (charBoundWorldbooks.value.includes(name)) type = 'char';
+    else if (globalMountedWorldbooks.value.includes(name)) type = 'global';
+
+    return {
+      name,
+      type,
+      isPinned: currentConfig.value?.pinnedWorldbooks?.includes(name) || false,
+    };
+  });
+
+  // 1. 过滤文本
+  if (filterText.value) {
+    const q = filterText.value.toLowerCase();
+    result = result.filter(wb => wb.name.toLowerCase().includes(q));
+  }
+
+  // 2. 复合排序 (参考 User 补充): 
+  // 角色绑定(char) > 置顶全局挂载(pinned+global) > 全局挂载(global) > 置顶未挂载(pinned+unmounted) > 未挂载(unmounted)
+  result.sort((a, b) => {
+    const getScore = (wb: any) => {
+      if (wb.type === 'char') return 5;
+      if (wb.type === 'global' && wb.isPinned) return 4;
+      if (wb.type === 'global') return 3;
+      if (wb.type === 'unmounted' && wb.isPinned) return 2;
+      return 1;
+    };
+    return getScore(b) - getScore(a);
+  });
+
+  return result;
+});
+
+/**
+ * 切换世界书的全局挂载状态
+ */
+const toggleGlobalMountUI = async (wbName: string, isMount: boolean) => {
+  try {
+    await WorldbookManager.toggleGlobalMount(wbName, isMount);
+    // 重新获取挂载列表以刷新 UI
+    globalMountedWorldbooks.value = await WorldbookManager.getGlobalMountedWorldbooks();
+  } catch (e) {
+    console.error('toggleGlobalMountUI error', e);
+    if (typeof toastr !== 'undefined') toastr.error('挂载状态切换失败');
+  }
+};
+
+/**
+ * 切换世界书的置顶状态
+ */
+const toggleWorldbookPin = (wbName: string) => {
+  const pinned = currentConfig.value?.pinnedWorldbooks || [];
+  const idx = pinned.indexOf(wbName);
+  const newPinned = [...pinned];
+  if (idx === -1) {
+    newPinned.push(wbName);
+  } else {
+    newPinned.splice(idx, 1);
+  }
+  manager.saveConfig({ pinnedWorldbooks: newPinned });
+};
+
+/**
+ * 切换手风琴抽屉并按需加载条目
+ */
+const toggleAccordion = async (wbName: string) => {
+  const idx = expandedWorldbooks.value.indexOf(wbName);
+  if (idx > -1) {
+    expandedWorldbooks.value.splice(idx, 1); // 折叠
+  } else {
+    expandedWorldbooks.value.push(wbName); // 展开
+    // 按需加载
+    if (!worldbookEntriesCache.value[wbName]) {
+      isLoadingWb.value = wbName;
+      try {
+        const entries = await getWorldbook(wbName);
+        // 过滤系统配置
+        worldbookEntriesCache.value[wbName] = entries.filter(
+          (e: any) =>
+            !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) &&
+            !(e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX)),
+        );
+      } catch (e) {
+        console.error(`[ARK_UI] 无法加载世界书 ${wbName}`, e);
+        worldbookEntriesCache.value[wbName] = [];
+      } finally {
+        isLoadingWb.value = null;
+      }
+    }
+  }
+};
+
+/**
+ * 获取当前展开世界书内的条目分类
+ */
+const getAvailableCategories = (wbName: string) => {
+  const entries = worldbookEntriesCache.value[wbName] || [];
   const cats = new Set<string>();
-  allEntries.value.forEach(e => {
+  entries.forEach(e => {
     const name = e.name || e.comment || '';
     const match = name.match(/^\[(.*?)\]/);
     if (match) cats.add(match[1]);
     else cats.add('未分类');
   });
   const sorted = Array.from(cats).sort();
-  // 强制将 "未分类" 排在下拉框的最底部
   const uncatIndex = sorted.indexOf('未分类');
   if (uncatIndex !== -1) {
     sorted.splice(uncatIndex, 1);
     sorted.push('未分类');
   }
   return sorted;
-});
+};
+
+/**
+ * 过滤展示单个世界书内的条目
+ */
+const filterEntries = (entries: any[], wbName: string) => {
+  if (!entries) return [];
+  return entries.filter(entry => {
+    // 文本搜索
+    const searchText = filterEntryTexts.value[wbName];
+    if (searchText) {
+      const query = searchText.toLowerCase();
+      const name = (entry.comment || entry.name || '').toLowerCase();
+      const keys = (entry.key || []).join(' ').toLowerCase();
+      if (!name.includes(query) && !keys.includes(query)) return false;
+    }
+    // 分类筛选
+    if (filterCategory.value) {
+      const name = entry.name || entry.comment || '';
+      const match = name.match(/^\[(.*?)\]/);
+      const cat = match ? match[1] : '未分类';
+      if (cat !== filterCategory.value) return false;
+    }
+    if (filterType.value) {
+      if (getEntryType(entry) !== filterType.value) return false;
+    }
+    return true;
+  }).sort((a, b) => {
+    return (isPinned(b) ? 1 : 0) - (isPinned(a) ? 1 : 0);
+  });
+};
 
 /**
  * 获取世界书条目的触发类型 (constant=蓝灯常驻, selective=绿灯条件触发)
@@ -645,13 +894,13 @@ const filteredEntries = computed(() => {
 /**
  * 切换条目的蓝灯(constant)与绿灯(selective)属性
  */
-const toggleEntryType = async (entry: any) => {
+const toggleEntryType = async (entry: any, explicitWbName?: string) => {
   try {
     const currentType = getEntryType(entry);
     const newType = currentType === 'constant' ? 'selective' : 'constant';
 
-    // 1. 精确路由：优先操作条目自身携带的 world 属性，如果找不到则回退到当前主世界书
-    const targetWorldbook = entry.world || currentPrimaryWorldbook.value;
+    // 1. 精确路由：使用显式传入的 wbName，如果没有则回退
+    const targetWorldbook = explicitWbName || entry.world || currentPrimaryWorldbook.value;
     if (!targetWorldbook) {
       console.warn('[ARK_UI] 切换条目触发类型失败：无法确定目标世界书', entry);
       return;
@@ -681,6 +930,7 @@ const toggleEntryType = async (entry: any) => {
       id: Math.random().toString(36).substr(2, 6),
       timestamp: Date.now(),
       description: `[用户手动修改触发类型] ${entry.comment || entry.name}`,
+      worldbook: targetWorldbook,
       changes: [
         {
           uid: entry.uid,
@@ -698,7 +948,42 @@ const toggleEntryType = async (entry: any) => {
 };
 // --- 结束: Tab 2 (全部条目) 逻辑 ---
 
-// --- Tab 3 (历史记录) 逻辑 ---
+// --- Tab 3 (快照与历史记录) 逻辑 ---
+const newSnapshotName = ref('');
+const selectedSnapshotWorldbook = ref(''); // 用户选择要拍摄的世界书
+
+const createSnapshot = async () => {
+  const targetWb = selectedSnapshotWorldbook.value || currentPrimaryWorldbook.value;
+  if (!targetWb) return;
+  
+  const name = newSnapshotName.value.trim() || `快照-${new Date().toLocaleTimeString()}`;
+  await WorldbookManager.saveCurrentAsSnapshot(targetWb, name);
+  newSnapshotName.value = '';
+};
+
+const restoreSnapshot = async (id: string) => {
+  if (confirm('确定要恢复到此快照的状态吗？')) {
+    await WorldbookManager.restoreSnapshot(id);
+    await loadWorldbookLists();
+    
+    // 如果当前有展开的抽屉，重新拉取内容刷新缓存
+    if (currentPrimaryWorldbook.value && expandedWorldbooks.value.includes(currentPrimaryWorldbook.value)) {
+       try {
+         const entries = await getWorldbook(currentPrimaryWorldbook.value);
+         worldbookEntriesCache.value[currentPrimaryWorldbook.value] = entries.filter(
+           (e: any) => !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) && !(e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX))
+         );
+       } catch(e) {}
+    }
+  }
+};
+
+const deleteSnapshot = async (id: string) => {
+  if (confirm('确定要删除此快照吗？')) {
+    await WorldbookManager.deleteSnapshot(id);
+  }
+};
+
 /**
  * 撤销某一次特定的历史修改操作 (类似 git revert)
  * @param commit 要撤销的提交记录
@@ -707,9 +992,7 @@ const revertCommit = async (commit: any) => {
   if (!confirm(`确定要撤销操作: ${commit.description} 吗？`)) return;
 
   try {
-    const result = await getCharWorldbookNames('current');
-    const targetWorldbook =
-      result.primary || (result.additional && result.additional.length > 0 ? result.additional[0] : null);
+    const targetWorldbook = commit.worldbook || currentPrimaryWorldbook.value;
     if (!targetWorldbook) return;
 
     // 应用反向变更 (Inverse changes)
@@ -721,6 +1004,7 @@ const revertCommit = async (commit: any) => {
           if (commit.description.includes('changed type') || commit.description.includes('修改触发类型')) {
             if (!e.strategy) e.strategy = {};
             e.strategy.type = change.from ? 'constant' : 'selective';
+            e.constant = change.from;
           } else {
             e.enabled = change.from; // 恢复为 from 的状态
           }
@@ -733,14 +1017,20 @@ const revertCommit = async (commit: any) => {
     const commits = (currentConfig.value?.commits || []).filter((c: any) => c.id !== commit.id);
     manager.saveConfig({ commits });
 
-    await loadAllEntries(); // 刷新视图
+    // 如果该世界书的抽屉开着，刷新缓存
+    if (expandedWorldbooks.value.includes(targetWorldbook)) {
+      const entries = await getWorldbook(targetWorldbook);
+      worldbookEntriesCache.value[targetWorldbook] = entries.filter(
+        (e: any) => !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) && !(e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX))
+      );
+    }
     toastr.success('撤销成功并已从记录中移除。');
   } catch (e) {
     console.error('Failed to revert commit', e);
     toastr.error('撤销失败，详见控制台。');
   }
 };
-// --- 结束: Tab 3 (历史记录) 逻辑 ---
+// --- 结束: Tab 3 (快照与历史记录) 逻辑 ---
 
 // --- 拖拽交互 (Drag) 逻辑 ---
 let isDragging = false;
@@ -896,17 +1186,19 @@ onMounted(() => {
     const config = e.detail;
     const wasNull = !currentConfig.value;
     currentConfig.value = config;
-    if (wasNull && config.isSystemEnabled) {
-      loadAllEntries();
-    }
-  }) as EventListener);
-
-  if (manager.currentConfig) {
-    currentConfig.value = manager.currentConfig;
-    if (manager.currentConfig.isSystemEnabled) {
-      loadAllEntries();
-    }
-  }
+        if (wasNull && config.isSystemEnabled) {
+          loadAllEntries();
+          loadWorldbookLists();
+        }
+      }) as EventListener);
+    
+      if (manager.currentConfig) {
+        currentConfig.value = manager.currentConfig;
+        if (manager.currentConfig.isSystemEnabled) {
+          loadAllEntries();
+          loadWorldbookLists();
+        }
+      }
 
   // 监听拦截器触发预警的事件
   document.addEventListener('ark-interceptor-triggered', ((e: CustomEvent) => {
@@ -1127,7 +1419,33 @@ const toggleInterceptor = (e: Event) => {
 };
 
 /**
- * 一键重置所有世界书状态到最初的基准线，并清空历史记录
+ * 将整个状态栏插件恢复至出厂设置（清空所有配置、记录、快照）
+ */
+const factoryReset = async () => {
+  if (confirm('确定要清除本插件的所有配置、快照和修改记录吗？此操作不可逆！')) {
+    // 只要把 config 还原为 default 即可
+    manager.saveConfig({
+      ...manager.currentConfig,
+      commits: [],
+      snapshots: [],
+      pinnedEntries: [],
+      pinnedWorldbooks: [],
+      // 重置其他简单设置的话，也可以直接引入 DEFAULT_CONFIG
+      isSystemEnabled: true,
+      isInterceptorEnabled: true,
+      enableEnterToIntercept: false,
+      showConstantEntries: false,
+      theme: 'light',
+    });
+    toastr.success('已恢复初始设置，页面即将刷新');
+    setTimeout(() => {
+      window.location.reload();
+    }, 1500);
+  }
+};
+
+/**
+ * 一键重置当前角色世界书状态到最初的基准线，并清空历史记录
  */
 const resetToBaseline = async () => {
   if (confirm('确定要一键还原至初始状态吗？这将清空历史修改记录。')) {
@@ -1151,11 +1469,9 @@ const closeSingleChar = async () => {
 /**
  * 切换任意世界书条目的开关 (enabled) 状态，并记录进提交历史
  */
-const toggleEntry = async (entry: any) => {
+const toggleEntry = async (entry: any, explicitWbName?: string) => {
   try {
-    const result = await getCharWorldbookNames('current');
-    const targetWorldbook =
-      result.primary || (result.additional && result.additional.length > 0 ? result.additional[0] : null);
+    const targetWorldbook = explicitWbName || entry.world || currentPrimaryWorldbook.value;
     if (!targetWorldbook) return;
 
     // 更新真实的世界书对象
@@ -1170,6 +1486,7 @@ const toggleEntry = async (entry: any) => {
       id: Math.random().toString(36).substr(2, 6),
       timestamp: Date.now(),
       description: `[用户手动切换开关] ${entry.comment || entry.name}`,
+      worldbook: targetWorldbook,
       changes: [
         {
           uid: entry.uid,
@@ -1525,6 +1842,82 @@ const togglePendingEntry = async (entry: any) => {
 .wb-keys {
   font-size: 0.8em;
   opacity: 0.7;
+}
+
+/* Accordion Styles */
+.wb-accordion-item {
+  border: 1px solid var(--SmartThemeBorderColor, rgba(255, 255, 255, 0.1));
+  border-radius: 6px;
+  margin-bottom: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+.wb-accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s;
+}
+.wb-accordion-header:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+.wb-accordion-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: bold;
+  flex: 1;
+  min-width: 0;
+}
+.wb-name-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wb-type-badge {
+  font-size: 0.75em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(128, 128, 128, 0.3);
+  flex-shrink: 0;
+}
+.wb-type-badge.char {
+  background: rgba(0, 123, 255, 0.4);
+  color: #cce5ff;
+}
+.wb-type-badge.global {
+  background: rgba(40, 167, 69, 0.4);
+  color: #d4edda;
+}
+.wb-accordion-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.btn-tiny {
+  font-size: 0.75em;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: white;
+}
+.accordion-arrow {
+  font-size: 0.8em;
+  opacity: 0.6;
+  margin-left: 4px;
+}
+.wb-entries-container {
+  padding: 0 10px 10px 10px;
+}
+.wb-accordion-content {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.1);
+  padding-top: 10px;
 }
 
 /* Switch style */
