@@ -406,7 +406,8 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { CONFIG_ENTRY_PREFIX, StatusBarManager, type ArkConfig } from '../logic/statusbar_manager';
+import { CONFIG_ENTRY_PREFIX, type ArkConfig } from '../config/system_config';
+import { StatusBarManager } from '../logic/statusbar_manager';
 import { WorldbookManager } from '../logic/worldbook_manager';
 
 // --- 全局与 UI 状态 ---

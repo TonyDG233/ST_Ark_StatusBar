@@ -1,60 +1,10 @@
 import { BASELINE_STATE } from '../config/baseline';
-
-// 系统配置条目的前缀，用于在世界书中快速定位配置条目
-export const CONFIG_ENTRY_PREFIX = '[SYS_CONFIG]';
-// 系统配置条目的完整名称
-export const CONFIG_ENTRY_FULL_NAME = '[SYS_CONFIG]系统配置文件请勿打开';
-
-export const DEBUG_ENTRY_PREFIX = '[SYS_DEBUG]';
-export const DEBUG_ENTRY_FULL_NAME = '[SYS_DEBUG]系统调试日志导出';
-
-/**
- * 状态栏的全局配置接口，所有持久化配置都会保存在世界书的 [SYS_CONFIG] 条目中。
- */
-export interface ArkConfig {
-  _desc: string; // 配置文件说明，防止用户误修改
-  theme: 'light' | 'dark' | 'transparent'; // 当前 UI 主题
-  isSystemEnabled: boolean; // 系统总开关，控制整个状态栏是否启用
-  isInterceptorEnabled: boolean; // 拦截器开关，控制是否在发送时拦截预警
-  enableEnterToIntercept: boolean; // 是否拦截回车键 (默认关闭)
-  isDebugMode?: boolean; // 新增：是否开启调试模式
-  uiWidth: number; // 状态栏 UI 的宽度
-  uiFontSize: number; // 状态栏 UI 的基础字体大小
-  commits: ArkCommit[]; // 操作历史记录（类似 Git commit）
-  lastUpdateTime: number; // 最后一次配置更新的时间戳
-  suppressNextDiffWarning?: boolean; // 是否屏蔽下一次的 Baseline 差异警告
-  pinnedEntries?: number[]; // 用户置顶偏好的世界书条目 UID 列表
-}
-
-// 默认的初始配置
-const DEFAULT_CONFIG: ArkConfig = {
-  _desc: '这是ARK_STATUSBAR的自动备份条目，请勿手动修改',
-  theme: 'light', // 默认主题为浅色
-  isSystemEnabled: true,
-  isInterceptorEnabled: true,
-  enableEnterToIntercept: false, // 默认关闭回车拦截，不打扰习惯回车发送的用户
-  isDebugMode: false, // 默认关闭调试模式
-  uiWidth: 400,
-  uiFontSize: 14,
-  commits: [],
-  lastUpdateTime: 0,
-  pinnedEntries: [],
-};
-
-/**
- * 历史记录（Commit）的结构定义，用于记录对世界书条目状态的修改。
- */
-export interface ArkCommit {
-  id: string; // 唯一的提交 ID
-  timestamp: number; // 提交时间戳
-  description: string; // 提交的文字描述
-  changes: {
-    uid: number; // 修改的世界书条目 UID
-    comment: string; // 变动的条目名称/备注
-    from: boolean; // 变更前的 enabled 状态
-    to: boolean; // 变更后的 enabled 状态
-  }[];
-}
+import {
+  ArkConfig,
+  CONFIG_ENTRY_PREFIX,
+  DEBUG_ENTRY_FULL_NAME,
+  DEFAULT_CONFIG
+} from '../config/system_config';
 
 /**
  * 状态栏全局管理器 (Singleton 单例模式)
@@ -123,7 +73,7 @@ export class StatusBarManager {
     if (!this.targetWorldbook || this.debugLogQueue.length === 0) return;
     try {
       let entries = await getWorldbook(this.targetWorldbook);
-      let debugEntry = entries.find((e: any) => e.name === DEBUG_ENTRY_FULL_NAME);
+      let debugEntry = entries.find((e: any) => e.name === DEBUG_ENTRY_FULL_NAME || e.comment === DEBUG_ENTRY_FULL_NAME);
 
       const logContent = JSON.stringify(this.debugLogQueue, null, 2);
 
@@ -131,15 +81,15 @@ export class StatusBarManager {
         await createWorldbookEntries(this.targetWorldbook, [
           {
             name: DEBUG_ENTRY_FULL_NAME,
-            comment: '调试日志内容。如果需要提交bug，请复制此内容或导出包含此条目的世界书。',
+            comment: DEBUG_ENTRY_FULL_NAME,
             content: logContent,
             enabled: false,
             constant: false,
           },
-        ]);
+        ] as any);
       } else {
         await updateWorldbookWith(this.targetWorldbook, (wbEntries: any[]) => {
-          const e = wbEntries.find(x => x.name === DEBUG_ENTRY_FULL_NAME);
+          const e = wbEntries.find((x: any) => x.name === DEBUG_ENTRY_FULL_NAME || x.comment === DEBUG_ENTRY_FULL_NAME);
           if (e) {
             e.content = logContent;
             e.enabled = false;
@@ -173,9 +123,10 @@ export class StatusBarManager {
       if (result.primary) this.targetWorldbook = result.primary;
       else if (result.additional && result.additional.length > 0) this.targetWorldbook = result.additional[0];
 
+      // 虽然 targetWorldbook 仍然用于某些逻辑（如 debug log 和 baseline 对比），
+      // 但配置加载不再强依赖它。
       if (!this.targetWorldbook) {
         console.warn('[ARK_StatusBar] No worldbook bound to current character.');
-        return;
       }
 
       // 加载或初始化配置文件
@@ -188,41 +139,65 @@ export class StatusBarManager {
   }
 
   /**
-   * 从世界书中加载配置，如果不存在则初始化一个默认配置写入世界书。
+   * 从 extensionSettings 中加载配置，如果存在旧的世界书配置则自动迁移并删除旧条目。
    */
   private async loadOrInitConfig() {
-    if (!this.targetWorldbook) return;
-    let entries = await getWorldbook(this.targetWorldbook);
-
-    // 根据前缀匹配查找是否已有配置条目
-    let configEntry = entries.find(
-      (e: any) =>
-        (e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) || (e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX)),
-    );
-
-    if (!configEntry) {
-      console.info(`[ARK_StatusBar] Creating ${CONFIG_ENTRY_FULL_NAME}...`);
-      const initConfig: ArkConfig = { ...DEFAULT_CONFIG, lastUpdateTime: Date.now() };
-
-      // 创建新的配置条目（保持关闭状态，作为纯数据容器使用）
-      await createWorldbookEntries(this.targetWorldbook, [
-        {
-          name: CONFIG_ENTRY_FULL_NAME,
-          comment: CONFIG_ENTRY_FULL_NAME,
-          content: JSON.stringify(initConfig, null, 2),
-          enabled: false,
-          constant: false,
-        },
-      ]);
-      this.currentConfig = initConfig;
-    } else {
+    const extSettings = SillyTavern.extensionSettings as any;
+    
+    // 检查新的存储位置
+    if (extSettings && extSettings['ark_statusbar_settings']) {
       try {
-        this.currentConfig = JSON.parse(configEntry.content);
-        // 合并默认配置，以防新版本新增了字段
-        this.currentConfig = { ...DEFAULT_CONFIG, ...this.currentConfig };
+        this.currentConfig = { ...DEFAULT_CONFIG, ...extSettings['ark_statusbar_settings'] };
       } catch (e) {
-        console.error('[ARK_StatusBar] Failed to parse config JSON, using default:', e);
+        console.error('[ARK_StatusBar] 解析新配置失败，使用默认配置:', e);
         this.currentConfig = { ...DEFAULT_CONFIG, lastUpdateTime: Date.now() };
+      }
+    } else {
+      // 执行平滑迁移：尝试从当前世界书中读取旧配置
+      console.info('[ARK_StatusBar] 未找到新配置，尝试从世界书中迁移旧数据...');
+      let migrated = false;
+      
+      if (this.targetWorldbook) {
+        try {
+          const entries = await getWorldbook(this.targetWorldbook);
+          const configEntry = entries.find(
+            (e: any) =>
+              (e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) || (e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX)),
+          );
+
+          if (configEntry) {
+            console.info('[ARK_StatusBar] 发现遗留的世界书配置，正在迁移...');
+            this.currentConfig = JSON.parse(configEntry.content);
+            this.currentConfig = { ...DEFAULT_CONFIG, ...this.currentConfig };
+            migrated = true;
+
+            // 迁移后彻底删除旧的系统配置世界书条目
+            console.info(`[ARK_StatusBar] 迁移完成，正在彻底删除原世界书 ${this.targetWorldbook} 中的系统配置条目...`);
+            // 根据宿主的实际数据结构：WorldbookEntry 在插件 API 层面被映射出 `name`，但底层 JSON 其实是 `comment`
+            await deleteWorldbookEntries(this.targetWorldbook, entry => {
+              const anyEntry = entry as any;
+              return (
+                (anyEntry.name && anyEntry.name.startsWith(CONFIG_ENTRY_PREFIX)) ||
+                (anyEntry.comment && anyEntry.comment.startsWith(CONFIG_ENTRY_PREFIX))
+              );
+            });
+          }
+        } catch (e) {
+          console.error('[ARK_StatusBar] 数据迁移失败:', e);
+        }
+      }
+
+      if (!migrated) {
+        console.info(`[ARK_StatusBar] 创建全新的默认配置...`);
+        this.currentConfig = { ...DEFAULT_CONFIG, lastUpdateTime: Date.now() };
+      }
+      
+      // 首次保存到新的存储空间
+      if (extSettings) {
+        extSettings['ark_statusbar_settings'] = this.currentConfig;
+        if (typeof SillyTavern.saveSettingsDebounced === 'function') {
+          SillyTavern.saveSettingsDebounced();
+        }
       }
     }
 
@@ -239,25 +214,21 @@ export class StatusBarManager {
   }
 
   /**
-   * 保存配置到世界书中，并触发更新事件。
+   * 保存配置到 extensionSettings 中，并触发更新事件。
    */
   async saveConfig(configUpdate: Partial<ArkConfig>) {
-    if (!this.targetWorldbook || !this.currentConfig) return;
+    if (!this.currentConfig) return;
     this.currentConfig = { ...this.currentConfig, ...configUpdate, lastUpdateTime: Date.now() };
 
     try {
-      await updateWorldbookWith(this.targetWorldbook, (wbEntries: any[]) => {
-        const entry = wbEntries.find(
-          e =>
-            (e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) ||
-            (e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX)),
-        );
-        if (entry) {
-          entry.content = JSON.stringify(this.currentConfig, null, 2);
-          entry.enabled = false;
+      const extSettings = SillyTavern.extensionSettings as any;
+      if (extSettings) {
+        extSettings['ark_statusbar_settings'] = this.currentConfig;
+        if (typeof SillyTavern.saveSettingsDebounced === 'function') {
+          SillyTavern.saveSettingsDebounced();
         }
-        return wbEntries;
-      });
+      }
+
       if (this.onConfigUpdate) {
         this.onConfigUpdate(this.currentConfig);
       }

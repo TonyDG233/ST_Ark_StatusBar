@@ -175,7 +175,7 @@ const isSettingsOpen = ref(false);
 // 记录当前世界书状态 (初始/被修改/单字关闭等)
 const wbStatus = ref<WorldbookStatus>('original');
 
-import { type ArkConfig } from '../logic/statusbar_manager';
+import { type ArkConfig } from '../config/system_config';
 
 const manager = StatusBarManager.getInstance();
 const currentConfig = ref<ArkConfig | null>(manager.currentConfig);
