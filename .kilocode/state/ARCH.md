@@ -6,8 +6,8 @@
 *   **前端框架**: Vue 3 (Composition API) + TypeScript
 *   **构建工具**: Webpack (打包成单一 JS/HTML，直接被宿主 `load` 执行)
 *   **状态与数据**: 
-    *   全局与界面配置：持久化存储于特定的隐藏世界书条目 `[SYS_CONFIG]`。
-    *   调试导出：日志数据限长后写入 `[SYS_DEBUG]`。
+    *   全局与界面配置：持久化存储于原生环境的 `SillyTavern.extensionSettings['ark_statusbar_settings']`，彻底取代原先的 `[SYS_CONFIG]` 隐藏世界书条目机制（正在重构迁移中）。
+    *   调试导出：日志数据限长后写入 `[SYS_DEBUG]` 世界书。
     *   *(规划中)* 剧情进度坐标：存储于 `@types/function/variables.d.ts` 中的**聊天级变量 (Chat-scoped Variables)**。
 
 ## 2. 模块结构划分 (当前)

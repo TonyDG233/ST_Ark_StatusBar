@@ -1,19 +1,36 @@
 # 项目状态跟踪板 (PROJECT_STATE)
 
 ## 当前整体阶段
-**Phase 3 完成，进入 Phase 4 (Story Engine V2) 早期验证阶段**
+**Phase 4 (Story Engine V2) 准备与基础重构阶段**
 
 ### 历史里程碑
 - [x] **Phase 1**: Vue 3 核心 UI 挂载机制跑通，样式 Teleport 隔离。
 - [x] **Phase 2**: 世界书管理器基础闭环（Baseline 对比、条目开关、置顶偏好、单字干员规避）。
 - [x] **Phase 3**: 防呆拦截器核心逻辑（发送阻断）、配置持久化及操作历史的 `[SYS_CONFIG]` Git-like 撤销机制、离线调试日志记录 (`[SYS_DEBUG]`) 及其假死防护（`Promise.race` 超时锁 + 强清理）。
+- [x] **清理 1 月份失败的旧架构**: 已将 `updaters` 和 `mvu` 备份并移除，清理主入口文件，为新架构腾出干净的空间。
 
 ---
 
-## 正在进行中的任务 (Phase 4: 双轨驱动剧情引擎 V2)
+## 正在进行中的任务 (Phase 4: 双轨驱动剧情引擎 V2 准备)
 
 ### 任务总览
-利用次级 API (嗅探器) 进行剧情节点的解析与跳转判定，结合临时确认窗，将精准的剧情坐标与“导演建议”注入主 API，彻底抛弃传统的超长思维链预设。
+在正式开发剧情引擎（节点解析、拦截解耦、次级 API）之前，**必须先完成底层代码的解耦与重构**，解决 3000 行项目规模带来的技术债务。将全局状态迁移至更稳定的 `SillyTavern.extensionSettings`，拆分臃肿的 UI 组件，并实现跨世界书的全局挂载管理。
+
+### 当前重构目标 (Refactor Worldbook & Vue)
+- [ ] **Step 1: 拆分系统配置 (解耦 statusbar_manager.ts)**
+  - 将庞大的 `ArkConfig` 及相关常量抽离至独立的 `config/system_config.ts`。
+- [ ] **Step 2: 存储引擎平滑迁移**
+  - 将基于世界书 `[SYS_CONFIG]` 的存储改为 `SillyTavern.extensionSettings`，实现无损数据迁移。
+- [ ] **Step 3: 跨世界书检测放开**
+  - 允许状态栏拦截器捕获所有世界书的绿灯条目并标注来源。
+- [ ] **Step 4: 提取全局公共样式与字体防线**
+  - 新建 `theme.scss`，统一移动端字体大小，严防宋体灾难和 CSS 污染。
+- [ ] **Step 5: 拆分 StartupNavigator.vue**
+  - 将设置面板抽离，严格遵循 Vue 的 Props/Emits 单向数据流防线。
+- [ ] **Step 6: 拆分 GlobalStatusBar.vue 为容器**
+  - 将臃肿的四合一组件拆分为独立的子 Tabs 组件。
+- [ ] **Step 7: 实现全局世界书挂载管理**
+  - 实现对所有原生世界书的扫描，并能在 UI 中直接通过 `rebindGlobalWorldbooks` API 控制全局挂载/卸载。
 
 ### 核心子目标
 - [ ] **剧本节点规范化 (The Script Engine)**
