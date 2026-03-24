@@ -2,6 +2,7 @@
   <div
     class="ark-startup-container"
     :class="{ 'dark-theme': theme === 'dark', 'transparent-theme': theme === 'transparent' }"
+    :style="{ '--ui-font-size': displayFontSize + 'px' }"
   >
     <div class="main-container">
       <div class="content-wrapper">
@@ -76,85 +77,15 @@
         </svg>
       </div>
 
-      <!-- Settings Overlay (Mobile Backdrop) -->
-      <div class="settings-overlay" v-if="isSettingsOpen" @click="isSettingsOpen = false"></div>
-
-      <!-- Settings Panel -->
-      <div class="settings-panel" :class="{ 'is-open': isSettingsOpen }">
-        <h3>世界书控制</h3>
-
-        <div class="wb-status-display" :class="wbStatusClass">
-          <div class="status-label">SYSTEM STATUS</div>
-          <div class="status-value">{{ wbStatusText }}</div>
-          <div class="status-diff" v-if="manager.currentConfig?.commits?.length">
-            最近修改: {{ manager.currentConfig.commits[manager.currentConfig.commits.length - 1].description }}
-            <br />
-            共计 {{ manager.currentConfig.commits.length }} 条修改记录
-          </div>
-          <div class="status-decor"></div>
-        </div>
-
-        <div class="wb-actions">
-          <div class="ark-btn warning" @click="handleCloseSingleChar">
-            <div class="btn-content">
-              <span class="btn-icon">⚡</span>
-              <span class="btn-text">屏蔽单字干员</span>
-            </div>
-            <div class="btn-decor"></div>
-          </div>
-          <div class="ark-btn danger" @click="handleRestoreWorldbook">
-            <div class="btn-content">
-              <span class="btn-icon">↺</span>
-              <span class="btn-text">还原世界书</span>
-            </div>
-            <div class="btn-decor"></div>
-          </div>
-        </div>
-
-        <div id="wb-control-hint" class="warning-box">
-          <strong style="color: orange">[!] 世界书管理提示</strong>
-          <p style="font-size: 0.85em; margin-top: 5px; line-height: 1.6">
-            本面板会智能识别并管理当前角色的世界书状态。
-          </p>
-          <p style="font-size: 0.85em; margin-top: 5px; line-height: 1.6">
-            若您手动修改了世界书（如自行开启了某些条目），状态将显示为<strong style="color: #ff9800">“已修改”</strong
-            >。此时切换开局可能会触发冲突警告，请按需选择继续或重置。
-          </p>
-        </div>
-
-        <div class="settings-divider"></div>
-
-        <h3>功能组件控制</h3>
-        <div class="setting-item" style="margin-top: 10px">
-          <label>世界书控制台开关</label>
-          <label class="switch">
-            <input type="checkbox" :checked="isSystemEnabled" @change="toggleSystem" />
-            <span class="slider round"></span>
-          </label>
-        </div>
-        <p style="font-size: 0.8em; color: var(--ui-text-secondary); margin-bottom: 20px">
-          关闭后将彻底隐藏方舟世界书控制台，并暂停预检拦截系统。
-        </p>
-
-        <div class="settings-divider"></div>
-
-        <h3>终端主题</h3>
-        <div class="theme-buttons-container">
-          <div class="theme-button light" :class="{ active: theme === 'light' }" @click="setTheme('light')">
-            <span>默认(白)</span>
-          </div>
-          <div class="theme-button dark" :class="{ active: theme === 'dark' }" @click="setTheme('dark')">
-            <span>夜间(黑)</span>
-          </div>
-          <div
-            class="theme-button transparent"
-            :class="{ active: theme === 'transparent' }"
-            @click="setTheme('transparent')"
-          >
-            <span>透明</span>
-          </div>
-        </div>
-      </div>
+      <StartupSettingsPanel
+        :is-open="isSettingsOpen"
+        :config="currentConfig"
+        :wb-status="wbStatus"
+        @close="isSettingsOpen = false"
+        @update:config="updateConfig"
+        @close-single-char="handleCloseSingleChar"
+        @restore-worldbook="handleRestoreWorldbook"
+      />
     </div>
   </div>
 </template>
@@ -165,6 +96,7 @@ import { ASSETS } from '../config/assets';
 import { STARTUP_SCENARIOS, type Scenario } from '../config/scenarios';
 import { StatusBarManager } from '../logic/statusbar_manager';
 import { WorldbookManager, type WorldbookStatus } from '../logic/worldbook_manager';
+import StartupSettingsPanel from './startup_tabs/StartupSettingsPanel.vue';
 
 // --- 状态与变量定义 ---
 
@@ -182,39 +114,13 @@ const currentConfig = ref<ArkConfig | null>(manager.currentConfig);
 
 // 响应式的当前主题和系统总开关计算属性
 const theme = computed(() => currentConfig.value?.theme || 'dark');
-const isSystemEnabled = computed(() => currentConfig.value?.isSystemEnabled ?? true);
-
-// --- 计算属性 ---
-
-// 世界书状态的中文显示文本映射
-const wbStatusText = computed(() => {
-  switch (wbStatus.value) {
-    case 'original':
-      return '初始状态';
-    case 'single_char_closed':
-      return '单字屏蔽';
-    case 'modified':
-      return '非标修改';
-    default:
-      return '未知状态';
-  }
-});
-
-// 世界书状态对应的 CSS 类名，用于修改状态指示灯颜色
-const wbStatusClass = computed(() => {
-  switch (wbStatus.value) {
-    case 'original':
-      return 'status-green';
-    case 'single_char_closed':
-      return 'status-blue';
-    case 'modified':
-      return 'status-orange';
-    default:
-      return 'status-gray';
-  }
-});
+const displayFontSize = computed(() => currentConfig.value?.uiFontSize ?? 14);
 
 // --- 方法 ---
+
+const updateConfig = (val: Partial<ArkConfig>) => {
+  manager.saveConfig(val);
+};
 
 /**
  * 切换设置面板的显示隐藏状态
@@ -225,22 +131,6 @@ const toggleSettings = () => {
   if (isSettingsOpen.value) {
     checkWbStatus();
   }
-};
-
-/**
- * 切换 UI 主题，并持久化到世界书配置中
- * @param newTheme 目标主题 ('light' | 'dark' | 'transparent')
- */
-const setTheme = (newTheme: 'light' | 'dark' | 'transparent') => {
-  manager.saveConfig({ theme: newTheme });
-};
-
-/**
- * 切换整个状态栏系统的开启/关闭状态
- */
-const toggleSystem = (e: Event) => {
-  const checked = (e.target as HTMLInputElement).checked;
-  manager.saveConfig({ isSystemEnabled: checked });
 };
 
 /**

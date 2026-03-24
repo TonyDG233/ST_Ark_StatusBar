@@ -478,7 +478,7 @@
         </div>
 
         <div class="setting-item flex-col-align-start">
-          <label>字体大小 (<span class="mobile-scale-hint">移动端自动 -4px / </span>当前基准: {{ displayFontSize }}px)</label>
+          <label>字体大小 (<span class="mobile-scale-hint">移动端自动 -2px / </span>当前基准: {{ displayFontSize }}px)</label>
           <input
             type="range"
             min="10"

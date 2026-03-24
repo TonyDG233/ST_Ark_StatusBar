@@ -10,16 +10,16 @@
 .ark-startup-container,
 .ark-startup-container .main-container {
     font-family: 'Noto Serif SC', "PingFang SC", "Microsoft YaHei", serif !important;
-    font-size: 14px;
+    font-size: var(--ui-font-size, 14px);
 }
 
 @media (max-width: 768px) {
     .ark-global-statusbar {
-        font-size: calc(var(--ui-font-size, 14px) - 4px) !important;
+        font-size: calc(var(--ui-font-size, 14px) - 2px) !important;
     }
     .ark-startup-container,
     .ark-startup-container .main-container {
-        font-size: 13px !important;
+        font-size: calc(var(--ui-font-size, 14px) - 2px) !important;
     }
 }
 
