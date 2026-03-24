@@ -528,7 +528,8 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { CONFIG_ENTRY_PREFIX, type ArkConfig } from '../config/system_config';
+import { CONFIG_ENTRY_PREFIX } from '../config/system_config';
+import { configStore, useArkConfig } from '../logic/core/config_store';
 import { StatusBarManager } from '../logic/statusbar_manager';
 import { WorldbookManager } from '../logic/worldbook_manager';
 
@@ -571,7 +572,7 @@ const sortedLastTriggeredEntries = computed(() => {
 });
 // --- [FEATURE: MINI_SNAPSHOT] END ---
 
-const currentConfig = ref<ArkConfig | null>(null); // 本地缓存的系统配置
+const currentConfig = useArkConfig(); // 响应式系统配置
 const allEntries = ref<any[]>([]); // 所有的世界书条目 (剔除了系统配置本身)
 const currentPrimaryWorldbook = ref<string | null>(null); // 当前角色的主世界书名称
 
@@ -613,7 +614,7 @@ const updateUiWidth = (e: Event) => {
 };
 const commitUiWidth = () => {
   if (localUiWidth.value !== null) {
-    manager.saveConfig({ uiWidth: localUiWidth.value });
+    configStore.updateConfig({ uiWidth: localUiWidth.value });
   }
 };
 
@@ -623,7 +624,7 @@ const updateUiFontSize = (e: Event) => {
 };
 const commitUiFontSize = () => {
   if (localUiFontSize.value !== null) {
-    manager.saveConfig({ uiFontSize: localUiFontSize.value });
+    configStore.updateConfig({ uiFontSize: localUiFontSize.value });
   }
 };
 
@@ -729,7 +730,7 @@ const toggleWorldbookPin = (wbName: string) => {
   } else {
     newPinned.splice(idx, 1);
   }
-  manager.saveConfig({ pinnedWorldbooks: newPinned });
+  configStore.updateConfig({ pinnedWorldbooks: newPinned });
 };
 
 /**
@@ -843,7 +844,7 @@ const togglePin = (entry: any) => {
   } else {
     newPinned.splice(index, 1);
   }
-  manager.saveConfig({ pinnedEntries: newPinned });
+  configStore.updateConfig({ pinnedEntries: newPinned });
 };
 
 /**
@@ -851,7 +852,7 @@ const togglePin = (entry: any) => {
  */
 const clearPins = () => {
   if (confirm('确定要清空所有置顶的偏好条目吗？')) {
-    manager.saveConfig({ pinnedEntries: [] });
+    configStore.updateConfig({ pinnedEntries: [] });
   }
 };
 
@@ -941,7 +942,7 @@ const toggleEntryType = async (entry: any, explicitWbName?: string) => {
       ],
     };
     const commits = [...(currentConfig.value?.commits || []), newCommit];
-    manager.saveConfig({ commits });
+    configStore.updateConfig({ commits });
   } catch (e) {
     console.error('Failed to toggle entry type', e);
   }
@@ -1015,7 +1016,7 @@ const revertCommit = async (commit: any) => {
 
     // 从记录历史中删除该次提交
     const commits = (currentConfig.value?.commits || []).filter((c: any) => c.id !== commit.id);
-    manager.saveConfig({ commits });
+    configStore.updateConfig({ commits });
 
     // 如果该世界书的抽屉开着，刷新缓存
     if (expandedWorldbooks.value.includes(targetWorldbook)) {
@@ -1184,21 +1185,17 @@ onMounted(() => {
   // 监听配置更新事件（如外部切换了主题或宽度）
   document.addEventListener('ark-config-updated', ((e: CustomEvent) => {
     const config = e.detail;
-    const wasNull = !currentConfig.value;
-    currentConfig.value = config;
-        if (wasNull && config.isSystemEnabled) {
-          loadAllEntries();
-          loadWorldbookLists();
-        }
-      }) as EventListener);
-    
-      if (manager.currentConfig) {
-        currentConfig.value = manager.currentConfig;
-        if (manager.currentConfig.isSystemEnabled) {
-          loadAllEntries();
-          loadWorldbookLists();
-        }
-      }
+    if (config && config.isSystemEnabled) {
+      loadAllEntries();
+      loadWorldbookLists();
+    }
+  }) as EventListener);
+  
+  // 初始化触发
+  if (currentConfig.value && currentConfig.value.isSystemEnabled) {
+      loadAllEntries();
+      loadWorldbookLists();
+  }
 
   // 监听拦截器触发预警的事件
   document.addEventListener('ark-interceptor-triggered', ((e: CustomEvent) => {
@@ -1234,7 +1231,7 @@ onMounted(() => {
 
       // 确保系统总开关处于开启状态以免界面不可见
       if (!isSystemEnabled.value) {
-        manager.saveConfig({ isSystemEnabled: true });
+        configStore.updateConfig({ isSystemEnabled: true });
       }
       if (isManualTest && typeof toastr !== 'undefined') {
         toastr.success('检测完成。', 'ARK_STATUSBAR');
@@ -1282,7 +1279,7 @@ onMounted(() => {
   // 监听：侧边栏扩展按钮发出的系统总开关切换事件
   document.addEventListener('ark-toggle-system', () => {
     const newState = !(currentConfig.value?.isSystemEnabled ?? true);
-    manager.saveConfig({ isSystemEnabled: newState });
+    configStore.updateConfig({ isSystemEnabled: newState });
 
     if (newState) {
       loadAllEntries();
@@ -1364,17 +1361,17 @@ const toggleTempDisable = (entry: any) => {
 
 const toggleEnterInterceptor = (e: Event) => {
   const checked = (e.target as HTMLInputElement).checked;
-  manager.saveConfig({ enableEnterToIntercept: checked });
+  configStore.updateConfig({ enableEnterToIntercept: checked });
 };
 
 const toggleShowConstantEntries = (e: Event) => {
   const checked = (e.target as HTMLInputElement).checked;
-  manager.saveConfig({ showConstantEntries: checked });
+  configStore.updateConfig({ showConstantEntries: checked });
 };
 
 const toggleDebugMode = (e: Event) => {
   const checked = (e.target as HTMLInputElement).checked;
-  manager.saveConfig({ isDebugMode: checked });
+  configStore.updateConfig({ isDebugMode: checked });
   if (checked && typeof toastr !== 'undefined') {
     toastr.warning('调试日志已开启！将在下一次拦截或检测后写入世界书。', 'ARK_DEBUG');
   }
@@ -1407,7 +1404,7 @@ const cancelSend = () => {
  * 切换系统 UI 主题
  */
 const updateTheme = (theme: 'light' | 'dark' | 'transparent') => {
-  manager.saveConfig({ theme });
+  configStore.updateConfig({ theme });
 };
 
 /**
@@ -1415,7 +1412,7 @@ const updateTheme = (theme: 'light' | 'dark' | 'transparent') => {
  */
 const toggleInterceptor = (e: Event) => {
   const checked = (e.target as HTMLInputElement).checked;
-  manager.saveConfig({ isInterceptorEnabled: checked });
+  configStore.updateConfig({ isInterceptorEnabled: checked });
 };
 
 /**
@@ -1424,8 +1421,7 @@ const toggleInterceptor = (e: Event) => {
 const factoryReset = async () => {
   if (confirm('确定要清除本插件的所有配置、快照和修改记录吗？此操作不可逆！')) {
     // 只要把 config 还原为 default 即可
-    manager.saveConfig({
-      ...manager.currentConfig,
+    configStore.updateConfig({
       commits: [],
       snapshots: [],
       pinnedEntries: [],
@@ -1450,7 +1446,7 @@ const factoryReset = async () => {
 const resetToBaseline = async () => {
   if (confirm('确定要一键还原至初始状态吗？这将清空历史修改记录。')) {
     await WorldbookManager.resetToBaseline();
-    manager.saveConfig({ commits: [] });
+    configStore.updateConfig({ commits: [] });
     await loadAllEntries();
     toastr.success('已恢复基准线。');
   }
@@ -1497,7 +1493,7 @@ const toggleEntry = async (entry: any, explicitWbName?: string) => {
       ],
     };
     const commits = [...(currentConfig.value?.commits || []), newCommit];
-    manager.saveConfig({ commits });
+    configStore.updateConfig({ commits });
   } catch (e) {
     console.error('Failed to toggle entry', e);
     entry.enabled = !entry.enabled; // 如果失败则恢复 UI 状态

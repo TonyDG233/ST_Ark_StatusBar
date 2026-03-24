@@ -1,10 +1,7 @@
+import { unref } from 'vue';
 import { BASELINE_STATE } from '../config/baseline';
-import {
-  ArkConfig,
-  CONFIG_ENTRY_PREFIX,
-  DEBUG_ENTRY_FULL_NAME,
-  DEFAULT_CONFIG
-} from '../config/system_config';
+import { configStore } from './core/config_store';
+import { logger } from './core/logger';
 
 /**
  * 状态栏全局管理器 (Singleton 单例模式)
@@ -14,95 +11,21 @@ export class StatusBarManager {
   private static instance: StatusBarManager;
   private targetWorldbook: string | null = null; // 当前绑定的世界书名称
   private interceptorBound: boolean = false; // 标识是否已经绑定了拦截器事件
-  public currentConfig: ArkConfig | null = null; // 内存中缓存的当前配置
-  public onConfigUpdate?: (config: ArkConfig) => void; // 配置更新的回调 (已弃用，建议监听 ark-config-updated 事件)
+  
   public tempDisabledUids: number[] = []; // 单次临时阻断的条目 UID 列表
 
-  private debugLogQueue: any[] = [];
-  private flushTimeout: any = null;
   private isDryRunning: boolean = false; // 防重入和防并发的干跑锁
 
-  /**
-   * 追加调试日志到内存队列，并延迟持久化到世界书
-   */
-  public logDebug(action: string, data: any) {
-    if (!this.currentConfig?.isDebugMode) return;
-
-    // 控制台也打印一份
-    console.log(`[ARK_DEBUG] ${action}`, data);
-
-    // 推入内存队列
-    this.debugLogQueue.push({
-      time: new Date().toISOString(),
-      action,
-      data: data
-        ? JSON.parse(
-            JSON.stringify(data, (key, value) => {
-              // 防止循环引用报错
-              if (typeof value === 'object' && value !== null) {
-                if (value === window || value === document) return '[DOM Node]';
-              }
-              // 压缩冗长的文本字段，防止日志文件体积爆炸
-              if (typeof value === 'string' && value.length > 50) {
-                if (key === 'content' || key === 'prompt' || key === 'mes' || key === 'text') {
-                  return value.substring(0, 50) + '...[已截断]';
-                }
-              }
-              return value;
-            }),
-          )
-        : null,
-    });
-
-    // 限制单次记录最大条目防止卡死
-    if (this.debugLogQueue.length > 50) {
-      this.debugLogQueue.splice(0, this.debugLogQueue.length - 50);
-    }
-
-    this.scheduleFlushDebugLogs();
-  }
-
-  private scheduleFlushDebugLogs() {
-    if (this.flushTimeout) clearTimeout(this.flushTimeout);
-    this.flushTimeout = setTimeout(() => {
-      this.flushDebugLogsToWorldbook();
-    }, 2000); // 防抖 2 秒
-  }
-
-  private async flushDebugLogsToWorldbook() {
-    if (!this.targetWorldbook || this.debugLogQueue.length === 0) return;
-    try {
-      let entries = await getWorldbook(this.targetWorldbook);
-      let debugEntry = entries.find((e: any) => e.name === DEBUG_ENTRY_FULL_NAME || e.comment === DEBUG_ENTRY_FULL_NAME);
-
-      const logContent = JSON.stringify(this.debugLogQueue, null, 2);
-
-      if (!debugEntry) {
-        await createWorldbookEntries(this.targetWorldbook, [
-          {
-            name: DEBUG_ENTRY_FULL_NAME,
-            comment: DEBUG_ENTRY_FULL_NAME,
-            content: logContent,
-            enabled: false,
-            constant: false,
-          },
-        ] as any);
+  private constructor() {
+    // 拦截器状态变更由 store 托管
+    configStore.onInterceptorStateChanged = (shouldEnable: boolean) => {
+      if (shouldEnable) {
+        this.bindInterceptor();
       } else {
-        await updateWorldbookWith(this.targetWorldbook, (wbEntries: any[]) => {
-          const e = wbEntries.find((x: any) => x.name === DEBUG_ENTRY_FULL_NAME || x.comment === DEBUG_ENTRY_FULL_NAME);
-          if (e) {
-            e.content = logContent;
-            e.enabled = false;
-          }
-          return wbEntries;
-        });
+        this.unbindInterceptor();
       }
-    } catch (e) {
-      console.error('[ARK_DEBUG] Failed to flush logs', e);
-    }
+    };
   }
-
-  private constructor() {}
 
   // 获取单例实例
   static getInstance(): StatusBarManager {
@@ -110,6 +33,11 @@ export class StatusBarManager {
       StatusBarManager.instance = new StatusBarManager();
     }
     return StatusBarManager.instance;
+  }
+
+  // 提供对配置存储的快速访问别名，用于兼容现存未拆分的逻辑调用
+  get currentConfig() {
+    return unref(configStore.state);
   }
 
   /**
@@ -123,14 +51,13 @@ export class StatusBarManager {
       if (result.primary) this.targetWorldbook = result.primary;
       else if (result.additional && result.additional.length > 0) this.targetWorldbook = result.additional[0];
 
-      // 虽然 targetWorldbook 仍然用于某些逻辑（如 debug log 和 baseline 对比），
-      // 但配置加载不再强依赖它。
       if (!this.targetWorldbook) {
         console.warn('[ARK_StatusBar] No worldbook bound to current character.');
       }
 
-      // 加载或初始化配置文件
-      await this.loadOrInitConfig();
+      // 将原来的 loadOrInitConfig 和 saveConfig 逻辑都委托给 Store
+      await configStore.loadOrInitConfig(this.targetWorldbook);
+      
       // 绑定事件监听器 (如聊天改变时检测 Baseline 差异)
       this.setupEvents();
     } catch (error) {
@@ -138,112 +65,10 @@ export class StatusBarManager {
     }
   }
 
-  /**
-   * 从 extensionSettings 中加载配置，如果存在旧的世界书配置则自动迁移并删除旧条目。
-   */
-  private async loadOrInitConfig() {
-    const extSettings = SillyTavern.extensionSettings as any;
-    
-    // 检查新的存储位置
-    if (extSettings && extSettings['ark_statusbar_settings']) {
-      try {
-        this.currentConfig = { ...DEFAULT_CONFIG, ...extSettings['ark_statusbar_settings'] };
-      } catch (e) {
-        console.error('[ARK_StatusBar] 解析新配置失败，使用默认配置:', e);
-        this.currentConfig = { ...DEFAULT_CONFIG, lastUpdateTime: Date.now() };
-      }
-    } else {
-      // 执行平滑迁移：尝试从当前世界书中读取旧配置
-      console.info('[ARK_StatusBar] 未找到新配置，尝试从世界书中迁移旧数据...');
-      let migrated = false;
-      
-      if (this.targetWorldbook) {
-        try {
-          const entries = await getWorldbook(this.targetWorldbook);
-          const configEntry = entries.find(
-            (e: any) =>
-              (e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) || (e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX)),
-          );
-
-          if (configEntry) {
-            console.info('[ARK_StatusBar] 发现遗留的世界书配置，正在迁移...');
-            this.currentConfig = JSON.parse(configEntry.content);
-            this.currentConfig = { ...DEFAULT_CONFIG, ...this.currentConfig };
-            migrated = true;
-
-            // 迁移后彻底删除旧的系统配置世界书条目
-            console.info(`[ARK_StatusBar] 迁移完成，正在彻底删除原世界书 ${this.targetWorldbook} 中的系统配置条目...`);
-            // 根据宿主的实际数据结构：WorldbookEntry 在插件 API 层面被映射出 `name`，但底层 JSON 其实是 `comment`
-            await deleteWorldbookEntries(this.targetWorldbook, entry => {
-              const anyEntry = entry as any;
-              return (
-                (anyEntry.name && anyEntry.name.startsWith(CONFIG_ENTRY_PREFIX)) ||
-                (anyEntry.comment && anyEntry.comment.startsWith(CONFIG_ENTRY_PREFIX))
-              );
-            });
-          }
-        } catch (e) {
-          console.error('[ARK_StatusBar] 数据迁移失败:', e);
-        }
-      }
-
-      if (!migrated) {
-        console.info(`[ARK_StatusBar] 创建全新的默认配置...`);
-        this.currentConfig = { ...DEFAULT_CONFIG, lastUpdateTime: Date.now() };
-      }
-      
-      // 首次保存到新的存储空间
-      if (extSettings) {
-        extSettings['ark_statusbar_settings'] = this.currentConfig;
-        if (typeof SillyTavern.saveSettingsDebounced === 'function') {
-          SillyTavern.saveSettingsDebounced();
-        }
-      }
-    }
-
-    if (this.onConfigUpdate && this.currentConfig) {
-      this.onConfigUpdate(this.currentConfig);
-    }
-    // 派发全局事件通知 UI 更新配置
-    document.dispatchEvent(new CustomEvent('ark-config-updated', { detail: this.currentConfig }));
-
-    // 如果系统和拦截器都处于开启状态，则绑定物理事件拦截
-    if (this.currentConfig?.isSystemEnabled && this.currentConfig?.isInterceptorEnabled) {
-      this.bindInterceptor();
-    }
-  }
-
-  /**
-   * 保存配置到 extensionSettings 中，并触发更新事件。
-   */
-  async saveConfig(configUpdate: Partial<ArkConfig>) {
-    if (!this.currentConfig) return;
-    this.currentConfig = { ...this.currentConfig, ...configUpdate, lastUpdateTime: Date.now() };
-
-    try {
-      const extSettings = SillyTavern.extensionSettings as any;
-      if (extSettings) {
-        extSettings['ark_statusbar_settings'] = this.currentConfig;
-        if (typeof SillyTavern.saveSettingsDebounced === 'function') {
-          SillyTavern.saveSettingsDebounced();
-        }
-      }
-
-      if (this.onConfigUpdate) {
-        this.onConfigUpdate(this.currentConfig);
-      }
-      document.dispatchEvent(new CustomEvent('ark-config-updated', { detail: this.currentConfig }));
-
-      // 根据配置决定是否重新绑定或解绑拦截器
-      if (this.currentConfig.isSystemEnabled && this.currentConfig.isInterceptorEnabled) {
-        this.bindInterceptor();
-      } else {
-        this.unbindInterceptor();
-      }
-    } catch (error) {
-      console.error('[ARK_StatusBar] Failed to save config:', error);
-    }
-  }
+  // --------------------------------------------------------------------------
+  // The loadOrInitConfig and saveConfig methods have been completely removed
+  // and migrated to logic/core/config_store.ts
+  // --------------------------------------------------------------------------
 
   private eventsBound: boolean = false;
 
@@ -290,7 +115,7 @@ export class StatusBarManager {
         else if (result.additional && result.additional.length > 0) this.targetWorldbook = result.additional[0];
 
         if (this.targetWorldbook) {
-          await this.loadOrInitConfig();
+          await configStore.loadOrInitConfig(this.targetWorldbook);
           await this.checkBaselineDiff(); // 检查当前状态是否偏离了设定的 Baseline
         }
       } catch (error) {
@@ -309,9 +134,9 @@ export class StatusBarManager {
     if (!this.targetWorldbook) return;
     try {
       // 如果要求静默下一次警告（如刚恢复 Baseline 后），则跳过并复位标志
-      if (this.currentConfig?.suppressNextDiffWarning) {
+      if (this.currentConfig.suppressNextDiffWarning) {
         console.info('[ARK_StatusBar] Suppressing diff warning as requested.');
-        await this.saveConfig({ suppressNextDiffWarning: false });
+        await configStore.updateConfig({ suppressNextDiffWarning: false });
         return;
       }
 
@@ -348,17 +173,17 @@ export class StatusBarManager {
    *
    * @note [给后续 Agent 的警告]：此函数在移动端极易发生异步执行流死锁（由于酒馆内核超时或异常未回传）。
    * 所有新增的异步逻辑，必须包裹在 `Promise.race` 超时防假死结构中。
-   * 同时，任何改变执行流的新逻辑，必须调用 `this.logDebug()` 埋点，以便开发者定位问题。
+   * 同时，任何改变执行流的新逻辑，必须调用 `logger.logDebug()` 埋点，以便开发者定位问题。
    */
   private async executeDualTrackDryRun(isManualTest: boolean, text: string) {
     if (this.isDryRunning) {
       console.warn('[ARK_StatusBar] Dry run is already in progress. Ignoring concurrent request.');
-      this.logDebug('executeDualTrackDryRun_IGNORE_CONCURRENT', null);
+      logger.logDebug('executeDualTrackDryRun_IGNORE_CONCURRENT', null, this.targetWorldbook);
       return;
     }
 
     this.isDryRunning = true;
-    this.logDebug('executeDualTrackDryRun_START', { isManualTest, textLength: text.length });
+    logger.logDebug('executeDualTrackDryRun_START', { isManualTest, textLength: text.length }, this.targetWorldbook);
 
     try {
       // 兼容获取 context (避免裸取导致代理对象遗失)
@@ -373,11 +198,11 @@ export class StatusBarManager {
       const worldInfoFn = context?.getWorldInfoPrompt;
       const generateFn = context?.generate;
 
-      this.logDebug('executeDualTrackDryRun_CONTEXT', {
+      logger.logDebug('executeDualTrackDryRun_CONTEXT', {
         hasContext: !!context,
         hasWorldInfoFn: !!worldInfoFn,
         hasGenerateFn: !!generateFn,
-      });
+      }, this.targetWorldbook);
 
       if (!worldInfoFn) {
         console.warn('[ARK_StatusBar] Required API getWorldInfoPrompt not available.');
@@ -421,11 +246,11 @@ export class StatusBarManager {
       let activatedEntries: any[] = [];
       const worldInfoListener = (evt: any) => {
         const raw = evt.detail || evt;
-        this.logDebug('executeDualTrackDryRun_RAW_ENTRIES_RECEIVED', raw);
+        logger.logDebug('executeDualTrackDryRun_RAW_ENTRIES_RECEIVED', raw, this.targetWorldbook);
 
         // 放开限制：接收所有被激活的绿灯条目，在UI中通过 e.world 字段进行溯源展示
         activatedEntries = raw || [];
-        this.logDebug('executeDualTrackDryRun_ALL_ENTRIES', { filteredCount: activatedEntries.length });
+        logger.logDebug('executeDualTrackDryRun_ALL_ENTRIES', { filteredCount: activatedEntries.length }, this.targetWorldbook);
       };
 
       const eventTarget = window.parent?.document || document;
@@ -437,9 +262,9 @@ export class StatusBarManager {
 
       // 包装世界书干跑为带超时的 Promise
       const worldInfoPromise = async () => {
-        this.logDebug('executeDualTrackDryRun_BEFORE_AWAIT_WORLDINFO', null);
+        logger.logDebug('executeDualTrackDryRun_BEFORE_AWAIT_WORLDINFO', null, this.targetWorldbook);
         await worldInfoFn(mockChat, 1000000, false);
-        this.logDebug('executeDualTrackDryRun_AFTER_AWAIT_WORLDINFO', null);
+        logger.logDebug('executeDualTrackDryRun_AFTER_AWAIT_WORLDINFO', null, this.targetWorldbook);
       };
 
       try {
@@ -450,10 +275,10 @@ export class StatusBarManager {
       } catch (error) {
         if (error === timeoutError) {
           console.warn('[ARK_StatusBar] World Info dry run timeout after 5s.');
-          this.logDebug('executeDualTrackDryRun_TIMEOUT_WORLDINFO', null);
+          logger.logDebug('executeDualTrackDryRun_TIMEOUT_WORLDINFO', null, this.targetWorldbook);
         } else {
           console.error('[ARK_StatusBar] World Info dry run failed', error);
-          this.logDebug('executeDualTrackDryRun_ERROR_WORLDINFO', error);
+          logger.logDebug('executeDualTrackDryRun_ERROR_WORLDINFO', error, this.targetWorldbook);
         }
       } finally {
         eventTarget.removeEventListener('world_info_activated', worldInfoListener);
@@ -469,10 +294,10 @@ export class StatusBarManager {
         const data = evt.detail || evt;
         if (!data.dryRun) return;
 
-        this.logDebug('executeDualTrackDryRun_PROMPT_READY', {
+        logger.logDebug('executeDualTrackDryRun_PROMPT_READY', {
           chatLength: data.chat?.length,
           promptLength: data.prompt?.length,
-        });
+        }, this.targetWorldbook);
 
         const payloadStrings = data.chat || data.prompt || [];
         let fullText = '';
@@ -488,7 +313,7 @@ export class StatusBarManager {
         try {
           if (typeof SillyTavern !== 'undefined' && typeof (SillyTavern as any).getTokenCountAsync === 'function') {
             tokenCount = await (SillyTavern as any).getTokenCountAsync(fullText);
-            this.logDebug('executeDualTrackDryRun_TOKEN_CALCULATED', tokenCount);
+            logger.logDebug('executeDualTrackDryRun_TOKEN_CALCULATED', tokenCount, this.targetWorldbook);
           } else {
             tokenCount = 'API失效';
           }
@@ -504,9 +329,9 @@ export class StatusBarManager {
 
       const generatePromise = async () => {
         if (generateFn) {
-          this.logDebug('executeDualTrackDryRun_BEFORE_AWAIT_GENERATE', null);
+          logger.logDebug('executeDualTrackDryRun_BEFORE_AWAIT_GENERATE', null, this.targetWorldbook);
           await generateFn('normal', {}, true);
-          this.logDebug('executeDualTrackDryRun_AFTER_AWAIT_GENERATE', null);
+          logger.logDebug('executeDualTrackDryRun_AFTER_AWAIT_GENERATE', null, this.targetWorldbook);
         } else {
           console.warn('[ARK_StatusBar] generate API not available, skipping precise token count.');
           tokenCount = '未获取到API';
@@ -522,11 +347,11 @@ export class StatusBarManager {
         if (error === timeoutError) {
           console.warn('[ARK_StatusBar] Prompt Token dry run timeout after 8s.');
           tokenCount = '计算超时';
-          this.logDebug('executeDualTrackDryRun_TIMEOUT_GENERATE', null);
+          logger.logDebug('executeDualTrackDryRun_TIMEOUT_GENERATE', null, this.targetWorldbook);
         } else {
           console.error('[ARK_StatusBar] Prompt Token dry run failed', error);
           tokenCount = '干跑失败';
-          this.logDebug('executeDualTrackDryRun_ERROR_GENERATE', error);
+          logger.logDebug('executeDualTrackDryRun_ERROR_GENERATE', error, this.targetWorldbook);
         }
       } finally {
         eventTarget.removeEventListener('chat_completion_prompt_ready', promptReadyListener);
@@ -534,10 +359,10 @@ export class StatusBarManager {
         if (typeof eventOff === 'function') eventOff('chat_completion_prompt_ready', promptReadyListener);
       }
 
-      this.logDebug('executeDualTrackDryRun_END_DISPATCH', {
+      logger.logDebug('executeDualTrackDryRun_END_DISPATCH', {
         finalActivatedCount: activatedEntries?.length,
         tokenCount,
-      });
+      }, this.targetWorldbook);
 
       // ==========================================
       // 终点：统合抛出预警结果
@@ -555,14 +380,14 @@ export class StatusBarManager {
           document.dispatchEvent(event);
         } else {
           // 没有触发任何目标词条，静默放行
-          this.logDebug('executeDualTrackDryRun_SILENT_PASS', null);
+          logger.logDebug('executeDualTrackDryRun_SILENT_PASS', null, this.targetWorldbook);
           this.releaseInterceptAndSend();
         }
       }
     } finally {
       // 无论成功、失败还是超时，永远释放干跑锁
       this.isDryRunning = false;
-      this.logDebug('executeDualTrackDryRun_FINALLY_UNLOCK', null);
+      logger.logDebug('executeDualTrackDryRun_FINALLY_UNLOCK', null, this.targetWorldbook);
     }
   }
 

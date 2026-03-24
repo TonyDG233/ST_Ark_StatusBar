@@ -1,7 +1,8 @@
+import { unref } from 'vue';
 import { BASELINE_STATE } from '../config/baseline';
 import { STARTUP_SCENARIOS } from '../config/scenarios';
 import { SINGLE_CHAR_ENTRIES } from '../config/single_char_entries';
-import { StatusBarManager } from './statusbar_manager';
+import { configStore } from './core/config_store';
 
 /**
  * 辅助函数：获取当前角色绑定的世界书名称。
@@ -251,16 +252,16 @@ export const WorldbookManager = {
       console.info('[ARK_Manager] Scenario applied successfully.');
 
       // 将本次批量修改作为一次 Commit 推送到状态栏管理器中，方便玩家溯源或撤回
-      const manager = StatusBarManager.getInstance();
-      if (manager.currentConfig) {
+      const currentConfig = unref(configStore.state);
+      if (currentConfig) {
         const newCommit = {
           id: Math.random().toString(36).substr(2, 6), // 随机生成短位 commit ID
           timestamp: Date.now(),
           description: `[Apply Scenario] “${scenario.title}”`,
           changes: diffChanges,
         };
-        const commits = [...manager.currentConfig.commits, newCommit];
-        manager.saveConfig({ commits });
+        const commits = [...currentConfig.commits, newCommit];
+        configStore.updateConfig({ commits });
       }
     } catch (error) {
       console.error('[ARK_Manager] Apply Scenario failed:', error);
@@ -300,8 +301,8 @@ export const WorldbookManager = {
       toastr.success('已关闭所有单字条目');
 
       // 将批量关闭动作记录到操作历史
-      const manager = StatusBarManager.getInstance();
-      if (manager.currentConfig && diffChanges.length > 0) {
+      const currentConfig = unref(configStore.state);
+      if (currentConfig && diffChanges.length > 0) {
         const newCommit = {
           id: Math.random().toString(36).substr(2, 6),
           timestamp: Date.now(),
@@ -309,8 +310,8 @@ export const WorldbookManager = {
           worldbook: targetBook,
           changes: diffChanges,
         };
-        const commits = [...manager.currentConfig.commits, newCommit];
-        manager.saveConfig({ commits });
+        const commits = [...currentConfig.commits, newCommit];
+        configStore.updateConfig({ commits });
       }
     } catch (error) {
       console.error('[ARK_Manager] Bulk close failed:', error);
@@ -340,10 +341,10 @@ export const WorldbookManager = {
         states,
       };
 
-      const manager = StatusBarManager.getInstance();
-      if (manager.currentConfig) {
-        const snapshots = [...(manager.currentConfig.snapshots || []), newSnapshot];
-        manager.saveConfig({ snapshots });
+      const currentConfig = unref(configStore.state);
+      if (currentConfig) {
+        const snapshots = [...(currentConfig.snapshots || []), newSnapshot];
+        configStore.updateConfig({ snapshots });
         toastr.success(`快照 [${snapshotName}] 保存成功`);
       }
     } catch (e) {
@@ -357,9 +358,9 @@ export const WorldbookManager = {
    */
   async restoreSnapshot(snapshotId: string): Promise<void> {
     try {
-      const manager = StatusBarManager.getInstance();
-      if (!manager.currentConfig || !manager.currentConfig.snapshots) return;
-      const snapshot = manager.currentConfig.snapshots.find(s => s.id === snapshotId);
+      const currentConfig = unref(configStore.state);
+      if (!currentConfig || !currentConfig.snapshots) return;
+      const snapshot = currentConfig.snapshots.find(s => s.id === snapshotId);
       if (!snapshot) throw new Error('Snapshot not found');
 
       await updateWorldbookWith(snapshot.worldbook, entries => {
@@ -376,8 +377,8 @@ export const WorldbookManager = {
       });
 
       // 从记录历史中删除该世界书的历史操作记录，因为已彻底回滚到了最初的快照状态
-      const commits = manager.currentConfig.commits.filter(c => c.worldbook !== snapshot.worldbook);
-      manager.saveConfig({ commits });
+      const commits = currentConfig.commits.filter(c => c.worldbook !== snapshot.worldbook);
+      configStore.updateConfig({ commits });
 
       toastr.success(`快照 [${snapshot.name}] 恢复成功`);
     } catch (e) {
@@ -390,10 +391,10 @@ export const WorldbookManager = {
    * 删除快照
    */
   async deleteSnapshot(snapshotId: string): Promise<void> {
-    const manager = StatusBarManager.getInstance();
-    if (manager.currentConfig && manager.currentConfig.snapshots) {
-      const snapshots = manager.currentConfig.snapshots.filter(s => s.id !== snapshotId);
-      manager.saveConfig({ snapshots });
+    const currentConfig = unref(configStore.state);
+    if (currentConfig && currentConfig.snapshots) {
+      const snapshots = currentConfig.snapshots.filter(s => s.id !== snapshotId);
+      configStore.updateConfig({ snapshots });
     }
   },
 };
