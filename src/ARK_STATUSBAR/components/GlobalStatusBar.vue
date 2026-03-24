@@ -10,8 +10,8 @@
       'mini-mode': isMiniMode,
     }"
     :style="{
-      width: isMiniMode ? 'auto' : displayWidth + 'px',
-      fontSize: displayFontSize + 'px',
+      '--ui-width': isMiniMode ? 'auto' : displayWidth + 'px',
+      '--ui-font-size': displayFontSize + 'px',
       transform: `translate(${transformX}px, ${transformY}px)`,
     }"
     ref="statusBarEl"
@@ -478,7 +478,7 @@
         </div>
 
         <div class="setting-item flex-col-align-start">
-          <label>字体大小 ({{ displayFontSize }}px)</label>
+          <label>字体大小 (<span class="mobile-scale-hint">移动端自动 -4px / </span>当前基准: {{ displayFontSize }}px)</label>
           <input
             type="range"
             min="10"
@@ -1530,6 +1530,8 @@ const togglePendingEntry = async (entry: any) => {
 </script>
 
 <style scoped>
+@import './styles/theme.scss';
+
 .ark-global-statusbar {
   position: fixed;
   bottom: 60px;
@@ -1543,7 +1545,6 @@ const togglePendingEntry = async (entry: any) => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  font-family: sans-serif;
   transition:
     background-color 0.3s ease,
     border-color 0.3s ease,
@@ -1780,43 +1781,6 @@ const togglePendingEntry = async (entry: any) => {
   gap: 10px;
 }
 
-.btn-primary,
-.btn-danger,
-.btn-success,
-.btn-warning {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  color: white;
-}
-.btn-primary {
-  background: #007bff;
-}
-.btn-primary:hover {
-  background: #0056b3;
-}
-.btn-danger {
-  background: #dc3545;
-}
-.btn-danger:hover {
-  background: #a71d2a;
-}
-.btn-success {
-  background: #28a745;
-}
-.btn-success:hover {
-  background: #218838;
-}
-.btn-warning {
-  background: #ff9800;
-}
-.btn-warning:hover {
-  background: #e68a00;
-}
-
 .all-wbs-list .wb-item {
   display: flex;
   justify-content: space-between;
@@ -1918,51 +1882,6 @@ const togglePendingEntry = async (entry: any) => {
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   background: rgba(0, 0, 0, 0.1);
   padding-top: 10px;
-}
-
-/* Switch style */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 40px;
-  height: 20px;
-}
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: 0.4s;
-}
-.slider:before {
-  position: absolute;
-  content: '';
-  height: 16px;
-  width: 16px;
-  left: 2px;
-  bottom: 2px;
-  background-color: white;
-  transition: 0.4s;
-}
-input:checked + .slider {
-  background-color: #007bff;
-}
-input:checked + .slider:before {
-  transform: translateX(20px);
-}
-.slider.round {
-  border-radius: 20px;
-}
-.slider.round:before {
-  border-radius: 50%;
 }
 
 .commit-list {
@@ -2151,5 +2070,15 @@ input:checked + .slider:before {
 .entry-list.stacked .badge.warning {
   background: #ff9800;
   color: white;
+}
+.mobile-scale-hint {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-scale-hint {
+    display: inline;
+    color: #ff9800;
+  }
 }
 </style>

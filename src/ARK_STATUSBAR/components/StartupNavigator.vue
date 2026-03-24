@@ -342,7 +342,7 @@ const handleScenarioClick = async (scenario: Scenario) => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;700&display=swap');
+@import './styles/theme.scss';
 
 .ark-startup-container {
   display: flex;
@@ -390,7 +390,6 @@ const handleScenarioClick = async (scenario: Scenario) => {
   transition:
     background-color 0.3s,
     border-color 0.3s;
-  font-family: 'Noto Serif SC', serif;
 }
 
 .content-wrapper {
@@ -624,51 +623,6 @@ const handleScenarioClick = async (scenario: Scenario) => {
   margin-bottom: 20px;
 }
 
-/* Switch style */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 40px;
-  height: 20px;
-}
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: 0.4s;
-}
-.slider:before {
-  position: absolute;
-  content: '';
-  height: 16px;
-  width: 16px;
-  left: 2px;
-  bottom: 2px;
-  background-color: white;
-  transition: 0.4s;
-}
-input:checked + .slider {
-  background-color: #007bff;
-}
-input:checked + .slider:before {
-  transform: translateX(20px);
-}
-.slider.round {
-  border-radius: 20px;
-}
-.slider.round:before {
-  border-radius: 50%;
-}
-
 h3 {
   color: var(--ui-text-main);
   font-weight: 500;
@@ -730,80 +684,6 @@ h3 {
   border-left-color: #ff9800;
   color: #ff9800;
   background: rgba(255, 152, 0, 0.05);
-}
-
-/* Arknights Buttons */
-.wb-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-bottom: 20px;
-}
-
-.ark-btn {
-  position: relative;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border: 1px solid var(--ui-border-primary);
-  background: var(--ui-bg);
-  transition: all 0.2s ease;
-  overflow: hidden;
-}
-
-.ark-btn .btn-content {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 2;
-  transition: all 0.2s;
-}
-
-.ark-btn .btn-text {
-  font-weight: bold;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  font-size: 0.9em;
-}
-
-/* Warning Button (Close Single Char) */
-.ark-btn.warning {
-  border-color: #ff9800;
-  color: #ff9800;
-}
-.ark-btn.warning:hover {
-  background: #ff9800;
-  color: #fff;
-}
-
-/* Danger Button (Restore) */
-.ark-btn.danger {
-  border-color: #f44336;
-  color: #f44336;
-}
-.ark-btn.danger:hover {
-  background: #f44336;
-  color: #fff;
-}
-
-/* Decor Elements */
-.ark-btn::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 0 10px 10px 0;
-  border-color: transparent currentColor transparent transparent;
-  opacity: 0.5;
-}
-
-.ark-btn:active {
-  transform: scale(0.98);
 }
 
 /* Mobile Responsive */
