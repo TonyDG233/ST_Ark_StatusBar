@@ -121,21 +121,44 @@
       <button
         v-if="currentConfig?.commits?.length"
         class="icon-btn tiny"
-        style="padding: 4px 8px; border: 1px solid var(--SmartThemeBorderColor, #444); background: rgba(0,0,0,0.2)"
+        style="padding: 4px 8px; border: 1px solid var(--SmartThemeBorderColor, #444); background: rgba(0, 0, 0, 0.2)"
         @click="toggleBatchMode"
       >
         {{ isBatchMode ? '退出多选' : '批量多选' }}
       </button>
     </div>
-    
-    <div style="font-size: 0.8em; color: var(--SmartThemeBodyColor, rgba(255, 255, 255, 0.6)); opacity: 0.8; margin-bottom: 12px; line-height: 1.4">
-      <strong style="color: var(--SmartThemeBodyColor, #ccc); font-weight: bold">【恢复】</strong>：撤销该记录的操作，将世界书条目的状态回滚，并从这里删除记录。<br/>
-      <strong style="color: var(--SmartThemeBodyColor, #ccc); font-weight: bold">【删除】</strong>：仅清理这条历史记录，但保持世界书现在的状态不变。
+
+    <div
+      style="
+        font-size: 0.8em;
+        color: var(--SmartThemeBodyColor, rgba(255, 255, 255, 0.6));
+        opacity: 0.8;
+        margin-bottom: 12px;
+        line-height: 1.4;
+      "
+    >
+      <strong style="color: var(--SmartThemeBodyColor, #ccc); font-weight: bold">【恢复】</strong
+      >：撤销该记录的操作，将世界书条目的状态回滚，并从这里删除记录。<br />
+      <strong style="color: var(--SmartThemeBodyColor, #ccc); font-weight: bold">【删除】</strong
+      >：仅清理这条历史记录，但保持世界书现在的状态不变。
     </div>
 
     <!-- 批量操作工具栏 -->
-    <div v-if="isBatchMode" class="batch-toolbar compact" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; border: 1px dashed rgba(255,255,255,0.2)">
-      <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+    <div
+      v-if="isBatchMode"
+      class="batch-toolbar compact"
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        background: rgba(0, 0, 0, 0.2);
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px dashed rgba(255, 255, 255, 0.2);
+      "
+    >
+      <label style="display: flex; align-items: center; gap: 5px; cursor: pointer">
         <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll" /> 全选
       </label>
       <div style="display: flex; gap: 8px">
@@ -164,18 +187,12 @@
         v-for="commit in [...(currentConfig?.commits || [])].reverse()"
         :key="commit.id"
         class="commit-item"
-        :class="{ 'selectable': isBatchMode }"
+        :class="{ selectable: isBatchMode }"
         @click="isBatchMode ? toggleSelection(commit.id) : null"
       >
         <div class="commit-header">
           <div style="display: flex; align-items: center; gap: 8px">
-            <input
-              v-if="isBatchMode"
-              type="checkbox"
-              :value="commit.id"
-              v-model="selectedCommits"
-              @click.stop
-            />
+            <input v-if="isBatchMode" type="checkbox" :value="commit.id" v-model="selectedCommits" @click.stop />
             <span class="commit-id">#{{ commit.id }}</span>
           </div>
           <span class="commit-time">{{ new Date(commit.timestamp).toLocaleString() }}</span>
@@ -190,7 +207,11 @@
             {{ getChangeText(commit, change.to) }}
           </li>
         </ul>
-        <div v-if="!isBatchMode" class="commit-actions" style="margin-top: 8px; text-align: right; display: flex; justify-content: flex-end; gap: 8px">
+        <div
+          v-if="!isBatchMode"
+          class="commit-actions"
+          style="margin-top: 8px; text-align: right; display: flex; justify-content: flex-end; gap: 8px"
+        >
           <button
             class="icon-btn tiny"
             style="border: 1px solid #1e90ff; color: #1e90ff"
@@ -329,7 +350,7 @@ const resetToBaseline = async () => {
     await manager.worldbook.resetToBaseline(currentPrimaryWorldbook.value);
     configStore.updateConfig({ commits: [] });
     await loadWorldbookLists(); // Refresh
-    
+
     // 如果主世界书正被展开，必须刷新本地缓存以触发UI更新
     if (expandedWorldbooks.value.includes(currentPrimaryWorldbook.value)) {
       try {
@@ -343,7 +364,7 @@ const resetToBaseline = async () => {
         console.error('Refresh cache failed', e);
       }
     }
-    
+
     if (typeof toastr !== 'undefined') toastr.success('已恢复基准线。');
   }
 };
@@ -355,7 +376,7 @@ const closeSingleChar = async () => {
   if (confirm('确定要一键关闭所有单字干员世界书吗？')) {
     await manager.worldbook.closeSingleCharEntries();
     await loadWorldbookLists();
-    
+
     // 如果主世界书正被展开，必须刷新本地缓存以触发UI更新
     if (currentPrimaryWorldbook.value && expandedWorldbooks.value.includes(currentPrimaryWorldbook.value)) {
       try {
@@ -378,21 +399,24 @@ const closeSingleChar = async () => {
  */
 const applyInverseChanges = async (commitList: any[]) => {
   // 根据目标世界书对 commit 进行分组
-  const worldbookGroups = commitList.reduce((acc, curr) => {
-    const target = curr.worldbook || currentPrimaryWorldbook.value;
-    if (target) {
-      if (!acc[target]) acc[target] = [];
-      acc[target].push(curr);
-    }
-    return acc;
-  }, {} as Record<string, any[]>);
+  const worldbookGroups = commitList.reduce(
+    (acc, curr) => {
+      const target = curr.worldbook || currentPrimaryWorldbook.value;
+      if (target) {
+        if (!acc[target]) acc[target] = [];
+        acc[target].push(curr);
+      }
+      return acc;
+    },
+    {} as Record<string, any[]>,
+  );
 
   for (const [worldName, commits] of Object.entries(worldbookGroups)) {
     await updateWorldbookWith(worldName, (wbEntries: any[]) => {
       // 必须按照提交时间的反序 (从新到老) 来还原，防止先关后开同一词条导致状态覆盖错误
       const typedCommits = commits as any[];
       const sortedCommits = [...typedCommits].sort((a, b) => b.timestamp - a.timestamp);
-      
+
       for (const commit of sortedCommits) {
         for (const change of commit.changes) {
           const e = wbEntries.find(x => x.uid === change.uid);
@@ -466,7 +490,7 @@ const deleteCommit = async (commit: any) => {
 const batchRevertCommits = async () => {
   const commitsToRevert = (currentConfig.value?.commits || []).filter((c: any) => selectedCommits.value.includes(c.id));
   if (!commitsToRevert.length) return;
-  
+
   if (!confirm(`确定要恢复这 ${commitsToRevert.length} 条选中的记录吗？(状态将被还原)`)) return;
 
   try {

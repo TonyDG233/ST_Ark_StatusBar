@@ -82,7 +82,7 @@ export class EntryService {
           if (entry.name && BASELINE_STATE.hasOwnProperty(entry.name)) {
             const baseline = BASELINE_STATE[entry.name];
             entry.enabled = baseline.enabled;
-            
+
             if (!entry.strategy) {
               entry.strategy = {};
             }

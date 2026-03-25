@@ -152,11 +152,14 @@ export class StatusBarManager {
         this.tempDisabledEntries = []; // 立即清空，防止重入
         try {
           // 根据不同的世界书分类恢复
-          const worldGroups = entriesToRestore.reduce((acc, curr) => {
-            if (!acc[curr.world]) acc[curr.world] = [];
-            acc[curr.world].push(curr.uid);
-            return acc;
-          }, {} as Record<string, number[]>);
+          const worldGroups = entriesToRestore.reduce(
+            (acc, curr) => {
+              if (!acc[curr.world]) acc[curr.world] = [];
+              acc[curr.world].push(curr.uid);
+              return acc;
+            },
+            {} as Record<string, number[]>,
+          );
 
           let hasFailures = false;
           const failedItems: { world: string; uid: number }[] = [];
