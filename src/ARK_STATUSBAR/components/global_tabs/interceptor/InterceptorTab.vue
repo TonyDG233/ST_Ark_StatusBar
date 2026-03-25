@@ -158,16 +158,16 @@
 </template>
 
 <script setup lang="ts">
-import { useArkConfig, configStore } from '../../../logic/core/config_store';
+import { configStore, useArkConfig } from '../../../logic/core/config_store';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
 import {
-  pendingEntries,
-  lastTriggeredEntries,
-  isTestMode,
-  currentTokenCount,
-  sortedPendingEntries,
-  sortedLastTriggeredEntries,
   currentPrimaryWorldbook,
+  currentTokenCount,
+  isTestMode,
+  lastTriggeredEntries,
+  pendingEntries,
+  sortedLastTriggeredEntries,
+  sortedPendingEntries,
 } from '../shared_ui_state';
 
 const emit = defineEmits<{ (e: 'close-panel'): void }>();
@@ -232,7 +232,8 @@ const toggleEntrySilent = async (entry: any) => {
       return;
     }
     await updateWorldbookWith(targetWorldbook, (wbEntries: any[]) => {
-      const e = wbEntries.find(x => x.uid === entry.uid && (x.name === entry.name || x.comment === entry.comment));
+      // 放宽匹配条件：只比对 UID，因为世界书条目的 name 和 comment 可能会在中间环节变空或被剔除
+      const e = wbEntries.find(x => x.uid === entry.uid);
       if (e) e.enabled = entry.enabled;
       return wbEntries;
     });
@@ -244,14 +245,18 @@ const toggleEntrySilent = async (entry: any) => {
 const toggleTempDisable = (entry: any) => {
   entry.tempDisabled = !entry.tempDisabled;
 
+  const targetWorldbook = entry.world || currentPrimaryWorldbook.value;
+
   if (entry.tempDisabled) {
     entry.enabled = false;
-    if (!manager.tempDisabledUids.includes(entry.uid)) manager.tempDisabledUids.push(entry.uid);
+    if (!manager.tempDisabledEntries.find(e => e.uid === entry.uid && e.world === targetWorldbook)) {
+      manager.tempDisabledEntries.push({ uid: entry.uid, world: targetWorldbook });
+    }
     toggleEntrySilent(entry);
   } else {
     entry.enabled = true;
-    const idx = manager.tempDisabledUids.indexOf(entry.uid);
-    if (idx !== -1) manager.tempDisabledUids.splice(idx, 1);
+    const idx = manager.tempDisabledEntries.findIndex(e => e.uid === entry.uid && e.world === targetWorldbook);
+    if (idx !== -1) manager.tempDisabledEntries.splice(idx, 1);
     toggleEntrySilent(entry);
   }
 };
@@ -262,7 +267,7 @@ const toggleTempDisable = (entry: any) => {
 const cancelSend = () => {
   lastTriggeredEntries.value = [...pendingEntries.value];
 
-  if (manager.tempDisabledUids.length > 0) {
+  if (manager.tempDisabledEntries.length > 0) {
     pendingEntries.value.forEach(e => {
       if (e.tempDisabled) {
         e.tempDisabled = false;
@@ -270,7 +275,7 @@ const cancelSend = () => {
         toggleEntrySilent(e);
       }
     });
-    manager.tempDisabledUids = [];
+    manager.tempDisabledEntries = [];
   }
   pendingEntries.value = [];
   emit('close-panel');
@@ -309,10 +314,12 @@ const toggleEntry = async (entry: any, explicitWbName?: string) => {
  * 拦截预警面板中使用的快捷开关功能，关联上面的 toggleEntry
  */
 const togglePendingEntry = async (entry: any) => {
+  const targetWorldbook = entry.world || currentPrimaryWorldbook.value;
+
   if (entry.tempDisabled) {
     entry.tempDisabled = false;
-    const idx = manager.tempDisabledUids.indexOf(entry.uid);
-    if (idx !== -1) manager.tempDisabledUids.splice(idx, 1);
+    const idx = manager.tempDisabledEntries.findIndex(e => e.uid === entry.uid && e.world === targetWorldbook);
+    if (idx !== -1) manager.tempDisabledEntries.splice(idx, 1);
     await toggleEntry(entry);
     return;
   }
@@ -320,8 +327,8 @@ const togglePendingEntry = async (entry: any) => {
   entry.enabled = !entry.enabled;
   if (!entry.enabled) {
     entry.tempDisabled = false;
-    const idx = manager.tempDisabledUids.indexOf(entry.uid);
-    if (idx !== -1) manager.tempDisabledUids.splice(idx, 1);
+    const idx = manager.tempDisabledEntries.findIndex(e => e.uid === entry.uid && e.world === targetWorldbook);
+    if (idx !== -1) manager.tempDisabledEntries.splice(idx, 1);
   }
   await toggleEntry(entry);
 };

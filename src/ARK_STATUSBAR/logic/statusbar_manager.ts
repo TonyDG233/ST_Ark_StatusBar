@@ -1,6 +1,6 @@
 import { unref } from 'vue';
 import { BASELINE_STATE } from '../config/baseline';
-import { configStore } from './core/config_store';
+import { configStore, useArkConfig } from './core/config_store';
 import { entryService } from './worldbook/entry_service';
 import { snapshotService } from './worldbook/snapshot_service';
 
@@ -79,7 +79,7 @@ export class StatusBarManager {
   private static instance: StatusBarManager;
   private targetWorldbook: string | null = null; // 当前绑定的世界书名称
 
-  public tempDisabledUids: number[] = []; // 单次临时阻断的条目 UID 列表
+  public tempDisabledEntries: { uid: number; world: string }[] = []; // 单次临时阻断的条目 UID 及世界书名称列表
   public readonly worldbook: WorldbookFacade;
 
   private constructor() {
@@ -145,23 +145,67 @@ export class StatusBarManager {
 
     // 监听生成结束事件：恢复“临时阻断”的世界书条目 (需求2)
     eventOn(tavern_events.GENERATION_ENDED, async () => {
-      if (this.tempDisabledUids.length > 0 && this.targetWorldbook) {
+      if (this.tempDisabledEntries.length > 0) {
         console.info('[ARK_StatusBar] Restoring temp disabled entries after generation...');
-        const uidsToRestore = [...this.tempDisabledUids];
-        this.tempDisabledUids = []; // 立即清空，防止重入
+        const entriesToRestore = [...this.tempDisabledEntries];
+        this.tempDisabledEntries = []; // 立即清空，防止重入
         try {
-          await updateWorldbookWith(this.targetWorldbook, (wbEntries: any[]) => {
-            for (const entry of wbEntries) {
-              if (uidsToRestore.includes(entry.uid)) {
-                entry.enabled = true;
-              }
+          // 根据不同的世界书分类恢复
+          const worldGroups = entriesToRestore.reduce((acc, curr) => {
+            if (!acc[curr.world]) acc[curr.world] = [];
+            acc[curr.world].push(curr.uid);
+            return acc;
+          }, {} as Record<string, number[]>);
+
+          let hasFailures = false;
+          const failedItems: { world: string; uid: number }[] = [];
+
+          for (const [worldName, uids] of Object.entries(worldGroups)) {
+            try {
+              await updateWorldbookWith(worldName, (wbEntries: any[]) => {
+                for (const uid of uids) {
+                  const entry = wbEntries.find(e => e.uid === uid);
+                  if (entry) {
+                    entry.enabled = true;
+                  } else {
+                    hasFailures = true;
+                    failedItems.push({ world: worldName, uid });
+                  }
+                }
+                return wbEntries;
+              });
+            } catch (err) {
+              hasFailures = true;
+              failedItems.push(...uids.map(uid => ({ world: worldName, uid })));
             }
-            return wbEntries;
-          });
+          }
+
+          // 如果还原有失败的（比如世界书被删了或者临时故障），就扔一条 Commit 提醒用户
+          if (hasFailures) {
+            console.error('[ARK_StatusBar] Some temp disabled entries failed to restore:', failedItems);
+            const currentConfig = useArkConfig().value;
+            if (currentConfig) {
+              const newCommit = {
+                id: Math.random().toString(36).substr(2, 6),
+                timestamp: Date.now(),
+                description: `[警告] 拦截器单次屏蔽恢复失败`,
+                worldbook: 'System',
+                changes: failedItems.map(item => ({
+                  uid: item.uid,
+                  comment: `World: ${item.world}`,
+                  from: false,
+                  to: false, // 没能开启
+                })),
+              };
+              const commits = [...(currentConfig.commits || []), newCommit];
+              configStore.updateConfig({ commits });
+            }
+          }
+
           // 虽然生成结束后界面可能已关闭，但仍抛出事件以便状态同步
           document.dispatchEvent(new CustomEvent('ark-chat-changed'));
         } catch (e) {
-          console.error('[ARK_StatusBar] Failed to restore temp disabled entries', e);
+          console.error('[ARK_StatusBar] Failed to process temp disabled entries restoration', e);
         }
       }
     });
