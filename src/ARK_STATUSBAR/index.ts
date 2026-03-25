@@ -86,8 +86,6 @@ const startMountingLoop = () => {
   }, MOUNT_INTERVAL_MS);
 };
 
-let isBackendInitialized = false;
-
 let globalStatusBarApp: ReturnType<typeof createApp> | null = null;
 const GLOBAL_STATUSBAR_CONTAINER_CLASS = 'ark-global-statusbar-mount-point';
 
@@ -136,21 +134,6 @@ $(() => {
   // Note: We mount it immediately, but its visibility and functionality is controlled by its own state
   globalStatusBarApp = createApp(GlobalStatusBar);
   globalStatusBarApp.mount(globalContainer);
-
-  /*   
-// --- Initial Backend Logic Initialization ---
-  if (!isBackendInitialized) {
-    initializeBackendLogic();
-    isBackendInitialized = true;
-  }
-
-  // --- Listen for Chat Changes to Re-initialize Backend ---
-  eventOn(tavern_events.CHAT_CHANGED, () => {
-    console.info('[ARK_STATUSBAR] Chat changed. Re-initializing backend logic...');
-    // No need to check the flag here, as we ALWAYS want to re-init on chat change.
-    initializeBackendLogic();
-  });
- */
 
   // --- Frontend Initialization (Immediate) ---
   // 1. Teleport styles from iframe to main window

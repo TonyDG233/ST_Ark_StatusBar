@@ -94,8 +94,8 @@
 import { computed, onMounted, ref } from 'vue';
 import { ASSETS } from '../config/assets';
 import { STARTUP_SCENARIOS, type Scenario } from '../config/scenarios';
-import { configStore, useArkConfig } from '../logic/core/config_store';
-import { StatusBarManager, type WorldbookStatus } from '../logic/statusbar_manager';
+import { StatusBarManager } from '../logic/statusbar_manager';
+import { WorldbookManager, type WorldbookStatus } from '../logic/worldbook_manager';
 import StartupSettingsPanel from './startup_tabs/StartupSettingsPanel.vue';
 
 // --- 状态与变量定义 ---
@@ -109,16 +109,18 @@ const wbStatus = ref<WorldbookStatus>('original');
 
 import { type ArkConfig } from '../config/system_config';
 
-const currentConfig = useArkConfig();
+const manager = StatusBarManager.getInstance();
+const currentConfig = ref<ArkConfig | null>(manager.currentConfig);
+const previewUiFontSize = ref<number | null>(null);
 
 // 响应式的当前主题和系统总开关计算属性
 const theme = computed(() => currentConfig.value?.theme || 'dark');
-const displayFontSize = computed(() => currentConfig.value?.uiFontSize ?? 14);
+const displayFontSize = computed(() => previewUiFontSize.value ?? currentConfig.value?.uiFontSize ?? 14);
 
 // --- 方法 ---
 
 const updateConfig = (val: Partial<ArkConfig>) => {
-  configStore.updateConfig(val);
+  manager.saveConfig(val);
 };
 
 /**
@@ -136,14 +138,14 @@ const toggleSettings = () => {
  * 获取并更新当前世界书是否偏离了基准线配置的状态
  */
 const checkWbStatus = async () => {
-  wbStatus.value = await StatusBarManager.getInstance().worldbook.getStatus() as WorldbookStatus;
+  wbStatus.value = await WorldbookManager.getWorldbookStatus();
 };
 
 /**
  * 一键屏蔽所有单字干员（防止日常用语误触发）
  */
 const handleCloseSingleChar = async () => {
-  await StatusBarManager.getInstance().worldbook.closeSingleCharEntries();
+  await WorldbookManager.closeSingleCharEntries();
   await checkWbStatus();
 };
 
@@ -152,8 +154,8 @@ const handleCloseSingleChar = async () => {
  */
 const handleRestoreWorldbook = async () => {
   if (confirm('确定要将世界书重置为初始状态吗？这将丢失所有自定义修改。')) {
-    await StatusBarManager.getInstance().worldbook.resetToBaseline();
-    await configStore.updateConfig({ commits: [] });
+    await WorldbookManager.resetToBaseline();
+    await manager.saveConfig({ commits: [] });
     await checkWbStatus();
   }
 };
@@ -162,6 +164,17 @@ const handleRestoreWorldbook = async () => {
 
 onMounted(() => {
   checkWbStatus();
+
+  // 监听全局字体预览事件
+  document.addEventListener('ark-preview-ui-font-size', ((e: CustomEvent) => {
+    previewUiFontSize.value = e.detail;
+  }) as EventListener);
+
+  // 注册回调，当配置(如主题、系统开关)在外部被更新时同步更新本地状态
+  manager.onConfigUpdate = config => {
+    currentConfig.value = config;
+    previewUiFontSize.value = null; // 重置预览值
+  };
 });
 
 /**
@@ -172,7 +185,7 @@ const handleScenarioClick = async (scenario: Scenario) => {
   try {
     // 1. 世界书逻辑应用阶段
     try {
-      await StatusBarManager.getInstance().worldbook.applyScenario(scenario.swipeId);
+      await WorldbookManager.applyScenario(scenario.swipeId);
     } catch (e) {
       // 捕获 STATUS_MODIFIED 异常，提示用户当前世界书存在非标准修改
       if ((e as Error).message === 'STATUS_MODIFIED') {
@@ -182,7 +195,7 @@ const handleScenarioClick = async (scenario: Scenario) => {
           )
         ) {
           // 用户确认继续，强制(force)应用该剧本
-          await StatusBarManager.getInstance().worldbook.applyScenario(scenario.swipeId, true);
+          await WorldbookManager.applyScenario(scenario.swipeId, true);
         } else {
           return; // 用户取消，终止流程
         }
@@ -213,7 +226,7 @@ const handleScenarioClick = async (scenario: Scenario) => {
     firstMessage.mes = firstMessage.swipes[scenario.swipeId];
 
     // 因为切换了开局语可能会导致 CHAT_CHANGED 事件触发从而引起 Baseline 变化告警，因此主动屏蔽下一次警告
-    await configStore.updateConfig({ suppressNextDiffWarning: true });
+    manager.saveConfig({ suppressNextDiffWarning: true });
 
     // 保存聊天记录并强制重载当前聊天以刷新前端 UI
     await SillyTavern.saveChat();
