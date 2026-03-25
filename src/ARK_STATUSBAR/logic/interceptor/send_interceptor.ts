@@ -222,13 +222,36 @@ class SendInterceptor {
       mockChat.reverse();
       (mockChat as any).__isMock = true;
 
+      // 【防重复冒出修复】：不仅要接收被激活的条目，还要处理酒馆在内部运算中（比如分层扫描 Depth、Keyword、Token 等计算）
+      // 可能多次发射 world_info_activated 事件的问题。我们不能仅仅覆盖或者追加，而应当以 uid + world 或 uid + name 的复合键去重。
       let activatedEntries: any[] = [];
       const worldInfoListener = (evt: any) => {
         const raw = evt.detail || evt;
         ArkEventBus.emit('log:debug', 'executeDualTrackDryRun_RAW_ENTRIES_RECEIVED', false);
 
-        // 放开限制：接收所有被激活的绿灯条目，在UI中通过 e.world 字段进行溯源展示
-        activatedEntries = raw || [];
+        if (Array.isArray(raw)) {
+          // 由于原逻辑是 `activatedEntries = raw || []`（覆盖），而我们在防线修复中改成了合并（push），
+          // 如果某次检测（比如主动检测）在内部循环中引发了多轮 `world_info_activated`（例如：常驻检查一轮、深度检查一轮），
+          // 这会导致重复推入。同时，酒馆助手（或Tavern原系统）有时会直接发送之前累积的结果（比如上一次点击或者重试的结果），
+          // 这也是为什么 4 个世界书会导致 6 个甚至更多重复内容冒出的原因之一（多轮次累加或者缓存穿透）。
+          
+          // 【彻底隔离】因此我们不再盲目追加。我们应当认识到：`world_info_activated` 传递的 `raw` 已经是**本次计算最终的所有激活条目聚合**。
+          // 原本 `activatedEntries = raw` 的逻辑其实在处理单轮发射时是对的，
+          // 但因为有些酒馆版本/插件可能多次触发它，我们只需要【取出最后一次触发、或者直接用其自带的结构去重】即可。
+          // 最安全的做法：每次收到事件时，以当前 `raw` 中的数组为基准覆盖，但对 `raw` 本身进行深度去重，
+          // 确保这一批次的数据没有多本同名书籍导入时带来的垃圾副本。
+          
+          const uniqueMap = new Map();
+          for (const newEntry of raw) {
+            // 唯一键组合：所在的Worldbook名 + 本身的UID + (名字或备注防止无ID的特殊条目)
+            const newKey = `${newEntry.world || 'UnknownWorld'}_${newEntry.uid}_${newEntry.name || newEntry.comment || ''}`;
+            if (!uniqueMap.has(newKey)) {
+              uniqueMap.set(newKey, newEntry);
+            }
+          }
+          activatedEntries = Array.from(uniqueMap.values());
+        }
+        
         ArkEventBus.emit('log:debug', `executeDualTrackDryRun_ALL_ENTRIES | count:${activatedEntries.length}`, false);
       };
 
