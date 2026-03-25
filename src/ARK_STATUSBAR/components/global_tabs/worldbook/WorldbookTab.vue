@@ -104,25 +104,24 @@
               </div>
             </div>
             <!-- 渐进式加载：点击加载更多区块 -->
-            <div
-              v-if="hasMoreEntries(wb.name)"
-              class="load-more-container"
-              style="text-align: center; padding: 10px 0;"
-            >
+            <div v-if="hasMoreEntries(wb.name)" class="load-more-container" style="text-align: center; padding: 10px 0">
               <button
                 class="btn-primary"
-                style="padding: 4px 12px; font-size: 0.9em; border-radius: 4px; background: rgba(0, 123, 255, 0.2); cursor: pointer;"
+                style="
+                  padding: 4px 12px;
+                  font-size: 0.9em;
+                  border-radius: 4px;
+                  background: rgba(0, 123, 255, 0.2);
+                  cursor: pointer;
+                "
                 @click="loadMoreEntries(wb.name)"
               >
-                往下加载更多... (当前显示 {{ getVisibleEntries(wb.name).length }} / {{(processedEntries[wb.name] || []).length}})
+                往下加载更多... (当前显示 {{ getVisibleEntries(wb.name).length }} /
+                {{ (processedEntries[wb.name] || []).length }})
               </button>
             </div>
 
-            <div
-              v-if="(processedEntries[wb.name] || []).length === 0"
-              class="empty-state"
-              style="padding: 5px"
-            >
+            <div v-if="(processedEntries[wb.name] || []).length === 0" class="empty-state" style="padding: 5px">
               没有找到匹配的条目。
             </div>
           </div>
@@ -178,7 +177,7 @@ const processedEntries = computed(() => {
     let mapped = entries.map(entry => ({
       ...entry,
       _isPinned: currentConfig.value?.pinnedEntries?.includes(entry.uid) || false,
-      _computedType: getEntryType(entry)
+      _computedType: getEntryType(entry),
     }));
 
     // 2. 过滤
@@ -338,7 +337,6 @@ const getAvailableCategories = (wbName: string) => {
   }
   return sorted;
 };
-
 
 const togglePinEntry = (entry: any) => {
   const pinned = currentConfig.value?.pinnedEntries || [];

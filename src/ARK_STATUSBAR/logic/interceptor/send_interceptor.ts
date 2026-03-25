@@ -234,13 +234,13 @@ class SendInterceptor {
           // 如果某次检测（比如主动检测）在内部循环中引发了多轮 `world_info_activated`（例如：常驻检查一轮、深度检查一轮），
           // 这会导致重复推入。同时，酒馆助手（或Tavern原系统）有时会直接发送之前累积的结果（比如上一次点击或者重试的结果），
           // 这也是为什么 4 个世界书会导致 6 个甚至更多重复内容冒出的原因之一（多轮次累加或者缓存穿透）。
-          
+
           // 【彻底隔离】因此我们不再盲目追加。我们应当认识到：`world_info_activated` 传递的 `raw` 已经是**本次计算最终的所有激活条目聚合**。
           // 原本 `activatedEntries = raw` 的逻辑其实在处理单轮发射时是对的，
           // 但因为有些酒馆版本/插件可能多次触发它，我们只需要【取出最后一次触发、或者直接用其自带的结构去重】即可。
           // 最安全的做法：每次收到事件时，以当前 `raw` 中的数组为基准覆盖，但对 `raw` 本身进行深度去重，
           // 确保这一批次的数据没有多本同名书籍导入时带来的垃圾副本。
-          
+
           const uniqueMap = new Map();
           for (const newEntry of raw) {
             // 唯一键组合：所在的Worldbook名 + 本身的UID + (名字或备注防止无ID的特殊条目)
@@ -251,7 +251,7 @@ class SendInterceptor {
           }
           activatedEntries = Array.from(uniqueMap.values());
         }
-        
+
         ArkEventBus.emit('log:debug', `executeDualTrackDryRun_ALL_ENTRIES | count:${activatedEntries.length}`, false);
       };
 
