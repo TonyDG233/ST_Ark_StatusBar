@@ -27,12 +27,12 @@
   - 实现对所有原生世界书的扫描，并能在 UI 中直接通过 `rebindGlobalWorldbooks` API 控制全局挂载/卸载，并以手风琴抽屉形式渲染。
 - [x] **Step 5: 全局快照生命周期管理面板**
   - 补全跨世界书的快照拍摄与回滚删除机制，并将高危操作及操作历史(Git)重置到单独管理区域。
-- [ ] **Step 6: 提取全局公共样式与字体防线**
-  - 新建 `theme.scss`，统一移动端字体大小，严防宋体灾难和 CSS 污染。
+- [x] **Step 6: 提取全局公共样式与字体防线**
+  - 新建 `theme.scss` 和 `shared_ui.scss`，统一移动端字体大小，严防宋体灾难和 CSS 污染。
 - [ ] **Step 7: 拆分 StartupNavigator.vue**
-  - 将设置面板抽离，严格遵循 Vue 的 Props/Emits 单向数据流防线。
-- [ ] **Step 8: 拆分 GlobalStatusBar.vue 为容器**
-  - 将臃肿的四合一组件拆分为独立的子 Tabs 组件。
+  - 将设置面板抽离，严格遵循 Vue 的垂直切片与状态直连防线。
+- [x] **Step 8: 拆分 GlobalStatusBar.vue 为外壳容器**
+  - 将臃肿的四合一组件拆分为独立的子 Tabs 领域组件（引入 `shared_ui_state.ts` 解决防撕裂通信）。
 
 ### 核心子目标
 - [ ] **剧本节点规范化 (The Script Engine)**

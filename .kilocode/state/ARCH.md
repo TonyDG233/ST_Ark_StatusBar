@@ -25,10 +25,10 @@
     *   读取 `config/baseline.ts`。
     *   提供一键应用预设场景 (STARTUP_SCENARIOS)、关闭所有单字干员等核心原子操作。
     *   判断当前世界书状态 (Original / Modified)。
-*   **`src/ARK_STATUSBAR/components/GlobalStatusBar.vue` (主控面板)**
-    *   提供 Tabs 导航（拦截预警、全部条目、历史记录、设置）。
-    *   处理世界书条目的具体渲染（置顶、蓝绿灯切换、开关切换）。
-    *   *(规划中)* 将在此新增【剧情模式】的专属 Tab，用于管理双轨驱动的流程。
+*   **`src/ARK_STATUSBAR/components/GlobalStatusBar.vue` (主控面板外壳)**
+    *   已重构为纯拖拽外壳容器，仅提供 Tabs 导航。
+    *   具体业务全部分离至 `src/ARK_STATUSBAR/components/global_tabs/` 内部的独立子组件中（微后端垂直切片）。
+    *   使用 `shared_ui_state.ts` 作为前端跨组件的状态胶水，实现各 Tab 数据防撕裂和同频。
 *   **`src/ARK_STATUSBAR/components/StartupNavigator.vue` & `ReturnButton.vue` (开局与回溯 UI)**
     *   `StartupNavigator.vue`: 在新聊天（首条消息）区域挂载，提供可视化的开局剧本（Scenarios）注入与初始化界面。
     *   `ReturnButton.vue`: 在非初始刷新的页面提供跳转/返回的按钮入口，方便在不同剧情分支间导航。

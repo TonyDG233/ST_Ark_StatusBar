@@ -45,6 +45,10 @@ src/
     *   **通信限制**: 后端业务脚本之间**严禁双向依赖**（互为 Import）。如需相互通信，必须通过 `logic/core/event_bus.ts` 进行事件发布/订阅，或调用专用的 `logger.ts`。
 *   **4. 树状门面模式 (Facade Hub)**:
     *   `logic/statusbar_manager.ts` 作为后端逻辑唯一的入口门面 (Root Facade)。前端 Vue 组件必须且只能通过它（或其子属性如 `manager.worldbook`）下达业务指令。严禁前端直接引用底层的 `service` 脚本。
+*   **5. 前端微后端与垂直切片 (Frontend Micro-Backend & Slicing)**:
+    *   严禁制造包含上千行的巨石 Vue 容器（如旧版的 GlobalStatusBar）。
+    *   必须按照业务领域建立独立的 Tab 文件夹，内部包含专属的 `.vue` 视图骨架、`.ts` 微后端逻辑和 `.scss` 局部私有样式。
+    *   通过共享的 `shared_ui_state.ts` (基于 Composition API) 和底层 `StatusBarManager` 直连来实现组件间的状态同频与解耦，彻底消灭不必要的 props 透传和 emit 事件瀑布管道。
 
 ---
 
