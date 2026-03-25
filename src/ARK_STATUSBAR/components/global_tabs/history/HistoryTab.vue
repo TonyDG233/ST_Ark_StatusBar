@@ -128,9 +128,9 @@
       </button>
     </div>
     
-    <div style="font-size: 0.8em; color: rgba(255, 255, 255, 0.6); margin-bottom: 12px; line-height: 1.4">
-      <strong style="color: var(--SmartThemeBodyColor, #ccc)">【恢复】</strong>：撤销该记录的操作，将世界书条目的状态回滚，并从这里删除记录。<br/>
-      <strong style="color: var(--SmartThemeBodyColor, #ccc)">【删除】</strong>：仅清理这条历史记录，但保持世界书现在的状态不变。
+    <div style="font-size: 0.8em; color: var(--SmartThemeBodyColor, rgba(255, 255, 255, 0.6)); opacity: 0.8; margin-bottom: 12px; line-height: 1.4">
+      <strong style="color: var(--SmartThemeBodyColor, #ccc); font-weight: bold">【恢复】</strong>：撤销该记录的操作，将世界书条目的状态回滚，并从这里删除记录。<br/>
+      <strong style="color: var(--SmartThemeBodyColor, #ccc); font-weight: bold">【删除】</strong>：仅清理这条历史记录，但保持世界书现在的状态不变。
     </div>
 
     <!-- 批量操作工具栏 -->
@@ -278,7 +278,7 @@ const createSnapshot = async () => {
   if (!targetWb) return;
 
   const name = newSnapshotName.value.trim() || `快照-${new Date().toLocaleTimeString()}`;
-  await manager.worldbook.saveCurrentAsSnapshot(name);
+  await manager.worldbook.saveCurrentAsSnapshot(targetWb, name);
   newSnapshotName.value = '';
 };
 
@@ -321,10 +321,29 @@ const deleteSnapshot = async (id: string) => {
  * 一键重置当前角色世界书状态到最初的基准线，并清空历史记录
  */
 const resetToBaseline = async () => {
+  if (!currentPrimaryWorldbook.value) {
+    if (typeof toastr !== 'undefined') toastr.warning('当前没有主世界书。');
+    return;
+  }
   if (confirm('确定要一键还原至初始状态吗？这将清空历史修改记录。')) {
-    await manager.worldbook.resetToBaseline();
+    await manager.worldbook.resetToBaseline(currentPrimaryWorldbook.value);
     configStore.updateConfig({ commits: [] });
     await loadWorldbookLists(); // Refresh
+    
+    // 如果主世界书正被展开，必须刷新本地缓存以触发UI更新
+    if (expandedWorldbooks.value.includes(currentPrimaryWorldbook.value)) {
+      try {
+        const entries = await getWorldbook(currentPrimaryWorldbook.value);
+        worldbookEntriesCache.value[currentPrimaryWorldbook.value] = entries.filter(
+          (e: any) =>
+            !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) &&
+            !(e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX)),
+        );
+      } catch (e) {
+        console.error('Refresh cache failed', e);
+      }
+    }
+    
     if (typeof toastr !== 'undefined') toastr.success('已恢复基准线。');
   }
 };
@@ -336,6 +355,20 @@ const closeSingleChar = async () => {
   if (confirm('确定要一键关闭所有单字干员世界书吗？')) {
     await manager.worldbook.closeSingleCharEntries();
     await loadWorldbookLists();
+    
+    // 如果主世界书正被展开，必须刷新本地缓存以触发UI更新
+    if (currentPrimaryWorldbook.value && expandedWorldbooks.value.includes(currentPrimaryWorldbook.value)) {
+      try {
+        const entries = await getWorldbook(currentPrimaryWorldbook.value);
+        worldbookEntriesCache.value[currentPrimaryWorldbook.value] = entries.filter(
+          (e: any) =>
+            !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) &&
+            !(e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX)),
+        );
+      } catch (e) {
+        console.error('Refresh cache failed', e);
+      }
+    }
   }
 };
 

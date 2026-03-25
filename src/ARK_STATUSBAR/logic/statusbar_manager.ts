@@ -11,9 +11,10 @@ import { snapshotService } from './worldbook/snapshot_service';
 class WorldbookFacade {
   constructor(private getTargetWorldbook: () => string | null) {}
 
-  public async saveCurrentAsSnapshot(snapshotName: string): Promise<void> {
-    const wb = this.getTargetWorldbook();
-    if (wb) await snapshotService.saveCurrentAsSnapshot(wb, snapshotName);
+  public async saveCurrentAsSnapshot(worldbookName: string, snapshotName: string): Promise<void> {
+    if (worldbookName) {
+      await snapshotService.saveCurrentAsSnapshot(worldbookName, snapshotName);
+    }
   }
 
   public async restoreSnapshot(snapshotId: string): Promise<void> {
@@ -24,8 +25,8 @@ class WorldbookFacade {
     await snapshotService.deleteSnapshot(snapshotId);
   }
 
-  public async resetToBaseline(): Promise<void> {
-    const wb = this.getTargetWorldbook();
+  public async resetToBaseline(worldbookName?: string): Promise<void> {
+    const wb = worldbookName || this.getTargetWorldbook();
     if (wb) await entryService.resetToBaseline(wb);
   }
 

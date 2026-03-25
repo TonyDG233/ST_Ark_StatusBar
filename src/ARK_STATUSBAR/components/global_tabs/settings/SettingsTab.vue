@@ -191,6 +191,9 @@ const factoryReset = async () => {
       enableEnterToIntercept: false,
       showConstantEntries: false,
       theme: 'light',
+      uiWidth: 400,
+      uiFontSize: 14,
+      isDebugMode: false,
     });
     if (typeof toastr !== 'undefined') toastr.success('已恢复初始设置，页面即将刷新');
     setTimeout(() => {
