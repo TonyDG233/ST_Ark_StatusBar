@@ -65,7 +65,7 @@
     </div>
 
     <!-- 增加一个固定宽度的内部容器，防止拖动滑块时因为整体UI实时缩放导致鼠标相对位置产生巨大偏移（“发抖”、“极度灵敏”现象） -->
-    <div style="width: 100%; max-width: 300px;">
+    <div style="width: 100%; max-width: 300px">
       <div class="setting-item flex-col-align-start">
         <label>UI 宽度 ({{ displayWidth }}px)</label>
         <!-- 将实时 @input 修改为 @change，仅在松开鼠标时应用变化，彻底根治拉条与页面宽度耦合带来的鬼畜抖动问题 -->

@@ -238,7 +238,7 @@ export class StatusBarManager {
       sendInterceptor.releaseInterceptAndSend();
     });
   }
-  
+
   /**
    * 唤醒拦截器：防止按需加载导致拦截器未初始化
    */

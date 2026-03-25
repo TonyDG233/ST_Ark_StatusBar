@@ -26,15 +26,19 @@
             <option value="">选择要拍摄的世界书 (默认主书)</option>
             <option v-for="wbName in allAvailableWorldbooks" :key="wbName" :value="wbName">{{ wbName }}</option>
           </select>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap">
             <input
               type="text"
               v-model="newSnapshotName"
               placeholder="输入快照名称 (留空自动生成时间戳)..."
               class="search-input"
-              style="flex: 1; min-width: 150px;"
+              style="flex: 1; min-width: 150px"
             />
-            <button class="btn-primary" @click="createSnapshot" style="padding: 6px 12px; white-space: nowrap; flex-grow: 1;">
+            <button
+              class="btn-primary"
+              @click="createSnapshot"
+              style="padding: 6px 12px; white-space: nowrap; flex-grow: 1"
+            >
               拍摄快照
             </button>
           </div>
@@ -90,11 +94,19 @@
           如果需要大规模修改或回滚状态，强烈建议您优先使用上方更安全的【快照】功能。
         </div>
 
-        <div class="action-bar compact" style="flex-wrap: wrap;">
-          <button class="btn-danger tiny" @click="resetToBaseline" style="flex: 1; min-width: 140px; padding: 8px; font-size: 0.9em">
+        <div class="action-bar compact" style="flex-wrap: wrap">
+          <button
+            class="btn-danger tiny"
+            @click="resetToBaseline"
+            style="flex: 1; min-width: 140px; padding: 8px; font-size: 0.9em"
+          >
             ↺ 恢复初始状态 (Baseline)
           </button>
-          <button class="btn-warning tiny" @click="closeSingleChar" style="flex: 1; min-width: 140px; padding: 8px; font-size: 0.9em">
+          <button
+            class="btn-warning tiny"
+            @click="closeSingleChar"
+            style="flex: 1; min-width: 140px; padding: 8px; font-size: 0.9em"
+          >
             ⚡ 屏蔽所有单字干员
           </button>
         </div>
