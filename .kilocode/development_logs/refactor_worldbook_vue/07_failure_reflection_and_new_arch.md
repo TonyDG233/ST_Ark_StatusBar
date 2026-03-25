@@ -26,32 +26,37 @@
 
 ---
 
-## 2. 全新且务实的架构规划 (The True Pragmatic Architecture)
+## 2. 全新且务实的演进式架构 (The True Pragmatic Evolutionary Architecture)
 
-我们将回到面向对象的经典设计原则：**Facade 模式（门面模式）与前端的高内聚组件化。**
+我们将抛弃之前导致互相越权和 P2P 网状依赖的“平级双门面”错误，彻底确立：**单根门面 (Root Facade) + 树状分支 (Branch) + 内部事件总线 (Event Bus)**。
 
-### 2.1 后端结构：保留门面，内部拆分解耦
+### 2.1 后端结构：唯一的 CEO 与它的下属部门
 
-`StatusBarManager` 和 `WorldbookManager` 仍然是项目的**绝对中枢与交汇点**。
-前端 Vue 永远只能 `import` 并调用这两个 Manager 的公开接口。
+`StatusBarManager` 将成为**唯一**对外暴露的顶层单例入口。前端 Vue 必须且只能向它下达交互指令。
+原有的 `WorldbookManager` 将不再作为平级的上帝类，而是被拆解下沉，挂载在 `StatusBarManager` 的树枝上作为业务分支。
 
-但是，为了解决这俩 Manager 文件体积庞大（上帝类）的问题，我们将把内部具体干脏活的代码剥离：
+所有干脏活的代码被彻底隔离：
 
 ```text
 src/ARK_STATUSBAR/logic/
-├── statusbar_manager.ts        <-- (门面) 负责整体初始化、暴露配置存取、派发事件、对接全局拦截
-├── worldbook_manager.ts        <-- (门面) 负责世界书读取、快照读写、开局应用暴露
+├── statusbar_manager.ts        <-- (Root Facade 根节点) 唯一入口，包含配置、拦截、世界书的树状代理分发
 │
-├── core/                       <-- (被隐藏的底层干活类)
-│   ├── config_store.ts         (独立管理配置和 localStorage/extensionSettings，被 manager 代理调用)
-│   └── logger.ts               (处理调试日志异步世界书写入，被 manager 调用)
+├── core/                       <-- (被隐藏的基础设施类)
+│   ├── event_bus.ts            (【核心新增】提供跨模块、去中心化的发布订阅系统，解耦模块间 import)
+│   ├── config_store.ts         (独立管理配置，只被 StatusBarManager 显式调用或抛出状态变更事件)
+│   └── logger.ts               (处理调试日志写入)
 │
-└── interceptor/
-    └── send_interceptor.ts     (承接原本几百行的双轨干跑 Token 计算逻辑，被 manager 调用)
+├── interceptor/
+│   └── send_interceptor.ts     (干跑 Token 逻辑，纯粹的独立黑盒，通过 EventBus 汇报结果)
+│
+└── worldbook/                  <-- (业务分支下沉：原 worldbook_manager 的尸体)
+    ├── snapshot_service.ts     (负责快照生命周期)
+    └── entry_service.ts        (负责世界书条目的开关与剧本修改)
 ```
 
-**关键执行准则**：
-- 在重构后端时，**绝不允许修改前端调用方的代码**。如果拆走了一个方法，原 Manager 里必须留一个同名的方法做转发。
+**关键协作准则**：
+1. **外部向内**：UI 组件必须通过调用 `StatusBarManager.getInstance().worldbook.saveSnapshot()` 来访问底层功能。
+2. **内部横向**：如果 `send_interceptor` 需要和 `snapshot_service` 配合，**绝对禁止互相 import**，必须通过向 `event_bus.ts` 发布/监听事件来完成交互！
 
 ### 2.2 前端结构：基于业务的本地高内聚 (Vertical Slicing)
 
@@ -82,19 +87,18 @@ src/ARK_STATUSBAR/components/global_tabs/
 由于我刚才的严重失误（包括强制 Node 正则替换和错误删减代码），整个重构工作回到了原点。
 在此，我列出极其严格、稳妥的重启步骤：
 
-### 📌 Step 1: `config_store` 的安全剥离与代理 (Backend)
-- 动作：将 `StatusBarManager` 中配置读取和保存的部分移动到新建的 `core/config_store.ts`。
-- **强制防线**：在 `StatusBarManager` 中**保留** `loadOrInitConfig`、`saveConfig` 和 `currentConfig` 的签名，内部全部 `return configStore.saveConfig(...)`。
+### 📌 Step 1: `event_bus` 基建与模块通信解耦 (Backend)
+- 动作：建立 `core/event_bus.ts`。
+- 动作：将 `send_interceptor` 中对 `config_store` 和 `logger` 的硬编码调用，改为发布事件 `EventBus.emit(...)`。
 
-### 📌 Step 2: `logger` 与 `send_interceptor` 的安全剥离 (Backend)
-- 动作：将庞大的 `executeDualTrackDryRun` 和 `logDebug` 移出到专用文件。
-- **强制防线**：同样在 `StatusBarManager` 保留对应的外露接口。
-- **验收**：执行 `npx tsc --noEmit`，确保在此阶段没有任何一个 Vue 文件报错。
+### 📌 Step 2: `worldbook_manager` 降级与拆解 (Backend)
+- 动作：在 `logic/worldbook/` 下建立 `snapshot_service.ts` 和 `entry_service.ts`，吸纳原有代码。
+- **强制防线**：在 `StatusBarManager` 中增加 `public readonly worldbook = new WorldbookFacade(...)`。
+- **验收**：执行 `npx tsc --noEmit --skipLibCheck --project tsconfig.json`，确保在此阶段编译无错。
 
 ### 📌 Step 3: Vue 组件体系的高内聚拆分 (Frontend)
 - 动作：建立类似 `global_tabs/worldbook/` 的深层级高内聚目录。
-- 动作：将原先 `GlobalStatusBar.vue` 里的各个 `v-show="currentTab === '...'"` 块剪切到各自的 `.vue` 文件中。
-- 动作：将对应的响应式状态（如 `filterText`, `expandedWorldbooks`）从父容器搬进对应的 Tab 组件中独立闭环。
+- 动作：将原先 `GlobalStatusBar.vue` 里的各个 `v-show="currentTab === '...'"` 块剪切到各自的 `.vue` 文件中，全部改为调用 `StatusBarManager` 这个唯一入口。
 
 ---
-这份 07 规划已经彻底屏弃了 06 中的教条主义错误，真正响应了“设置交汇点防线”以及“业务代码本地内聚”的核心诉求。在获得您的审批后，我将依此稳步推进。
+这份 07 规划已经彻底屏弃了 06 中的教条主义错误，真正响应了“单根门面防线”、“事件解耦”以及“业务代码本地内聚”的核心诉求。
