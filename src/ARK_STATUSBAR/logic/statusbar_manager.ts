@@ -1,6 +1,65 @@
 import { unref } from 'vue';
 import { BASELINE_STATE } from '../config/baseline';
 import { configStore } from './core/config_store';
+import { entryService } from './worldbook/entry_service';
+import { snapshotService } from './worldbook/snapshot_service';
+
+/**
+ * Worldbook 的局部外观 (Facade)
+ * 隶属于 StatusBarManager
+ */
+class WorldbookFacade {
+  constructor(private getTargetWorldbook: () => string | null) {}
+
+  public async saveCurrentAsSnapshot(snapshotName: string): Promise<void> {
+    const wb = this.getTargetWorldbook();
+    if (wb) await snapshotService.saveCurrentAsSnapshot(wb, snapshotName);
+  }
+
+  public async restoreSnapshot(snapshotId: string): Promise<void> {
+    await snapshotService.restoreSnapshot(snapshotId);
+  }
+
+  public async deleteSnapshot(snapshotId: string): Promise<void> {
+    await snapshotService.deleteSnapshot(snapshotId);
+  }
+
+  public async resetToBaseline(): Promise<void> {
+    const wb = this.getTargetWorldbook();
+    if (wb) await entryService.resetToBaseline(wb);
+  }
+
+  public async applyScenario(swipeId: number, force: boolean = false): Promise<void> {
+    const wb = this.getTargetWorldbook();
+    if (wb) await entryService.applyScenario(wb, swipeId, force);
+  }
+
+  public async closeSingleCharEntries(): Promise<void> {
+    const wb = this.getTargetWorldbook();
+    if (wb) await entryService.closeSingleCharEntries(wb);
+  }
+
+  public async getStatus() {
+    const wb = this.getTargetWorldbook();
+    return wb ? await entryService.getWorldbookStatus(wb) : 'modified';
+  }
+
+  public async getAllAvailableWorldbooks(): Promise<string[]> {
+    return await entryService.getAllAvailableWorldbooks();
+  }
+
+  public async getGlobalMountedWorldbooks(): Promise<string[]> {
+    return await entryService.getGlobalMountedWorldbooks();
+  }
+
+  public async getCharBoundWorldbooks(): Promise<string[]> {
+    return await entryService.getCharBoundWorldbooks();
+  }
+
+  public async toggleGlobalMount(worldbookName: string, isMount: boolean): Promise<void> {
+    await entryService.toggleGlobalMount(worldbookName, isMount);
+  }
+}
 
 /**
  * 状态栏全局管理器 (Singleton 单例模式)
@@ -19,12 +78,10 @@ export class StatusBarManager {
   private targetWorldbook: string | null = null; // 当前绑定的世界书名称
   
   public tempDisabledUids: number[] = []; // 单次临时阻断的条目 UID 列表
+  public readonly worldbook: WorldbookFacade;
 
   private constructor() {
-    // 注入当前 targetWorldbook 提供器给拦截器服务
-    import('./interceptor/send_interceptor').then(({ sendInterceptor }) => {
-      sendInterceptor.setTargetWorldbookProvider(() => this.targetWorldbook);
-    });
+    this.worldbook = new WorldbookFacade(() => this.targetWorldbook);
   }
 
   // 获取单例实例
@@ -86,11 +143,9 @@ export class StatusBarManager {
         this.tempDisabledUids = []; // 立即清空，防止重入
         try {
           await updateWorldbookWith(this.targetWorldbook, (wbEntries: any[]) => {
-            let changed = false;
             for (const entry of wbEntries) {
               if (uidsToRestore.includes(entry.uid)) {
                 entry.enabled = true;
-                changed = true;
               }
             }
             return wbEntries;

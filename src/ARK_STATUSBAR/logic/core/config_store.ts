@@ -1,5 +1,6 @@
 import { ref, unref, watch } from 'vue';
 import { ArkConfig, CONFIG_ENTRY_PREFIX, DEFAULT_CONFIG } from '../../config/system_config';
+import { ArkEventBus } from './event_bus';
 
 /**
  * 唯一的配置响应式存储中心 (Single Source of Truth)
@@ -12,8 +13,6 @@ class ConfigStore {
   public state = ref<ArkConfig>({ ...DEFAULT_CONFIG });
 
   private isLoaded = false;
-  // 用于拦截事件绑定，暂存
-  public onInterceptorStateChanged?: (enabled: boolean) => void;
 
   private constructor() {
     // 监听状态改变并自动持久化
@@ -26,6 +25,19 @@ class ConfigStore {
       },
       { deep: true }
     );
+
+    // 监听总线历史记录更新事件
+    ArkEventBus.on('history:commit_added', (commitData) => {
+      const current = unref(this.state);
+      this.updateConfig({
+        commits: [...current.commits, commitData]
+      });
+    });
+
+    // 监听请求配置更新事件
+    ArkEventBus.on('config:update_requested', (partialConfig) => {
+      this.updateConfig(partialConfig);
+    });
   }
 
   static getInstance(): ConfigStore {
@@ -132,9 +144,7 @@ class ConfigStore {
   private checkInterceptorState() {
     const config = unref(this.state);
     const shouldEnable = config.isSystemEnabled && config.isInterceptorEnabled;
-    if (this.onInterceptorStateChanged) {
-      this.onInterceptorStateChanged(shouldEnable);
-    }
+    ArkEventBus.emit('config:interceptor_state_changed', shouldEnable);
   }
 }
 

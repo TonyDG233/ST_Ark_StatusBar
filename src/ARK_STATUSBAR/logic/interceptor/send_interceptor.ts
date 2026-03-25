@@ -1,6 +1,6 @@
 import { unref } from 'vue';
-import { configStore, useArkConfig } from '../core/config_store';
-import { logger } from '../core/logger';
+import { useArkConfig } from '../core/config_store';
+import { ArkEventBus } from '../core/event_bus';
 
 /**
  * 拦截与干跑逻辑服务
@@ -11,17 +11,15 @@ class SendInterceptor {
   private isDryRunning: boolean = false;
   private interceptorBound: boolean = false;
 
-  private targetWorldbookProvider: () => string | null = () => null;
-
-  private constructor() {
-    // 监听配置中心的拦截器开关状态
-    configStore.onInterceptorStateChanged = (shouldEnable: boolean) => {
+    private constructor() {
+    // 监听内部事件：当配置变更导致拦截器开关变化时，自动绑定或解绑
+    ArkEventBus.on('config:interceptor_state_changed', (shouldEnable) => {
       if (shouldEnable) {
         this.bindInterceptor();
       } else {
         this.unbindInterceptor();
       }
-    };
+    });
   }
 
   static getInstance(): SendInterceptor {
@@ -29,17 +27,6 @@ class SendInterceptor {
       SendInterceptor.instance = new SendInterceptor();
     }
     return SendInterceptor.instance;
-  }
-
-  /**
-   * 初始化时，注入获取当前世界书的回调（因为底层需要将日志归属到具体的书）
-   */
-  public setTargetWorldbookProvider(provider: () => string | null) {
-    this.targetWorldbookProvider = provider;
-  }
-
-  private getTargetWorldbook() {
-    return this.targetWorldbookProvider();
   }
 
   /**
@@ -164,16 +151,14 @@ class SendInterceptor {
    * 同时，任何改变执行流的新逻辑，必须调用 `logger.logDebug()` 埋点，以便开发者定位问题。
    */
   private async executeDualTrackDryRun(isManualTest: boolean, text: string) {
-    const wb = this.getTargetWorldbook();
-
     if (this.isDryRunning) {
       console.warn('[ARK_Interceptor] Dry run is already in progress. Ignoring concurrent request.');
-      logger.logDebug('executeDualTrackDryRun_IGNORE_CONCURRENT', null, wb);
+      ArkEventBus.emit('log:debug', 'executeDualTrackDryRun_IGNORE_CONCURRENT', false);
       return;
     }
 
     this.isDryRunning = true;
-    logger.logDebug('executeDualTrackDryRun_START', { isManualTest, textLength: text.length }, wb);
+    ArkEventBus.emit('log:debug', `executeDualTrackDryRun_START | isManualTest:${isManualTest} | length:${text.length}`, false);
 
     try {
       // 兼容获取 context (避免裸取导致代理对象遗失)
@@ -188,11 +173,7 @@ class SendInterceptor {
       const worldInfoFn = context?.getWorldInfoPrompt;
       const generateFn = context?.generate;
 
-      logger.logDebug('executeDualTrackDryRun_CONTEXT', {
-        hasContext: !!context,
-        hasWorldInfoFn: !!worldInfoFn,
-        hasGenerateFn: !!generateFn,
-      }, wb);
+      ArkEventBus.emit('log:debug', `executeDualTrackDryRun_CONTEXT | hasContext:${!!context} | hasWorldInfoFn:${!!worldInfoFn} | hasGenerateFn:${!!generateFn}`, false);
 
       if (!worldInfoFn) {
         console.warn('[ARK_Interceptor] Required API getWorldInfoPrompt not available.');
@@ -236,11 +217,11 @@ class SendInterceptor {
       let activatedEntries: any[] = [];
       const worldInfoListener = (evt: any) => {
         const raw = evt.detail || evt;
-        logger.logDebug('executeDualTrackDryRun_RAW_ENTRIES_RECEIVED', raw, wb);
+        ArkEventBus.emit('log:debug', 'executeDualTrackDryRun_RAW_ENTRIES_RECEIVED', false);
 
         // 放开限制：接收所有被激活的绿灯条目，在UI中通过 e.world 字段进行溯源展示
         activatedEntries = raw || [];
-        logger.logDebug('executeDualTrackDryRun_ALL_ENTRIES', { filteredCount: activatedEntries.length }, wb);
+        ArkEventBus.emit('log:debug', `executeDualTrackDryRun_ALL_ENTRIES | count:${activatedEntries.length}`, false);
       };
 
       const eventTarget = window.parent?.document || document;
@@ -252,9 +233,9 @@ class SendInterceptor {
 
       // 包装世界书干跑为带超时的 Promise
       const worldInfoPromise = async () => {
-        logger.logDebug('executeDualTrackDryRun_BEFORE_AWAIT_WORLDINFO', null, wb);
+        ArkEventBus.emit('log:debug', 'executeDualTrackDryRun_BEFORE_AWAIT_WORLDINFO', false);
         await worldInfoFn(mockChat, 1000000, false);
-        logger.logDebug('executeDualTrackDryRun_AFTER_AWAIT_WORLDINFO', null, wb);
+        ArkEventBus.emit('log:debug', 'executeDualTrackDryRun_AFTER_AWAIT_WORLDINFO', false);
       };
 
       try {
@@ -265,10 +246,10 @@ class SendInterceptor {
       } catch (error) {
         if (error === timeoutError) {
           console.warn('[ARK_Interceptor] World Info dry run timeout after 5s.');
-          logger.logDebug('executeDualTrackDryRun_TIMEOUT_WORLDINFO', null, wb);
+          ArkEventBus.emit('log:debug', 'executeDualTrackDryRun_TIMEOUT_WORLDINFO', false);
         } else {
           console.error('[ARK_Interceptor] World Info dry run failed', error);
-          logger.logDebug('executeDualTrackDryRun_ERROR_WORLDINFO', error, wb);
+          ArkEventBus.emit('log:debug', `executeDualTrackDryRun_ERROR_WORLDINFO: ${error}`, false);
         }
       } finally {
         eventTarget.removeEventListener('world_info_activated', worldInfoListener);
@@ -284,10 +265,7 @@ class SendInterceptor {
         const data = evt.detail || evt;
         if (!data.dryRun) return;
 
-        logger.logDebug('executeDualTrackDryRun_PROMPT_READY', {
-          chatLength: data.chat?.length,
-          promptLength: data.prompt?.length,
-        }, wb);
+        ArkEventBus.emit('log:debug', `executeDualTrackDryRun_PROMPT_READY | chatLength:${data.chat?.length} | promptLength:${data.prompt?.length}`, false);
 
         const payloadStrings = data.chat || data.prompt || [];
         let fullText = '';
@@ -303,7 +281,7 @@ class SendInterceptor {
         try {
           if (typeof SillyTavern !== 'undefined' && typeof (SillyTavern as any).getTokenCountAsync === 'function') {
             tokenCount = await (SillyTavern as any).getTokenCountAsync(fullText);
-            logger.logDebug('executeDualTrackDryRun_TOKEN_CALCULATED', tokenCount, wb);
+            ArkEventBus.emit('log:debug', `executeDualTrackDryRun_TOKEN_CALCULATED | count:${tokenCount}`, false);
           } else {
             tokenCount = 'API失效';
           }
@@ -319,9 +297,9 @@ class SendInterceptor {
 
       const generatePromise = async () => {
         if (generateFn) {
-          logger.logDebug('executeDualTrackDryRun_BEFORE_AWAIT_GENERATE', null, wb);
+          ArkEventBus.emit('log:debug', 'executeDualTrackDryRun_BEFORE_AWAIT_GENERATE', false);
           await generateFn('normal', {}, true);
-          logger.logDebug('executeDualTrackDryRun_AFTER_AWAIT_GENERATE', null, wb);
+          ArkEventBus.emit('log:debug', 'executeDualTrackDryRun_AFTER_AWAIT_GENERATE', false);
         } else {
           console.warn('[ARK_Interceptor] generate API not available, skipping precise token count.');
           tokenCount = '未获取到API';
@@ -337,11 +315,11 @@ class SendInterceptor {
         if (error === timeoutError) {
           console.warn('[ARK_Interceptor] Prompt Token dry run timeout after 8s.');
           tokenCount = '计算超时';
-          logger.logDebug('executeDualTrackDryRun_TIMEOUT_GENERATE', null, wb);
+          ArkEventBus.emit('log:debug', 'executeDualTrackDryRun_TIMEOUT_GENERATE', false);
         } else {
           console.error('[ARK_Interceptor] Prompt Token dry run failed', error);
           tokenCount = '干跑失败';
-          logger.logDebug('executeDualTrackDryRun_ERROR_GENERATE', error, wb);
+          ArkEventBus.emit('log:debug', `executeDualTrackDryRun_ERROR_GENERATE: ${error}`, false);
         }
       } finally {
         eventTarget.removeEventListener('chat_completion_prompt_ready', promptReadyListener);
@@ -349,10 +327,7 @@ class SendInterceptor {
         if (typeof eventOff === 'function') eventOff('chat_completion_prompt_ready', promptReadyListener);
       }
 
-      logger.logDebug('executeDualTrackDryRun_END_DISPATCH', {
-        finalActivatedCount: activatedEntries?.length,
-        tokenCount,
-      }, wb);
+      ArkEventBus.emit('log:debug', `executeDualTrackDryRun_END_DISPATCH | finalActivatedCount:${activatedEntries?.length} | tokenCount:${tokenCount}`, false);
 
       // ==========================================
       // 终点：统合抛出预警结果
@@ -370,14 +345,14 @@ class SendInterceptor {
           document.dispatchEvent(event);
         } else {
           // 没有触发任何目标词条，静默放行
-          logger.logDebug('executeDualTrackDryRun_SILENT_PASS', null, wb);
+          ArkEventBus.emit('log:debug', 'executeDualTrackDryRun_SILENT_PASS', false);
           this.releaseInterceptAndSend();
         }
       }
     } finally {
       // 无论成功、失败还是超时，永远释放干跑锁
       this.isDryRunning = false;
-      logger.logDebug('executeDualTrackDryRun_FINALLY_UNLOCK', null, wb);
+      ArkEventBus.emit('log:debug', 'executeDualTrackDryRun_FINALLY_UNLOCK', false);
     }
   }
 }

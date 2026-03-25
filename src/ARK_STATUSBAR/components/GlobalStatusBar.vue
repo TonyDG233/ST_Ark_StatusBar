@@ -531,7 +531,6 @@ import { computed, onMounted, ref } from 'vue';
 import { CONFIG_ENTRY_PREFIX } from '../config/system_config';
 import { configStore, useArkConfig } from '../logic/core/config_store';
 import { StatusBarManager } from '../logic/statusbar_manager';
-import { WorldbookManager } from '../logic/worldbook_manager';
 
 // --- 全局与 UI 状态 ---
 const isVisible = ref(true); // 控制整个面板的显示与隐藏，受系统总开关控制
@@ -658,9 +657,9 @@ const isLoadingWb = ref<string | null>(null);
  */
 const loadWorldbookLists = async () => {
   try {
-    allAvailableWorldbooks.value = await WorldbookManager.getAllAvailableWorldbooks();
-    globalMountedWorldbooks.value = await WorldbookManager.getGlobalMountedWorldbooks();
-    charBoundWorldbooks.value = await WorldbookManager.getCharBoundWorldbooks();
+    allAvailableWorldbooks.value = await manager.worldbook.getAllAvailableWorldbooks();
+    globalMountedWorldbooks.value = await manager.worldbook.getGlobalMountedWorldbooks();
+    charBoundWorldbooks.value = await manager.worldbook.getCharBoundWorldbooks();
   } catch (e) {
     console.error('[ARK_UI] loadWorldbookLists failed', e);
   }
@@ -709,9 +708,9 @@ const filteredWorldbooks = computed(() => {
  */
 const toggleGlobalMountUI = async (wbName: string, isMount: boolean) => {
   try {
-    await WorldbookManager.toggleGlobalMount(wbName, isMount);
+    await manager.worldbook.toggleGlobalMount(wbName, isMount);
     // 重新获取挂载列表以刷新 UI
-    globalMountedWorldbooks.value = await WorldbookManager.getGlobalMountedWorldbooks();
+    globalMountedWorldbooks.value = await manager.worldbook.getGlobalMountedWorldbooks();
   } catch (e) {
     console.error('toggleGlobalMountUI error', e);
     if (typeof toastr !== 'undefined') toastr.error('挂载状态切换失败');
@@ -958,13 +957,13 @@ const createSnapshot = async () => {
   if (!targetWb) return;
   
   const name = newSnapshotName.value.trim() || `快照-${new Date().toLocaleTimeString()}`;
-  await WorldbookManager.saveCurrentAsSnapshot(targetWb, name);
+  await manager.worldbook.saveCurrentAsSnapshot(name);
   newSnapshotName.value = '';
 };
 
 const restoreSnapshot = async (id: string) => {
   if (confirm('确定要恢复到此快照的状态吗？')) {
-    await WorldbookManager.restoreSnapshot(id);
+    await manager.worldbook.restoreSnapshot(id);
     await loadWorldbookLists();
     
     // 如果当前有展开的抽屉，重新拉取内容刷新缓存
@@ -981,7 +980,7 @@ const restoreSnapshot = async (id: string) => {
 
 const deleteSnapshot = async (id: string) => {
   if (confirm('确定要删除此快照吗？')) {
-    await WorldbookManager.deleteSnapshot(id);
+    await manager.worldbook.deleteSnapshot(id);
   }
 };
 
@@ -1445,7 +1444,7 @@ const factoryReset = async () => {
  */
 const resetToBaseline = async () => {
   if (confirm('确定要一键还原至初始状态吗？这将清空历史修改记录。')) {
-    await WorldbookManager.resetToBaseline();
+    await manager.worldbook.resetToBaseline();
     configStore.updateConfig({ commits: [] });
     await loadAllEntries();
     toastr.success('已恢复基准线。');
@@ -1457,7 +1456,7 @@ const resetToBaseline = async () => {
  */
 const closeSingleChar = async () => {
   if (confirm('确定要一键关闭所有单字干员世界书吗？')) {
-    await WorldbookManager.closeSingleCharEntries();
+    await manager.worldbook.closeSingleCharEntries();
     await loadAllEntries();
   }
 };

@@ -95,8 +95,10 @@ import { computed, onMounted, ref } from 'vue';
 import { ASSETS } from '../config/assets';
 import { STARTUP_SCENARIOS, type Scenario } from '../config/scenarios';
 import { configStore, useArkConfig } from '../logic/core/config_store';
-import { WorldbookManager, type WorldbookStatus } from '../logic/worldbook_manager';
+import { StatusBarManager } from '../logic/statusbar_manager';
 import StartupSettingsPanel from './startup_tabs/StartupSettingsPanel.vue';
+
+type WorldbookStatus = 'original' | 'modified' | 'single_char_closed';
 
 // --- 状态与变量定义 ---
 
@@ -136,14 +138,14 @@ const toggleSettings = () => {
  * 获取并更新当前世界书是否偏离了基准线配置的状态
  */
 const checkWbStatus = async () => {
-  wbStatus.value = await WorldbookManager.getWorldbookStatus();
+  wbStatus.value = await StatusBarManager.getInstance().worldbook.getStatus() as WorldbookStatus;
 };
 
 /**
  * 一键屏蔽所有单字干员（防止日常用语误触发）
  */
 const handleCloseSingleChar = async () => {
-  await WorldbookManager.closeSingleCharEntries();
+  await StatusBarManager.getInstance().worldbook.closeSingleCharEntries();
   await checkWbStatus();
 };
 
@@ -152,7 +154,7 @@ const handleCloseSingleChar = async () => {
  */
 const handleRestoreWorldbook = async () => {
   if (confirm('确定要将世界书重置为初始状态吗？这将丢失所有自定义修改。')) {
-    await WorldbookManager.resetToBaseline();
+    await StatusBarManager.getInstance().worldbook.resetToBaseline();
     await configStore.updateConfig({ commits: [] });
     await checkWbStatus();
   }
@@ -172,7 +174,7 @@ const handleScenarioClick = async (scenario: Scenario) => {
   try {
     // 1. 世界书逻辑应用阶段
     try {
-      await WorldbookManager.applyScenario(scenario.swipeId);
+      await StatusBarManager.getInstance().worldbook.applyScenario(scenario.swipeId);
     } catch (e) {
       // 捕获 STATUS_MODIFIED 异常，提示用户当前世界书存在非标准修改
       if ((e as Error).message === 'STATUS_MODIFIED') {
@@ -182,7 +184,7 @@ const handleScenarioClick = async (scenario: Scenario) => {
           )
         ) {
           // 用户确认继续，强制(force)应用该剧本
-          await WorldbookManager.applyScenario(scenario.swipeId, true);
+          await StatusBarManager.getInstance().worldbook.applyScenario(scenario.swipeId, true);
         } else {
           return; // 用户取消，终止流程
         }

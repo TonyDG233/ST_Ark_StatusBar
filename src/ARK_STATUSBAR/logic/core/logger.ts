@@ -1,13 +1,20 @@
 import { unref } from 'vue';
 import { DEBUG_ENTRY_FULL_NAME } from '../../config/system_config';
 import { useArkConfig } from './config_store';
+import { ArkEventBus } from './event_bus';
 
 class LoggerService {
   private static instance: LoggerService;
   private debugLogQueue: any[] = [];
   private flushTimeout: any = null;
 
-  private constructor() {}
+  private constructor() {
+    // 监听内部日志事件
+    ArkEventBus.on('log:debug', (message: string, isDryRun?: boolean) => {
+       // 由于之前强依赖了 worldbook 名称，为了解耦，先做全局默认收集
+       this.logDebug(message, { isDryRun }, null);
+    });
+  }
 
   static getInstance(): LoggerService {
     if (!LoggerService.instance) {
