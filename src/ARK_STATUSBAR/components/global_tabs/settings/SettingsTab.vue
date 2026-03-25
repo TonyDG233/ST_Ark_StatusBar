@@ -64,34 +64,38 @@
       </p>
     </div>
 
-    <div class="setting-item flex-col-align-start">
-      <label>UI 宽度 ({{ displayWidth }}px)</label>
-      <input
-        type="range"
-        min="200"
-        max="600"
-        step="10"
-        :value="displayWidth"
-        @input="updateUiWidth"
-        @change="commitUiWidth"
-        class="slider-input"
-      />
-    </div>
+    <!-- 增加一个固定宽度的内部容器，防止拖动滑块时因为整体UI实时缩放导致鼠标相对位置产生巨大偏移（“发抖”、“极度灵敏”现象） -->
+    <div style="width: 100%; max-width: 300px;">
+      <div class="setting-item flex-col-align-start">
+        <label>UI 宽度 ({{ displayWidth }}px)</label>
+        <!-- 将实时 @input 修改为 @change，仅在松开鼠标时应用变化，彻底根治拉条与页面宽度耦合带来的鬼畜抖动问题 -->
+        <input
+          type="range"
+          min="200"
+          max="600"
+          step="10"
+          :value="displayWidth"
+          @change="commitUiWidth"
+          class="slider-input"
+        />
+        <p class="hint" style="margin-top: 5px; font-size: 0.85em; opacity: 0.8">松开滑块后应用宽度变化。</p>
+      </div>
 
-    <div class="setting-item flex-col-align-start">
-      <label
-        >字体大小 (<span class="mobile-scale-hint">移动端自动 -2px / </span>当前基准: {{ displayFontSize }}px)</label
-      >
-      <input
-        type="range"
-        min="10"
-        max="24"
-        step="1"
-        :value="displayFontSize"
-        @input="updateUiFontSize"
-        @change="commitUiFontSize"
-        class="slider-input"
-      />
+      <div class="setting-item flex-col-align-start">
+        <label
+          >字体大小 (<span class="mobile-scale-hint">移动端自动 -2px / </span>当前基准: {{ displayFontSize }}px)</label
+        >
+        <!-- 字体大小虽然影响较小，但也改为 @change，统一体验 -->
+        <input
+          type="range"
+          min="10"
+          max="24"
+          step="1"
+          :value="displayFontSize"
+          @change="commitUiFontSize"
+          class="slider-input"
+        />
+      </div>
     </div>
 
     <div class="setting-action">
@@ -109,35 +113,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useArkConfig, configStore } from '../../../logic/core/config_store';
-import { previewUiWidth, previewUiFontSize } from '../shared_ui_state';
+import { computed } from 'vue';
+import { configStore, useArkConfig } from '../../../logic/core/config_store';
+import { previewUiFontSize, previewUiWidth } from '../shared_ui_state';
 
 const currentConfig = useArkConfig();
 
 const displayWidth = computed(() => previewUiWidth.value ?? currentConfig.value?.uiWidth ?? 400);
 const displayFontSize = computed(() => previewUiFontSize.value ?? currentConfig.value?.uiFontSize ?? 14);
 
-const updateUiWidth = (e: Event) => {
-  previewUiWidth.value = Number((e.target as HTMLInputElement).value);
+// 【BugFix】：由于去除了实时的 @input 监听（为了防止滑块随着页面变宽而位移导致的抖动反馈回路）
+// 我们直接在 @change 中提取最终数值并向系统配置提交。
+const commitUiWidth = (e: Event) => {
+  const finalVal = Number((e.target as HTMLInputElement).value);
+  configStore.updateConfig({ uiWidth: finalVal });
 };
 
-const commitUiWidth = () => {
-  if (previewUiWidth.value !== null) {
-    configStore.updateConfig({ uiWidth: previewUiWidth.value });
-    previewUiWidth.value = null; // 清空本地预览，让 Config 的值接管
-  }
-};
-
-const updateUiFontSize = (e: Event) => {
-  previewUiFontSize.value = Number((e.target as HTMLInputElement).value);
-};
-
-const commitUiFontSize = () => {
-  if (previewUiFontSize.value !== null) {
-    configStore.updateConfig({ uiFontSize: previewUiFontSize.value });
-    previewUiFontSize.value = null;
-  }
+const commitUiFontSize = (e: Event) => {
+  const finalVal = Number((e.target as HTMLInputElement).value);
+  configStore.updateConfig({ uiFontSize: finalVal });
 };
 
 /**

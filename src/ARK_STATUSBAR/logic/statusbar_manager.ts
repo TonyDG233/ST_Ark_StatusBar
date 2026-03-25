@@ -117,6 +117,12 @@ export class StatusBarManager {
       // 将原来的 loadOrInitConfig 和 saveConfig 逻辑都委托给 Store
       await configStore.loadOrInitConfig(this.targetWorldbook);
 
+      // CRITICAL BUG FIX: 拦截器处于按需加载状态，如果初次打开页面，没进过检测面板，拦截器实例就不会创建。
+      // 我们需要在此处主动唤醒它，让它读取到配置后自动开始监听。
+      if (this.currentConfig.isInterceptorEnabled) {
+        await this.wakeupInterceptor();
+      }
+
       // 绑定事件监听器 (如聊天改变时检测 Baseline 差异)
       this.setupEvents();
     } catch (error) {
@@ -231,5 +237,13 @@ export class StatusBarManager {
     import('./interceptor/send_interceptor').then(({ sendInterceptor }) => {
       sendInterceptor.releaseInterceptAndSend();
     });
+  }
+  
+  /**
+   * 唤醒拦截器：防止按需加载导致拦截器未初始化
+   */
+  public async wakeupInterceptor() {
+    const { sendInterceptor } = await import('./interceptor/send_interceptor');
+    sendInterceptor.bindInterceptor();
   }
 }
