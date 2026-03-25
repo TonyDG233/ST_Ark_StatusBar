@@ -42,7 +42,9 @@ src/
     *   **禁区**: 严禁利用 Vue 的 `emit` 事件管道，把后端逻辑请求回抛给上层父组件（如 `GlobalStatusBar.vue`），造成父组件越权膨胀。
 *   **3. 纯粹的后端业务层 (`logic/**/*.ts`)**: 
     *   **原则**: 每一个复杂的业务流（如世界书操作 `worldbook/`，开局剧情替换 `scenario/`，拦截器挂载 `interceptor/`）必须拆分为独立的服务脚本，不可随意堆叠至 `statusbar_manager` 中。
-    *   **通信限制**: 后端业务脚本之间**严禁双向依赖**（互为 Import）。如需相互通信，必须通过全局事件流或专用的 `logger.ts` 发布。
+    *   **通信限制**: 后端业务脚本之间**严禁双向依赖**（互为 Import）。如需相互通信，必须通过 `logic/core/event_bus.ts` 进行事件发布/订阅，或调用专用的 `logger.ts`。
+*   **4. 树状门面模式 (Facade Hub)**:
+    *   `logic/statusbar_manager.ts` 作为后端逻辑唯一的入口门面 (Root Facade)。前端 Vue 组件必须且只能通过它（或其子属性如 `manager.worldbook`）下达业务指令。严禁前端直接引用底层的 `service` 脚本。
 
 ---
 
