@@ -64,15 +64,17 @@
             此世界书没有包含有效条目。
           </div>
           <div v-else class="wb-entries-container">
+            <!-- 【性能修复】替换原有的大循环为动态计算属性渲染，防止在模板里重复调用复杂过滤函数 -->
             <div
-              v-for="entry in filterEntries(worldbookEntriesCache[wb.name], wb.name)"
+              v-for="entry in getVisibleEntries(wb.name)"
               :key="entry.uid"
               class="wb-item"
               :class="{ 'disabled-entry': !entry.enabled }"
             >
               <div class="wb-info">
                 <div class="wb-name">
-                  <span v-if="isPinnedEntry(entry)" class="pin-icon">📌</span>
+                  <!-- 【性能修复】直接读取对象上的 _isPinned 缓存值 -->
+                  <span v-if="entry._isPinned" class="pin-icon">📌</span>
                   {{ entry.comment || entry.name || (entry.key ? entry.key[0] : '未知') }}
                 </div>
                 <div class="wb-keys" v-if="entry.key && entry.key.length">触发词: {{ entry.key.join(', ') }}</div>
@@ -81,19 +83,19 @@
                 <button
                   class="icon-btn tiny pin-btn"
                   @click="togglePinEntry(entry)"
-                  :title="isPinnedEntry(entry) ? '取消置顶' : '偏好置顶'"
-                  :class="{ pinned: isPinnedEntry(entry) }"
+                  :title="entry._isPinned ? '取消置顶' : '偏好置顶'"
+                  :class="{ pinned: entry._isPinned }"
                 >
-                  {{ isPinnedEntry(entry) ? '📌' : '📍' }}
+                  {{ entry._isPinned ? '📌' : '📍' }}
                 </button>
                 <button
                   class="icon-btn tiny"
                   @click="toggleEntryType(entry, wb.name)"
                   :title="
-                    getEntryType(entry) === 'constant' ? '当前：蓝灯(常驻)，点击切换' : '当前：绿灯(条件)，点击切换'
+                    entry._computedType === 'constant' ? '当前：蓝灯(常驻)，点击切换' : '当前：绿灯(条件)，点击切换'
                   "
                 >
-                  {{ getEntryType(entry) === 'constant' ? '🔵' : '🟢' }}
+                  {{ entry._computedType === 'constant' ? '🔵' : '🟢' }}
                 </button>
                 <label class="switch">
                   <input type="checkbox" v-model="entry.enabled" @change="toggleEntry(entry, wb.name)" />
@@ -101,8 +103,23 @@
                 </label>
               </div>
             </div>
+            <!-- 渐进式加载：点击加载更多区块 -->
             <div
-              v-if="filterEntries(worldbookEntriesCache[wb.name], wb.name).length === 0"
+              v-if="hasMoreEntries(wb.name)"
+              class="load-more-container"
+              style="text-align: center; padding: 10px 0;"
+            >
+              <button
+                class="btn-primary"
+                style="padding: 4px 12px; font-size: 0.9em; border-radius: 4px; background: rgba(0, 123, 255, 0.2); cursor: pointer;"
+                @click="loadMoreEntries(wb.name)"
+              >
+                往下加载更多... (当前显示 {{ getVisibleEntries(wb.name).length }} / {{(processedEntries[wb.name] || []).length}})
+              </button>
+            </div>
+
+            <div
+              v-if="(processedEntries[wb.name] || []).length === 0"
               class="empty-state"
               style="padding: 5px"
             >
@@ -117,18 +134,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useArkConfig, configStore } from '../../../logic/core/config_store';
+import { computed, ref } from 'vue';
+import { configStore, useArkConfig } from '../../../logic/core/config_store';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
 import {
   allAvailableWorldbooks,
-  globalMountedWorldbooks,
   charBoundWorldbooks,
-  expandedWorldbooks,
-  worldbookEntriesCache,
-  isLoadingWb,
-  currentPrimaryWorldbook,
   CONFIG_ENTRY_PREFIX,
+  currentPrimaryWorldbook,
+  expandedWorldbooks,
+  globalMountedWorldbooks,
+  isLoadingWb,
+  worldbookEntriesCache,
 } from '../shared_ui_state';
 
 const currentConfig = useArkConfig();
@@ -139,6 +156,88 @@ const filterText = ref('');
 const filterCategory = ref('');
 const filterType = ref('');
 const filterEntryTexts = ref<Record<string, string>>({});
+
+// 【性能修复】保留这个基础函数供内部计算和外部点击使用，必须声明在被调用前
+const getEntryType = (entry: any) => {
+  if (entry.constant === true) return 'constant';
+  if (entry.constant === false) return 'selective';
+  return entry.strategy?.type || 'selective';
+};
+
+// 【性能修复】提取原模板中的计算密集型操作至专门的计算属性，避免模板重渲染卡顿
+const processedEntries = computed(() => {
+  const result: Record<string, any[]> = {};
+  for (const wbName of expandedWorldbooks.value) {
+    const entries = worldbookEntriesCache.value[wbName] || [];
+    if (!entries.length) {
+      result[wbName] = [];
+      continue;
+    }
+
+    // 1. 预处理数据 (挂载 _isPinned 和 _computedType) 避免模板中重复计算
+    let mapped = entries.map(entry => ({
+      ...entry,
+      _isPinned: currentConfig.value?.pinnedEntries?.includes(entry.uid) || false,
+      _computedType: getEntryType(entry)
+    }));
+
+    // 2. 过滤
+    const searchText = filterEntryTexts.value[wbName];
+    if (searchText) {
+      const query = searchText.toLowerCase();
+      mapped = mapped.filter(entry => {
+        const name = (entry.comment || entry.name || '').toLowerCase();
+        const keys = (entry.key || []).join(' ').toLowerCase();
+        return name.includes(query) || keys.includes(query);
+      });
+    }
+
+    if (filterCategory.value) {
+      mapped = mapped.filter(entry => {
+        const name = entry.name || entry.comment || '';
+        const match = name.match(/^\[(.*?)\]/);
+        const cat = match ? match[1] : '未分类';
+        return cat === filterCategory.value;
+      });
+    }
+
+    if (filterType.value) {
+      mapped = mapped.filter(entry => entry._computedType === filterType.value);
+    }
+
+    // 3. 排序
+    mapped.sort((a, b) => (b._isPinned ? 1 : 0) - (a._isPinned ? 1 : 0));
+
+    // 全量结果返回，不再进行强截断，而是通过分页加载 (Progressive Rendering)
+    result[wbName] = mapped;
+  }
+  return result;
+});
+
+// 渐进式分页控制：每个世界书当前允许展示的条目数量上限
+const displayLimits = ref<Record<string, number>>({});
+
+// 默认每页展示大小
+const PAGE_SIZE = 50;
+
+// 获取当前应该展示的子列表
+const getVisibleEntries = (wbName: string) => {
+  const limit = displayLimits.value[wbName] || PAGE_SIZE;
+  return (processedEntries.value[wbName] || []).slice(0, limit);
+};
+
+// 检查是否还有更多内容可以加载
+const hasMoreEntries = (wbName: string) => {
+  const currentLimit = displayLimits.value[wbName] || PAGE_SIZE;
+  const total = (processedEntries.value[wbName] || []).length;
+  return currentLimit < total;
+};
+
+// 加载更多
+const loadMoreEntries = (wbName: string) => {
+  const currentLimit = displayLimits.value[wbName] || PAGE_SIZE;
+  displayLimits.value[wbName] = currentLimit + PAGE_SIZE;
+};
 
 /**
  * 构建带有分类和排序状态的世界书列表对象
@@ -199,7 +298,10 @@ const toggleAccordion = async (wbName: string) => {
   if (idx > -1) {
     expandedWorldbooks.value.splice(idx, 1);
   } else {
-    expandedWorldbooks.value.push(wbName);
+    // 【体验优化】展开新世界书时自动关闭旧的，并重置分页限制
+    expandedWorldbooks.value = [wbName];
+    displayLimits.value[wbName] = PAGE_SIZE;
+
     if (!worldbookEntriesCache.value[wbName]) {
       isLoadingWb.value = wbName;
       try {
@@ -237,42 +339,6 @@ const getAvailableCategories = (wbName: string) => {
   return sorted;
 };
 
-const isPinnedEntry = (entry: any) => {
-  return currentConfig.value?.pinnedEntries?.includes(entry.uid) || false;
-};
-
-const filterEntries = (entries: any[], wbName: string) => {
-  if (!entries) return [];
-  return entries
-    .filter(entry => {
-      const searchText = filterEntryTexts.value[wbName];
-      if (searchText) {
-        const query = searchText.toLowerCase();
-        const name = (entry.comment || entry.name || '').toLowerCase();
-        const keys = (entry.key || []).join(' ').toLowerCase();
-        if (!name.includes(query) && !keys.includes(query)) return false;
-      }
-      if (filterCategory.value) {
-        const name = entry.name || entry.comment || '';
-        const match = name.match(/^\[(.*?)\]/);
-        const cat = match ? match[1] : '未分类';
-        if (cat !== filterCategory.value) return false;
-      }
-      if (filterType.value) {
-        if (getEntryType(entry) !== filterType.value) return false;
-      }
-      return true;
-    })
-    .sort((a, b) => {
-      return (isPinnedEntry(b) ? 1 : 0) - (isPinnedEntry(a) ? 1 : 0);
-    });
-};
-
-const getEntryType = (entry: any) => {
-  if (entry.constant === true) return 'constant';
-  if (entry.constant === false) return 'selective';
-  return entry.strategy?.type || 'selective';
-};
 
 const togglePinEntry = (entry: any) => {
   const pinned = currentConfig.value?.pinnedEntries || [];
