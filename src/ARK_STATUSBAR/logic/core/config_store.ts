@@ -18,24 +18,24 @@ class ConfigStore {
     // 监听状态改变并自动持久化
     watch(
       this.state,
-      (newVal) => {
+      newVal => {
         if (this.isLoaded) {
           this.persistConfig(unref(newVal));
         }
       },
-      { deep: true }
+      { deep: true },
     );
 
     // 监听总线历史记录更新事件
-    ArkEventBus.on('history:commit_added', (commitData) => {
+    ArkEventBus.on('history:commit_added', commitData => {
       const current = unref(this.state);
       this.updateConfig({
-        commits: [...current.commits, commitData]
+        commits: [...current.commits, commitData],
       });
     });
 
     // 监听请求配置更新事件
-    ArkEventBus.on('config:update_requested', (partialConfig) => {
+    ArkEventBus.on('config:update_requested', partialConfig => {
       this.updateConfig(partialConfig);
     });
   }
@@ -53,7 +53,7 @@ class ConfigStore {
    */
   public async loadOrInitConfig(targetWorldbook: string | null) {
     const extSettings = SillyTavern.extensionSettings as any;
-    
+
     if (extSettings && extSettings['ark_statusbar_settings']) {
       try {
         this.state.value = { ...DEFAULT_CONFIG, ...extSettings['ark_statusbar_settings'] };
@@ -64,13 +64,14 @@ class ConfigStore {
     } else {
       console.info('[ARK_ConfigStore] 未找到新配置，尝试从世界书中迁移旧数据...');
       let migrated = false;
-      
+
       if (targetWorldbook) {
         try {
           const entries = await getWorldbook(targetWorldbook);
           const configEntry = entries.find(
             (e: any) =>
-              (e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) || (e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX)),
+              (e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) ||
+              (e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX)),
           );
 
           if (configEntry) {
@@ -97,7 +98,7 @@ class ConfigStore {
         console.info(`[ARK_ConfigStore] 创建全新的默认配置...`);
         this.state.value = { ...DEFAULT_CONFIG, lastUpdateTime: Date.now() };
       }
-      
+
       if (extSettings) {
         extSettings['ark_statusbar_settings'] = unref(this.state);
         if (typeof SillyTavern.saveSettingsDebounced === 'function') {
@@ -107,7 +108,7 @@ class ConfigStore {
     }
 
     this.isLoaded = true;
-    
+
     // 派发全局事件通知 UI 更新配置 (兼容遗留代码，未来可全转为 Vue reactivity)
     document.dispatchEvent(new CustomEvent('ark-config-updated', { detail: unref(this.state) }));
 

@@ -65,9 +65,9 @@ export type { WorldbookStatus } from './worldbook/entry_service';
 
 /**
  * 状态栏全局管理器 (Singleton 单例模式)
- * 
+ *
  * @architect 架构定位：本文件是所有前端业务组件与底层逻辑交互的唯一枢纽（Facade 门面）。
- * 
+ *
  * @api_standard API 设计标准与扩展模式：
  * 1. 【聚合收束】：所有提供给 Vue 层调用的后端业务逻辑（如保存配置、应用剧本、执行干跑），
  *    都应在此处进行聚合和透传，禁止前端组件去直接 import `src/ARK_STATUSBAR/logic/core/` 等细分文件。
@@ -78,7 +78,7 @@ export type { WorldbookStatus } from './worldbook/entry_service';
 export class StatusBarManager {
   private static instance: StatusBarManager;
   private targetWorldbook: string | null = null; // 当前绑定的世界书名称
-  
+
   public tempDisabledUids: number[] = []; // 单次临时阻断的条目 UID 列表
   public readonly worldbook: WorldbookFacade;
 
@@ -116,7 +116,7 @@ export class StatusBarManager {
 
       // 将原来的 loadOrInitConfig 和 saveConfig 逻辑都委托给 Store
       await configStore.loadOrInitConfig(this.targetWorldbook);
-      
+
       // 绑定事件监听器 (如聊天改变时检测 Baseline 差异)
       this.setupEvents();
     } catch (error) {

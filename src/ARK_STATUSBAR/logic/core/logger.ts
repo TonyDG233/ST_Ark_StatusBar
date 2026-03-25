@@ -11,8 +11,8 @@ class LoggerService {
   private constructor() {
     // 监听内部日志事件
     ArkEventBus.on('log:debug', (message: string, isDryRun?: boolean) => {
-       // 由于之前强依赖了 worldbook 名称，为了解耦，先做全局默认收集
-       this.logDebug(message, { isDryRun }, null);
+      // 由于之前强依赖了 worldbook 名称，为了解耦，先做全局默认收集
+      this.logDebug(message, { isDryRun }, null);
     });
   }
 
@@ -77,7 +77,9 @@ class LoggerService {
     if (this.debugLogQueue.length === 0) return;
     try {
       let entries = await getWorldbook(targetWorldbook);
-      let debugEntry = entries.find((e: any) => e.name === DEBUG_ENTRY_FULL_NAME || e.comment === DEBUG_ENTRY_FULL_NAME);
+      let debugEntry = entries.find(
+        (e: any) => e.name === DEBUG_ENTRY_FULL_NAME || e.comment === DEBUG_ENTRY_FULL_NAME,
+      );
 
       const logContent = JSON.stringify(this.debugLogQueue, null, 2);
 

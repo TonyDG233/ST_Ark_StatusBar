@@ -20,66 +20,66 @@
 
 // 模拟从拦截器获取到的 raw_entry
 const mockTriggeredEntry = {
-    uid: 5,
-    world: '测试用附加世界书', // 这是一个跨挂载的世界书
-    name: '[设定] 跨书测试条目',
-    comment: '跨书测试条目',
-    enabled: true,
+  uid: 5,
+  world: '测试用附加世界书', // 这是一个跨挂载的世界书
+  name: '[设定] 跨书测试条目',
+  comment: '跨书测试条目',
+  enabled: true,
 };
 
 async function pocCrossWorldbookUpdate() {
-    console.info('[PoC_CrossWB] 开始执行跨世界书修改验证...');
+  console.info('[PoC_CrossWB] 开始执行跨世界书修改验证...');
 
-    // 1. 获取当前主世界书
-    let primaryWb = null;
-    try {
-        const charResult = await getCharWorldbookNames('current');
-        primaryWb = charResult.primary || null;
-        console.info(`[PoC_CrossWB] 1. 当前主世界书识别为: ${primaryWb}`);
-    } catch (e) {
-        console.warn(`[PoC_CrossWB] 1. 无法获取当前主世界书 (环境未准备好?): ${e}`);
-    }
+  // 1. 获取当前主世界书
+  let primaryWb = null;
+  try {
+    const charResult = await getCharWorldbookNames('current');
+    primaryWb = charResult.primary || null;
+    console.info(`[PoC_CrossWB] 1. 当前主世界书识别为: ${primaryWb}`);
+  } catch (e) {
+    console.warn(`[PoC_CrossWB] 1. 无法获取当前主世界书 (环境未准备好?): ${e}`);
+  }
 
-    // 2. 模拟路由分发逻辑
-    // 如果 entry.world 存在，则操作该 world；否则回退到主世界书。
-    const targetWb = mockTriggeredEntry.world || primaryWb;
+  // 2. 模拟路由分发逻辑
+  // 如果 entry.world 存在，则操作该 world；否则回退到主世界书。
+  const targetWb = mockTriggeredEntry.world || primaryWb;
 
-    if (!targetWb) {
-        console.error('[PoC_CrossWB] 错误：无法确定要操作的目标世界书。');
-        return;
-    }
-    console.info(`[PoC_CrossWB] 2. 路由确定的目标世界书为: ${targetWb}`);
+  if (!targetWb) {
+    console.error('[PoC_CrossWB] 错误：无法确定要操作的目标世界书。');
+    return;
+  }
+  console.info(`[PoC_CrossWB] 2. 路由确定的目标世界书为: ${targetWb}`);
 
-    // 3. 模拟状态切换 (Toggle Enabled) 的多维度匹配写入
-    const newState = !mockTriggeredEntry.enabled;
-    console.info(`[PoC_CrossWB] 3. 尝试将目标条目 [UID:${mockTriggeredEntry.uid}] 的 enabled 状态修改为: ${newState}`);
+  // 3. 模拟状态切换 (Toggle Enabled) 的多维度匹配写入
+  const newState = !mockTriggeredEntry.enabled;
+  console.info(`[PoC_CrossWB] 3. 尝试将目标条目 [UID:${mockTriggeredEntry.uid}] 的 enabled 状态修改为: ${newState}`);
 
-    try {
-        // 由于是测试，如果不小心写错世界书名会抛错，这可以模拟找不到附加书的情况
-        await updateWorldbookWith(targetWb, (entries) => {
-            // 核心逻辑验证：不仅比对 UID，还要比对 name 或 comment。
-            // 酒馆内部有时候 name 就是 comment，所以做 OR 逻辑。
-            const foundEntry = entries.find(
-                (x) =>
-                    x.uid === mockTriggeredEntry.uid &&
-                    (x.name === mockTriggeredEntry.name || x.comment === mockTriggeredEntry.comment)
-            );
+  try {
+    // 由于是测试，如果不小心写错世界书名会抛错，这可以模拟找不到附加书的情况
+    await updateWorldbookWith(targetWb, entries => {
+      // 核心逻辑验证：不仅比对 UID，还要比对 name 或 comment。
+      // 酒馆内部有时候 name 就是 comment，所以做 OR 逻辑。
+      const foundEntry = entries.find(
+        x =>
+          x.uid === mockTriggeredEntry.uid &&
+          (x.name === mockTriggeredEntry.name || x.comment === mockTriggeredEntry.comment),
+      );
 
-            if (foundEntry) {
-                console.info(`[PoC_CrossWB] -> 成功在后端找到目标条目: ${foundEntry.name || foundEntry.comment}`);
-                foundEntry.enabled = newState;
-            } else {
-                console.warn(`[PoC_CrossWB] -> 警告：在目标世界书 ${targetWb} 中未能精确匹配到该条目。`);
-            }
-            return entries;
-        });
+      if (foundEntry) {
+        console.info(`[PoC_CrossWB] -> 成功在后端找到目标条目: ${foundEntry.name || foundEntry.comment}`);
+        foundEntry.enabled = newState;
+      } else {
+        console.warn(`[PoC_CrossWB] -> 警告：在目标世界书 ${targetWb} 中未能精确匹配到该条目。`);
+      }
+      return entries;
+    });
 
-        console.info(`[PoC_CrossWB] 4. updateWorldbookWith 异步调用完成。`);
-    } catch (e) {
-        console.error(`[PoC_CrossWB] 核心修改逻辑抛出异常:`, e);
-    }
-    
-    console.info('[PoC_CrossWB] PoC 执行完毕。');
+    console.info(`[PoC_CrossWB] 4. updateWorldbookWith 异步调用完成。`);
+  } catch (e) {
+    console.error(`[PoC_CrossWB] 核心修改逻辑抛出异常:`, e);
+  }
+
+  console.info('[PoC_CrossWB] PoC 执行完毕。');
 }
 
 // 暴露到全局方便测试

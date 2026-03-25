@@ -11,9 +11,9 @@ class SendInterceptor {
   private isDryRunning: boolean = false;
   private interceptorBound: boolean = false;
 
-    private constructor() {
+  private constructor() {
     // 监听内部事件：当配置变更导致拦截器开关变化时，自动绑定或解绑
-    ArkEventBus.on('config:interceptor_state_changed', (shouldEnable) => {
+    ArkEventBus.on('config:interceptor_state_changed', shouldEnable => {
       if (shouldEnable) {
         this.bindInterceptor();
       } else {
@@ -158,7 +158,11 @@ class SendInterceptor {
     }
 
     this.isDryRunning = true;
-    ArkEventBus.emit('log:debug', `executeDualTrackDryRun_START | isManualTest:${isManualTest} | length:${text.length}`, false);
+    ArkEventBus.emit(
+      'log:debug',
+      `executeDualTrackDryRun_START | isManualTest:${isManualTest} | length:${text.length}`,
+      false,
+    );
 
     try {
       // 兼容获取 context (避免裸取导致代理对象遗失)
@@ -173,7 +177,11 @@ class SendInterceptor {
       const worldInfoFn = context?.getWorldInfoPrompt;
       const generateFn = context?.generate;
 
-      ArkEventBus.emit('log:debug', `executeDualTrackDryRun_CONTEXT | hasContext:${!!context} | hasWorldInfoFn:${!!worldInfoFn} | hasGenerateFn:${!!generateFn}`, false);
+      ArkEventBus.emit(
+        'log:debug',
+        `executeDualTrackDryRun_CONTEXT | hasContext:${!!context} | hasWorldInfoFn:${!!worldInfoFn} | hasGenerateFn:${!!generateFn}`,
+        false,
+      );
 
       if (!worldInfoFn) {
         console.warn('[ARK_Interceptor] Required API getWorldInfoPrompt not available.');
@@ -265,7 +273,11 @@ class SendInterceptor {
         const data = evt.detail || evt;
         if (!data.dryRun) return;
 
-        ArkEventBus.emit('log:debug', `executeDualTrackDryRun_PROMPT_READY | chatLength:${data.chat?.length} | promptLength:${data.prompt?.length}`, false);
+        ArkEventBus.emit(
+          'log:debug',
+          `executeDualTrackDryRun_PROMPT_READY | chatLength:${data.chat?.length} | promptLength:${data.prompt?.length}`,
+          false,
+        );
 
         const payloadStrings = data.chat || data.prompt || [];
         let fullText = '';
@@ -327,7 +339,11 @@ class SendInterceptor {
         if (typeof eventOff === 'function') eventOff('chat_completion_prompt_ready', promptReadyListener);
       }
 
-      ArkEventBus.emit('log:debug', `executeDualTrackDryRun_END_DISPATCH | finalActivatedCount:${activatedEntries?.length} | tokenCount:${tokenCount}`, false);
+      ArkEventBus.emit(
+        'log:debug',
+        `executeDualTrackDryRun_END_DISPATCH | finalActivatedCount:${activatedEntries?.length} | tokenCount:${tokenCount}`,
+        false,
+      );
 
       // ==========================================
       // 终点：统合抛出预警结果

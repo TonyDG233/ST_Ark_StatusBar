@@ -49,9 +49,13 @@
             <div class="entry-info">
               <span class="entry-name">
                 <span v-if="isPinned(entry)" class="pin-icon">📌</span>
-                <span style="font-size: 0.9em; margin-right: 4px;">{{ getEntryType(entry) === 'constant' ? '🔵' : '🟢' }}</span>
+                <span style="font-size: 0.9em; margin-right: 4px">{{
+                  getEntryType(entry) === 'constant' ? '🔵' : '🟢'
+                }}</span>
                 {{ entry.comment || entry.name || (entry.key && entry.key.length ? entry.key[0] : '未知') }}
-                <span v-if="entry.world" style="font-size: 0.8em; opacity: 0.7; margin-left: 5px;">({{ entry.world }})</span>
+                <span v-if="entry.world" style="font-size: 0.8em; opacity: 0.7; margin-left: 5px"
+                  >({{ entry.world }})</span
+                >
               </span>
               <span class="badge" v-if="entry.enabled !== false">已发送</span>
               <span class="badge blocked" v-else>已阻断</span>
@@ -84,9 +88,11 @@
         >
           <div class="entry-name">
             <span v-if="isPinned(entry)" class="pin-icon">📌</span>
-            <span style="font-size: 0.9em; margin-right: 4px;">{{ getEntryType(entry) === 'constant' ? '🔵' : '🟢' }}</span>
+            <span style="font-size: 0.9em; margin-right: 4px">{{
+              getEntryType(entry) === 'constant' ? '🔵' : '🟢'
+            }}</span>
             {{ entry.comment || entry.name || (entry.key && entry.key.length ? entry.key[0] : '未知') }}
-            <div v-if="entry.world" style="font-size: 0.75em; color: var(--ui-text-secondary); margin-top: 2px;">
+            <div v-if="entry.world" style="font-size: 0.75em; color: var(--ui-text-secondary); margin-top: 2px">
               📁 来源: {{ entry.world }}
             </div>
           </div>

@@ -82,7 +82,7 @@ import {
   currentPrimaryWorldbook,
   CONFIG_ENTRY_PREFIX,
   previewUiWidth,
-  previewUiFontSize
+  previewUiFontSize,
 } from './global_tabs/shared_ui_state';
 
 // 引入彻底解耦的微型 Domain Tab 组件
@@ -92,10 +92,10 @@ import HistoryTab from './global_tabs/history/HistoryTab.vue';
 import SettingsTab from './global_tabs/settings/SettingsTab.vue';
 
 // --- 外壳退化层：仅保留纯粹的视图控制与拖拽物理逻辑 ---
-const isVisible = ref(true); 
-const isMiniMode = ref(true); 
-const currentTab = ref('interceptor'); 
-const currentConfig = useArkConfig(); 
+const isVisible = ref(true);
+const isMiniMode = ref(true);
+const currentTab = ref('interceptor');
+const currentConfig = useArkConfig();
 const manager = StatusBarManager.getInstance();
 const isSystemEnabled = computed(() => currentConfig.value?.isSystemEnabled ?? true);
 
@@ -109,8 +109,8 @@ const toggleMinimize = () => {
 // --- DOM 节点与拖拽坐标 ---
 const statusBarEl = ref<HTMLElement | null>(null);
 
-const transformX = ref(0); 
-const transformY = ref(0); 
+const transformX = ref(0);
+const transformY = ref(0);
 let isDragging = false;
 let startX = 0;
 let startY = 0;
@@ -140,7 +140,7 @@ const startDrag = (e: MouseEvent | TouchEvent) => {
 
 const onDrag = (e: MouseEvent | TouchEvent) => {
   if (!isDragging || !statusBarEl.value) return;
-  e.preventDefault(); 
+  e.preventDefault();
 
   let clientX = 0;
   let clientY = 0;
@@ -174,7 +174,7 @@ const checkBounds = () => {
   if (rect.right > viewportWidth) deltaX = viewportWidth - rect.right;
   if (rect.left + deltaX < 0) deltaX = 0 - rect.left;
   if (rect.bottom > viewportHeight) deltaY = viewportHeight - rect.bottom;
-  
+
   const SAFE_TOP = 70;
   if (rect.top + deltaY < SAFE_TOP) deltaY = SAFE_TOP - rect.top;
 
@@ -235,16 +235,16 @@ onMounted(() => {
       loadWorldbookLists();
     }
   }) as EventListener);
-  
+
   if (currentConfig.value && currentConfig.value.isSystemEnabled) {
-      loadPrimaryWorldbookName();
-      loadWorldbookLists();
+    loadPrimaryWorldbookName();
+    loadWorldbookLists();
   }
 
   // 接管底层的拦截预警推送，分配到 shared_state 给各个微组件使用
   document.addEventListener('ark-interceptor-triggered', ((e: CustomEvent) => {
     const triggered = e.detail.entries || [];
-    const isManualTest = !!e.detail.isManualTest; 
+    const isManualTest = !!e.detail.isManualTest;
     isTestMode.value = isManualTest;
     currentTokenCount.value = e.detail.tokenCount ?? 0;
 
@@ -256,15 +256,15 @@ onMounted(() => {
       if (!raw.strategy) raw.strategy = {};
       return raw;
     });
-      
+
     if (!currentConfig.value?.showConstantEntries) {
       matchedEntries = matchedEntries.filter((entry: any) => getEntryType(entry) !== 'constant');
     }
 
     if (matchedEntries.length > 0 || isManualTest) {
       pendingEntries.value = matchedEntries;
-      currentTab.value = 'interceptor'; 
-      isMiniMode.value = false; 
+      currentTab.value = 'interceptor';
+      isMiniMode.value = false;
 
       if (!isSystemEnabled.value) {
         configStore.updateConfig({ isSystemEnabled: true });
@@ -357,14 +357,14 @@ onMounted(() => {
 
 .ark-global-statusbar.mini-mode {
   width: auto;
-  max-width: 180px; 
+  max-width: 180px;
   border-radius: 20px;
   opacity: 0.8;
 }
 
 .statusbar-mini-content {
   padding: 0 10px 10px 10px;
-  max-height: 90px; 
+  max-height: 90px;
   overflow-y: auto;
   font-size: 0.9em;
 }
@@ -404,7 +404,7 @@ onMounted(() => {
 }
 
 .mini-entry-list .indicator.blocked {
-  background-color: #dc3545; 
+  background-color: #dc3545;
 }
 
 .mini-entry-list .text {
@@ -415,7 +415,7 @@ onMounted(() => {
 }
 
 .ark-global-statusbar.mini-mode .tab-header {
-  display: none; 
+  display: none;
 }
 
 .ark-global-statusbar.mini-mode .interceptor-actions {

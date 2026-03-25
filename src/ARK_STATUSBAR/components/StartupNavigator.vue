@@ -136,7 +136,7 @@ const toggleSettings = () => {
  * 获取并更新当前世界书是否偏离了基准线配置的状态
  */
 const checkWbStatus = async () => {
-  wbStatus.value = await StatusBarManager.getInstance().worldbook.getStatus() as WorldbookStatus;
+  wbStatus.value = (await StatusBarManager.getInstance().worldbook.getStatus()) as WorldbookStatus;
 };
 
 /**

@@ -9,7 +9,7 @@
           <div class="wb-accordion-title">
             <span v-if="wb.isPinned" class="pin-icon">📌</span>
             <span class="wb-type-badge" :class="wb.type">
-              {{ wb.type === 'char' ? '角色绑定' : (wb.type === 'global' ? '已挂载' : '未挂载') }}
+              {{ wb.type === 'char' ? '角色绑定' : wb.type === 'global' ? '已挂载' : '未挂载' }}
             </span>
             <span class="wb-name-text">{{ wb.name }}</span>
           </div>
@@ -22,8 +22,8 @@
             >
               {{ wb.isPinned ? '📌' : '📍' }}
             </button>
-            <button 
-              v-if="wb.type !== 'char'" 
+            <button
+              v-if="wb.type !== 'char'"
               class="btn-tiny"
               :class="wb.type === 'global' ? 'btn-danger' : 'btn-success'"
               @click.stop="toggleGlobalMountUI(wb.name, wb.type !== 'global')"
@@ -33,24 +33,34 @@
             <span class="accordion-arrow">{{ expandedWorldbooks.includes(wb.name) ? '▼' : '▶' }}</span>
           </div>
         </div>
-        
+
         <div v-if="expandedWorldbooks.includes(wb.name)" class="wb-accordion-content">
-          <div class="filters" style="margin-bottom: 5px;">
-              <input type="text" v-model="filterEntryTexts[wb.name]" placeholder="搜索此书内的条目名称或触发词..." class="search-input" style="margin-bottom: 5px;" />
-              <div class="filter-row">
-                <select v-model="filterCategory" class="filter-select">
-                  <option value="">全部类别</option>
-                  <option v-for="cat in getAvailableCategories(wb.name)" :key="cat" :value="cat">{{ cat }}</option>
-                </select>
-                <select v-model="filterType" class="filter-select">
-                  <option value="">全部类型(蓝/绿灯)</option>
-                  <option value="constant">常驻 (🔵 蓝灯)</option>
-                  <option value="selective">条件 (🟢 绿灯)</option>
-                </select>
-              </div>
+          <div class="filters" style="margin-bottom: 5px">
+            <input
+              type="text"
+              v-model="filterEntryTexts[wb.name]"
+              placeholder="搜索此书内的条目名称或触发词..."
+              class="search-input"
+              style="margin-bottom: 5px"
+            />
+            <div class="filter-row">
+              <select v-model="filterCategory" class="filter-select">
+                <option value="">全部类别</option>
+                <option v-for="cat in getAvailableCategories(wb.name)" :key="cat" :value="cat">{{ cat }}</option>
+              </select>
+              <select v-model="filterType" class="filter-select">
+                <option value="">全部类型(蓝/绿灯)</option>
+                <option value="constant">常驻 (🔵 蓝灯)</option>
+                <option value="selective">条件 (🟢 绿灯)</option>
+              </select>
+            </div>
           </div>
-          <div v-if="isLoadingWb === wb.name" class="empty-state" style="padding: 10px;">加载中...</div>
-          <div v-else-if="!worldbookEntriesCache[wb.name] || worldbookEntriesCache[wb.name].length === 0" class="empty-state" style="padding: 10px;">
+          <div v-if="isLoadingWb === wb.name" class="empty-state" style="padding: 10px">加载中...</div>
+          <div
+            v-else-if="!worldbookEntriesCache[wb.name] || worldbookEntriesCache[wb.name].length === 0"
+            class="empty-state"
+            style="padding: 10px"
+          >
             此世界书没有包含有效条目。
           </div>
           <div v-else class="wb-entries-container">
@@ -91,7 +101,13 @@
                 </label>
               </div>
             </div>
-            <div v-if="filterEntries(worldbookEntriesCache[wb.name], wb.name).length === 0" class="empty-state" style="padding: 5px;">没有找到匹配的条目。</div>
+            <div
+              v-if="filterEntries(worldbookEntriesCache[wb.name], wb.name).length === 0"
+              class="empty-state"
+              style="padding: 5px"
+            >
+              没有找到匹配的条目。
+            </div>
           </div>
         </div>
       </div>
@@ -112,17 +128,17 @@ import {
   worldbookEntriesCache,
   isLoadingWb,
   currentPrimaryWorldbook,
-  CONFIG_ENTRY_PREFIX
+  CONFIG_ENTRY_PREFIX,
 } from '../shared_ui_state';
 
 const currentConfig = useArkConfig();
 const manager = StatusBarManager.getInstance();
 
 // --- Local UI State for Worldbook Tab ---
-const filterText = ref(''); 
-const filterCategory = ref(''); 
-const filterType = ref(''); 
-const filterEntryTexts = ref<Record<string, string>>({}); 
+const filterText = ref('');
+const filterCategory = ref('');
+const filterType = ref('');
+const filterEntryTexts = ref<Record<string, string>>({});
 
 /**
  * 构建带有分类和排序状态的世界书列表对象
@@ -181,9 +197,9 @@ const toggleWorldbookPin = (wbName: string) => {
 const toggleAccordion = async (wbName: string) => {
   const idx = expandedWorldbooks.value.indexOf(wbName);
   if (idx > -1) {
-    expandedWorldbooks.value.splice(idx, 1); 
+    expandedWorldbooks.value.splice(idx, 1);
   } else {
-    expandedWorldbooks.value.push(wbName); 
+    expandedWorldbooks.value.push(wbName);
     if (!worldbookEntriesCache.value[wbName]) {
       isLoadingWb.value = wbName;
       try {
@@ -227,27 +243,29 @@ const isPinnedEntry = (entry: any) => {
 
 const filterEntries = (entries: any[], wbName: string) => {
   if (!entries) return [];
-  return entries.filter(entry => {
-    const searchText = filterEntryTexts.value[wbName];
-    if (searchText) {
-      const query = searchText.toLowerCase();
-      const name = (entry.comment || entry.name || '').toLowerCase();
-      const keys = (entry.key || []).join(' ').toLowerCase();
-      if (!name.includes(query) && !keys.includes(query)) return false;
-    }
-    if (filterCategory.value) {
-      const name = entry.name || entry.comment || '';
-      const match = name.match(/^\[(.*?)\]/);
-      const cat = match ? match[1] : '未分类';
-      if (cat !== filterCategory.value) return false;
-    }
-    if (filterType.value) {
-      if (getEntryType(entry) !== filterType.value) return false;
-    }
-    return true;
-  }).sort((a, b) => {
-    return (isPinnedEntry(b) ? 1 : 0) - (isPinnedEntry(a) ? 1 : 0);
-  });
+  return entries
+    .filter(entry => {
+      const searchText = filterEntryTexts.value[wbName];
+      if (searchText) {
+        const query = searchText.toLowerCase();
+        const name = (entry.comment || entry.name || '').toLowerCase();
+        const keys = (entry.key || []).join(' ').toLowerCase();
+        if (!name.includes(query) && !keys.includes(query)) return false;
+      }
+      if (filterCategory.value) {
+        const name = entry.name || entry.comment || '';
+        const match = name.match(/^\[(.*?)\]/);
+        const cat = match ? match[1] : '未分类';
+        if (cat !== filterCategory.value) return false;
+      }
+      if (filterType.value) {
+        if (getEntryType(entry) !== filterType.value) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      return (isPinnedEntry(b) ? 1 : 0) - (isPinnedEntry(a) ? 1 : 0);
+    });
 };
 
 const getEntryType = (entry: any) => {
@@ -277,7 +295,7 @@ const toggleEntryType = async (entry: any, explicitWbName?: string) => {
       if (e) {
         if (!e.strategy) e.strategy = {};
         e.strategy.type = newType;
-        e.constant = newType === 'constant'; 
+        e.constant = newType === 'constant';
       }
       return wbEntries;
     });
@@ -291,7 +309,14 @@ const toggleEntryType = async (entry: any, explicitWbName?: string) => {
       timestamp: Date.now(),
       description: `[用户手动修改触发类型] ${entry.comment || entry.name}`,
       worldbook: targetWorldbook,
-      changes: [{ uid: entry.uid, comment: entry.comment || entry.name, from: currentType === 'constant', to: newType === 'constant' }],
+      changes: [
+        {
+          uid: entry.uid,
+          comment: entry.comment || entry.name,
+          from: currentType === 'constant',
+          to: newType === 'constant',
+        },
+      ],
     };
     configStore.updateConfig({ commits: [...(currentConfig.value?.commits || []), newCommit] });
   } catch (e) {
@@ -320,7 +345,7 @@ const toggleEntry = async (entry: any, explicitWbName?: string) => {
     configStore.updateConfig({ commits: [...(currentConfig.value?.commits || []), newCommit] });
   } catch (e) {
     console.error('Failed to toggle entry', e);
-    entry.enabled = !entry.enabled; 
+    entry.enabled = !entry.enabled;
   }
 };
 </script>

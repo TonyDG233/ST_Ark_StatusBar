@@ -3,9 +3,7 @@
     <div class="setting-item">
       <label>UI 主题</label>
       <div class="theme-buttons">
-        <button :class="{ active: currentConfig?.theme === 'light' }" @click="updateTheme('light')">
-          默认(白)
-        </button>
+        <button :class="{ active: currentConfig?.theme === 'light' }" @click="updateTheme('light')">默认(白)</button>
         <button :class="{ active: currentConfig?.theme === 'dark' }" @click="updateTheme('dark')">夜间(黑)</button>
         <button :class="{ active: currentConfig?.theme === 'transparent' }" @click="updateTheme('transparent')">
           透明
@@ -30,11 +28,7 @@
       <div style="display: flex; align-items: center; gap: 10px">
         <label>回车键拦截预警</label>
         <label class="switch">
-          <input
-            type="checkbox"
-            :checked="currentConfig?.enableEnterToIntercept"
-            @change="toggleEnterInterceptor"
-          />
+          <input type="checkbox" :checked="currentConfig?.enableEnterToIntercept" @change="toggleEnterInterceptor" />
           <span class="slider round"></span>
         </label>
       </div>
@@ -47,11 +41,7 @@
       <div style="display: flex; align-items: center; gap: 10px">
         <label>显示常驻(蓝灯)条目</label>
         <label class="switch">
-          <input
-            type="checkbox"
-            :checked="currentConfig?.showConstantEntries"
-            @change="toggleShowConstantEntries"
-          />
+          <input type="checkbox" :checked="currentConfig?.showConstantEntries" @change="toggleShowConstantEntries" />
           <span class="slider round"></span>
         </label>
       </div>
@@ -89,7 +79,9 @@
     </div>
 
     <div class="setting-item flex-col-align-start">
-      <label>字体大小 (<span class="mobile-scale-hint">移动端自动 -2px / </span>当前基准: {{ displayFontSize }}px)</label>
+      <label
+        >字体大小 (<span class="mobile-scale-hint">移动端自动 -2px / </span>当前基准: {{ displayFontSize }}px)</label
+      >
       <input
         type="range"
         min="10"

@@ -36,9 +36,7 @@
 
     <div id="wb-control-hint" class="warning-box">
       <strong style="color: orange">[!] 世界书管理提示</strong>
-      <p style="font-size: 0.85em; margin-top: 5px; line-height: 1.6">
-        本面板会智能识别并管理当前角色的世界书状态。
-      </p>
+      <p style="font-size: 0.85em; margin-top: 5px; line-height: 1.6">本面板会智能识别并管理当前角色的世界书状态。</p>
       <p style="font-size: 0.85em; margin-top: 5px; line-height: 1.6">
         若您手动修改了世界书（如自行开启了某些条目），状态将显示为<strong style="color: #ff9800">“已修改”</strong
         >。此时切换开局可能会触发冲突警告，请按需选择继续或重置。

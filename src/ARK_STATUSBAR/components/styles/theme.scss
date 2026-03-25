@@ -2,79 +2,80 @@
 
 /* --- Font Defense --- */
 .ark-global-statusbar {
-    font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif !important;
-    font-size: var(--ui-font-size, 14px);
-    width: var(--ui-width, 400px);
+  font-family:
+    'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif !important;
+  font-size: var(--ui-font-size, 14px);
+  width: var(--ui-width, 400px);
 }
 
 .ark-startup-container,
 .ark-startup-container .main-container {
-    font-family: 'Noto Serif SC', "PingFang SC", "Microsoft YaHei", serif !important;
-    font-size: var(--ui-font-size, 14px);
+  font-family: 'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif !important;
+  font-size: var(--ui-font-size, 14px);
 }
 
 @media (max-width: 768px) {
-    .ark-global-statusbar {
-        font-size: calc(var(--ui-font-size, 14px) - 2px) !important;
-    }
-    .ark-startup-container,
-    .ark-startup-container .main-container {
-        font-size: calc(var(--ui-font-size, 14px) - 2px) !important;
-    }
+  .ark-global-statusbar {
+    font-size: calc(var(--ui-font-size, 14px) - 2px) !important;
+  }
+  .ark-startup-container,
+  .ark-startup-container .main-container {
+    font-size: calc(var(--ui-font-size, 14px) - 2px) !important;
+  }
 }
 
 /* --- Common UI Components --- */
 
 /* Switch */
 .switch {
-    position: relative;
-    display: inline-block;
-    width: 40px;
-    height: 20px;
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
 }
 
 .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
 .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: 0.4s;
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
 }
 
 .slider:before {
-    position: absolute;
-    content: '';
-    height: 16px;
-    width: 16px;
-    left: 2px;
-    bottom: 2px;
-    background-color: white;
-    transition: 0.4s;
+  position: absolute;
+  content: '';
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: 0.4s;
 }
 
-input:checked+.slider {
-    background-color: #007bff;
+input:checked + .slider {
+  background-color: #007bff;
 }
 
-input:checked+.slider:before {
-    transform: translateX(20px);
+input:checked + .slider:before {
+  transform: translateX(20px);
 }
 
 .slider.round {
-    border-radius: 20px;
+  border-radius: 20px;
 }
 
 .slider.round:before {
-    border-radius: 50%;
+  border-radius: 50%;
 }
 
 /* Buttons (from GlobalStatusBar) */
@@ -82,45 +83,45 @@ input:checked+.slider:before {
 .btn-danger,
 .btn-success,
 .btn-warning {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    color: white;
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  color: white;
 }
 
 .btn-primary {
-    background: #007bff;
+  background: #007bff;
 }
 
 .btn-primary:hover {
-    background: #0056b3;
+  background: #0056b3;
 }
 
 .btn-danger {
-    background: #dc3545;
+  background: #dc3545;
 }
 
 .btn-danger:hover {
-    background: #a71d2a;
+  background: #a71d2a;
 }
 
 .btn-success {
-    background: #28a745;
+  background: #28a745;
 }
 
 .btn-success:hover {
-    background: #218838;
+  background: #218838;
 }
 
 .btn-warning {
-    background: #ff9800;
+  background: #ff9800;
 }
 
 .btn-warning:hover {
-    background: #e68a00;
+  background: #e68a00;
 }
 
 /* Arknights Style Buttons */
@@ -132,66 +133,66 @@ input:checked+.slider:before {
 }
 
 .ark-btn {
-    position: relative;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border: 1px solid var(--ui-border-primary);
-    background: var(--ui-bg);
-    transition: all 0.2s ease;
-    overflow: hidden;
+  position: relative;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid var(--ui-border-primary);
+  background: var(--ui-bg);
+  transition: all 0.2s ease;
+  overflow: hidden;
 }
 
 .ark-btn .btn-content {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    z-index: 2;
-    transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 2;
+  transition: all 0.2s;
 }
 
 .ark-btn .btn-text {
-    font-weight: bold;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    font-size: 0.9em;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 0.9em;
 }
 
 .ark-btn.warning {
-    border-color: #ff9800;
-    color: #ff9800;
+  border-color: #ff9800;
+  color: #ff9800;
 }
 
 .ark-btn.warning:hover {
-    background: #ff9800;
-    color: #fff;
+  background: #ff9800;
+  color: #fff;
 }
 
 .ark-btn.danger {
-    border-color: #f44336;
-    color: #f44336;
+  border-color: #f44336;
+  color: #f44336;
 }
 
 .ark-btn.danger:hover {
-    background: #f44336;
-    color: #fff;
+  background: #f44336;
+  color: #fff;
 }
 
 .ark-btn::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 0;
-    height: 0;
-    border-style: solid;
-    border-width: 0 10px 10px 0;
-    border-color: transparent currentColor transparent transparent;
-    opacity: 0.5;
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 10px 10px 0;
+  border-color: transparent currentColor transparent transparent;
+  opacity: 0.5;
 }
 
 .ark-btn:active {
-    transform: scale(0.98);
+  transform: scale(0.98);
 }
