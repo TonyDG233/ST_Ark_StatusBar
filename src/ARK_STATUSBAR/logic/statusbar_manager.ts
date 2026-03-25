@@ -61,6 +61,8 @@ class WorldbookFacade {
   }
 }
 
+export type { WorldbookStatus } from './worldbook/entry_service';
+
 /**
  * 状态栏全局管理器 (Singleton 单例模式)
  * 

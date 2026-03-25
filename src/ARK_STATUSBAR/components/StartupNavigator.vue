@@ -95,10 +95,8 @@ import { computed, onMounted, ref } from 'vue';
 import { ASSETS } from '../config/assets';
 import { STARTUP_SCENARIOS, type Scenario } from '../config/scenarios';
 import { configStore, useArkConfig } from '../logic/core/config_store';
-import { StatusBarManager } from '../logic/statusbar_manager';
+import { StatusBarManager, type WorldbookStatus } from '../logic/statusbar_manager';
 import StartupSettingsPanel from './startup_tabs/StartupSettingsPanel.vue';
-
-type WorldbookStatus = 'original' | 'modified' | 'single_char_closed';
 
 // --- 状态与变量定义 ---
 
