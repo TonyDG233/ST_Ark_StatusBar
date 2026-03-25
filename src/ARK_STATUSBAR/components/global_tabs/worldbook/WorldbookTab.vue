@@ -368,6 +368,17 @@ const toggleEntryType = async (entry: any, explicitWbName?: string) => {
     entry.strategy.type = newType;
     entry.constant = newType === 'constant';
 
+    // 同步回本地缓存层以保持数据绑定
+    const cacheEntries = worldbookEntriesCache.value[targetWorldbook];
+    if (cacheEntries) {
+      const cached = cacheEntries.find((e: any) => e.uid === entry.uid);
+      if (cached) {
+        if (!cached.strategy) cached.strategy = {};
+        cached.strategy.type = newType;
+        cached.constant = newType === 'constant';
+      }
+    }
+
     const newCommit = {
       id: Math.random().toString(36).substr(2, 6),
       timestamp: Date.now(),
@@ -398,6 +409,15 @@ const toggleEntry = async (entry: any, explicitWbName?: string) => {
       if (e) e.enabled = entry.enabled;
       return wbEntries;
     });
+
+    // 同步回本地缓存层以保持数据绑定
+    const cacheEntries = worldbookEntriesCache.value[targetWorldbook];
+    if (cacheEntries) {
+      const cached = cacheEntries.find((e: any) => e.uid === entry.uid);
+      if (cached) {
+        cached.enabled = entry.enabled;
+      }
+    }
 
     const newCommit = {
       id: Math.random().toString(36).substr(2, 6),

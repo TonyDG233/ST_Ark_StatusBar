@@ -116,12 +116,68 @@
     <hr class="record-divider" style="margin-bottom: 15px" />
 
     <!-- 区域 B：操作历史 (Git Log) -->
-    <h4 style="margin-top: 0; margin-bottom: 10px">📖 操作历史记录</h4>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px">
+      <h4 style="margin: 0">📖 操作历史记录</h4>
+      <button
+        v-if="currentConfig?.commits?.length"
+        class="icon-btn tiny"
+        style="padding: 4px 8px; border: 1px solid var(--SmartThemeBorderColor, #444); background: rgba(0,0,0,0.2)"
+        @click="toggleBatchMode"
+      >
+        {{ isBatchMode ? '退出多选' : '批量多选' }}
+      </button>
+    </div>
+    
+    <div style="font-size: 0.8em; color: rgba(255, 255, 255, 0.6); margin-bottom: 12px; line-height: 1.4">
+      <strong style="color: var(--SmartThemeBodyColor, #ccc)">【恢复】</strong>：撤销该记录的操作，将世界书条目的状态回滚，并从这里删除记录。<br/>
+      <strong style="color: var(--SmartThemeBodyColor, #ccc)">【删除】</strong>：仅清理这条历史记录，但保持世界书现在的状态不变。
+    </div>
+
+    <!-- 批量操作工具栏 -->
+    <div v-if="isBatchMode" class="batch-toolbar compact" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; border: 1px dashed rgba(255,255,255,0.2)">
+      <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+        <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll" /> 全选
+      </label>
+      <div style="display: flex; gap: 8px">
+        <button
+          class="icon-btn tiny"
+          style="border: 1px solid #1e90ff; color: #1e90ff"
+          @click="batchRevertCommits"
+          :disabled="selectedCommits.length === 0"
+        >
+          ⏪ 恢复选中
+        </button>
+        <button
+          class="icon-btn tiny"
+          style="border: 1px solid #dc3545; color: #ff6b6b"
+          @click="batchDeleteCommits"
+          :disabled="selectedCommits.length === 0"
+        >
+          ❌ 删除选中
+        </button>
+      </div>
+    </div>
+
     <div v-if="!currentConfig?.commits?.length" class="empty-state">暂无修改记录。</div>
     <ul v-else class="commit-list">
-      <li v-for="commit in [...(currentConfig?.commits || [])].reverse()" :key="commit.id" class="commit-item">
+      <li
+        v-for="commit in [...(currentConfig?.commits || [])].reverse()"
+        :key="commit.id"
+        class="commit-item"
+        :class="{ 'selectable': isBatchMode }"
+        @click="isBatchMode ? toggleSelection(commit.id) : null"
+      >
         <div class="commit-header">
-          <span class="commit-id">#{{ commit.id }}</span>
+          <div style="display: flex; align-items: center; gap: 8px">
+            <input
+              v-if="isBatchMode"
+              type="checkbox"
+              :value="commit.id"
+              v-model="selectedCommits"
+              @click.stop
+            />
+            <span class="commit-id">#{{ commit.id }}</span>
+          </div>
           <span class="commit-time">{{ new Date(commit.timestamp).toLocaleString() }}</span>
         </div>
         <div class="commit-desc">{{ commit.description }}</div>
@@ -134,14 +190,22 @@
             {{ getChangeText(commit, change.to) }}
           </li>
         </ul>
-        <div class="commit-actions" style="margin-top: 8px; text-align: right">
+        <div v-if="!isBatchMode" class="commit-actions" style="margin-top: 8px; text-align: right; display: flex; justify-content: flex-end; gap: 8px">
           <button
             class="icon-btn tiny"
-            style="border: 1px solid var(--SmartThemeBorderColor, #444)"
-            @click="revertCommit(commit)"
-            title="撤销此条记录的修改"
+            style="border: 1px solid #1e90ff; color: #1e90ff"
+            @click.stop="revertCommit(commit)"
+            title="撤销修改并还原状态"
           >
-            ⏪ 撤销
+            ⏪ 恢复
+          </button>
+          <button
+            class="icon-btn tiny"
+            style="border: 1px solid #dc3545; color: #ff6b6b"
+            @click.stop="deleteCommit(commit)"
+            title="仅删除记录，不改变当前状态"
+          >
+            ❌ 删除
           </button>
         </div>
       </li>
@@ -150,7 +214,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { configStore, useArkConfig } from '../../../logic/core/config_store';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
 import {
@@ -167,6 +231,40 @@ const manager = StatusBarManager.getInstance();
 // --- Local UI State for History Tab ---
 const newSnapshotName = ref('');
 const selectedSnapshotWorldbook = ref('');
+
+// --- Batch Operation State ---
+const isBatchMode = ref(false);
+const selectedCommits = ref<string[]>([]);
+
+const isAllSelected = computed(() => {
+  const commits = currentConfig.value?.commits || [];
+  return commits.length > 0 && selectedCommits.value.length === commits.length;
+});
+
+const toggleBatchMode = () => {
+  isBatchMode.value = !isBatchMode.value;
+  if (!isBatchMode.value) {
+    selectedCommits.value = [];
+  }
+};
+
+const toggleSelectAll = (e: Event) => {
+  const checked = (e.target as HTMLInputElement).checked;
+  if (checked) {
+    selectedCommits.value = (currentConfig.value?.commits || []).map((c: any) => c.id);
+  } else {
+    selectedCommits.value = [];
+  }
+};
+
+const toggleSelection = (id: string) => {
+  const idx = selectedCommits.value.indexOf(id);
+  if (idx === -1) {
+    selectedCommits.value.push(id);
+  } else {
+    selectedCommits.value.splice(idx, 1);
+  }
+};
 
 const getChangeText = (commit: any, value: boolean) => {
   if (commit.description?.includes('changed type')) {
@@ -242,50 +340,129 @@ const closeSingleChar = async () => {
 };
 
 /**
- * 撤销某一次特定的历史修改操作 (类似 git revert)
+ * 执行底层世界书状态还原的核心函数
+ * 因为可能包含多个 commits 或单条 commit，所以抽离出来复用
  */
-const revertCommit = async (commit: any) => {
-  if (!confirm(`确定要撤销操作: ${commit.description} 吗？`)) return;
+const applyInverseChanges = async (commitList: any[]) => {
+  // 根据目标世界书对 commit 进行分组
+  const worldbookGroups = commitList.reduce((acc, curr) => {
+    const target = curr.worldbook || currentPrimaryWorldbook.value;
+    if (target) {
+      if (!acc[target]) acc[target] = [];
+      acc[target].push(curr);
+    }
+    return acc;
+  }, {} as Record<string, any[]>);
 
-  try {
-    const targetWorldbook = commit.worldbook || currentPrimaryWorldbook.value;
-    if (!targetWorldbook) return;
-
-    // 应用反向变更 (Inverse changes)
-    await updateWorldbookWith(targetWorldbook, (wbEntries: any[]) => {
-      for (const change of commit.changes) {
-        const e = wbEntries.find(x => x.uid === change.uid);
-        if (e) {
-          if (commit.description.includes('changed type') || commit.description.includes('修改触发类型')) {
-            if (!e.strategy) e.strategy = {};
-            e.strategy.type = change.from ? 'constant' : 'selective';
-            e.constant = change.from;
-          } else {
-            e.enabled = change.from;
+  for (const [worldName, commits] of Object.entries(worldbookGroups)) {
+    await updateWorldbookWith(worldName, (wbEntries: any[]) => {
+      // 必须按照提交时间的反序 (从新到老) 来还原，防止先关后开同一词条导致状态覆盖错误
+      const typedCommits = commits as any[];
+      const sortedCommits = [...typedCommits].sort((a, b) => b.timestamp - a.timestamp);
+      
+      for (const commit of sortedCommits) {
+        for (const change of commit.changes) {
+          const e = wbEntries.find(x => x.uid === change.uid);
+          if (e) {
+            // 对类型的逆向恢复
+            if (commit.description.includes('changed type') || commit.description.includes('修改触发类型')) {
+              if (!e.strategy) e.strategy = {};
+              e.strategy.type = change.from ? 'constant' : 'selective';
+              e.constant = change.from;
+            } else {
+              // 对于开关的恢复：要明确检查 change.from
+              // 原来为 true（开启状态），关闭操作产生了一条从 true -> false 的记录。
+              // 现在撤销，就要把状态调回 true。如果是 false->true，撤销就调回 false。
+              // 这里用严格赋值确保布尔类型
+              e.enabled = !!change.from;
+            }
           }
         }
       }
       return wbEntries;
     });
 
+    // 刷新已展开抽屉的缓存
+    if (expandedWorldbooks.value.includes(worldName)) {
+      try {
+        const entries = await getWorldbook(worldName);
+        worldbookEntriesCache.value[worldName] = entries.filter(
+          (e: any) =>
+            !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) &&
+            !(e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX)),
+        );
+      } catch (e) {
+        console.error('Failed to refresh cache for', worldName, e);
+      }
+    }
+  }
+};
+
+/**
+ * 恢复某一次特定的历史修改操作 (原撤销操作，删除且还原)
+ */
+const revertCommit = async (commit: any) => {
+  if (!confirm(`确定要恢复操作: ${commit.description} 吗？`)) return;
+
+  try {
+    await applyInverseChanges([commit]);
+
     // 从记录历史中删除该次提交
     const commits = (currentConfig.value?.commits || []).filter((c: any) => c.id !== commit.id);
     configStore.updateConfig({ commits });
 
-    // 如果该世界书的抽屉开着，刷新缓存
-    if (expandedWorldbooks.value.includes(targetWorldbook)) {
-      const entries = await getWorldbook(targetWorldbook);
-      worldbookEntriesCache.value[targetWorldbook] = entries.filter(
-        (e: any) =>
-          !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) &&
-          !(e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX)),
-      );
-    }
-    if (typeof toastr !== 'undefined') toastr.success('撤销成功并已从记录中移除。');
+    if (typeof toastr !== 'undefined') toastr.success('恢复成功并已从记录中移除。');
   } catch (e) {
     console.error('Failed to revert commit', e);
-    if (typeof toastr !== 'undefined') toastr.error('撤销失败，详见控制台。');
+    if (typeof toastr !== 'undefined') toastr.error('恢复失败，详见控制台。');
   }
+};
+
+/**
+ * 删除某一次历史记录 (不还原状态)
+ */
+const deleteCommit = async (commit: any) => {
+  if (!confirm(`确定要仅删除该记录: ${commit.description} 吗？(当前世界书状态不变)`)) return;
+  const commits = (currentConfig.value?.commits || []).filter((c: any) => c.id !== commit.id);
+  configStore.updateConfig({ commits });
+};
+
+/**
+ * 批量恢复选中的提交记录
+ */
+const batchRevertCommits = async () => {
+  const commitsToRevert = (currentConfig.value?.commits || []).filter((c: any) => selectedCommits.value.includes(c.id));
+  if (!commitsToRevert.length) return;
+  
+  if (!confirm(`确定要恢复这 ${commitsToRevert.length} 条选中的记录吗？(状态将被还原)`)) return;
+
+  try {
+    await applyInverseChanges(commitsToRevert);
+
+    const commits = (currentConfig.value?.commits || []).filter((c: any) => !selectedCommits.value.includes(c.id));
+    configStore.updateConfig({ commits });
+    selectedCommits.value = []; // 操作完清空选中
+    isBatchMode.value = false;
+
+    if (typeof toastr !== 'undefined') toastr.success(`成功批量恢复 ${commitsToRevert.length} 条记录。`);
+  } catch (e) {
+    console.error('Failed to batch revert commits', e);
+    if (typeof toastr !== 'undefined') toastr.error('批量恢复失败，详见控制台。');
+  }
+};
+
+/**
+ * 批量删除选中的提交记录 (不还原)
+ */
+const batchDeleteCommits = async () => {
+  const count = selectedCommits.value.length;
+  if (!count) return;
+  if (!confirm(`确定要删除这 ${count} 条选中的记录吗？(世界书底层状态保持不变)`)) return;
+
+  const commits = (currentConfig.value?.commits || []).filter((c: any) => !selectedCommits.value.includes(c.id));
+  configStore.updateConfig({ commits });
+  selectedCommits.value = [];
+  isBatchMode.value = false;
 };
 </script>
 
@@ -356,5 +533,12 @@ const revertCommit = async (commit: any) => {
   margin: 0;
   padding-left: 20px;
   font-size: 0.9em;
+}
+.commit-item.selectable {
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.commit-item.selectable:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 </style>
