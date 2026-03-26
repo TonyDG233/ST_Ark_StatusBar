@@ -239,10 +239,7 @@ import { computed, ref } from 'vue';
 import { configStore, useArkConfig } from '../../../logic/core/config_store';
 import { ArkEventBus } from '../../../logic/core/event_bus';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
-import {
-  allAvailableWorldbooks,
-  currentPrimaryWorldbook
-} from '../shared_ui_state';
+import { allAvailableWorldbooks, currentPrimaryWorldbook } from '../shared_ui_state';
 
 const currentConfig = useArkConfig();
 const manager = StatusBarManager.getInstance();

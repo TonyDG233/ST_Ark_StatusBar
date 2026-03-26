@@ -179,7 +179,7 @@ export class StatusBarManager {
                 }
                 return wbEntries;
               });
-              
+
               // 抛出内部自定义事件：后端主动修改了底层数据
               ArkEventBus.emit('worldbook:data_changed', worldName);
             } catch (err) {

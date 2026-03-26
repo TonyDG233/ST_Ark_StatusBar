@@ -81,7 +81,7 @@ import {
   lastTriggeredEntries,
   pendingEntries,
   previewUiFontSize,
-  previewUiWidth
+  previewUiWidth,
 } from './global_tabs/shared_ui_state';
 
 // 引入彻底解耦的微型 Domain Tab 组件

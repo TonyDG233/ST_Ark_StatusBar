@@ -82,7 +82,7 @@ export class EntryService {
           if (entry.name && BASELINE_STATE.hasOwnProperty(entry.name)) {
             const baseline = BASELINE_STATE[entry.name];
             entry.enabled = baseline.enabled;
-            
+
             if (!entry.strategy) {
               entry.strategy = {};
             }
@@ -167,7 +167,7 @@ export class EntryService {
         });
         return entries;
       });
-      
+
       // 抛出内部自定义事件
       ArkEventBus.emit('worldbook:data_changed', targetBook);
 
