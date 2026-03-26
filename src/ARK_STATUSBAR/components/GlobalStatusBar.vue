@@ -72,24 +72,23 @@ import { computed, onMounted, ref } from 'vue';
 import { configStore, useArkConfig } from '../logic/core/config_store';
 import { StatusBarManager } from '../logic/statusbar_manager';
 import {
-  pendingEntries,
-  lastTriggeredEntries,
-  isTestMode,
-  currentTokenCount,
   allAvailableWorldbooks,
-  globalMountedWorldbooks,
   charBoundWorldbooks,
   currentPrimaryWorldbook,
-  CONFIG_ENTRY_PREFIX,
-  previewUiWidth,
+  currentTokenCount,
+  globalMountedWorldbooks,
+  isTestMode,
+  lastTriggeredEntries,
+  pendingEntries,
   previewUiFontSize,
+  previewUiWidth
 } from './global_tabs/shared_ui_state';
 
 // 引入彻底解耦的微型 Domain Tab 组件
-import InterceptorTab from './global_tabs/interceptor/InterceptorTab.vue';
-import WorldbookTab from './global_tabs/worldbook/WorldbookTab.vue';
 import HistoryTab from './global_tabs/history/HistoryTab.vue';
+import InterceptorTab from './global_tabs/interceptor/InterceptorTab.vue';
 import SettingsTab from './global_tabs/settings/SettingsTab.vue';
+import WorldbookTab from './global_tabs/worldbook/WorldbookTab.vue';
 
 // --- 外壳退化层：仅保留纯粹的视图控制与拖拽物理逻辑 ---
 const isVisible = ref(true);
@@ -201,6 +200,8 @@ const resetPosition = () => {
 };
 
 // --- 环境联动与事件总线挂载 ---
+import { setupGlobalListeners } from './global_tabs/shared_ui_state';
+
 const getEntryType = (entry: any) => {
   if (entry.constant === true) return 'constant';
   if (entry.constant === false) return 'selective';
@@ -228,6 +229,9 @@ const loadPrimaryWorldbookName = async () => {
 };
 
 onMounted(() => {
+  // 第 3 步：激活全局的事件总线，让 shared_ui_state 作为唯一数据源开始监听原生与内部变动
+  setupGlobalListeners();
+
   document.addEventListener('ark-config-updated', ((e: CustomEvent) => {
     const config = e.detail;
     if (config && config.isSystemEnabled) {

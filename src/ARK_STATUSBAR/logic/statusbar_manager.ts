@@ -1,6 +1,7 @@
 import { unref } from 'vue';
 import { BASELINE_STATE } from '../config/baseline';
 import { configStore, useArkConfig } from './core/config_store';
+import { ArkEventBus } from './core/event_bus';
 import { entryService } from './worldbook/entry_service';
 import { snapshotService } from './worldbook/snapshot_service';
 
@@ -178,6 +179,9 @@ export class StatusBarManager {
                 }
                 return wbEntries;
               });
+              
+              // 抛出内部自定义事件：后端主动修改了底层数据
+              ArkEventBus.emit('worldbook:data_changed', worldName);
             } catch (err) {
               hasFailures = true;
               failedItems.push(...uids.map(uid => ({ world: worldName, uid })));

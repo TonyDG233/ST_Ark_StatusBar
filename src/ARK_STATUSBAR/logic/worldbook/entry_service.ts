@@ -82,7 +82,7 @@ export class EntryService {
           if (entry.name && BASELINE_STATE.hasOwnProperty(entry.name)) {
             const baseline = BASELINE_STATE[entry.name];
             entry.enabled = baseline.enabled;
-
+            
             if (!entry.strategy) {
               entry.strategy = {};
             }
@@ -92,6 +92,9 @@ export class EntryService {
         });
         return entries;
       });
+      // 抛出内部自定义事件：后端已主动修改了底层数据，请求前端数据中心刷新倒影
+      ArkEventBus.emit('worldbook:data_changed', targetBook);
+
       toastr.success('世界书已重置为初始状态');
     } catch (error) {
       console.error('[ARK_EntryService] Reset failed:', error);
@@ -164,6 +167,10 @@ export class EntryService {
         });
         return entries;
       });
+      
+      // 抛出内部自定义事件
+      ArkEventBus.emit('worldbook:data_changed', targetBook);
+
       toastr.success('已关闭所有单字条目');
 
       if (diffChanges.length > 0) {
@@ -252,6 +259,9 @@ export class EntryService {
         });
         return entries;
       });
+
+      // 抛出内部自定义事件
+      ArkEventBus.emit('worldbook:data_changed', targetBook);
 
       toastr.success(`开局设置应用成功`);
       console.info('[ARK_EntryService] Scenario applied successfully.');

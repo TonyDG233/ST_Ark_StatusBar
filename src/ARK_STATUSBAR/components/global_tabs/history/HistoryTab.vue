@@ -237,13 +237,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { configStore, useArkConfig } from '../../../logic/core/config_store';
+import { ArkEventBus } from '../../../logic/core/event_bus';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
 import {
   allAvailableWorldbooks,
-  CONFIG_ENTRY_PREFIX,
-  currentPrimaryWorldbook,
-  expandedWorldbooks,
-  worldbookEntriesCache,
+  currentPrimaryWorldbook
 } from '../shared_ui_state';
 
 const currentConfig = useArkConfig();
@@ -317,18 +315,6 @@ const restoreSnapshot = async (id: string) => {
   if (confirm('确定要恢复到此快照的状态吗？')) {
     await manager.worldbook.restoreSnapshot(id);
     await loadWorldbookLists();
-
-    // 如果当前有展开的抽屉，重新拉取内容刷新缓存
-    if (currentPrimaryWorldbook.value && expandedWorldbooks.value.includes(currentPrimaryWorldbook.value)) {
-      try {
-        const entries = await getWorldbook(currentPrimaryWorldbook.value);
-        worldbookEntriesCache.value[currentPrimaryWorldbook.value] = entries.filter(
-          (e: any) =>
-            !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) &&
-            !(e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX)),
-        );
-      } catch (e) {}
-    }
   }
 };
 
@@ -351,20 +337,6 @@ const resetToBaseline = async () => {
     configStore.updateConfig({ commits: [] });
     await loadWorldbookLists(); // Refresh
 
-    // 如果主世界书正被展开，必须刷新本地缓存以触发UI更新
-    if (expandedWorldbooks.value.includes(currentPrimaryWorldbook.value)) {
-      try {
-        const entries = await getWorldbook(currentPrimaryWorldbook.value);
-        worldbookEntriesCache.value[currentPrimaryWorldbook.value] = entries.filter(
-          (e: any) =>
-            !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) &&
-            !(e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX)),
-        );
-      } catch (e) {
-        console.error('Refresh cache failed', e);
-      }
-    }
-
     if (typeof toastr !== 'undefined') toastr.success('已恢复基准线。');
   }
 };
@@ -376,20 +348,6 @@ const closeSingleChar = async () => {
   if (confirm('确定要一键关闭所有单字干员世界书吗？')) {
     await manager.worldbook.closeSingleCharEntries();
     await loadWorldbookLists();
-
-    // 如果主世界书正被展开，必须刷新本地缓存以触发UI更新
-    if (currentPrimaryWorldbook.value && expandedWorldbooks.value.includes(currentPrimaryWorldbook.value)) {
-      try {
-        const entries = await getWorldbook(currentPrimaryWorldbook.value);
-        worldbookEntriesCache.value[currentPrimaryWorldbook.value] = entries.filter(
-          (e: any) =>
-            !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) &&
-            !(e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX)),
-        );
-      } catch (e) {
-        console.error('Refresh cache failed', e);
-      }
-    }
   }
 };
 
@@ -439,19 +397,8 @@ const applyInverseChanges = async (commitList: any[]) => {
       return wbEntries;
     });
 
-    // 刷新已展开抽屉的缓存
-    if (expandedWorldbooks.value.includes(worldName)) {
-      try {
-        const entries = await getWorldbook(worldName);
-        worldbookEntriesCache.value[worldName] = entries.filter(
-          (e: any) =>
-            !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) &&
-            !(e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX)),
-        );
-      } catch (e) {
-        console.error('Failed to refresh cache for', worldName, e);
-      }
-    }
+    // 主动通知底层修改
+    ArkEventBus.emit('worldbook:data_changed', worldName);
   }
 };
 

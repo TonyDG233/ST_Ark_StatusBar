@@ -115,7 +115,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { configStore, useArkConfig } from '../../../logic/core/config_store';
-import { previewUiFontSize, previewUiWidth } from '../shared_ui_state';
+import { currentPrimaryWorldbook, previewUiFontSize, previewUiWidth, refreshWorldbookCache } from '../shared_ui_state';
 
 const currentConfig = useArkConfig();
 
@@ -170,9 +170,13 @@ const toggleDebugMode = (e: Event) => {
 /**
  * 一键清空所有的置顶设置
  */
-const clearPins = () => {
+const clearPins = async () => {
   if (confirm('确定要清空所有置顶的偏好条目吗？')) {
     configStore.updateConfig({ pinnedEntries: [] });
+    // 强行刷新当前主书，确保取消置顶后排序立刻生效
+    if (currentPrimaryWorldbook.value) {
+      await refreshWorldbookCache(currentPrimaryWorldbook.value);
+    }
   }
 };
 

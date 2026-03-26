@@ -1,4 +1,5 @@
-import { ref, computed } from 'vue';
+import { computed, ref } from 'vue';
+import { ArkEventBus } from '../../logic/core/event_bus';
 
 // ----------------------------------------------------------------------------
 // 1. 全局与拦截器共享状态 (Global & Interceptor Shared State)
@@ -36,12 +37,63 @@ export const expandedWorldbooks = ref<string[]>([]);
 export const worldbookEntriesCache = ref<Record<string, any[]>>({});
 export const isLoadingWb = ref<string | null>(null);
 
-// ----------------------------------------------------------------------------
-// 3. 通用辅助工具状态与 UI 预览状态 (Utility State & UI Preview State)
-// ----------------------------------------------------------------------------
 // 全局过滤系统配置前缀条目使用的常量
 export const CONFIG_ENTRY_PREFIX = '[SYS_CONFIG]';
 
+/**
+ * 核心架构升级：强制刷新指定世界书缓存的唯一入口。
+ * 当底层数据改变时，通过真实的 getWorldbook 获取最新数据覆盖缓存，杜绝 UI 的自欺欺人假死。
+ */
+export const refreshWorldbookCache = async (wbName: string) => {
+  if (!expandedWorldbooks.value.includes(wbName) && currentPrimaryWorldbook.value !== wbName) return;
+
+  try {
+    const entries = await getWorldbook(wbName);
+    worldbookEntriesCache.value[wbName] = entries.filter(
+      (e: any) =>
+        !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) &&
+        !(e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX)),
+    );
+  } catch (e) {
+    console.error(`[ARK_UI_STATE] Failed to refresh cache for ${wbName}`, e);
+  }
+};
+
+/**
+ * 全局挂载：监听所有可能导致世界书状态变化的原生及自定义事件。
+ * 这个函数只应在外壳组件初始化时被调用一次。
+ */
+export const setupGlobalListeners = () => {
+  // 1. 监听酒馆原生抛出的事件（兜底防范用户在外部侧边栏手动编辑条目）
+  if (typeof tavern_events !== 'undefined') {
+    // 监听特定世界书条目的更新
+    eventOn(tavern_events.WORLDINFO_UPDATED as any, async (name: string) => {
+      await refreshWorldbookCache(name);
+    });
+
+    // 监听世界书重新加载（如刷新、换卡）
+    eventOn(tavern_events.WORLDINFO_ENTRIES_LOADED as any, async () => {
+      // 全量刷新当前展开的所有世界书
+      for (const wbName of expandedWorldbooks.value) {
+        await refreshWorldbookCache(wbName);
+      }
+      if (currentPrimaryWorldbook.value && !expandedWorldbooks.value.includes(currentPrimaryWorldbook.value)) {
+        await refreshWorldbookCache(currentPrimaryWorldbook.value);
+      }
+    });
+  }
+
+  // 2. 监听我们自己底层的“黑盒修改”抛出的内部事件（主动通知，保证极速反馈）
+  ArkEventBus.on('worldbook:data_changed', async (targetWb: string) => {
+    if (targetWb) {
+      await refreshWorldbookCache(targetWb);
+    }
+  });
+};
+
+// ----------------------------------------------------------------------------
+// 3. 通用辅助工具状态与 UI 预览状态 (Utility State & UI Preview State)
+// ----------------------------------------------------------------------------
 // 用于设置界面拖动滑动条时，实现父容器外壳尺寸/字体的实时无延迟预览防撕裂
 export const previewUiWidth = ref<number | null>(null);
 export const previewUiFontSize = ref<number | null>(null);

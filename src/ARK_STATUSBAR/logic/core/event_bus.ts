@@ -32,6 +32,12 @@ interface ArkInternalEvents {
    * 请求更新配置存储的内容
    */
   'config:update_requested': (partialConfig: any) => void;
+
+  /**
+   * 底层世界书数据已经被修改，要求前端状态中心 (shared_ui_state) 触发真实的拉取覆盖。
+   * (代替原有的 Document CustomEvent)
+   */
+  'worldbook:data_changed': (worldbookName: string) => void;
 }
 
 type EventName = keyof ArkInternalEvents;

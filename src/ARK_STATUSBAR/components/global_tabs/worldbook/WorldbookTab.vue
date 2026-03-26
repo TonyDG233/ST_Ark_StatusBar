@@ -135,6 +135,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { configStore, useArkConfig } from '../../../logic/core/config_store';
+import { ArkEventBus } from '../../../logic/core/event_bus';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
 import {
   allAvailableWorldbooks,
@@ -364,20 +365,8 @@ const toggleEntryType = async (entry: any, explicitWbName?: string) => {
       return wbEntries;
     });
 
-    if (!entry.strategy) entry.strategy = {};
-    entry.strategy.type = newType;
-    entry.constant = newType === 'constant';
-
-    // 同步回本地缓存层以保持数据绑定
-    const cacheEntries = worldbookEntriesCache.value[targetWorldbook];
-    if (cacheEntries) {
-      const cached = cacheEntries.find((e: any) => e.uid === entry.uid);
-      if (cached) {
-        if (!cached.strategy) cached.strategy = {};
-        cached.strategy.type = newType;
-        cached.constant = newType === 'constant';
-      }
-    }
+    // 主动通知底层修改
+    ArkEventBus.emit('worldbook:data_changed', targetWorldbook);
 
     const newCommit = {
       id: Math.random().toString(36).substr(2, 6),
@@ -410,14 +399,8 @@ const toggleEntry = async (entry: any, explicitWbName?: string) => {
       return wbEntries;
     });
 
-    // 同步回本地缓存层以保持数据绑定
-    const cacheEntries = worldbookEntriesCache.value[targetWorldbook];
-    if (cacheEntries) {
-      const cached = cacheEntries.find((e: any) => e.uid === entry.uid);
-      if (cached) {
-        cached.enabled = entry.enabled;
-      }
-    }
+    // 主动通知底层修改
+    ArkEventBus.emit('worldbook:data_changed', targetWorldbook);
 
     const newCommit = {
       id: Math.random().toString(36).substr(2, 6),
@@ -429,6 +412,7 @@ const toggleEntry = async (entry: any, explicitWbName?: string) => {
     configStore.updateConfig({ commits: [...(currentConfig.value?.commits || []), newCommit] });
   } catch (e) {
     console.error('Failed to toggle entry', e);
+    // 此处还原开关视图，因为底层可能修改失败
     entry.enabled = !entry.enabled;
   }
 };

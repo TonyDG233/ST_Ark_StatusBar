@@ -64,6 +64,9 @@ export class SnapshotService {
         return entries;
       });
 
+      // 抛出内部自定义事件
+      ArkEventBus.emit('worldbook:data_changed', snapshot.worldbook);
+
       // 从记录历史中删除该世界书的历史操作记录，因为已彻底回滚到了最初的快照状态
       const commits = currentConfig.commits.filter(c => c.worldbook !== snapshot.worldbook);
       ArkEventBus.emit('config:update_requested', { commits });
