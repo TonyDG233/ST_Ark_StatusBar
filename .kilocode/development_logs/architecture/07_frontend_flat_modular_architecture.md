@@ -5,7 +5,7 @@
 本项目经历了从“单体巨石 JS”到“Vue 微后端垂直切片”的演进。然而，在初步拆分后，系统暴露出了三个亟待解决的深层架构问题，如果不加以规范，将导致未来项目扩展时重新陷入“意大利面条代码”的泥潭：
 
 1.  **数据结构的严重污染（缺少防腐层）**：
-    前端 UI（如 `Shared UI State`）和业务逻辑（`logic/`）直接且广泛地使用了酒馆宿主环境的原生裸数据结构（如 `WorldbookEntry` 甚至 `any`）。一旦原生 API 发生变动，整个前端渲染层将大面积崩溃。
+    前端 UI（如 `Shared UI State`）和业务逻辑（`logic/`）直接且广泛地使用了酒馆宿主环境的原生裸数据结构（如 `WorldbookEntry` 甚至 `any`）。一旦原生 API 发生变动，整个前端渲染层将大面积崩溃。目前在 `shared_ui_state.ts` 和 `entry_service.ts` 中仍然随处可见对 `any` 类型的断言，这随时是一颗定时炸弹。
 2.  **核心基建（Core）的定位模糊**：
     纯内存的事件总线（`event_bus.ts`）与响应式状态配置（`config_store.ts`）被嵌套在 `logic/core/` 下，导致业务逻辑与系统基建产生了物理上的隶属关系。同时，包含宿主环境写库副作用的 `logger.ts` 也混入其中，破坏了基建层的纯净性。
 3.  **单点门面（Facade）的臃肿化与职责涣散**：
@@ -171,10 +171,39 @@ graph TD
     };
     ```
 
-### 3.2 现有架构的不足反思 (Architecture Deficiencies)
-当前架构（本规划前）的主要不足在于：
-*   **服务缺乏接口约束**：目前 `logic/` 下的服务均直接 `export class`。在极端解耦和测试场景下，如果不提供 `IWorldbookService` 等接口约束，Vue 组件将被强绑定至具体实现类，这在巨型项目中可能会阻碍依赖注入 (DI) 的发展。
-*   **Mapper 职责不清晰**：酒馆原生数据到自定义类型的“清洗”逻辑尚未明确归属于 `types/` 模块的转义器（Mapper）中，容易导致转化逻辑散落在各个 Service 内部。
+### 3.2 现有架构的不足反思与下一阶段的务实重构 (Architecture Deficiencies & Pragmatic Evolution)
+
+结合目前项目的实际代码（例如 `shared_ui_state.ts`、`entry_service.ts` 和 `StatusBarManager.ts`），我们依然存在以下致命的结构性问题，亟需在下一阶段根除。
+**注意：本阶段坚决抵制任何为了“解耦”而滥用 `implements` 或重度依赖注入的过度设计，一切以消灭 `any` 幻觉和厘清职责为核心。**
+
+*   **毒瘤一：数据转译层 (Translation Layer) 缺失与 `any` 泛滥**
+    *   **现状**：目前系统从酒馆（SillyTavern）底层拉取的原生数据（如 `WorldbookEntry`）直接流窜到了我们的 Vue 组件和缓存中。不仅导致了大量的 `any` 断言（如 `(entry as any).strategy`），更是让大模型在写代码时频频陷入“幻觉”，凭空捏造酒馆不存在的属性。
+    *   **务实解决规划（防线建设）**：
+        1.  **契约先行**：在 `types/` 目录下（如 `types/domain_models.ts`），使用 `export interface` 或 `type` 严格定义我们内部业务所需的**纯净数据结构**（例如 `ArkWorldbookEntry`）。这不仅仅是数据定义，更是强迫未来的大模型和开发者在编写业务前，**必须先查阅并遵循这份 API 文档**，彻底规避幻觉。
+        2.  **强制转译（Translation）**：在 `logic/` 的业务入口处（如 `entry_service` 获取数据后），**必须通过转译器（Mapper）将原生脏数据转化为内部 `interface` 定义的结构**。所有内部流转的数据必须是纯净的。如果底层事件（如 `world_info_activated`）也传递了数据，同样先过一遍转译层。
+
+*   **毒瘤二：Facade（门面）的畸形与职责越界**
+    *   **现状**：目前的 `StatusBarManager.ts` 名为门面，实则在 `init()` 方法中塞满了一百多行关于 `GENERATION_ENDED` 恢复临时屏蔽条目、校验 Baseline 的原生事件监听与业务逻辑。它既当“前台”，又干着“保安”和“后勤”的脏活，导致每次添加新业务都会让门面迅速膨胀。
+    *   **务实解决规划（职责剥离）**：
+        1.  **门面绝对纯净化**：`StatusBarManager` 必须彻底退化为一个**毫无具体业务逻辑的 API 路由集线器**。它内部只负责 `import` 各个独立的 Service，并通过自身实例将其方法暴露出去（如 `manager.worldbook.xxx()`）。
+        2.  **抽离世界书原生事件监听组件 (Worldbook Event Automator)**：将那些暗中监控酒馆聊天进度、生成状态并自动修改世界书数据的逻辑，全部抽离到一个专门的 `logic/worldbook/worldbook_automator.ts` (或其他命名) 中。门面在初始化时，只需调用一句 `automator.startWatching()` 即可。
+
+### 3.3 新增功能的标准规范步骤 (Standard Operating Procedure for New Features)
+
+在明确了上述的转译层与门面职责后，未来任何 Agent 在本架构下新增功能（不论是简单的按钮还是庞大的 Story Engine V2），**必须严格遵循以下步骤顺序，禁止跳步：**
+
+1.  **【定义数据结构 (Define Data Contracts)】**：
+    *   **动作**：首先在 `types/` 目录下的相关 `.ts`（或 `.d.ts`）文件中，用 `export interface` / `type` 定义好该功能涉及的输入参数、返回结果或核心实体结构。
+    *   **目的**：这就是该功能的“白皮书”与 API 文档。强制让所有协作者（包括大模型）在动工前明确数据长什么样，消灭后续的 `any` 猜测。
+2.  **【编写底层业务服务 (Implement Logic Services)】**：
+    *   **动作**：在 `logic/` 下新建或修改对应的 `xxx_service.ts`。在其中实现具体的业务逻辑。
+    *   **核心法则**：**如果该服务需要读取或修改酒馆宿主的底层数据，必须在这里调用转译层（Mapper）**，确保流向内部系统的数据符合第 1 步定义的契约结构。
+3.  **【如有需要，注册专属监听器 (Register Automators)】**：
+    *   **动作**：如果新功能需要长期潜伏监听酒馆的原生事件（如等待某次生成结束），请将其封装在类似 `worldbook_automator.ts` 的独立监听组件中，**绝不允许直接塞入门面 (`StatusBarManager`) 中**。
+4.  **【暴露至纯净门面 (Expose to Facade)】**：
+    *   **动作**：在 `StatusBarManager.ts` (或其包含的子 Facade 类) 中，极其简短地调用第 2 步中编写的 Service 方法。门面不含 `for` 循环，不含 `if` 判断。
+5.  **【前端组件消费 (Consume in UI)】**：
+    *   **动作**：Vue 组件仅仅 `import { manager }`，调用门面的方法，或者从 `shared_ui_state` 获取早已转译好的纯净数据进行渲染。UI 层的脚本必须极度轻薄。
 
 ---
 
