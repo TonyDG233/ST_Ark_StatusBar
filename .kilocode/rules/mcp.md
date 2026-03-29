@@ -2,7 +2,7 @@
 alwaysApply: true
 ---
 
-# MCP
+# MCP 与工具执行规范
 
 ## chrome-devtools: 自行阅读和操控酒馆网页
 
@@ -16,4 +16,17 @@ alwaysApply: true
 
 当内置的 `edit_file` 或 `write_file` 等文件操作工具因换行符、不可见字符等原因频繁失败时，应当优先切换使用 `mcp-filesystem` 提供的对应工具（如 `mcp_filesystem_edit_file`），因其通常具有更好的鲁棒性。
 
-在使用终端执行命令时，请注意当前环境使用的是 PowerShell。**严禁**在命令中使用 `&&` 这种 cmd.exe/bash 的连接符。如果需要执行多条命令，请分次单独执行，或使用 PowerShell 支持的语法（如 `;`）。
+### 🚨 终端执行命令最高警告 (Windows PowerShell 环境) 🚨
+
+1. **绝对禁止使用 `&&` 拼接符**：
+   在使用终端（PowerShell）执行命令时，**严禁**使用 `&&` 这种 cmd.exe/bash 的连接符！如果需要执行多条命令，请分次单独执行，或使用 PowerShell 专用的分号 `;`。
+   *错误示例*：`git add . && git commit -m "..."`
+   *正确示例*：`git add . ; git commit -m "..."`
+
+2. **TypeScript 类型校验规范 (TS Check)**：
+   本项目的原生接口（`@types/`）依赖极其庞大，直接运行 `tsc` 会报出大量外部定义错误。因此，当你修改完代码后想校验是否损坏了项目类型边界时，**必须使用如下专门的命令**以跳过库检查：
+   `npx tsc --noEmit --skipLibCheck --project tsconfig.json`
+
+3. **打包构建规范 (Build)**：
+   开发测试完毕，确认要输出到 `dist/` 时，执行：
+   `pnpm run build`
