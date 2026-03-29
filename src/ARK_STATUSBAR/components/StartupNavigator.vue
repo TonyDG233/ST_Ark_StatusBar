@@ -92,9 +92,9 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { ASSETS } from '../config/assets';
-import { STARTUP_SCENARIOS, type Scenario } from '../config/scenarios';
-import { configStore, useArkConfig } from '../logic/core/config_store';
+import { ASSETS } from '../data/assets';
+import { STARTUP_SCENARIOS, type Scenario } from '../data/scenarios';
+import { configStore, useArkConfig } from '../core/config_store';
 import { StatusBarManager, type WorldbookStatus } from '../logic/statusbar_manager';
 import StartupSettingsPanel from './startup_tabs/StartupSettingsPanel.vue';
 
@@ -107,7 +107,7 @@ const isSettingsOpen = ref(false);
 // 记录当前世界书状态 (初始/被修改/单字关闭等)
 const wbStatus = ref<WorldbookStatus>('original');
 
-import { type ArkConfig } from '../config/system_config';
+import { type ArkConfig } from '../types/system_config';
 
 const currentConfig = useArkConfig();
 

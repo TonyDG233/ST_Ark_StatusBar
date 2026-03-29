@@ -1,6 +1,6 @@
 import { unref } from 'vue';
-import { useArkConfig } from '../core/config_store';
-import { ArkEventBus } from '../core/event_bus';
+import { useArkConfig } from '../../core/config_store';
+import { ArkEventBus } from '../../core/event_bus';
 
 /**
  * 负责世界书快照生命周期 (保存、恢复、删除) 的底层黑盒服务

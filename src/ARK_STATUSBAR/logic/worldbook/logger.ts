@@ -1,7 +1,7 @@
 import { unref } from 'vue';
-import { DEBUG_ENTRY_FULL_NAME } from '../../config/system_config';
-import { useArkConfig } from './config_store';
-import { ArkEventBus } from './event_bus';
+import { useArkConfig } from '../../core/config_store';
+import { ArkEventBus } from '../../core/event_bus';
+import { DEBUG_ENTRY_FULL_NAME } from '../../types/system_config';
 
 class LoggerService {
   private static instance: LoggerService;

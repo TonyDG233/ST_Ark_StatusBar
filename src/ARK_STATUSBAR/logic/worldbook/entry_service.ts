@@ -1,7 +1,7 @@
-import { BASELINE_STATE } from '../../config/baseline';
-import { STARTUP_SCENARIOS } from '../../config/scenarios';
-import { SINGLE_CHAR_ENTRIES } from '../../config/single_char_entries';
-import { ArkEventBus } from '../core/event_bus';
+import { ArkEventBus } from '../../core/event_bus';
+import { BASELINE_STATE } from '../../data/baseline';
+import { STARTUP_SCENARIOS } from '../../data/scenarios';
+import { SINGLE_CHAR_ENTRIES } from '../../data/single_char_entries';
 
 export type WorldbookStatus = 'original' | 'single_char_closed' | 'modified';
 

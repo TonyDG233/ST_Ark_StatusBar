@@ -69,7 +69,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { configStore, useArkConfig } from '../logic/core/config_store';
+import { configStore, useArkConfig } from '../core/config_store';
 import { StatusBarManager } from '../logic/statusbar_manager';
 import {
   allAvailableWorldbooks,

@@ -1,5 +1,5 @@
 import { computed, ref } from 'vue';
-import { ArkEventBus } from '../../logic/core/event_bus';
+import { ArkEventBus } from '../../core/event_bus';
 
 // ----------------------------------------------------------------------------
 // 1. 全局与拦截器共享状态 (Global & Interceptor Shared State)

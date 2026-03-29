@@ -114,7 +114,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { configStore, useArkConfig } from '../../../logic/core/config_store';
+import { configStore, useArkConfig } from '../../../core/config_store';
 import { currentPrimaryWorldbook, previewUiFontSize, previewUiWidth, refreshWorldbookCache } from '../shared_ui_state';
 
 const currentConfig = useArkConfig();

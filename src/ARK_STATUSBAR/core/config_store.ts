@@ -1,5 +1,5 @@
 import { ref, unref, watch } from 'vue';
-import { ArkConfig, CONFIG_ENTRY_PREFIX, DEFAULT_CONFIG } from '../../config/system_config';
+import { ArkConfig, CONFIG_ENTRY_PREFIX, DEFAULT_CONFIG } from '../types/system_config';
 import { ArkEventBus } from './event_bus';
 
 /**

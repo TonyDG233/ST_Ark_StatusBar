@@ -80,7 +80,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { ArkConfig } from '../../config/system_config';
+import type { ArkConfig } from '../../types/system_config';
 import type { WorldbookStatus } from '../../logic/statusbar_manager';
 
 const props = defineProps<{

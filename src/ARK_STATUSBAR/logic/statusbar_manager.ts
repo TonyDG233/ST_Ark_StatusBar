@@ -1,7 +1,7 @@
 import { unref } from 'vue';
-import { BASELINE_STATE } from '../config/baseline';
-import { configStore, useArkConfig } from './core/config_store';
-import { ArkEventBus } from './core/event_bus';
+import { BASELINE_STATE } from '../data/baseline';
+import { configStore, useArkConfig } from './../core/config_store';
+import { ArkEventBus } from './../core/event_bus';
 import { entryService } from './worldbook/entry_service';
 import { snapshotService } from './worldbook/snapshot_service';
 
@@ -72,9 +72,9 @@ export type { WorldbookStatus } from './worldbook/entry_service';
  *
  * @api_standard API 设计标准与扩展模式：
  * 1. 【聚合收束】：所有提供给 Vue 层调用的后端业务逻辑（如保存配置、应用剧本、执行干跑），
- *    都应在此处进行聚合和透传，禁止前端组件去直接 import `src/ARK_STATUSBAR/logic/core/` 等细分文件。
+ *    都应在此处进行聚合和透传，禁止前端组件去直接 import `src/ARK_STATUSBAR/../../core/` 等细分文件。
  * 2. 【解耦实现】：如果某一类业务功能代码超过了 200 行（例如发信拦截干跑，日志记录），
- *    必须将其拆分到子文件夹下（如 `interceptor/send_interceptor.ts`），然后在此文件中保留一个简单的转调函数。
+ *    必须将其拆分到子文件夹下（如 `worldbook/send_interceptor.ts`），然后在此文件中保留一个简单的转调函数。
  * 3. 【状态直通】：配置等响应式状态依然存在于 `configStore`，本文件通过 `get currentConfig()` 暴露出响应式引用，前端组件依然只需对接此类。
  */
 export class StatusBarManager {
@@ -132,7 +132,7 @@ export class StatusBarManager {
     }
   }
 
-  public saveConfig(configUpdate: Partial<import('../config/system_config').ArkConfig>) {
+  public saveConfig(configUpdate: Partial<import('../types/system_config').ArkConfig>) {
     configStore.updateConfig(configUpdate);
   }
 
@@ -281,12 +281,12 @@ export class StatusBarManager {
   }
 
   public async runManualTest() {
-    const { sendInterceptor } = await import('./interceptor/send_interceptor');
+    const { sendInterceptor } = await import('./worldbook/send_interceptor');
     await sendInterceptor.runManualTest();
   }
 
   public releaseInterceptAndSend() {
-    import('./interceptor/send_interceptor').then(({ sendInterceptor }) => {
+    import('./worldbook/send_interceptor').then(({ sendInterceptor }) => {
       sendInterceptor.releaseInterceptAndSend();
     });
   }
@@ -295,7 +295,7 @@ export class StatusBarManager {
    * 唤醒拦截器：防止按需加载导致拦截器未初始化
    */
   public async wakeupInterceptor() {
-    const { sendInterceptor } = await import('./interceptor/send_interceptor');
+    const { sendInterceptor } = await import('./worldbook/send_interceptor');
     sendInterceptor.bindInterceptor();
   }
 }

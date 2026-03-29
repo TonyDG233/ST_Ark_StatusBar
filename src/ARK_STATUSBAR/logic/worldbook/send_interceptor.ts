@@ -1,6 +1,6 @@
 import { unref } from 'vue';
-import { useArkConfig } from '../core/config_store';
-import { ArkEventBus } from '../core/event_bus';
+import { useArkConfig } from '../../core/config_store';
+import { ArkEventBus } from '../../core/event_bus';
 
 /**
  * 拦截与干跑逻辑服务
