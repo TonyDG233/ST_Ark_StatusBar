@@ -28,7 +28,7 @@
 *   **`src/ARK_STATUSBAR/components/GlobalStatusBar.vue` (主控面板外壳)**
     *   已重构为纯拖拽外壳容器，仅提供 Tabs 导航。
     *   具体业务全部分离至 `src/ARK_STATUSBAR/components/global_tabs/` 内部的独立子组件中（微后端垂直切片）。
-    *   使用 `shared_ui_state.ts` 作为前端跨组件的状态胶水，实现各 Tab 数据防撕裂和同频。
+    *   **响应式数据中枢**: 使用 `shared_ui_state.ts` 作为前端跨组件的状态胶水与数据管道。它通过监听自建的 `worldbook:data_changed` 总线事件及原生酒馆事件（如 `WORLDINFO_UPDATED`），实现后端数据库（SSOT）到前端缓存的单向数据流自动刷新，彻底杜绝了各 Tab 组件手动修改本地缓存导致的数据撕裂。
 *   **`src/ARK_STATUSBAR/components/StartupNavigator.vue` & `ReturnButton.vue` (开局与回溯 UI)**
     *   `StartupNavigator.vue`: 在新聊天（首条消息）区域挂载，提供可视化的开局剧本（Scenarios）注入与初始化界面。
     *   `ReturnButton.vue`: 在非初始刷新的页面提供跳转/返回的按钮入口，方便在不同剧情分支间导航。
