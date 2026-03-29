@@ -10,28 +10,22 @@
     *   调试导出：日志数据限长后写入 `[SYS_DEBUG]` 世界书。
     *   *(规划中)* 剧情进度坐标：存储于 `@types/function/variables.d.ts` 中的**聊天级变量 (Chat-scoped Variables)**。
 
-## 2. 模块结构划分 (当前)
-*   **`src/ARK_STATUSBAR/index.ts` (核心挂载与入口)**
-    *   负责全局 CSS 样式的 Teleport 提升，防止 iframe 样式污染。
-    *   启动 `startMountingLoop` 轮询检查聊天楼层状态：
-        *   当 `swipeId === 0` 时，在第一条 AI 消息上挂载 **开局跳转 UI (StartupNavigator)**。
-        *   当 `swipeId > 0` 时，替换挂载 **回溯按钮 (ReturnButton)**。
-    *   初始化并挂载独立于消息楼层的 **世界书管理器 (GlobalStatusBar)** 悬浮窗，并通过酒馆原生扩展 API 注册开启/关闭按钮。
-*   **`src/ARK_STATUSBAR/logic/statusbar_manager.ts` (配置与拦截中枢)**
-    *   封装对 `[SYS_CONFIG]` 和 `[SYS_DEBUG]` 的读写。
-    *   维护历史操作数组 (Commits)，处理撤销逻辑。
-    *   **发送拦截器**: 绑定对酒馆 `Send` 按钮或回车键的物理监听。当检测到拦截条件（例如存在未经用户确认的 Baseline 差异）时，阻断原生点击事件，拉起 UI 警告窗。
-*   **`src/ARK_STATUSBAR/logic/worldbook_manager.ts` (剧本状态调度)**
-    *   读取 `config/baseline.ts`。
-    *   提供一键应用预设场景 (STARTUP_SCENARIOS)、关闭所有单字干员等核心原子操作。
-    *   判断当前世界书状态 (Original / Modified)。
-*   **`src/ARK_STATUSBAR/components/GlobalStatusBar.vue` (主控面板外壳)**
-    *   已重构为纯拖拽外壳容器，仅提供 Tabs 导航。
-    *   具体业务全部分离至 `src/ARK_STATUSBAR/components/global_tabs/` 内部的独立子组件中（微后端垂直切片）。
-    *   **响应式数据中枢**: 使用 `shared_ui_state.ts` 作为前端跨组件的状态胶水与数据管道。它通过监听自建的 `worldbook:data_changed` 总线事件及原生酒馆事件（如 `WORLDINFO_UPDATED`），实现后端数据库（SSOT）到前端缓存的单向数据流自动刷新，彻底杜绝了各 Tab 组件手动修改本地缓存导致的数据撕裂。
-*   **`src/ARK_STATUSBAR/components/StartupNavigator.vue` & `ReturnButton.vue` (开局与回溯 UI)**
-    *   `StartupNavigator.vue`: 在新聊天（首条消息）区域挂载，提供可视化的开局剧本（Scenarios）注入与初始化界面。
-    *   `ReturnButton.vue`: 在非初始刷新的页面提供跳转/返回的按钮入口，方便在不同剧情分支间导航。
+## 2. 模块结构划分 (当前：平级模块化微后端架构)
+本项目已从单体应用彻底演进为五大平级模块，严禁反向依赖与层级污染：
+*   **`src/ARK_STATUSBAR/types/` (系统契约与防腐层)**
+    *   独立存放 `system_config.ts` (如 ArkConfig, ArkCommit)，作为跨模块流转数据的唯一合法接口契约（DTO）。
+    *   (规划中) 包含数据清洗 Mapper，将原生黑盒数据转换为前端纯净类型，阻断原生 API 变动污染。
+*   **`src/ARK_STATUSBAR/core/` (纯净核心基建)**
+    *   包含响应式配置中心 (`config_store.ts`) 与纯内存事件总线 (`event_bus.ts`)。
+    *   已移出所有具有写库副作用（如 `logger`）的业务代码，允许上层 UI 平级调用。
+*   **`src/ARK_STATUSBAR/data/` (静态业务数据区)**
+    *   只存放纯静态配置（如 `baseline.ts`, `scenarios.ts`），供业务逻辑单向读取。
+*   **`src/ARK_STATUSBAR/logic/` (后端业务门面与服务)**
+    *   **第一层 (Facade)**: `StatusBarManager.ts` 等统一对外接口类，封装底层杂乱的执行流，供前端组件单点调用。
+    *   **第二层 (Domain Services)**: 按领域（如 `worldbook/`）垂直划分的底层服务，包含 `entry_service`, `snapshot_service`, `logger`, `interceptor`。它们唯一拥有直接操作宿主环境 (SillyTavern 原生世界书) 的权限。
+*   **`src/ARK_STATUSBAR/components/` (微后端 UI 切片)**
+    *   外壳 (`GlobalStatusBar.vue`) 仅做拖拽挂载，具体业务按功能分布至 `global_tabs/` 内。
+    *   **响应式数据中枢 (`shared_ui_state.ts`)**: 通过监听 `worldbook:data_changed` 总线事件及 `WORLDINFO_UPDATED` 等原生事件，实现后端数据库（SSOT）到前端界面的单向数据自动刷新。严禁各 Tab 手动修改缓存！
 
 ## 3. 防线规约 (Redlines & Guardrails)
 

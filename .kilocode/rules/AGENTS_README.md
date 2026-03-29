@@ -19,36 +19,37 @@
     *   **MVU (Magical Variable Update)**: 通过自然语言输出和 JSON Patch 实现变量更新的框架。
 *   **核心依赖**: Prompt Template Plugin (提示词模板插件)，用于处理世界书 (Worldbook) 与 EJS 动态提示词逻辑。
 
-### 1.3 核心目录结构
+### 1.3 核心目录结构 (五大平级独立模块与周边)
+> 详情请见 [07_frontend_flat_modular_architecture.md](../development_logs/architecture/07_frontend_flat_modular_architecture.md) 中的 Mermaid 拓扑图。
 ```text
 src/
-├── ARK_STATUSBAR/          # 项目核心开发主目录
+├── ARK_STATUSBAR/          # 项目核心开发主目录 (平级模块化架构)
+│   ├── types/              # 【独立模块】系统级契约实体与数据清洗防线 (如 system_config.ts)，供所有模块合法平级调用
+│   ├── core/               # 【独立模块】核心纯净基建层 (事件总线、状态库)，不含写库逻辑，供平级调用
+│   ├── data/               # 【独立模块】静态业务数据存放区 (baseline, scenarios 等)，仅供单向读取
+│   ├── logic/              # 【独立模块】业务逻辑层，包含外层门面入口和内部领域服务
+│   │   ├── statusbar_manager.ts # 统一业务门面 (Facade)，封装一切操作并暴露给 UI
+│   │   └── worldbook/      # 世界书领域相关服务 (包含 entry, snapshot, logger, interceptor)
+│   ├── components/         # 【独立模块】纯净的 UI 渲染层与微后端视图逻辑 (包含 shared_ui_state 数据中枢)
 │   ├── index.ts            # 入口文件 (挂载UI及后端初始化)
-│   ├── components/         # Vue UI 组件 (如 GlobalStatusBar)
-│   ├── config/             # 配置与静态参数
-│   ├── logic/              # 业务逻辑处理 (包含状态管理器、更新器等)
-│   ├── prompts/            # EJS 动态提示词与世界书 YAML 配置
 │   └── tools/              # 本地构建与代码生成工具
-├── poc/                    # PoC (概念验证) 独立勘探区。用于在黑盒环境中写测试脚本排雷
+├── poc/                    # PoC (概念验证) 独立勘探区。用于在黑盒环境中写测试脚本排雷 (极度重要！)
 └── util/                   # 共享工具函数箱 (mvu.ts, script.ts)
 ```
 
 ### 1.4 模块边界与扩展接口规范 (Module Boundaries & Extension Rules)
-为了防止代码腐化为庞大的面条代码或“上帝对象”，本项目严格划分了以下架构边界，所有 Agent 必须遵照执行：
-*   **1. 响应式配置中心 (`logic/core/config_store.ts`)**: 
-    *   作为唯一的配置数据源（SSOT）。任何涉及到 `ArkConfig` 读写的操作，必须调用此类，严禁由 UI 组件直接穿透。
-*   **2. 高度自治的前端组件 (`components/**/*.vue`)**: 
-    *   **原则**: 拒绝形式主义的“胖容器”切割。各个 Tab 子组件负责独立的视图呈现，并且需要**直接导入**后端的 `logic` 模块执行业务（例如 `@click="snapshotService.restore()"`）。
-    *   **禁区**: 严禁利用 Vue 的 `emit` 事件管道，把后端逻辑请求回抛给上层父组件（如 `GlobalStatusBar.vue`），造成父组件越权膨胀。
-*   **3. 纯粹的后端业务层 (`logic/**/*.ts`)**: 
-    *   **原则**: 每一个复杂的业务流（如世界书操作 `worldbook/`，开局剧情替换 `scenario/`，拦截器挂载 `interceptor/`）必须拆分为独立的服务脚本，不可随意堆叠至 `statusbar_manager` 中。
-    *   **通信限制**: 后端业务脚本之间**严禁双向依赖**（互为 Import）。如需相互通信，必须通过 `logic/core/event_bus.ts` 进行事件发布/订阅，或调用专用的 `logger.ts`。
-*   **4. 树状门面模式 (Facade Hub)**:
-    *   `logic/statusbar_manager.ts` 作为后端逻辑唯一的入口门面 (Root Facade)。前端 Vue 组件必须且只能通过它（或其子属性如 `manager.worldbook`）下达业务指令。严禁前端直接引用底层的 `service` 脚本。
-*   **5. 前端微后端与垂直切片 (Frontend Micro-Backend & Slicing)**:
-    *   严禁制造包含上千行的巨石 Vue 容器（如旧版的 GlobalStatusBar）。
-    *   必须按照业务领域建立独立的 Tab 文件夹，内部包含专属的 `.vue` 视图骨架、`.ts` 微后端逻辑和 `.scss` 局部私有样式。
-    *   通过共享的 `shared_ui_state.ts` (基于 Composition API) 和底层 `StatusBarManager` 直连来实现组件间的状态同频与解耦，彻底消灭不必要的 props 透传和 emit 事件瀑布管道。
+为了防止代码腐化为庞大的面条代码或“上帝对象”，本项目确立了**平级模块化 (Flat Modularization)** 与 **数据接口防腐 (Interface ACL)** 边界。所有 Agent 必须遵照执行：
+*   **1. 严格的单向或平级依赖限制**: 
+    *   `Components` (UI)、`Logic` (业务) 均可平级、合法且直接地调用 `Types` (契约) 与 `Core` (基建)。
+    *   `Components` (UI) 若需执行业务修改（如应用剧情、写入快照），**只能**调用 `Logic` 层提供的统一门面方法（如 `StatusBarManager` 的方法）。
+    *   **绝对禁止**：UI 直接 import 底层的 Service（如 `entry_service.ts`）；禁止逆向依赖（如 `Core` 去引用 `Logic` 或 `Components`）。
+*   **2. 数据结构防腐映射 (Mapper)**: 
+    *   从 `Logic` (服务层) 返回给 `Components` 渲染中枢 (`shared_ui_state`) 的数据，在规划中必须被清洗为 `Types` 中自定义的业务实体（如 `ArkStatusItem`），严禁酒馆原生结构（`WorldbookEntry` 或 `any`）向上传染前端模板。
+*   **3. 基础设施层 (Core) 的绝对纯净**: 
+    *   `core/` 下只能存放诸如 `event_bus.ts` 等无副作用的纯技术组件。一旦包含调用宿主底层且带修改副作用的操作（如 `logger` 写入世界书落盘），必须将其划入 `Logic` 下作为业务服务，严禁挂载于 `Core`。
+*   **4. 高度自治的前端组件与响应式防撕裂**: 
+    *   各个 Tab 子组件负责独立的视图呈现，拒绝形式主义的“胖容器”。
+    *   通过基于 Vue 的 `shared_ui_state.ts` 以及底层的 `worldbook:data_changed` 事件，实现组件间内存同频，抛弃陈旧的 `emit` 事件瀑布流。
 
 ---
 
