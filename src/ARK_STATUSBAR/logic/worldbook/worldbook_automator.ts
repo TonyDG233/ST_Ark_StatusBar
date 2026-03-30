@@ -139,10 +139,9 @@ class WorldbookAutomator {
         }
       }
 
-      // 如果存在差异，可以通过抛出事件让 UI 进行提示
+      // 如果存在差异，通过自定义事件总线分发
       if (hasDiff) {
-        const event = new CustomEvent('ark-baseline-diff-detected');
-        document.dispatchEvent(event);
+        ArkEventBus.emit('worldbook:baseline_diff_detected');
       }
     } catch (e) {
       console.error('[ARK_Automator] Diff check failed', e);

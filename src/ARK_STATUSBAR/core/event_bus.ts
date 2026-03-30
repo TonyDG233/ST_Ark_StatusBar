@@ -19,6 +19,16 @@ interface ArkInternalEvents {
   'interceptor:token_calculated': (data: { chatTurnsCount: number; realTimePassedMs: number }) => void;
 
   /**
+   * 触发系统总开关（在酒馆侧边栏扩展按钮点击时触发）
+   */
+  'system:toggle': () => void;
+
+  /**
+   * 聊天切换事件（在酒馆原生 CHAT_CHANGED 触发时广播）
+   */
+  'system:chat_changed': () => void;
+
+  /**
    * 当世界书快照或剧本应用被修改时，通知产生一条历史记录 (Commit)
    */
   'history:commit_added': (commitData: import('../types/system_config').ArkCommit) => void;
@@ -38,6 +48,11 @@ interface ArkInternalEvents {
    * (代替原有的 Document CustomEvent)
    */
   'worldbook:data_changed': (worldbookName: string) => void;
+
+  /**
+   * 发现当前状态与 Baseline(基准线) 存在差异，通知前端显示提示
+   */
+  'worldbook:baseline_diff_detected': () => void;
 }
 
 type EventName = keyof ArkInternalEvents;

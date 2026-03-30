@@ -166,12 +166,18 @@ export class StatusBarManager {
     // 监听 CHAT_CHANGED，单纯为了派发 ark-chat-changed 事件通知 UI 刷新 "全部条目" 列表。
     // 差异检查等繁重逻辑已经剥离给 Automator 处理了。
     eventOn(tavern_events.CHAT_CHANGED, () => {
-      document.dispatchEvent(new CustomEvent('ark-chat-changed'));
+    // 通过自定义事件总线分发
+    import('./../core/event_bus').then(({ ArkEventBus }) => {
+    ArkEventBus.emit('worldbook:data_changed', this.targetWorldbook || '');
+    ArkEventBus.emit('system:chat_changed');
     });
-
+    });
+    
     // 监听生成结束事件：同样抛出事件以便状态同步（因为生成过程中可能条目状态变了）
     eventOn(tavern_events.GENERATION_ENDED, () => {
-      document.dispatchEvent(new CustomEvent('ark-chat-changed'));
+      import('./../core/event_bus').then(({ ArkEventBus }) => {
+        ArkEventBus.emit('worldbook:data_changed', this.targetWorldbook || '');
+      });
     });
   }
 

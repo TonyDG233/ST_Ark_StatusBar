@@ -116,7 +116,9 @@ $(() => {
       if (globalEventOn) {
         globalEventOn(btnEvent, () => {
           // Dispatch a new event to toggle the entire system
-          document.dispatchEvent(new CustomEvent('ark-toggle-system'));
+          import('./core/event_bus').then(({ ArkEventBus }) => {
+            ArkEventBus.emit('system:toggle');
+          });
         });
       }
     } catch (e) {

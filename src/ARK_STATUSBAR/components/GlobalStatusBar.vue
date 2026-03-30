@@ -68,8 +68,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { configStore, useArkConfig } from '../core/config_store';
+import { ArkEventBus } from '../core/event_bus';
 import { StatusBarManager } from '../logic/statusbar_manager';
 import {
   allAvailableWorldbooks,
@@ -287,7 +288,8 @@ onMounted(() => {
   }
   requestAnimationFrame(() => checkBounds());
 
-  document.addEventListener('ark-baseline-diff-detected', () => {
+  // 替换掉原有的原生 CustomEvent 监听
+  const diffHandler = () => {
     if (typeof toastr !== 'undefined') {
       toastr.warning(
         '检测到当前世界书带有开局剧情或手动修改的残余状态。为防止剧情串台，建议在侧边栏重置。',
@@ -295,15 +297,19 @@ onMounted(() => {
         { timeOut: 8000, positionClass: 'toast-top-center' },
       );
     }
-  });
-
-  document.addEventListener('ark-chat-changed', () => {
+  };
+  ArkEventBus.on('worldbook:baseline_diff_detected', diffHandler);
+  
+  // 原有的 ark-chat-changed 用于重新拉取 primary 名称，它不属于 diff，可以直接放到 loadWorldbookLists 中，或者这里先保留自定义事件兼容
+  // 后续如果 chat-changed 也是核心总线，就继续替换。
+  const chatChangedHandler = () => {
     if (currentConfig.value?.isSystemEnabled) {
       loadPrimaryWorldbookName();
     }
-  });
+  };
+  ArkEventBus.on('system:chat_changed', chatChangedHandler);
 
-  document.addEventListener('ark-toggle-system', () => {
+  const toggleSystemHandler = () => {
     const newState = !(currentConfig.value?.isSystemEnabled ?? true);
     configStore.updateConfig({ isSystemEnabled: newState });
 
@@ -311,10 +317,15 @@ onMounted(() => {
       loadPrimaryWorldbookName();
       requestAnimationFrame(() => checkBounds());
     }
-  });
+  };
+  ArkEventBus.on('system:toggle', toggleSystemHandler);
 
-  const ST_WIN = window.parent || window;
-  ST_WIN.addEventListener('resize', () => requestAnimationFrame(() => checkBounds()));
+  // 组件卸载时解绑
+  onUnmounted(() => {
+    ArkEventBus.off('worldbook:baseline_diff_detected', diffHandler);
+    ArkEventBus.off('system:chat_changed', chatChangedHandler);
+    ArkEventBus.off('system:toggle', toggleSystemHandler);
+  });
 });
 </script>
 
