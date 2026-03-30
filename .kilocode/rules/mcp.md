@@ -26,6 +26,11 @@ alwaysApply: true
 2. **TypeScript 类型校验规范 (TS Check)**：
    本项目的原生接口（`@types/`）依赖极其庞大，直接运行 `tsc` 会报出大量外部定义错误。因此，当你修改完代码后想校验是否损坏了项目类型边界时，**必须使用如下专门的命令**以跳过库检查：
    `npx tsc --noEmit --skipLibCheck --project tsconfig.json`
+   
+   **Vue 组件类型校验特例**：
+   如果需要检查 `.vue` 文件内部模板或脚本的类型错误，必须使用：
+   `npx vue-tsc --noEmit --skipLibCheck`
+   > **注意**：为了使 `vue-tsc` 能正常工作并且不抛出编译配置报错，我们从 `tsconfig.json` 中移除了 `"baseUrl": "src"` 配置。如果后续项目在进行相对路径打包或模块解析时出现疑似相关的错误，请记得将该属性还原回去。
 
 3. **打包构建规范 (Build)**：
    开发测试完毕，确认要输出到 `dist/` 时，执行：
