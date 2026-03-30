@@ -1,7 +1,5 @@
 import { unref } from 'vue';
-import { BASELINE_STATE } from '../data/baseline';
-import { configStore, useArkConfig } from './../core/config_store';
-import { ArkEventBus } from './../core/event_bus';
+import { configStore } from './../core/config_store';
 import { entryService } from './worldbook/entry_service';
 import { snapshotService } from './worldbook/snapshot_service';
 
@@ -139,145 +137,39 @@ export class StatusBarManager {
   private eventsBound: boolean = false;
 
   /**
-   * 设置环境事件监听。
+   * 设置环境事件监听 (已移交至专门的 worldbookAutomator)。
+   * 此处仅做桥接调用，保持门面纯净。
    */
   private setupEvents() {
     if (this.eventsBound) return;
     this.eventsBound = true;
 
-    // 监听生成结束事件：恢复“临时阻断”的世界书条目 (需求2)
-    eventOn(tavern_events.GENERATION_ENDED, async () => {
-      if (this.tempDisabledEntries.length > 0) {
-        console.info('[ARK_StatusBar] Restoring temp disabled entries after generation...');
-        const entriesToRestore = [...this.tempDisabledEntries];
-        this.tempDisabledEntries = []; // 立即清空，防止重入
-        try {
-          // 根据不同的世界书分类恢复
-          const worldGroups = entriesToRestore.reduce(
-            (acc, curr) => {
-              if (!acc[curr.world]) acc[curr.world] = [];
-              acc[curr.world].push(curr.uid);
-              return acc;
-            },
-            {} as Record<string, number[]>,
-          );
-
-          let hasFailures = false;
-          const failedItems: { world: string; uid: number }[] = [];
-
-          for (const [worldName, uids] of Object.entries(worldGroups)) {
-            try {
-              await updateWorldbookWith(worldName, wbEntries => {
-                for (const uid of uids) {
-                  const entry = wbEntries.find(e => e.uid === uid);
-                  if (entry) {
-                    entry.enabled = true;
-                  } else {
-                    hasFailures = true;
-                    failedItems.push({ world: worldName, uid });
-                  }
-                }
-                return wbEntries;
-              });
-
-              // 抛出内部自定义事件：后端主动修改了底层数据
-              ArkEventBus.emit('worldbook:data_changed', worldName);
-            } catch (err) {
-              hasFailures = true;
-              failedItems.push(...uids.map(uid => ({ world: worldName, uid })));
-            }
-          }
-
-          // 如果还原有失败的（比如世界书被删了或者临时故障），就扔一条 Commit 提醒用户
-          if (hasFailures) {
-            console.error('[ARK_StatusBar] Some temp disabled entries failed to restore:', failedItems);
-            const currentConfig = useArkConfig().value;
-            if (currentConfig) {
-              const newCommit = {
-                id: Math.random().toString(36).substr(2, 6),
-                timestamp: Date.now(),
-                description: `[警告] 拦截器单次屏蔽恢复失败`,
-                worldbook: 'System',
-                changes: failedItems.map(item => ({
-                  uid: item.uid,
-                  comment: `World: ${item.world}`,
-                  from: false,
-                  to: false, // 没能开启
-                })),
-              };
-              const commits = [...(currentConfig.commits || []), newCommit];
-              configStore.updateConfig({ commits });
-            }
-          }
-
-          // 虽然生成结束后界面可能已关闭，但仍抛出事件以便状态同步
-          document.dispatchEvent(new CustomEvent('ark-chat-changed'));
-        } catch (e) {
-          console.error('[ARK_StatusBar] Failed to process temp disabled entries restoration', e);
-        }
-      }
+    import('./worldbook/worldbook_automator').then(({ worldbookAutomator }) => {
+      worldbookAutomator.startWatching(
+        () => {
+          // 在触发事件时，重新获取当前的角色并更新 targetWorldbook
+          // 使用异步方式但不返回 promise 给同步的 callback
+          const result = getCharWorldbookNames('current');
+          if (result && result.primary) this.targetWorldbook = result.primary;
+          else if (result && result.additional && result.additional.length > 0) this.targetWorldbook = result.additional[0];
+          
+          return this.targetWorldbook;
+        },
+        () => this.tempDisabledEntries,
+        () => { this.tempDisabledEntries = []; }
+      );
     });
-
-    // 监听酒馆原生 CHAT_CHANGED 事件（切换聊天或重新加载时）
-    eventOn(tavern_events.CHAT_CHANGED, async () => {
-      console.info('[ARK_StatusBar] Chat changed, checking baseline diff and reloading...');
-
-      try {
-        // 用户可能切换了角色，因此需要重新获取绑定的世界书
-        const result = await getCharWorldbookNames('current');
-        if (result.primary) this.targetWorldbook = result.primary;
-        else if (result.additional && result.additional.length > 0) this.targetWorldbook = result.additional[0];
-
-        if (this.targetWorldbook) {
-          await configStore.loadOrInitConfig(this.targetWorldbook);
-          await this.checkBaselineDiff(); // 检查当前状态是否偏离了设定的 Baseline
-        }
-      } catch (error) {
-        console.error('[ARK_StatusBar] Failed to handle chat change', error);
-      }
-
-      // 派发事件通知 UI 刷新 "全部条目" 列表
+    
+    // 监听 CHAT_CHANGED，单纯为了派发 ark-chat-changed 事件通知 UI 刷新 "全部条目" 列表。
+    // 差异检查等繁重逻辑已经剥离给 Automator 处理了。
+    eventOn(tavern_events.CHAT_CHANGED, () => {
       document.dispatchEvent(new CustomEvent('ark-chat-changed'));
     });
-  }
-
-  /**
-   * 检查当前世界书状态与 Baseline (基准线) 的差异。
-   */
-  public async checkBaselineDiff() {
-    if (!this.targetWorldbook) return;
-    try {
-      // 如果要求静默下一次警告（如刚恢复 Baseline 后），则跳过并复位标志
-      if (this.currentConfig.suppressNextDiffWarning) {
-        console.info('[ARK_StatusBar] Suppressing diff warning as requested.');
-        await configStore.updateConfig({ suppressNextDiffWarning: false });
-        return;
-      }
-
-      const entries = await getWorldbook(this.targetWorldbook);
-      let hasDiff = false;
-      for (const key of Object.keys(BASELINE_STATE)) {
-        const entry = entries.find(e => e.name === key);
-        const baseline = BASELINE_STATE[key];
-
-        if (entry) {
-          const currentType = entry.strategy?.type || 'selective';
-          // 只要开关状态或触发类型（蓝/绿灯）有不一致，即认为存在差异
-          if (entry.enabled !== baseline.enabled || currentType !== baseline.type) {
-            hasDiff = true;
-            break;
-          }
-        }
-      }
-
-      // 如果存在差异，可以通过抛出事件让 UI 进行提示
-      if (hasDiff) {
-        const event = new CustomEvent('ark-baseline-diff-detected');
-        document.dispatchEvent(event);
-      }
-    } catch (e) {
-      console.error('[ARK_StatusBar] Diff check failed', e);
-    }
+    
+    // 监听生成结束事件：同样抛出事件以便状态同步（因为生成过程中可能条目状态变了）
+    eventOn(tavern_events.GENERATION_ENDED, () => {
+      document.dispatchEvent(new CustomEvent('ark-chat-changed'));
+    });
   }
 
   public async runManualTest() {
