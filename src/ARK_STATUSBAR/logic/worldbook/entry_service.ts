@@ -77,14 +77,19 @@ export class EntryService {
   async resetToBaseline(targetBook: string): Promise<void> {
     console.info('[ARK_EntryService] Resetting Worldbook to Baseline...');
     try {
-      await updateWorldbookWith(targetBook, (entries) => {
-        entries.forEach((entry) => {
+      await updateWorldbookWith(targetBook, entries => {
+        entries.forEach(entry => {
           if (entry.name && BASELINE_STATE.hasOwnProperty(entry.name)) {
             const baseline = BASELINE_STATE[entry.name];
             entry.enabled = baseline.enabled;
 
             if (!entry.strategy) {
-              entry.strategy = { type: 'selective', keys: [], keys_secondary: { logic: 'and_any', keys: [] }, scan_depth: 'same_as_global' };
+              entry.strategy = {
+                type: 'selective',
+                keys: [],
+                keys_secondary: { logic: 'and_any', keys: [] },
+                scan_depth: 'same_as_global',
+              };
             }
             entry.strategy.type = baseline.type as 'constant' | 'selective' | 'vectorized';
           }
@@ -111,7 +116,7 @@ export class EntryService {
       let isSingleCharClosed = true;
 
       for (const key of Object.keys(BASELINE_STATE)) {
-        const entry = entries.find((e) => e.name === key);
+        const entry = entries.find(e => e.name === key);
         if (!entry) continue;
 
         const baseline = BASELINE_STATE[key];
@@ -150,7 +155,7 @@ export class EntryService {
     console.info('[ARK_EntryService] Closing all single-character entries...');
     try {
       let diffChanges: { uid: number; comment: string; from: boolean; to: boolean }[] = [];
-      await updateWorldbookWith(targetBook, (entries) => {
+      await updateWorldbookWith(targetBook, entries => {
         entries.forEach(entry => {
           if (entry.name && SINGLE_CHAR_ENTRIES.includes(entry.name)) {
             if (entry.enabled) {
@@ -216,7 +221,7 @@ export class EntryService {
     try {
       let diffChanges: { uid: number; comment: string; from: boolean; to: boolean }[] = [];
 
-      await updateWorldbookWith(targetBook, (entries) => {
+      await updateWorldbookWith(targetBook, entries => {
         entries.forEach(entry => {
           const name = entry.name;
           if (!name) return;

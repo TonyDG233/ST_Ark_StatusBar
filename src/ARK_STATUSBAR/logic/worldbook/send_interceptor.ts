@@ -249,7 +249,7 @@ class SendInterceptor {
             const entryWorld = (newEntry as any).world || 'UnknownWorld';
             // 添加 UI 强相关的辅助字段
             (mapped as any).world = entryWorld;
-            
+
             // 唯一键组合：所在的Worldbook名 + 本身的UID + (名字或备注防止无ID的特殊条目)
             const newKey = `${entryWorld}_${mapped.uid}_${mapped.name}`;
             if (!uniqueMap.has(newKey)) {

@@ -379,7 +379,13 @@ const applyInverseChanges = async (commitList: ArkCommit[]) => {
           if (e) {
             // 对类型的逆向恢复
             if (commit.description.includes('changed type') || commit.description.includes('修改触发类型')) {
-              if (!e.strategy) e.strategy = { type: 'selective', keys: [], keys_secondary: { logic: 'and_any', keys: [] }, scan_depth: 'same_as_global' };
+              if (!e.strategy)
+                e.strategy = {
+                  type: 'selective',
+                  keys: [],
+                  keys_secondary: { logic: 'and_any', keys: [] },
+                  scan_depth: 'same_as_global',
+                };
               e.strategy.type = change.from ? 'constant' : 'selective';
             } else {
               // 对于开关的恢复：要明确检查 change.from
@@ -432,7 +438,9 @@ const deleteCommit = async (commit: ArkCommit) => {
  * 批量恢复选中的提交记录
  */
 const batchRevertCommits = async () => {
-  const commitsToRevert = (currentConfig.value?.commits || []).filter((c: ArkCommit) => selectedCommits.value.includes(c.id));
+  const commitsToRevert = (currentConfig.value?.commits || []).filter((c: ArkCommit) =>
+    selectedCommits.value.includes(c.id),
+  );
   if (!commitsToRevert.length) return;
 
   if (!confirm(`确定要恢复这 ${commitsToRevert.length} 条选中的记录吗？(状态将被还原)`)) return;
@@ -440,7 +448,9 @@ const batchRevertCommits = async () => {
   try {
     await applyInverseChanges(commitsToRevert);
 
-    const commits = (currentConfig.value?.commits || []).filter((c: ArkCommit) => !selectedCommits.value.includes(c.id));
+    const commits = (currentConfig.value?.commits || []).filter(
+      (c: ArkCommit) => !selectedCommits.value.includes(c.id),
+    );
     configStore.updateConfig({ commits });
     selectedCommits.value = []; // 操作完清空选中
     isBatchMode.value = false;

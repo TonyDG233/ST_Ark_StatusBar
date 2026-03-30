@@ -122,5 +122,4 @@ export class WorldbookMapper {
       extra: clonedRaw.extra ? { ...clonedRaw.extra } : undefined,
     };
   }
-
 }

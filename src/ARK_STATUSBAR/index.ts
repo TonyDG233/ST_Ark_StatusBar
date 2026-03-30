@@ -104,7 +104,9 @@ $(() => {
     typeof (window.parent as any).appendInexistentScriptButtons === 'function'
   ) {
     const appendFn =
-      typeof appendInexistentScriptButtons === 'function' ? appendInexistentScriptButtons : (window.parent as any).appendInexistentScriptButtons;
+      typeof appendInexistentScriptButtons === 'function'
+        ? appendInexistentScriptButtons
+        : (window.parent as any).appendInexistentScriptButtons;
     const getEventFn = typeof getButtonEvent === 'function' ? getButtonEvent : (window.parent as any).getButtonEvent;
     const globalEventOn = typeof eventOn === 'function' ? eventOn : (window.parent as any).eventOn;
 

@@ -52,7 +52,9 @@
                 <span style="font-size: 0.9em; margin-right: 4px">{{
                   getEntryType(entry) === 'constant' ? '🔵' : '🟢'
                 }}</span>
-                {{ entry.name || (entry.strategy?.keys && entry.strategy.keys.length ? entry.strategy.keys[0] : '未知') }}
+                {{
+                  entry.name || (entry.strategy?.keys && entry.strategy.keys.length ? entry.strategy.keys[0] : '未知')
+                }}
                 <span v-if="entry.world" style="font-size: 0.8em; opacity: 0.7; margin-left: 5px"
                   >({{ entry.world }})</span
                 >
@@ -86,7 +88,7 @@
           :key="entry.uid || Math.random()"
           :class="{ 'disabled-entry': entry.enabled === false && !entry.tempDisabled }"
         >
-              <div class="entry-name">
+          <div class="entry-name">
             <span v-if="isPinned(entry)" class="pin-icon">📌</span>
             <span style="font-size: 0.9em; margin-right: 4px">{{
               getEntryType(entry) === 'constant' ? '🔵' : '🟢'

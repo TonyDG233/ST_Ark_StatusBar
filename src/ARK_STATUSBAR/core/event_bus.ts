@@ -64,7 +64,7 @@ class ArkEventBusImpl {
   public off<K extends EventName>(event: K, callback: EventCallback<K>): void {
     const callbacks = this.listeners[event];
     if (callbacks) {
-      this.listeners[event] = callbacks.filter(cb => cb !== callback) as typeof this.listeners[K];
+      this.listeners[event] = callbacks.filter(cb => cb !== callback) as (typeof this.listeners)[K];
     }
   }
 

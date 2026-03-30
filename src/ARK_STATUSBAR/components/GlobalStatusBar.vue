@@ -202,7 +202,9 @@ const resetPosition = () => {
 // --- 环境联动与事件总线挂载 ---
 import { setupGlobalListeners } from './global_tabs/shared_ui_state';
 
-const getEntryType = (entry: Partial<import('../types/st_worldbook_types').WorldbookEntry> & Partial<SillyTavern.FlattenedWorldInfoEntry>) => {
+const getEntryType = (
+  entry: Partial<import('../types/st_worldbook_types').WorldbookEntry> & Partial<SillyTavern.FlattenedWorldInfoEntry>,
+) => {
   if (entry.constant === true) return 'constant';
   if (entry.constant === false) return 'selective';
   return entry.strategy?.type || 'selective';

@@ -58,10 +58,7 @@ export const refreshWorldbookCache = async (wbName: string) => {
 
   try {
     const entries = await getWorldbook(wbName);
-    worldbookEntriesCache.value[wbName] = entries.filter(
-      e =>
-        !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX))
-    );
+    worldbookEntriesCache.value[wbName] = entries.filter(e => !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)));
   } catch (e) {
     console.error(`[ARK_UI_STATE] Failed to refresh cache for ${wbName}`, e);
   }

@@ -77,9 +77,7 @@ class LoggerService {
     if (this.debugLogQueue.length === 0) return;
     try {
       let entries = await getWorldbook(targetWorldbook);
-      let debugEntry = entries.find(
-        (e) => e.name === DEBUG_ENTRY_FULL_NAME
-      );
+      let debugEntry = entries.find(e => e.name === DEBUG_ENTRY_FULL_NAME);
 
       const logContent = JSON.stringify(this.debugLogQueue, null, 2);
 
@@ -93,17 +91,17 @@ class LoggerService {
               type: 'selective',
               keys: [],
               keys_secondary: { logic: 'and_any', keys: [] },
-              scan_depth: 'same_as_global'
+              scan_depth: 'same_as_global',
             },
             position: { type: 'before_character_definition', role: 'system', depth: 0, order: 100 },
             probability: 100,
             recursion: { prevent_incoming: false, prevent_outgoing: false, delay_until: null },
-            effect: { sticky: null, cooldown: null, delay: null }
-          }
+            effect: { sticky: null, cooldown: null, delay: null },
+          },
         ]);
       } else {
-        await updateWorldbookWith(targetWorldbook, (wbEntries) => {
-          const e = wbEntries.find((x) => x.name === DEBUG_ENTRY_FULL_NAME);
+        await updateWorldbookWith(targetWorldbook, wbEntries => {
+          const e = wbEntries.find(x => x.name === DEBUG_ENTRY_FULL_NAME);
           if (e) {
             e.content = logContent;
             e.enabled = false;

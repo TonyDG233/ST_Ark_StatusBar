@@ -27,7 +27,7 @@ class ConfigStore {
     );
 
     // 监听总线历史记录更新事件
-    ArkEventBus.on('history:commit_added', (commitData) => {
+    ArkEventBus.on('history:commit_added', commitData => {
       const current = unref(this.state);
       this.updateConfig({
         commits: [...current.commits, commitData as ArkCommit],
@@ -35,7 +35,7 @@ class ConfigStore {
     });
 
     // 监听请求配置更新事件
-    ArkEventBus.on('config:update_requested', (partialConfig) => {
+    ArkEventBus.on('config:update_requested', partialConfig => {
       this.updateConfig(partialConfig as Partial<ArkConfig>);
     });
   }
@@ -68,10 +68,7 @@ class ConfigStore {
       if (targetWorldbook) {
         try {
           const entries = await getWorldbook(targetWorldbook);
-          const configEntry = entries.find(
-            (e) =>
-              (e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX))
-          );
+          const configEntry = entries.find(e => e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX));
 
           if (configEntry) {
             console.info('[ARK_ConfigStore] 发现遗留的世界书配置，正在迁移...');

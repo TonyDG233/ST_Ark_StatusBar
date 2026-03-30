@@ -77,7 +77,9 @@
                   <span v-if="entry._isPinned" class="pin-icon">📌</span>
                   {{ entry.name || (entry.strategy?.keys ? entry.strategy.keys[0] : '未知') }}
                 </div>
-                <div class="wb-keys" v-if="entry.strategy?.keys && entry.strategy.keys.length">触发词: {{ entry.strategy.keys.join(', ') }}</div>
+                <div class="wb-keys" v-if="entry.strategy?.keys && entry.strategy.keys.length">
+                  触发词: {{ entry.strategy.keys.join(', ') }}
+                </div>
               </div>
               <div class="wb-action">
                 <button
@@ -304,10 +306,9 @@ const toggleAccordion = async (wbName: string) => {
     if (!worldbookEntriesCache.value[wbName]) {
       isLoadingWb.value = wbName;
       try {
-        const entries = await getWorldbook(wbName) as unknown as UIWorldbookEntry[];
+        const entries = (await getWorldbook(wbName)) as unknown as UIWorldbookEntry[];
         worldbookEntriesCache.value[wbName] = entries.filter(
-          (e: UIWorldbookEntry) =>
-            !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)),
+          (e: UIWorldbookEntry) => !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)),
         );
       } catch (e) {
         console.error(`[ARK_UI] 无法加载世界书 ${wbName}`, e);
@@ -356,7 +357,13 @@ const toggleEntryType = async (entry: UIWorldbookEntry, explicitWbName?: string)
     await updateWorldbookWith(targetWorldbook, (wbEntries: UIWorldbookEntry[]) => {
       const e = wbEntries.find(x => x.uid === entry.uid && x.name === entry.name);
       if (e) {
-        if (!e.strategy) e.strategy = { type: 'selective', keys: [], keys_secondary: { logic: 'and_any', keys: [] }, scan_depth: 'same_as_global' };
+        if (!e.strategy)
+          e.strategy = {
+            type: 'selective',
+            keys: [],
+            keys_secondary: { logic: 'and_any', keys: [] },
+            scan_depth: 'same_as_global',
+          };
         e.strategy.type = newType as 'constant' | 'selective';
       }
       return wbEntries;
