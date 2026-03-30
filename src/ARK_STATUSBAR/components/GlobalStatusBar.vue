@@ -299,7 +299,7 @@ onMounted(() => {
     }
   };
   ArkEventBus.on('worldbook:baseline_diff_detected', diffHandler);
-  
+
   // 原有的 ark-chat-changed 用于重新拉取 primary 名称，它不属于 diff，可以直接放到 loadWorldbookLists 中，或者这里先保留自定义事件兼容
   // 后续如果 chat-changed 也是核心总线，就继续替换。
   const chatChangedHandler = () => {
