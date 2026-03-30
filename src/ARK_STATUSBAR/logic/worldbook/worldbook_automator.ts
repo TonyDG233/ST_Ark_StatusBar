@@ -16,7 +16,7 @@ class WorldbookAutomator {
   public startWatching(
     getTargetWorldbook: () => string | null,
     getTempDisabledEntries: () => { uid: number; world: string }[],
-    clearTempDisabledEntries: () => void
+    clearTempDisabledEntries: () => void,
   ) {
     if (this.eventsBound) return;
     this.eventsBound = true;
@@ -45,9 +45,9 @@ class WorldbookAutomator {
 
           for (const [worldName, uids] of Object.entries(worldGroups)) {
             try {
-              await updateWorldbookWith(worldName, (wbEntries) => {
+              await updateWorldbookWith(worldName, wbEntries => {
                 for (const uid of uids) {
-                  const entry = wbEntries.find((e) => e.uid === uid);
+                  const entry = wbEntries.find(e => e.uid === uid);
                   if (entry) {
                     entry.enabled = true;
                   } else {
@@ -62,7 +62,7 @@ class WorldbookAutomator {
               ArkEventBus.emit('worldbook:data_changed', worldName);
             } catch (err) {
               hasFailures = true;
-              failedItems.push(...uids.map((uid) => ({ world: worldName, uid })));
+              failedItems.push(...uids.map(uid => ({ world: worldName, uid })));
             }
           }
 
@@ -76,7 +76,7 @@ class WorldbookAutomator {
                 timestamp: Date.now(),
                 description: `[警告] 拦截器单次屏蔽恢复失败`,
                 worldbook: 'System',
-                changes: failedItems.map((item) => ({
+                changes: failedItems.map(item => ({
                   uid: item.uid,
                   comment: `World: ${item.world}`,
                   from: false,
@@ -126,7 +126,7 @@ class WorldbookAutomator {
       const entries = await getWorldbook(targetWorldbook);
       let hasDiff = false;
       for (const key of Object.keys(BASELINE_STATE)) {
-        const entry = entries.find((e) => e.name === key);
+        const entry = entries.find(e => e.name === key);
         const baseline = BASELINE_STATE[key];
 
         if (entry) {
