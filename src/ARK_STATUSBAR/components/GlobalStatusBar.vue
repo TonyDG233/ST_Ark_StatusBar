@@ -320,11 +320,16 @@ onMounted(() => {
   };
   ArkEventBus.on('system:toggle', toggleSystemHandler);
 
+  const ST_WIN = window.parent || window;
+  const handleWindowResize = () => requestAnimationFrame(() => checkBounds());
+  ST_WIN.addEventListener('resize', handleWindowResize);
+
   // 组件卸载时解绑
   onUnmounted(() => {
     ArkEventBus.off('worldbook:baseline_diff_detected', diffHandler);
     ArkEventBus.off('system:chat_changed', chatChangedHandler);
     ArkEventBus.off('system:toggle', toggleSystemHandler);
+    ST_WIN.removeEventListener('resize', handleWindowResize);
   });
 });
 </script>
