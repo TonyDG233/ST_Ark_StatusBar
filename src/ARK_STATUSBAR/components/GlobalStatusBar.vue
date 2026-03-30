@@ -58,7 +58,7 @@
         >
           <span class="indicator" :class="{ blocked: entry.enabled === false }"></span>
           <span class="text">{{
-            entry.comment || entry.name || (entry.key && entry.key.length ? entry.key[0] : '未知')
+            entry.name || (entry.strategy?.keys && entry.strategy.keys.length ? entry.strategy.keys[0] : '未知')
           }}</span>
         </li>
       </ul>
@@ -202,7 +202,7 @@ const resetPosition = () => {
 // --- 环境联动与事件总线挂载 ---
 import { setupGlobalListeners } from './global_tabs/shared_ui_state';
 
-const getEntryType = (entry: any) => {
+const getEntryType = (entry: Partial<import('../types/st_worldbook_types').WorldbookEntry> & Partial<SillyTavern.FlattenedWorldInfoEntry>) => {
   if (entry.constant === true) return 'constant';
   if (entry.constant === false) return 'selective';
   return entry.strategy?.type || 'selective';

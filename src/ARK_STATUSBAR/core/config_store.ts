@@ -1,5 +1,5 @@
 import { ref, unref, watch } from 'vue';
-import { ArkConfig, CONFIG_ENTRY_PREFIX, DEFAULT_CONFIG } from '../types/system_config';
+import { ArkCommit, ArkConfig, CONFIG_ENTRY_PREFIX, DEFAULT_CONFIG } from '../types/system_config';
 import { ArkEventBus } from './event_bus';
 
 /**
@@ -27,16 +27,16 @@ class ConfigStore {
     );
 
     // 监听总线历史记录更新事件
-    ArkEventBus.on('history:commit_added', commitData => {
+    ArkEventBus.on('history:commit_added', (commitData) => {
       const current = unref(this.state);
       this.updateConfig({
-        commits: [...current.commits, commitData],
+        commits: [...current.commits, commitData as ArkCommit],
       });
     });
 
     // 监听请求配置更新事件
-    ArkEventBus.on('config:update_requested', partialConfig => {
-      this.updateConfig(partialConfig);
+    ArkEventBus.on('config:update_requested', (partialConfig) => {
+      this.updateConfig(partialConfig as Partial<ArkConfig>);
     });
   }
 
@@ -52,7 +52,7 @@ class ConfigStore {
    * @param targetWorldbook 用于旧版世界书迁移的数据源（如果有）
    */
   public async loadOrInitConfig(targetWorldbook: string | null) {
-    const extSettings = SillyTavern.extensionSettings as any;
+    const extSettings = SillyTavern.extensionSettings as Record<string, any> | undefined; //保留本地定义以避免无法识别时的报错（为agent找补）
 
     if (extSettings && extSettings['ark_statusbar_settings']) {
       try {
@@ -69,9 +69,8 @@ class ConfigStore {
         try {
           const entries = await getWorldbook(targetWorldbook);
           const configEntry = entries.find(
-            (e: any) =>
-              (e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) ||
-              (e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX)),
+            (e) =>
+              (e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX))
           );
 
           if (configEntry) {
@@ -82,11 +81,7 @@ class ConfigStore {
 
             console.info(`[ARK_ConfigStore] 迁移完成，正在彻底删除原世界书 ${targetWorldbook} 中的系统配置条目...`);
             await deleteWorldbookEntries(targetWorldbook, entry => {
-              const anyEntry = entry as any;
-              return (
-                (anyEntry.name && anyEntry.name.startsWith(CONFIG_ENTRY_PREFIX)) ||
-                (anyEntry.comment && anyEntry.comment.startsWith(CONFIG_ENTRY_PREFIX))
-              );
+              return !!(entry.name && entry.name.startsWith(CONFIG_ENTRY_PREFIX));
             });
           }
         } catch (e) {
@@ -128,7 +123,7 @@ class ConfigStore {
    */
   private persistConfig(configVal: ArkConfig) {
     try {
-      const extSettings = SillyTavern.extensionSettings as any;
+      const extSettings = SillyTavern.extensionSettings as Record<string, any> | undefined; //保留本地定义以避免无法识别时的报错（为agent找补）
       if (extSettings) {
         extSettings['ark_statusbar_settings'] = configVal;
         if (typeof SillyTavern.saveSettingsDebounced === 'function') {

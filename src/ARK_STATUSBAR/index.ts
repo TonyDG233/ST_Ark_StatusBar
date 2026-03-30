@@ -100,13 +100,13 @@ $(() => {
   // --- Inject Button via TavernHelper ---
   const BTN_NAME = '📖 控制台开关';
   if (
-    typeof (window.parent as any).appendInexistentScriptButtons === 'function' ||
-    typeof (window as any).appendInexistentScriptButtons === 'function'
+    typeof appendInexistentScriptButtons === 'function' ||
+    typeof (window.parent as any).appendInexistentScriptButtons === 'function'
   ) {
     const appendFn =
-      (window.parent as any).appendInexistentScriptButtons || (window as any).appendInexistentScriptButtons;
-    const getEventFn = (window.parent as any).getButtonEvent || (window as any).getButtonEvent;
-    const globalEventOn = (window.parent as any).eventOn || (window as any).eventOn;
+      typeof appendInexistentScriptButtons === 'function' ? appendInexistentScriptButtons : (window.parent as any).appendInexistentScriptButtons;
+    const getEventFn = typeof getButtonEvent === 'function' ? getButtonEvent : (window.parent as any).getButtonEvent;
+    const globalEventOn = typeof eventOn === 'function' ? eventOn : (window.parent as any).eventOn;
 
     try {
       appendFn([{ name: BTN_NAME, visible: true }]);

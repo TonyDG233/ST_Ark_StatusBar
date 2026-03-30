@@ -1,6 +1,7 @@
 import { unref } from 'vue';
 import { useArkConfig } from '../../core/config_store';
 import { ArkEventBus } from '../../core/event_bus';
+import { WorldbookMapper } from './worldbook_mapper';
 
 /**
  * 拦截与干跑逻辑服务
@@ -243,10 +244,16 @@ class SendInterceptor {
 
           const uniqueMap = new Map();
           for (const newEntry of raw) {
+            // 洗净并映射回标准结构
+            const mapped = WorldbookMapper.fromFlattenedNative(newEntry);
+            const entryWorld = (newEntry as any).world || 'UnknownWorld';
+            // 添加 UI 强相关的辅助字段
+            (mapped as any).world = entryWorld;
+            
             // 唯一键组合：所在的Worldbook名 + 本身的UID + (名字或备注防止无ID的特殊条目)
-            const newKey = `${newEntry.world || 'UnknownWorld'}_${newEntry.uid}_${newEntry.name || newEntry.comment || ''}`;
+            const newKey = `${entryWorld}_${mapped.uid}_${mapped.name}`;
             if (!uniqueMap.has(newKey)) {
-              uniqueMap.set(newKey, newEntry);
+              uniqueMap.set(newKey, mapped);
             }
           }
           activatedEntries = Array.from(uniqueMap.values());

@@ -6,7 +6,7 @@ import { DEBUG_ENTRY_FULL_NAME } from '../../types/system_config';
 class LoggerService {
   private static instance: LoggerService;
   private debugLogQueue: any[] = [];
-  private flushTimeout: any = null;
+  private flushTimeout: number | null = null;
 
   private constructor() {
     // 监听内部日志事件
@@ -27,7 +27,7 @@ class LoggerService {
    * 追加调试日志到内存队列，并延迟持久化到世界书
    * 需要传入 targetWorldbook 才能真正落盘到对于的世界书，否则只会存在于 Console
    */
-  public logDebug(action: string, data: any, targetWorldbook: string | null = null) {
+  public logDebug(action: string, data: unknown, targetWorldbook: string | null = null) {
     if (!unref(useArkConfig()).isDebugMode) return;
 
     // 控制台打印
@@ -78,7 +78,7 @@ class LoggerService {
     try {
       let entries = await getWorldbook(targetWorldbook);
       let debugEntry = entries.find(
-        (e: any) => e.name === DEBUG_ENTRY_FULL_NAME || e.comment === DEBUG_ENTRY_FULL_NAME,
+        (e) => e.name === DEBUG_ENTRY_FULL_NAME
       );
 
       const logContent = JSON.stringify(this.debugLogQueue, null, 2);
@@ -87,15 +87,23 @@ class LoggerService {
         await createWorldbookEntries(targetWorldbook, [
           {
             name: DEBUG_ENTRY_FULL_NAME,
-            comment: DEBUG_ENTRY_FULL_NAME,
             content: logContent,
             enabled: false,
-            constant: false,
-          },
-        ] as any);
+            strategy: {
+              type: 'selective',
+              keys: [],
+              keys_secondary: { logic: 'and_any', keys: [] },
+              scan_depth: 'same_as_global'
+            },
+            position: { type: 'before_character_definition', role: 'system', depth: 0, order: 100 },
+            probability: 100,
+            recursion: { prevent_incoming: false, prevent_outgoing: false, delay_until: null },
+            effect: { sticky: null, cooldown: null, delay: null }
+          }
+        ]);
       } else {
-        await updateWorldbookWith(targetWorldbook, (wbEntries: any[]) => {
-          const e = wbEntries.find((x: any) => x.name === DEBUG_ENTRY_FULL_NAME || x.comment === DEBUG_ENTRY_FULL_NAME);
+        await updateWorldbookWith(targetWorldbook, (wbEntries) => {
+          const e = wbEntries.find((x) => x.name === DEBUG_ENTRY_FULL_NAME);
           if (e) {
             e.content = logContent;
             e.enabled = false;

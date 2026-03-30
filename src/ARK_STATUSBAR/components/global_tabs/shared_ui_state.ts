@@ -1,12 +1,21 @@
 import { computed, ref } from 'vue';
 import { ArkEventBus } from '../../core/event_bus';
 
+import type { WorldbookEntry } from '../../types/st_worldbook_types';
+
+export type UIWorldbookEntry = WorldbookEntry & {
+  world?: string;
+  tempDisabled?: boolean;
+  _isPinned?: boolean;
+  _computedType?: string;
+};
+
 // ----------------------------------------------------------------------------
 // 1. 全局与拦截器共享状态 (Global & Interceptor Shared State)
 // ----------------------------------------------------------------------------
 // 这些状态用于在父组件的迷你窗徽章和拦截器 Tab 详情列表之间实现 100% 内存同频
-export const pendingEntries = ref<any[]>([]);
-export const lastTriggeredEntries = ref<any[]>([]);
+export const pendingEntries = ref<UIWorldbookEntry[]>([]);
+export const lastTriggeredEntries = ref<UIWorldbookEntry[]>([]);
 export const isTestMode = ref(false);
 export const currentTokenCount = ref<number | string>(0);
 
@@ -34,7 +43,7 @@ export const currentPrimaryWorldbook = ref<string | null>(null);
 // 手风琴抽屉（Accordion）的展开状态和已加载的条目缓存
 // 剥离出来，防止切换 Tab 时手风琴状态丢失
 export const expandedWorldbooks = ref<string[]>([]);
-export const worldbookEntriesCache = ref<Record<string, any[]>>({});
+export const worldbookEntriesCache = ref<Record<string, UIWorldbookEntry[]>>({});
 export const isLoadingWb = ref<string | null>(null);
 
 // 全局过滤系统配置前缀条目使用的常量
@@ -50,9 +59,8 @@ export const refreshWorldbookCache = async (wbName: string) => {
   try {
     const entries = await getWorldbook(wbName);
     worldbookEntriesCache.value[wbName] = entries.filter(
-      (e: any) =>
-        !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) &&
-        !(e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX)),
+      e =>
+        !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX))
     );
   } catch (e) {
     console.error(`[ARK_UI_STATE] Failed to refresh cache for ${wbName}`, e);
@@ -67,12 +75,12 @@ export const setupGlobalListeners = () => {
   // 1. 监听酒馆原生抛出的事件（兜底防范用户在外部侧边栏手动编辑条目）
   if (typeof tavern_events !== 'undefined') {
     // 监听特定世界书条目的更新
-    eventOn(tavern_events.WORLDINFO_UPDATED as any, async (name: string) => {
+    eventOn(tavern_events.WORLDINFO_UPDATED, async (name: string) => {
       await refreshWorldbookCache(name);
     });
 
     // 监听世界书重新加载（如刷新、换卡）
-    eventOn(tavern_events.WORLDINFO_ENTRIES_LOADED as any, async () => {
+    eventOn(tavern_events.WORLDINFO_ENTRIES_LOADED, async () => {
       // 全量刷新当前展开的所有世界书
       for (const wbName of expandedWorldbooks.value) {
         await refreshWorldbookCache(wbName);

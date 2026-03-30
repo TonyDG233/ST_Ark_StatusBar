@@ -167,7 +167,7 @@ export class StatusBarManager {
 
           for (const [worldName, uids] of Object.entries(worldGroups)) {
             try {
-              await updateWorldbookWith(worldName, (wbEntries: any[]) => {
+              await updateWorldbookWith(worldName, (wbEntries) => {
                 for (const uid of uids) {
                   const entry = wbEntries.find(e => e.uid === uid);
                   if (entry) {
@@ -257,7 +257,7 @@ export class StatusBarManager {
       const entries = await getWorldbook(this.targetWorldbook);
       let hasDiff = false;
       for (const key of Object.keys(BASELINE_STATE)) {
-        const entry = entries.find((e: any) => e.name === key || e.comment === key);
+        const entry = entries.find((e) => e.name === key);
         const baseline = BASELINE_STATE[key];
 
         if (entry) {

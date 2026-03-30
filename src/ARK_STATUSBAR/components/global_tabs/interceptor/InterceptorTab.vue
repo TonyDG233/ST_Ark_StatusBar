@@ -52,7 +52,7 @@
                 <span style="font-size: 0.9em; margin-right: 4px">{{
                   getEntryType(entry) === 'constant' ? '🔵' : '🟢'
                 }}</span>
-                {{ entry.comment || entry.name || (entry.key && entry.key.length ? entry.key[0] : '未知') }}
+                {{ entry.name || (entry.strategy?.keys && entry.strategy.keys.length ? entry.strategy.keys[0] : '未知') }}
                 <span v-if="entry.world" style="font-size: 0.8em; opacity: 0.7; margin-left: 5px"
                   >({{ entry.world }})</span
                 >
@@ -86,12 +86,12 @@
           :key="entry.uid || Math.random()"
           :class="{ 'disabled-entry': entry.enabled === false && !entry.tempDisabled }"
         >
-          <div class="entry-name">
+              <div class="entry-name">
             <span v-if="isPinned(entry)" class="pin-icon">📌</span>
             <span style="font-size: 0.9em; margin-right: 4px">{{
               getEntryType(entry) === 'constant' ? '🔵' : '🟢'
             }}</span>
-            {{ entry.comment || entry.name || (entry.key && entry.key.length ? entry.key[0] : '未知') }}
+            {{ entry.name || (entry.strategy?.keys && entry.strategy.keys.length ? entry.strategy.keys[0] : '未知') }}
             <div v-if="entry.world" style="font-size: 0.75em; color: var(--ui-text-secondary); margin-top: 2px">
               📁 来源: {{ entry.world }}
             </div>
@@ -169,6 +169,7 @@ import {
   pendingEntries,
   sortedLastTriggeredEntries,
   sortedPendingEntries,
+  UIWorldbookEntry,
 } from '../shared_ui_state';
 
 const emit = defineEmits<{ (e: 'close-panel'): void }>();
@@ -202,16 +203,14 @@ const toggleInterceptor = (e: Event) => {
 /**
  * 检查条目是否被用户置顶
  */
-const isPinned = (entry: any) => {
+const isPinned = (entry: UIWorldbookEntry) => {
   return currentConfig.value?.pinnedEntries?.includes(entry.uid) || false;
 };
 
 /**
  * 获取世界书条目的触发类型 (constant=蓝灯常驻, selective=绿灯条件触发)
  */
-const getEntryType = (entry: any) => {
-  if (entry.constant === true) return 'constant';
-  if (entry.constant === false) return 'selective';
+const getEntryType = (entry: UIWorldbookEntry) => {
   return entry.strategy?.type || 'selective';
 };
 
@@ -225,14 +224,14 @@ const confirmSend = () => {
   emit('close-panel');
 };
 
-const toggleEntrySilent = async (entry: any) => {
+const toggleEntrySilent = async (entry: UIWorldbookEntry) => {
   try {
     const targetWorldbook = entry.world || currentPrimaryWorldbook.value;
     if (!targetWorldbook) {
       console.warn('[ARK_UI] 临时切换状态失败：无法确定目标世界书', entry);
       return;
     }
-    await updateWorldbookWith(targetWorldbook, (wbEntries: any[]) => {
+    await updateWorldbookWith(targetWorldbook, (wbEntries: UIWorldbookEntry[]) => {
       // 放宽匹配条件：只比对 UID，因为世界书条目的 name 和 comment 可能会在中间环节变空或被剔除
       const e = wbEntries.find(x => x.uid === entry.uid);
       if (e) e.enabled = entry.enabled;
@@ -246,7 +245,7 @@ const toggleEntrySilent = async (entry: any) => {
   }
 };
 
-const toggleTempDisable = (entry: any) => {
+const toggleTempDisable = (entry: UIWorldbookEntry) => {
   entry.tempDisabled = !entry.tempDisabled;
 
   const targetWorldbook = entry.world || currentPrimaryWorldbook.value;
@@ -254,7 +253,7 @@ const toggleTempDisable = (entry: any) => {
   if (entry.tempDisabled) {
     entry.enabled = false;
     if (!manager.tempDisabledEntries.find(e => e.uid === entry.uid && e.world === targetWorldbook)) {
-      manager.tempDisabledEntries.push({ uid: entry.uid, world: targetWorldbook });
+      if (targetWorldbook) manager.tempDisabledEntries.push({ uid: entry.uid, world: targetWorldbook });
     }
     toggleEntrySilent(entry);
   } else {
@@ -288,12 +287,12 @@ const cancelSend = () => {
 /**
  * 切换任意世界书条目的开关 (enabled) 状态，并记录进提交历史
  */
-const toggleEntry = async (entry: any, explicitWbName?: string) => {
+const toggleEntry = async (entry: UIWorldbookEntry, explicitWbName?: string) => {
   try {
     const targetWorldbook = explicitWbName || entry.world || currentPrimaryWorldbook.value;
     if (!targetWorldbook) return;
 
-    await updateWorldbookWith(targetWorldbook, (wbEntries: any[]) => {
+    await updateWorldbookWith(targetWorldbook, (wbEntries: UIWorldbookEntry[]) => {
       const e = wbEntries.find(x => x.uid === entry.uid);
       if (e) e.enabled = entry.enabled;
       return wbEntries;
@@ -305,9 +304,9 @@ const toggleEntry = async (entry: any, explicitWbName?: string) => {
     const newCommit = {
       id: Math.random().toString(36).substr(2, 6),
       timestamp: Date.now(),
-      description: `[用户手动切换开关] ${entry.comment || entry.name}`,
+      description: `[用户手动切换开关] ${entry.name}`,
       worldbook: targetWorldbook,
-      changes: [{ uid: entry.uid, comment: entry.comment || entry.name, from: !entry.enabled, to: entry.enabled }],
+      changes: [{ uid: entry.uid, comment: entry.name, from: !entry.enabled, to: entry.enabled }],
     };
     const commits = [...(currentConfig.value?.commits || []), newCommit];
     configStore.updateConfig({ commits });
@@ -320,7 +319,7 @@ const toggleEntry = async (entry: any, explicitWbName?: string) => {
 /**
  * 拦截预警面板中使用的快捷开关功能，关联上面的 toggleEntry
  */
-const togglePendingEntry = async (entry: any) => {
+const togglePendingEntry = async (entry: UIWorldbookEntry) => {
   const targetWorldbook = entry.world || currentPrimaryWorldbook.value;
 
   if (entry.tempDisabled) {

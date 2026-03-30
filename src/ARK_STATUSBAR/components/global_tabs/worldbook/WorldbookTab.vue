@@ -75,9 +75,9 @@
                 <div class="wb-name">
                   <!-- 【性能修复】直接读取对象上的 _isPinned 缓存值 -->
                   <span v-if="entry._isPinned" class="pin-icon">📌</span>
-                  {{ entry.comment || entry.name || (entry.key ? entry.key[0] : '未知') }}
+                  {{ entry.name || (entry.strategy?.keys ? entry.strategy.keys[0] : '未知') }}
                 </div>
-                <div class="wb-keys" v-if="entry.key && entry.key.length">触发词: {{ entry.key.join(', ') }}</div>
+                <div class="wb-keys" v-if="entry.strategy?.keys && entry.strategy.keys.length">触发词: {{ entry.strategy.keys.join(', ') }}</div>
               </div>
               <div class="wb-action">
                 <button
@@ -145,6 +145,7 @@ import {
   expandedWorldbooks,
   globalMountedWorldbooks,
   isLoadingWb,
+  UIWorldbookEntry,
   worldbookEntriesCache,
 } from '../shared_ui_state';
 
@@ -158,15 +159,13 @@ const filterType = ref('');
 const filterEntryTexts = ref<Record<string, string>>({});
 
 // 【性能修复】保留这个基础函数供内部计算和外部点击使用，必须声明在被调用前
-const getEntryType = (entry: any) => {
-  if (entry.constant === true) return 'constant';
-  if (entry.constant === false) return 'selective';
+const getEntryType = (entry: UIWorldbookEntry) => {
   return entry.strategy?.type || 'selective';
 };
 
 // 【性能修复】提取原模板中的计算密集型操作至专门的计算属性，避免模板重渲染卡顿
 const processedEntries = computed(() => {
-  const result: Record<string, any[]> = {};
+  const result: Record<string, UIWorldbookEntry[]> = {};
   for (const wbName of expandedWorldbooks.value) {
     const entries = worldbookEntriesCache.value[wbName] || [];
     if (!entries.length) {
@@ -175,26 +174,26 @@ const processedEntries = computed(() => {
     }
 
     // 1. 预处理数据 (挂载 _isPinned 和 _computedType) 避免模板中重复计算
-    let mapped = entries.map(entry => ({
+    let mapped = entries.map((entry: any) => ({
       ...entry,
       _isPinned: currentConfig.value?.pinnedEntries?.includes(entry.uid) || false,
-      _computedType: getEntryType(entry),
-    }));
+      _computedType: getEntryType(entry as UIWorldbookEntry),
+    })) as UIWorldbookEntry[];
 
     // 2. 过滤
     const searchText = filterEntryTexts.value[wbName];
     if (searchText) {
       const query = searchText.toLowerCase();
       mapped = mapped.filter(entry => {
-        const name = (entry.comment || entry.name || '').toLowerCase();
-        const keys = (entry.key || []).join(' ').toLowerCase();
+        const name = (entry.name || '').toLowerCase();
+        const keys = (entry.strategy?.keys || []).join(' ').toLowerCase();
         return name.includes(query) || keys.includes(query);
       });
     }
 
     if (filterCategory.value) {
       mapped = mapped.filter(entry => {
-        const name = entry.name || entry.comment || '';
+        const name = entry.name || '';
         const match = name.match(/^\[(.*?)\]/);
         const cat = match ? match[1] : '未分类';
         return cat === filterCategory.value;
@@ -261,7 +260,7 @@ const filteredWorldbooks = computed(() => {
   }
 
   result.sort((a, b) => {
-    const getScore = (wb: any) => {
+    const getScore = (wb: { type: string; isPinned: boolean }) => {
       if (wb.type === 'char') return 5;
       if (wb.type === 'global' && wb.isPinned) return 4;
       if (wb.type === 'global') return 3;
@@ -305,11 +304,10 @@ const toggleAccordion = async (wbName: string) => {
     if (!worldbookEntriesCache.value[wbName]) {
       isLoadingWb.value = wbName;
       try {
-        const entries = await getWorldbook(wbName);
+        const entries = await getWorldbook(wbName) as unknown as UIWorldbookEntry[];
         worldbookEntriesCache.value[wbName] = entries.filter(
-          (e: any) =>
-            !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)) &&
-            !(e.comment && e.comment.startsWith(CONFIG_ENTRY_PREFIX)),
+          (e: UIWorldbookEntry) =>
+            !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)),
         );
       } catch (e) {
         console.error(`[ARK_UI] 无法加载世界书 ${wbName}`, e);
@@ -325,7 +323,7 @@ const getAvailableCategories = (wbName: string) => {
   const entries = worldbookEntriesCache.value[wbName] || [];
   const cats = new Set<string>();
   entries.forEach(e => {
-    const name = e.name || e.comment || '';
+    const name = e.name || '';
     const match = name.match(/^\[(.*?)\]/);
     if (match) cats.add(match[1]);
     else cats.add('未分类');
@@ -339,7 +337,7 @@ const getAvailableCategories = (wbName: string) => {
   return sorted;
 };
 
-const togglePinEntry = (entry: any) => {
+const togglePinEntry = (entry: UIWorldbookEntry) => {
   const pinned = currentConfig.value?.pinnedEntries || [];
   const index = pinned.indexOf(entry.uid);
   let newPinned = [...pinned];
@@ -348,19 +346,18 @@ const togglePinEntry = (entry: any) => {
   configStore.updateConfig({ pinnedEntries: newPinned });
 };
 
-const toggleEntryType = async (entry: any, explicitWbName?: string) => {
+const toggleEntryType = async (entry: UIWorldbookEntry, explicitWbName?: string) => {
   try {
     const currentType = getEntryType(entry);
     const newType = currentType === 'constant' ? 'selective' : 'constant';
     const targetWorldbook = explicitWbName || entry.world || currentPrimaryWorldbook.value;
     if (!targetWorldbook) return;
 
-    await updateWorldbookWith(targetWorldbook, (wbEntries: any[]) => {
-      const e = wbEntries.find(x => x.uid === entry.uid && (x.name === entry.name || x.comment === entry.comment));
+    await updateWorldbookWith(targetWorldbook, (wbEntries: UIWorldbookEntry[]) => {
+      const e = wbEntries.find(x => x.uid === entry.uid && x.name === entry.name);
       if (e) {
-        if (!e.strategy) e.strategy = {};
-        e.strategy.type = newType;
-        e.constant = newType === 'constant';
+        if (!e.strategy) e.strategy = { type: 'selective', keys: [], keys_secondary: { logic: 'and_any', keys: [] }, scan_depth: 'same_as_global' };
+        e.strategy.type = newType as 'constant' | 'selective';
       }
       return wbEntries;
     });
@@ -371,12 +368,12 @@ const toggleEntryType = async (entry: any, explicitWbName?: string) => {
     const newCommit = {
       id: Math.random().toString(36).substr(2, 6),
       timestamp: Date.now(),
-      description: `[用户手动修改触发类型] ${entry.comment || entry.name}`,
+      description: `[用户手动修改触发类型] ${entry.name}`,
       worldbook: targetWorldbook,
       changes: [
         {
           uid: entry.uid,
-          comment: entry.comment || entry.name,
+          comment: entry.name,
           from: currentType === 'constant',
           to: newType === 'constant',
         },
@@ -388,12 +385,12 @@ const toggleEntryType = async (entry: any, explicitWbName?: string) => {
   }
 };
 
-const toggleEntry = async (entry: any, explicitWbName?: string) => {
+const toggleEntry = async (entry: UIWorldbookEntry, explicitWbName?: string) => {
   try {
     const targetWorldbook = explicitWbName || entry.world || currentPrimaryWorldbook.value;
     if (!targetWorldbook) return;
 
-    await updateWorldbookWith(targetWorldbook, (wbEntries: any[]) => {
+    await updateWorldbookWith(targetWorldbook, (wbEntries: UIWorldbookEntry[]) => {
       const e = wbEntries.find(x => x.uid === entry.uid);
       if (e) e.enabled = entry.enabled;
       return wbEntries;
@@ -405,9 +402,9 @@ const toggleEntry = async (entry: any, explicitWbName?: string) => {
     const newCommit = {
       id: Math.random().toString(36).substr(2, 6),
       timestamp: Date.now(),
-      description: `[用户手动切换开关] ${entry.comment || entry.name}`,
+      description: `[用户手动切换开关] ${entry.name}`,
       worldbook: targetWorldbook,
-      changes: [{ uid: entry.uid, comment: entry.comment || entry.name, from: !entry.enabled, to: entry.enabled }],
+      changes: [{ uid: entry.uid, comment: entry.name, from: !entry.enabled, to: entry.enabled }],
     };
     configStore.updateConfig({ commits: [...(currentConfig.value?.commits || []), newCommit] });
   } catch (e) {

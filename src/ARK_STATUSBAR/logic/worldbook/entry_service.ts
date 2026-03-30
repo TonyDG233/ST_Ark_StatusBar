@@ -77,17 +77,16 @@ export class EntryService {
   async resetToBaseline(targetBook: string): Promise<void> {
     console.info('[ARK_EntryService] Resetting Worldbook to Baseline...');
     try {
-      await updateWorldbookWith(targetBook, (entries: any[]) => {
-        entries.forEach(entry => {
+      await updateWorldbookWith(targetBook, (entries) => {
+        entries.forEach((entry) => {
           if (entry.name && BASELINE_STATE.hasOwnProperty(entry.name)) {
             const baseline = BASELINE_STATE[entry.name];
             entry.enabled = baseline.enabled;
 
             if (!entry.strategy) {
-              entry.strategy = {};
+              entry.strategy = { type: 'selective', keys: [], keys_secondary: { logic: 'and_any', keys: [] }, scan_depth: 'same_as_global' };
             }
-            entry.strategy.type = baseline.type;
-            entry.constant = baseline.type === 'constant';
+            entry.strategy.type = baseline.type as 'constant' | 'selective' | 'vectorized';
           }
         });
         return entries;
@@ -112,7 +111,7 @@ export class EntryService {
       let isSingleCharClosed = true;
 
       for (const key of Object.keys(BASELINE_STATE)) {
-        const entry = entries.find((e: any) => e.name === key);
+        const entry = entries.find((e) => e.name === key);
         if (!entry) continue;
 
         const baseline = BASELINE_STATE[key];
@@ -150,15 +149,15 @@ export class EntryService {
   async closeSingleCharEntries(targetBook: string): Promise<void> {
     console.info('[ARK_EntryService] Closing all single-character entries...');
     try {
-      let diffChanges: any[] = [];
-      await updateWorldbookWith(targetBook, (entries: any[]) => {
+      let diffChanges: { uid: number; comment: string; from: boolean; to: boolean }[] = [];
+      await updateWorldbookWith(targetBook, (entries) => {
         entries.forEach(entry => {
           if (entry.name && SINGLE_CHAR_ENTRIES.includes(entry.name)) {
             if (entry.enabled) {
               entry.enabled = false;
               diffChanges.push({
                 uid: entry.uid,
-                comment: entry.comment || entry.name,
+                comment: entry.name,
                 from: true,
                 to: false,
               });
@@ -215,9 +214,9 @@ export class EntryService {
     toastr.info(`正在应用开局设置: ${scenario.title}...`);
 
     try {
-      let diffChanges: any[] = [];
+      let diffChanges: { uid: number; comment: string; from: boolean; to: boolean }[] = [];
 
-      await updateWorldbookWith(targetBook, (entries: any[]) => {
+      await updateWorldbookWith(targetBook, (entries) => {
         entries.forEach(entry => {
           const name = entry.name;
           if (!name) return;
@@ -228,7 +227,7 @@ export class EntryService {
           // 1. 应用 Enable (开启) 逻辑：检查条目名或关键字是否命中需要开启的列表
           if (
             scenario.linkedWorldInfo.some(keyword => {
-              const keys = (entry as any).key || (entry as any).keys || [];
+              const keys = entry.strategy?.keys || [];
               return name === keyword || keys.includes(keyword);
             })
           ) {
@@ -239,7 +238,7 @@ export class EntryService {
           if (
             scenario.disabledWorldInfo &&
             scenario.disabledWorldInfo.some(keyword => {
-              const keys = (entry as any).key || (entry as any).keys || [];
+              const keys = entry.strategy?.keys || [];
               return name === keyword || keys.includes(keyword);
             })
           ) {
@@ -251,7 +250,7 @@ export class EntryService {
             entry.enabled = newState;
             diffChanges.push({
               uid: entry.uid,
-              comment: (entry as any).comment || name, // 优先使用 comment 备注
+              comment: entry.name,
               from: originalState,
               to: newState,
             });

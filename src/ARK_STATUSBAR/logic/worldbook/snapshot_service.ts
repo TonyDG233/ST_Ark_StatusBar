@@ -13,7 +13,7 @@ export class SnapshotService {
     try {
       const entries = await getWorldbook(worldbookName);
       const states: Record<number, { enabled: boolean; type: string }> = {};
-      entries.forEach((e: any) => {
+      entries.forEach((e) => {
         states[e.uid] = {
           enabled: e.enabled,
           type: e.strategy?.type || 'selective',
@@ -51,14 +51,13 @@ export class SnapshotService {
       const snapshot = currentConfig.snapshots.find(s => s.id === snapshotId);
       if (!snapshot) throw new Error('Snapshot not found');
 
-      await updateWorldbookWith(snapshot.worldbook, (entries: any[]) => {
+      await updateWorldbookWith(snapshot.worldbook, (entries) => {
         entries.forEach(e => {
           if (snapshot.states[e.uid]) {
             const st = snapshot.states[e.uid];
             e.enabled = st.enabled;
-            if (!e.strategy) (e as any).strategy = {};
-            if (e.strategy) e.strategy.type = st.type as any;
-            (e as any).constant = st.type === 'constant';
+            if (!e.strategy) e.strategy = { type: 'selective', keys: [], keys_secondary: { logic: 'and_any', keys: [] }, scan_depth: 'same_as_global' };
+            e.strategy.type = st.type as 'constant' | 'selective' | 'vectorized';
           }
         });
         return entries;

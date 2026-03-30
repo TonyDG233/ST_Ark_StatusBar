@@ -239,7 +239,9 @@ import { computed, ref } from 'vue';
 import { configStore, useArkConfig } from '../../../core/config_store';
 import { ArkEventBus } from '../../../core/event_bus';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
+import { ArkCommit } from '../../../types/system_config';
 import { allAvailableWorldbooks, currentPrimaryWorldbook } from '../shared_ui_state';
+import { UIWorldbookEntry } from '../shared_ui_state';
 
 const currentConfig = useArkConfig();
 const manager = StatusBarManager.getInstance();
@@ -267,7 +269,7 @@ const toggleBatchMode = () => {
 const toggleSelectAll = (e: Event) => {
   const checked = (e.target as HTMLInputElement).checked;
   if (checked) {
-    selectedCommits.value = (currentConfig.value?.commits || []).map((c: any) => c.id);
+    selectedCommits.value = (currentConfig.value?.commits || []).map((c: unknown) => (c as ArkCommit).id);
   } else {
     selectedCommits.value = [];
   }
@@ -282,8 +284,8 @@ const toggleSelection = (id: string) => {
   }
 };
 
-const getChangeText = (commit: any, value: boolean) => {
-  if (commit.description?.includes('changed type')) {
+const getChangeText = (commit: unknown, value: boolean) => {
+  if ((commit as ArkCommit).description?.includes('changed type')) {
     return value ? '蓝灯(常驻)' : '绿灯(条件)';
   }
   return value ? '开启' : '关闭';
@@ -352,7 +354,7 @@ const closeSingleChar = async () => {
  * 执行底层世界书状态还原的核心函数
  * 因为可能包含多个 commits 或单条 commit，所以抽离出来复用
  */
-const applyInverseChanges = async (commitList: any[]) => {
+const applyInverseChanges = async (commitList: ArkCommit[]) => {
   // 根据目标世界书对 commit 进行分组
   const worldbookGroups = commitList.reduce(
     (acc, curr) => {
@@ -363,14 +365,13 @@ const applyInverseChanges = async (commitList: any[]) => {
       }
       return acc;
     },
-    {} as Record<string, any[]>,
+    {} as Record<string, ArkCommit[]>,
   );
 
   for (const [worldName, commits] of Object.entries(worldbookGroups)) {
-    await updateWorldbookWith(worldName, (wbEntries: any[]) => {
+    await updateWorldbookWith(worldName, (wbEntries: UIWorldbookEntry[]) => {
       // 必须按照提交时间的反序 (从新到老) 来还原，防止先关后开同一词条导致状态覆盖错误
-      const typedCommits = commits as any[];
-      const sortedCommits = [...typedCommits].sort((a, b) => b.timestamp - a.timestamp);
+      const sortedCommits = [...commits].sort((a, b) => b.timestamp - a.timestamp);
 
       for (const commit of sortedCommits) {
         for (const change of commit.changes) {
@@ -378,9 +379,8 @@ const applyInverseChanges = async (commitList: any[]) => {
           if (e) {
             // 对类型的逆向恢复
             if (commit.description.includes('changed type') || commit.description.includes('修改触发类型')) {
-              if (!e.strategy) e.strategy = {};
+              if (!e.strategy) e.strategy = { type: 'selective', keys: [], keys_secondary: { logic: 'and_any', keys: [] }, scan_depth: 'same_as_global' };
               e.strategy.type = change.from ? 'constant' : 'selective';
-              e.constant = change.from;
             } else {
               // 对于开关的恢复：要明确检查 change.from
               // 原来为 true（开启状态），关闭操作产生了一条从 true -> false 的记录。
@@ -402,14 +402,14 @@ const applyInverseChanges = async (commitList: any[]) => {
 /**
  * 恢复某一次特定的历史修改操作 (原撤销操作，删除且还原)
  */
-const revertCommit = async (commit: any) => {
+const revertCommit = async (commit: ArkCommit) => {
   if (!confirm(`确定要恢复操作: ${commit.description} 吗？`)) return;
 
   try {
     await applyInverseChanges([commit]);
 
     // 从记录历史中删除该次提交
-    const commits = (currentConfig.value?.commits || []).filter((c: any) => c.id !== commit.id);
+    const commits = (currentConfig.value?.commits || []).filter((c: ArkCommit) => c.id !== commit.id);
     configStore.updateConfig({ commits });
 
     if (typeof toastr !== 'undefined') toastr.success('恢复成功并已从记录中移除。');
@@ -422,9 +422,9 @@ const revertCommit = async (commit: any) => {
 /**
  * 删除某一次历史记录 (不还原状态)
  */
-const deleteCommit = async (commit: any) => {
+const deleteCommit = async (commit: ArkCommit) => {
   if (!confirm(`确定要仅删除该记录: ${commit.description} 吗？(当前世界书状态不变)`)) return;
-  const commits = (currentConfig.value?.commits || []).filter((c: any) => c.id !== commit.id);
+  const commits = (currentConfig.value?.commits || []).filter((c: ArkCommit) => c.id !== commit.id);
   configStore.updateConfig({ commits });
 };
 
@@ -432,7 +432,7 @@ const deleteCommit = async (commit: any) => {
  * 批量恢复选中的提交记录
  */
 const batchRevertCommits = async () => {
-  const commitsToRevert = (currentConfig.value?.commits || []).filter((c: any) => selectedCommits.value.includes(c.id));
+  const commitsToRevert = (currentConfig.value?.commits || []).filter((c: ArkCommit) => selectedCommits.value.includes(c.id));
   if (!commitsToRevert.length) return;
 
   if (!confirm(`确定要恢复这 ${commitsToRevert.length} 条选中的记录吗？(状态将被还原)`)) return;
@@ -440,7 +440,7 @@ const batchRevertCommits = async () => {
   try {
     await applyInverseChanges(commitsToRevert);
 
-    const commits = (currentConfig.value?.commits || []).filter((c: any) => !selectedCommits.value.includes(c.id));
+    const commits = (currentConfig.value?.commits || []).filter((c: ArkCommit) => !selectedCommits.value.includes(c.id));
     configStore.updateConfig({ commits });
     selectedCommits.value = []; // 操作完清空选中
     isBatchMode.value = false;
@@ -460,7 +460,7 @@ const batchDeleteCommits = async () => {
   if (!count) return;
   if (!confirm(`确定要删除这 ${count} 条选中的记录吗？(世界书底层状态保持不变)`)) return;
 
-  const commits = (currentConfig.value?.commits || []).filter((c: any) => !selectedCommits.value.includes(c.id));
+  const commits = (currentConfig.value?.commits || []).filter((c: ArkCommit) => !selectedCommits.value.includes(c.id));
   configStore.updateConfig({ commits });
   selectedCommits.value = [];
   isBatchMode.value = false;

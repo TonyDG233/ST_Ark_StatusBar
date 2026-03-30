@@ -21,7 +21,7 @@ interface ArkInternalEvents {
   /**
    * 当世界书快照或剧本应用被修改时，通知产生一条历史记录 (Commit)
    */
-  'history:commit_added': (commitData: any) => void;
+  'history:commit_added': (commitData: import('../types/system_config').ArkCommit) => void;
 
   /**
    * 当拦截器开关状态发生改变时触发（由 config_store 发出，被 send_interceptor 监听）
@@ -31,7 +31,7 @@ interface ArkInternalEvents {
   /**
    * 请求更新配置存储的内容
    */
-  'config:update_requested': (partialConfig: any) => void;
+  'config:update_requested': (partialConfig: Partial<import('../types/system_config').ArkConfig>) => void;
 
   /**
    * 底层世界书数据已经被修改，要求前端状态中心 (shared_ui_state) 触发真实的拉取覆盖。
@@ -64,7 +64,7 @@ class ArkEventBusImpl {
   public off<K extends EventName>(event: K, callback: EventCallback<K>): void {
     const callbacks = this.listeners[event];
     if (callbacks) {
-      this.listeners[event] = callbacks.filter(cb => cb !== callback) as any;
+      this.listeners[event] = callbacks.filter(cb => cb !== callback) as typeof this.listeners[K];
     }
   }
 
@@ -76,7 +76,7 @@ class ArkEventBusImpl {
     if (callbacks) {
       callbacks.forEach(cb => {
         try {
-          (cb as any)(...args);
+          (cb as (...args: any[]) => void)(...args);
         } catch (error) {
           console.error(`[ArkEventBus] 触发事件 ${event} 时发生错误:`, error);
         }
