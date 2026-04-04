@@ -1,0 +1,257 @@
+/* ----------------------------------------------------------------------------
+ * Level 2: Shared UI Components (共用组件库)
+ * 此文件提取了两大顶层应用中高度重合的结构样式。
+ * 它们可以直接挂载在顶层组件的 `<style>`（非 scoped）中，或被子页面按需导入。
+ * 注意：由于 theme.scss 已经提取了基础按钮和 Switch 开关，此处仅保留布局类组件
+ * ------------------------------------------------------------------------- */
+
+/* --- General Layout & Utility --- */
+.empty-state {
+  text-align: center;
+  padding: 20px;
+  opacity: 0.7;
+}
+
+.hint {
+  font-size: 0.85em;
+  opacity: 0.8;
+  margin-top: 5px;
+}
+
+.warning-box {
+  background: rgba(255, 165, 0, 0.2);
+  border-left: 4px solid orange;
+  padding: 10px;
+  margin-bottom: 15px;
+}
+
+.action-bar {
+  display: flex;
+  gap: 10px;
+}
+
+.action-bar.compact {
+  gap: 5px;
+}
+
+/* --- Global Action Buttons --- */
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 1.1em;
+  cursor: pointer;
+  padding: 0 5px;
+}
+
+.icon-btn.tiny {
+  font-size: 0.9em;
+  padding: 2px 4px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  background: transparent;
+  margin-right: 5px;
+}
+
+.icon-btn.tiny:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-tiny {
+  font-size: 0.75em;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: white;
+}
+
+/* --- Common List & Item Structures --- */
+.entry-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 15px 0;
+}
+
+.entry-list li {
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  margin-bottom: 5px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.entry-list .entry-info {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  margin-right: 10px;
+}
+
+.entry-list .entry-name {
+  word-break: break-all;
+}
+
+.entry-list .badge {
+  font-size: 0.8em;
+  background: #007bff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.entry-list .badge.blocked {
+  background: var(--ui-border-primary);
+  color: var(--ui-text-secondary);
+}
+
+.disabled-entry {
+  opacity: 0.4;
+}
+
+/* --- Global Icons --- */
+.pin-icon {
+  font-size: 0.9em;
+  margin-right: 4px;
+}
+
+.pin-btn {
+  opacity: 0.5;
+}
+
+.pin-btn.pinned {
+  opacity: 1;
+  background: rgba(255, 165, 0, 0.2);
+}
+
+/* --- 伸缩按钮样式 (The 4-corner Box) --- */
+.toggle-btn {
+  position: relative;
+  width: 24px;
+  height: 24px;
+}
+
+.toggle-btn .corner {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-color: currentColor;
+  border-style: solid;
+  border-width: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggle-btn .top-left {
+  top: 4px;
+  left: 4px;
+  border-top-width: 2px;
+  border-left-width: 2px;
+}
+
+.toggle-btn .top-right {
+  top: 4px;
+  right: 4px;
+  border-top-width: 2px;
+  border-right-width: 2px;
+}
+
+.toggle-btn .bottom-left {
+  bottom: 4px;
+  left: 4px;
+  border-bottom-width: 2px;
+  border-left-width: 2px;
+}
+
+.toggle-btn .bottom-right {
+  bottom: 4px;
+  right: 4px;
+  border-bottom-width: 2px;
+  border-right-width: 2px;
+}
+
+/* 放大状态：直角朝外 */
+.toggle-btn:not(.is-mini) .top-left {
+  transform: translate(-2px, -2px);
+}
+
+.toggle-btn:not(.is-mini) .top-right {
+  transform: translate(2px, -2px);
+}
+
+.toggle-btn:not(.is-mini) .bottom-left {
+  transform: translate(-2px, 2px);
+}
+
+.toggle-btn:not(.is-mini) .bottom-right {
+  transform: translate(2px, 2px);
+}
+
+/* 缩小状态：直角朝内 */
+.toggle-btn.is-mini .top-left {
+  transform: translate(3px, 3px) rotate(180deg);
+}
+
+.toggle-btn.is-mini .top-right {
+  transform: translate(-3px, 3px) rotate(180deg);
+}
+
+.toggle-btn.is-mini .bottom-left {
+  transform: translate(3px, -3px) rotate(180deg);
+}
+
+.toggle-btn.is-mini .bottom-right {
+  transform: translate(-3px, -3px) rotate(180deg);
+}
+
+/* --- Mini 状态下的条目列表 --- */
+.mini-empty {
+  text-align: center;
+  opacity: 0.5;
+  padding: 5px;
+  font-size: 0.9em;
+}
+
+.mini-entry-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.mini-entry-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  border-bottom: 1px dashed rgba(128, 128, 128, 0.3);
+}
+
+.mini-entry-list li:last-child {
+  border-bottom: none;
+}
+
+.mini-entry-list .indicator {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #007bff;
+  flex-shrink: 0;
+}
+
+.mini-entry-list .indicator.blocked {
+  background-color: #dc3545;
+}
+
+.mini-entry-list .text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
