@@ -10,7 +10,6 @@ export enum UiMode {
 // 物理引擎常量区
 export const PHYSICS_CONSTANTS = {
   // --- 触发阈值 ---
-  // 【优化3】：调回沙盒版的原始吸附阈值，避免正数过大导致普通拖拽误触吸附，或气泡检测失灵
   /** 当组件距离屏幕左/右边缘小于等于此值时，触发贴边磁吸 */
   SNAP_ALIGN_THRESHOLD: 20, 
   /** 仅在 MINI 模式下，靠近屏幕边缘小于此值，触发收起为胶囊气泡模式 */
@@ -24,7 +23,7 @@ export const PHYSICS_CONSTANTS = {
   /** 胶囊气泡被拉扯时的最大弹性宽度限制 */
   MAX_STRETCH: 80,
   /** 展开为悬浮窗后，默认远离边缘弹开的安全距离（防二次误吸附） */
-  EXPAND_BOUNCE_MARGIN: 30,
+  EXPAND_BOUNCE_MARGIN: 20,
   /** 屏幕顶部安全距离防撞墙 */
   SAFE_TOP: 25,
   /** 屏幕底部安全距离防撞墙（配合真实高度检测，防止底部挤压） */
@@ -32,47 +31,41 @@ export const PHYSICS_CONSTANTS = {
 };
 
 /**
- * 拖拽与边界物理引擎 Hook
+ * 拖拽与边界物理引擎 Hook (v2.0 双轨锚点版)
  * 
  * 职责：接管所有的 `mousedown/touchstart` 等原生 DOM 拖拽事件。
- * 输出：绝对安全的 `transformX` 和 `transformY` 物理像素坐标，以及当前拖拽状态。
- * 防御：内置 ResizeObserver 与 1000ms 强制心跳，兜底解决渲染漂移与底部沉底问题。
+ * 输出：根据组件所在的屏幕半区，动态输出 `transformLeft` 或 `transformRight` 绝对坐标。
  */
 export function useDraggablePhysics(
   statusBarEl: Ref<HTMLElement | null>,
   currentUiMode: Ref<UiMode>
 ) {
-  // ---------------------------------------------------------------------------
-  // 核心坐标系重构：绝对全局 Top-Right 定位！
-  // - `transformX.value` 代表组件【右边缘】距离屏幕左侧的物理像素值。
-  //   (即：Left边缘坐标 + 自身Width = Right边缘坐标)
-  // - `transformY.value` 代表组件【上边缘】距离屏幕顶部的物理像素值。
-  // 
-  // 优势：在配合外层容器 `right:0` 的 CSS 时，由于宽度是向左收缩的，
-  // 拖拽原点和 CSS 形变原点在视觉上永远不会发生撕裂互锁。
-  // ---------------------------------------------------------------------------
-  const transformX = ref(0);
+  // =========================================================================
+  // 【核心升级】：动态双轨坐标系
+  // 不再死守单一的 transformX，而是根据当前所在的屏幕半区，动态决定输出哪个坐标。
+  // 这彻底解开了 CSS 中 right:0 或 left:0 带来的相反伸长方向拉扯死锁。
+  // =========================================================================
+  const currentAnchor = ref<'left' | 'right'>('right');
+  const transformLeft = ref(0);
+  const transformRight = ref(20); // 默认右侧起步
   const transformY = ref(0);
   
   // 对外暴露的拖拽中状态，供 Vue 层增加 `.is-dragging` 类名禁用 CSS Transition 以保证帧率
   const isDraggingState = ref(false); 
-  // 【优化4】：暴露一个临时状态，告诉外层壳此时是否正在经历“松手回弹”或者“碰撞矫正”
-  // 从而让外壳临时拥有 transition 动画，告别瞬间撞墙的生硬感
   const isSnapping = ref(false);
 
   // 对外暴露的边缘吸附状态，决定是否渲染成气泡
   const isSnappedToEdge = ref<false | 'left' | 'right'>(false);
-  // 【优化5】：对外暴露一个动态推断的挂载侧，当组件停留在屏幕左半边时，允许内层 UI 切换为 Left:0 锚点
-  const isAnchoredLeft = ref(false);
 
   // 气泡模式下的弹性拉伸宽度 (橡皮筋效果)
   const snappedStretchWidth = ref(PHYSICS_CONSTANTS.BUBBLE_WIDTH);
 
-  // 内部拖拽暂存
+  // 内部拖拽暂存 (基于 clientX/clientY 绝对坐标)
   let isDragging = false;
   let startX = 0;
   let startY = 0;
-  let initialX = 0;
+  let initialLeft = 0;
+  let initialRight = 0;
   let initialY = 0;
   let snappingTimeout: number | null = null;
 
@@ -80,22 +73,27 @@ export function useDraggablePhysics(
   let heartbeatTimer: number | null = null;
   let resizeObserver: ResizeObserver | null = null;
 
-  /**
-   * 触发外壳平滑过渡的辅助函数
-   * 当发生非玩家直接拖拽的坐标跳变时（比如展开气泡弹开、撞到底部防撞墙弹回），
-   * 开启一瞬间的 transition。
-   */
   const triggerSmoothSnap = () => {
     isSnapping.value = true;
     if (snappingTimeout !== null) clearTimeout(snappingTimeout);
-    // 给 CSS 0.3s 的 transition 时间，然后立刻关闭恢复纯物理 0 延迟态
     snappingTimeout = window.setTimeout(() => {
       isSnapping.value = false;
     }, 300);
   };
 
   /**
-   * 核心边界防线：任何物理位移后、窗口变动后，必须调用此函数进行强行截断收口。
+   * 辅助函数：根据当前的窗口宽度和组件宽度，安全地在左右锚点之间同步数据。
+   */
+  const syncAnchors = (viewportWidth: number, componentWidth: number) => {
+    if (currentAnchor.value === 'right') {
+      transformLeft.value = viewportWidth - transformRight.value - componentWidth;
+    } else {
+      transformRight.value = viewportWidth - transformLeft.value - componentWidth;
+    }
+  };
+
+  /**
+   * 核心边界防线
    * @param forceSmooth 是否强制本次拦截发生时带有过渡动画
    */
   const checkBounds = (forceSmooth = false) => {
@@ -123,7 +121,11 @@ export function useDraggablePhysics(
       currentHeight = 90; 
     }
 
-    let newX = transformX.value;
+    // 每次计算前，先互相拉平两个锚点的绝对值
+    syncAnchors(viewportWidth, currentWidth);
+
+    let newLeft = transformLeft.value;
+    let newRight = transformRight.value;
     let newY = transformY.value;
     let outOfBounds = false;
 
@@ -133,26 +135,35 @@ export function useDraggablePhysics(
     
     // 气泡死锁覆盖
     if (isSnappedToEdge.value === 'left') {
-      newX = snappedStretchWidth.value; 
-      isAnchoredLeft.value = true;
+      newLeft = 0; 
+      currentAnchor.value = 'left';
     } else if (isSnappedToEdge.value === 'right') {
-      newX = viewportWidth; 
-      isAnchoredLeft.value = false;
+      newRight = 0; 
+      currentAnchor.value = 'right';
     }
-    // 正常截断
+    // 正常截断与锚点移交
     else {
-      // 左墙截断
-      if (newX < currentWidth) {
-        newX = currentWidth;
+      // 通过中心点判断应该交给谁管辖
+      const centerX = newLeft + currentWidth / 2;
+      const isLeftHalf = centerX < viewportWidth / 2;
+      currentAnchor.value = isLeftHalf ? 'left' : 'right';
+
+      // 撞墙检测
+      if (newLeft < 0) {
+        newLeft = 0;
         outOfBounds = true;
       }
-      // 右墙截断
-      if (newX > viewportWidth) {
-        newX = viewportWidth;
+      if (newRight < 0) {
+        newRight = 0;
         outOfBounds = true;
       }
-      // 更新锚点朝向推断 (中轴线判断，在左半边就用左锚点，右半边就用右锚点)
-      isAnchoredLeft.value = (newX - currentWidth / 2) < (viewportWidth / 2);
+    }
+
+    // 同步确保另一个锚点也是正确的，即使我们在边缘截断了
+    if (currentAnchor.value === 'left') {
+      newRight = viewportWidth - newLeft - currentWidth;
+    } else {
+      newLeft = viewportWidth - newRight - currentWidth;
     }
 
     // 上下墙截断 (Y轴)
@@ -165,17 +176,17 @@ export function useDraggablePhysics(
     if (!isDragging) {
       const bottomLimit = viewportHeight - currentHeight - PHYSICS_CONSTANTS.SAFE_MARGIN_BOTTOM;
       if (newY > bottomLimit) {
-        newY = Math.max(PHYSICS_CONSTANTS.SAFE_TOP, bottomLimit); // 极端窄屏保上不保下
+        newY = Math.max(PHYSICS_CONSTANTS.SAFE_TOP, bottomLimit);
         outOfBounds = true;
       }
     }
 
-    if (transformX.value !== newX || transformY.value !== newY) {
-      // 只有真正发生了物理强制纠正，并且外部要求平滑，才开启回弹动画
+    if (transformLeft.value !== newLeft || transformRight.value !== newRight || transformY.value !== newY) {
       if (forceSmooth || (outOfBounds && !isDragging)) {
         triggerSmoothSnap();
       }
-      transformX.value = newX;
+      transformLeft.value = newLeft;
+      transformRight.value = newRight;
       transformY.value = newY;
     }
   };
@@ -200,28 +211,38 @@ export function useDraggablePhysics(
 
     // 气泡橡皮筋拉扯
     if (isSnappedToEdge.value) {
-      const ST_WIN = window.parent || window;
-      
       if (isSnappedToEdge.value === 'left') {
         const pullDist = dx; // 往右拉正数
         snappedStretchWidth.value = pullDist > 0 
           ? Math.min(PHYSICS_CONSTANTS.MAX_STRETCH, PHYSICS_CONSTANTS.BUBBLE_WIDTH + pullDist * 0.5)
           : PHYSICS_CONSTANTS.BUBBLE_WIDTH;
-        transformX.value = snappedStretchWidth.value; 
+        transformLeft.value = 0; 
       } 
       else if (isSnappedToEdge.value === 'right') {
         const pullDist = -dx; // 往左拉负数转正
         snappedStretchWidth.value = pullDist > 0 
           ? Math.min(PHYSICS_CONSTANTS.MAX_STRETCH, PHYSICS_CONSTANTS.BUBBLE_WIDTH + pullDist * 0.5)
           : PHYSICS_CONSTANTS.BUBBLE_WIDTH;
-        transformX.value = ST_WIN.innerWidth;
+        transformRight.value = 0;
       }
       transformY.value = initialY + dy;
     } 
-    // 正常移动
+    // 正常移动 (只更新当前管辖的锚点，在 checkBounds 中统一同步)
     else {
-      transformX.value = initialX + dx;
+      if (currentAnchor.value === 'left') {
+        transformLeft.value = initialLeft + dx;
+      } else {
+        // 向右移 dx 是正，但距离右边缘其实是变小，所以是减去
+        transformRight.value = initialRight - dx; 
+      }
       transformY.value = initialY + dy;
+      
+      // 实时切换锚点归属权，让跟手更丝滑
+      const ST_WIN = window.parent || window;
+      const currentWidth = statusBarEl.value.offsetWidth || 180;
+      syncAnchors(ST_WIN.innerWidth, currentWidth); // 互相同步
+      const centerX = transformLeft.value + currentWidth / 2;
+      currentAnchor.value = centerX < (ST_WIN.innerWidth / 2) ? 'left' : 'right';
     }
   };
 
@@ -234,46 +255,36 @@ export function useDraggablePhysics(
     ST_DOC.removeEventListener('mouseup', stopDrag);
     ST_DOC.removeEventListener('touchend', stopDrag);
 
-    const ST_WIN = window.parent || window;
-    const viewportWidth = ST_WIN.innerWidth;
-
     // --- 松手气泡判定 (拉出一定距离解除气泡) ---
     if (isSnappedToEdge.value) {
       if (snappedStretchWidth.value > PHYSICS_CONSTANTS.STRETCH_RELEASE_THRESHOLD) {
         // 展开悬浮窗
         const edge = isSnappedToEdge.value;
         isSnappedToEdge.value = false;
-        // 外部 Vue 根据此修改 UiMode，这里引擎负责将它丢向安全位置
         currentUiMode.value = UiMode.MINI; 
         snappedStretchWidth.value = PHYSICS_CONSTANTS.BUBBLE_WIDTH;
 
-        const currentWidth = 180;
         if (edge === 'left') {
-          transformX.value = currentWidth + PHYSICS_CONSTANTS.EXPAND_BOUNCE_MARGIN;
-          isAnchoredLeft.value = true;
+          transformLeft.value = PHYSICS_CONSTANTS.EXPAND_BOUNCE_MARGIN;
+          currentAnchor.value = 'left';
         } else {
-          transformX.value = viewportWidth - PHYSICS_CONSTANTS.EXPAND_BOUNCE_MARGIN; 
-          isAnchoredLeft.value = false;
+          transformRight.value = PHYSICS_CONSTANTS.EXPAND_BOUNCE_MARGIN; 
+          currentAnchor.value = 'right';
         }
-        // 从气泡拉出悬浮时，应该是一个平滑飞出的动作
         triggerSmoothSnap();
       } else {
         // 回弹成气泡
         snappedStretchWidth.value = PHYSICS_CONSTANTS.BUBBLE_WIDTH;
-        if (isSnappedToEdge.value === 'left') transformX.value = PHYSICS_CONSTANTS.BUBBLE_WIDTH;
-        if (isSnappedToEdge.value === 'right') transformX.value = viewportWidth;
-        // 未拉够，缩回气泡应该是一个平滑回弹
+        if (isSnappedToEdge.value === 'left') transformLeft.value = 0;
+        if (isSnappedToEdge.value === 'right') transformRight.value = 0;
         triggerSmoothSnap();
       }
     } 
     // --- 正常态贴边判定 ---
     else {
-      // 只有在 MINI 模式下，才允许贴近边缘时坍缩为气泡！
-      // FULL 模式下只是纯物理碰撞拦截（在 checkBounds 中已处理）
       if (currentUiMode.value === UiMode.MINI) {
-        const currentWidth = statusBarEl.value?.offsetWidth || 180;
-        const distRight = viewportWidth - transformX.value;
-        const distLeft = transformX.value - currentWidth;
+        const distRight = transformRight.value;
+        const distLeft = transformLeft.value;
 
         let willSnap = false;
 
@@ -281,34 +292,33 @@ export function useDraggablePhysics(
         if (distRight < PHYSICS_CONSTANTS.HIDE_THRESHOLD) {
           isSnappedToEdge.value = 'right';
           currentUiMode.value = UiMode.BUBBLE;
-          transformX.value = viewportWidth;
+          transformRight.value = 0;
           snappedStretchWidth.value = PHYSICS_CONSTANTS.BUBBLE_WIDTH;
-          isAnchoredLeft.value = false;
+          currentAnchor.value = 'right';
           willSnap = true;
         } 
         // 右侧较近 -> 磁吸对齐
         else if (distRight <= PHYSICS_CONSTANTS.SNAP_ALIGN_THRESHOLD) {
-          transformX.value = viewportWidth;
-          isAnchoredLeft.value = false;
+          transformRight.value = 0;
+          currentAnchor.value = 'right';
           willSnap = true;
         } 
         // 左侧极近 -> 气泡化
         else if (distLeft < PHYSICS_CONSTANTS.HIDE_THRESHOLD) {
           isSnappedToEdge.value = 'left';
           currentUiMode.value = UiMode.BUBBLE;
-          transformX.value = PHYSICS_CONSTANTS.BUBBLE_WIDTH;
+          transformLeft.value = 0;
           snappedStretchWidth.value = PHYSICS_CONSTANTS.BUBBLE_WIDTH;
-          isAnchoredLeft.value = true;
+          currentAnchor.value = 'left';
           willSnap = true;
         } 
         // 左侧较近 -> 磁吸对齐
         else if (distLeft <= PHYSICS_CONSTANTS.SNAP_ALIGN_THRESHOLD) {
-          transformX.value = currentWidth;
-          isAnchoredLeft.value = true;
+          transformLeft.value = 0;
+          currentAnchor.value = 'left';
           willSnap = true;
         }
 
-        // 如果发生了任意方向的吸附或坍缩，平滑滑过去
         if (willSnap) {
           triggerSmoothSnap();
         }
@@ -319,14 +329,12 @@ export function useDraggablePhysics(
   };
 
   const startDrag = (e: MouseEvent | TouchEvent) => {
-    // 排除内部操作类按钮干扰拖拽，但保留本身就是把手的气泡指示器
     if ((e.target as HTMLElement).closest('button, .icon-btn') && !(e.target as HTMLElement).closest('.edge-snap-indicator')) {
         return;
     }
     
     isDragging = true;
     isDraggingState.value = true;
-    // 一旦摸到屏幕准备拖拽，任何系统产生的平滑回弹必须立刻终止，恢复绝对跟手
     isSnapping.value = false; 
     if (snappingTimeout !== null) clearTimeout(snappingTimeout);
     
@@ -339,7 +347,14 @@ export function useDraggablePhysics(
       startY = (e as MouseEvent).clientY;
     }
 
-    initialX = transformX.value;
+    // 同步一次当前的真实位置作为拖拽基准
+    if (statusBarEl.value) {
+       const ST_WIN = window.parent || window;
+       syncAnchors(ST_WIN.innerWidth, statusBarEl.value.offsetWidth || 180);
+    }
+    
+    initialLeft = transformLeft.value;
+    initialRight = transformRight.value;
     initialY = transformY.value;
 
     const ST_DOC = window.parent?.document || document;
@@ -351,15 +366,14 @@ export function useDraggablePhysics(
 
   const resetPosition = () => {
     const ST_WIN = window.parent || window;
-    const viewportWidth = ST_WIN.innerWidth;
     const viewportHeight = ST_WIN.innerHeight;
     
     // 默认回城：右侧偏下
-    transformX.value = viewportWidth - 20; 
+    currentAnchor.value = 'right';
+    transformRight.value = 20; 
     transformY.value = Math.max(PHYSICS_CONSTANTS.SAFE_TOP, viewportHeight - 120); 
     
     isSnappedToEdge.value = false;
-    isAnchoredLeft.value = false; // 右侧回城，默认归属于右半边锚点
     currentUiMode.value = UiMode.MINI; 
     triggerSmoothSnap();
   };
@@ -386,12 +400,13 @@ export function useDraggablePhysics(
   });
 
   return {
-    transformX,
+    currentAnchor,
+    transformLeft,
+    transformRight,
     transformY,
     isDraggingState,
     isSnapping,
     isSnappedToEdge,
-    isAnchoredLeft,
     snappedStretchWidth,
     startDrag,
     resetPosition,

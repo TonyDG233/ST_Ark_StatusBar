@@ -5,33 +5,36 @@
     v-show="isVisible"
     class="ark-global-statusbar-shell"
     :class="{ 'is-snapping': isSnapping }"
-    style="position: fixed; left: 0; top: 0; z-index: 9999;"
+    style="position: fixed; top: 0; z-index: 9999;"
     :style="{
-      transform: `translate(${transformX}px, ${transformY}px)`
+      left: currentAnchor === 'left' ? `${transformLeft}px` : 'auto',
+      right: currentAnchor === 'right' ? `${transformRight}px` : 'auto',
+      transform: `translateY(${transformY}px)`
     }"
     ref="statusBarEl"
   >
-    <!-- [视觉 UI 容器层] 负责所有颜色、尺寸、伸缩渐变。被绝对定位死锁在右侧锚点 (right:0) 
-         以便配合 transformX（右边缘的绝对像素值）产生完美的左向伸长效果，无任何动画撕裂 -->
-      <div
-        class="ark-global-statusbar"
-        :class="{
-          'light-theme': currentConfig?.theme === 'light',
-          'dark-theme': currentConfig?.theme === 'dark',
-          'transparent-theme': currentConfig?.theme === 'transparent',
-          'mini-mode': currentUiMode === UiMode.MINI,
-          'edge-snapped': currentUiMode === UiMode.BUBBLE,
-          'edge-snapped-left': isSnappedToEdge === 'left',
-          'edge-snapped-right': isSnappedToEdge === 'right',
-          'is-dragging': isDraggingState
-        }"
-        style="position: absolute; right: 0; top: 0;"
-        :style="{
-          '--ui-width': currentUiMode === UiMode.MINI ? 'auto' : (previewUiWidth ?? currentConfig?.uiWidth ?? 400) + 'px',
-          '--ui-font-size': (previewUiFontSize ?? currentConfig?.uiFontSize ?? 14) + 'px',
-          '--snapped-width': isSnappedToEdge ? `${snappedStretchWidth}px` : '32px'
-        }"
-      >
+    <!-- [视觉 UI 容器层] 负责所有颜色、尺寸、伸缩渐变。
+         根据外壳给定的 currentAnchor 动态调整自己的 transform-origin 
+         使得向外展开的动画总是完美的！ -->
+    <div
+      class="ark-global-statusbar"
+      :class="{
+        'light-theme': currentConfig?.theme === 'light',
+        'dark-theme': currentConfig?.theme === 'dark',
+        'transparent-theme': currentConfig?.theme === 'transparent',
+        'mini-mode': currentUiMode === UiMode.MINI,
+        'edge-snapped': currentUiMode === UiMode.BUBBLE,
+        'edge-snapped-left': isSnappedToEdge === 'left',
+        'edge-snapped-right': isSnappedToEdge === 'right',
+        'is-dragging': isDraggingState
+      }"
+      :style="{
+        'transform-origin': currentAnchor === 'left' ? 'left top' : 'right top',
+        '--ui-width': currentUiMode === UiMode.MINI ? 'auto' : (previewUiWidth ?? currentConfig?.uiWidth ?? 400) + 'px',
+        '--ui-font-size': (previewUiFontSize ?? currentConfig?.uiFontSize ?? 14) + 'px',
+        '--snapped-width': isSnappedToEdge ? `${snappedStretchWidth}px` : '32px'
+      }"
+    >
       <!-- 气泡窗变身把手，利用原 UI 的极限压缩产生无缝融合效果 -->
       <div 
         v-show="currentUiMode === UiMode.BUBBLE" 
@@ -64,18 +67,23 @@
           </div>
         </div>
 
-        <div class="statusbar-tabs" v-show="currentUiMode === UiMode.FULL && !isTransitioningMode">
-          <button :class="{ active: currentTab === 'interceptor' }" @click="currentTab = 'interceptor'">拦截预警</button>
-          <button :class="{ active: currentTab === 'all' }" @click="currentTab = 'all'">全部条目</button>
-          <button :class="{ active: currentTab === 'history' }" @click="currentTab = 'history'">记录(Git)</button>
-          <button :class="{ active: currentTab === 'settings' }" @click="currentTab = 'settings'">设置</button>
-        </div>
+        <!-- 高跷防护：使用 Grid 0fr 方案包裹内容 -->
+        <div class="statusbar-content-wrapper" :class="{ 'is-full-expanded': currentUiMode === UiMode.FULL }">
+          <div class="statusbar-content-inner">
+            <div class="statusbar-tabs" v-show="currentUiMode === UiMode.FULL">
+              <button :class="{ active: currentTab === 'interceptor' }" @click="currentTab = 'interceptor'">拦截预警</button>
+              <button :class="{ active: currentTab === 'all' }" @click="currentTab = 'all'">全部条目</button>
+              <button :class="{ active: currentTab === 'history' }" @click="currentTab = 'history'">记录(Git)</button>
+              <button :class="{ active: currentTab === 'settings' }" @click="currentTab = 'settings'">设置</button>
+            </div>
 
-        <div class="statusbar-content full-content-fade" v-show="currentUiMode === UiMode.FULL && !isTransitioningMode">
-          <InterceptorTab v-show="currentTab === 'interceptor'" @close-panel="currentUiMode = UiMode.MINI" />
-          <WorldbookTab v-show="currentTab === 'all'" />
-          <HistoryTab v-show="currentTab === 'history'" />
-          <SettingsTab v-show="currentTab === 'settings'" />
+            <div class="statusbar-content" v-show="currentUiMode === UiMode.FULL">
+              <InterceptorTab v-show="currentTab === 'interceptor'" @close-panel="currentUiMode = UiMode.MINI" />
+              <WorldbookTab v-show="currentTab === 'all'" />
+              <HistoryTab v-show="currentTab === 'history'" />
+              <SettingsTab v-show="currentTab === 'settings'" />
+            </div>
+          </div>
         </div>
 
         <!-- [FEATURE: MINI_SNAPSHOT] -> Compact list shown ONLY in mini mode -->
@@ -129,7 +137,7 @@ import WorldbookTab from './global_tabs/worldbook/WorldbookTab.vue';
 import { UiMode, useDraggablePhysics } from './global_tabs/useDraggablePhysics';
 
 const isVisible = ref(true);
-const currentUiMode = ref<UiMode>(UiMode.MINI); // 替换掉脆弱的 isMiniMode
+const currentUiMode = ref<UiMode>(UiMode.MINI); 
 const currentTab = ref('interceptor');
 const currentConfig = useArkConfig();
 const manager = StatusBarManager.getInstance();
@@ -137,14 +145,13 @@ const isSystemEnabled = computed(() => currentConfig.value?.isSystemEnabled ?? t
 
 const statusBarEl = ref<HTMLElement | null>(null);
 
-// 用于二次状态延迟法
-const isTransitioningMode = ref(false);
-
 // ==========================================
 // 业务视图层 与 纯物理引擎层的切割交接点
 // ==========================================
 const {
-  transformX,
+  currentAnchor,
+  transformLeft,
+  transformRight,
   transformY,
   isDraggingState,
   isSnapping,
@@ -158,16 +165,8 @@ const toggleMinimize = () => {
   if (currentUiMode.value === UiMode.FULL) {
     currentUiMode.value = UiMode.MINI;
   } else if (currentUiMode.value === UiMode.MINI) {
-    // 高跷修复：二次状态延迟法
-    // 1. 先改变状态和模式让宽度开始拉伸，但通过 isTransitioningMode 锁住内容区不让它撑开高度
-    isTransitioningMode.value = true;
     currentUiMode.value = UiMode.FULL;
     currentTab.value = 'interceptor';
-    
-    // 2. 等待 CSS 中的宽度 transition (0.3s) 跑完，再释放内容让高度真正长出
-    setTimeout(() => {
-      isTransitioningMode.value = false;
-    }, 300);
   }
   
   // 给 CSS 的 transition (0.3s) 留出时间后，执行最后一次物理兜底碰撞收口
@@ -206,7 +205,6 @@ const loadPrimaryWorldbookName = async () => {
 };
 
 onMounted(() => {
-  // 激活全局的事件总线，让 shared_ui_state 作为唯一数据源开始监听原生与内部变动
   setupGlobalListeners();
 
   document.addEventListener('ark-config-updated', ((e: CustomEvent) => {
@@ -222,7 +220,6 @@ onMounted(() => {
     loadWorldbookLists();
   }
 
-  // 接管底层的拦截预警推送，分配到 shared_state 给各个微组件使用
   document.addEventListener('ark-interceptor-triggered', ((e: CustomEvent) => {
     const triggered = e.detail.entries || [];
     const isManualTest = !!e.detail.isManualTest;
@@ -245,15 +242,7 @@ onMounted(() => {
     if (matchedEntries.length > 0 || isManualTest) {
       pendingEntries.value = matchedEntries;
       currentTab.value = 'interceptor';
-      
-      // 如果是被动触发拦截，同样走二次延迟法防高跷
-      if (currentUiMode.value !== UiMode.FULL) {
-        isTransitioningMode.value = true;
-        currentUiMode.value = UiMode.FULL;
-        setTimeout(() => {
-          isTransitioningMode.value = false;
-        }, 300);
-      }
+      currentUiMode.value = UiMode.FULL;
 
       if (!isSystemEnabled.value) {
         configStore.updateConfig({ isSystemEnabled: true });
@@ -332,6 +321,7 @@ onMounted(() => {
   max-height: calc(100dvh - 80px);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  overflow: hidden; /* <--- 修复：强制截断流出的子元素，以配合内部滚动条 */
   /* 
     【重点解耦】：因为不再和物理坐标纠缠，这里的 transition 可以放心大胆地加上宽度变化。
     且它不会像以前那样导致由于右边缘抽搐而被撕裂。
@@ -581,18 +571,33 @@ onMounted(() => {
    新增：物理壳平滑阻尼过渡 (用于处理碰撞墙壁及状态跳转时的瞬间回弹)
    ========================================================================= */
 .ark-global-statusbar-shell.is-snapping {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), right 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* =========================================================================
-   新增：内容防“高跷”拉伸保护淡入
+   新增：内容防“高跷”拉伸保护淡入 (Grid 0fr 方案)
    ========================================================================= */
-@keyframes fadeInContent {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.statusbar-content-wrapper {
+  display: grid;
+  grid-template-rows: 0fr; 
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  width: 100%; /* 防止 Grid 宽度失控 (Grid Blowout) */
 }
 
-.full-content-fade {
-  animation: fadeInContent 0.3s ease forwards;
+.statusbar-content-wrapper.is-full-expanded {
+  grid-template-rows: 1fr;
+}
+
+.statusbar-content-inner {
+  min-height: 0;
+  min-width: 0; /* 防止 Grid 内的 Flex 子项撑破父级限制的绝对关键 */
+  width: 100%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.statusbar-content-wrapper.is-full-expanded .statusbar-content-inner {
+  opacity: 1;
 }
 </style>
