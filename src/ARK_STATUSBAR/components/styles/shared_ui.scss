@@ -130,3 +130,82 @@
   opacity: 1;
   background: rgba(255, 165, 0, 0.2);
 }
+
+/* --- 伸缩按钮样式 (The 4-corner Box) --- */
+.toggle-btn {
+  position: relative;
+  width: 24px;
+  height: 24px;
+}
+
+.toggle-btn .corner {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-color: currentColor;
+  border-style: solid;
+  border-width: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggle-btn .top-left {
+  top: 4px;
+  left: 4px;
+  border-top-width: 2px;
+  border-left-width: 2px;
+}
+
+.toggle-btn .top-right {
+  top: 4px;
+  right: 4px;
+  border-top-width: 2px;
+  border-right-width: 2px;
+}
+
+.toggle-btn .bottom-left {
+  bottom: 4px;
+  left: 4px;
+  border-bottom-width: 2px;
+  border-left-width: 2px;
+}
+
+.toggle-btn .bottom-right {
+  bottom: 4px;
+  right: 4px;
+  border-bottom-width: 2px;
+  border-right-width: 2px;
+}
+
+/* 放大状态：直角朝外 */
+.toggle-btn:not(.is-mini) .top-left {
+  transform: translate(-2px, -2px);
+}
+
+.toggle-btn:not(.is-mini) .top-right {
+  transform: translate(2px, -2px);
+}
+
+.toggle-btn:not(.is-mini) .bottom-left {
+  transform: translate(-2px, 2px);
+}
+
+.toggle-btn:not(.is-mini) .bottom-right {
+  transform: translate(2px, 2px);
+}
+
+/* 缩小状态：直角朝内 */
+.toggle-btn.is-mini .top-left {
+  transform: translate(3px, 3px) rotate(180deg);
+}
+
+.toggle-btn.is-mini .top-right {
+  transform: translate(-3px, 3px) rotate(180deg);
+}
+
+.toggle-btn.is-mini .bottom-left {
+  transform: translate(3px, -3px) rotate(180deg);
+}
+
+.toggle-btn.is-mini .bottom-right {
+  transform: translate(-3px, -3px) rotate(180deg);
+}

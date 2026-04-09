@@ -133,6 +133,14 @@ $(() => {
     globalContainer = ST_DOC.createElement('div');
     globalContainer.className = GLOBAL_STATUSBAR_CONTAINER_CLASS;
     ST_DOC.body.appendChild(globalContainer);
+  } else {
+    // 强制清理遗留的 Vue 实例，避免热重载时多次挂载导致冲突
+    if (globalStatusBarApp) {
+      globalStatusBarApp.unmount();
+      globalStatusBarApp = null;
+    }
+    // 清空容器内容
+    globalContainer.innerHTML = '';
   }
 
   // Note: We mount it immediately, but its visibility and functionality is controlled by its own state
@@ -150,4 +158,8 @@ $(() => {
 // Cleanup on unload
 $(window).on('pagehide', () => {
   deteleportStyle();
+  if (globalStatusBarApp) {
+    globalStatusBarApp.unmount();
+    globalStatusBarApp = null;
+  }
 });
