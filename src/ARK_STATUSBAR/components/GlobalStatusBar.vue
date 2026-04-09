@@ -4,6 +4,7 @@
     v-if="isSystemEnabled"
     v-show="isVisible"
     class="ark-global-statusbar-shell"
+    :class="{ 'is-snapping': isSnapping }"
     style="position: fixed; left: 0; top: 0; z-index: 9999;"
     :style="{
       transform: `translate(${transformX}px, ${transformY}px)`
@@ -12,25 +13,25 @@
   >
     <!-- [视觉 UI 容器层] 负责所有颜色、尺寸、伸缩渐变。被绝对定位死锁在右侧锚点 (right:0) 
          以便配合 transformX（右边缘的绝对像素值）产生完美的左向伸长效果，无任何动画撕裂 -->
-    <div
-      class="ark-global-statusbar"
-      :class="{
-        'light-theme': currentConfig?.theme === 'light',
-        'dark-theme': currentConfig?.theme === 'dark',
-        'transparent-theme': currentConfig?.theme === 'transparent',
-        'mini-mode': currentUiMode === UiMode.MINI,
-        'edge-snapped': currentUiMode === UiMode.BUBBLE,
-        'edge-snapped-left': isSnappedToEdge === 'left',
-        'edge-snapped-right': isSnappedToEdge === 'right',
-        'is-dragging': isDraggingState
-      }"
-      style="position: absolute; right: 0; top: 0;"
-      :style="{
-        '--ui-width': currentUiMode === UiMode.MINI ? 'auto' : (previewUiWidth ?? currentConfig?.uiWidth ?? 400) + 'px',
-        '--ui-font-size': (previewUiFontSize ?? currentConfig?.uiFontSize ?? 14) + 'px',
-        '--snapped-width': isSnappedToEdge ? `${snappedStretchWidth}px` : '32px'
-      }"
-    >
+      <div
+        class="ark-global-statusbar"
+        :class="{
+          'light-theme': currentConfig?.theme === 'light',
+          'dark-theme': currentConfig?.theme === 'dark',
+          'transparent-theme': currentConfig?.theme === 'transparent',
+          'mini-mode': currentUiMode === UiMode.MINI,
+          'edge-snapped': currentUiMode === UiMode.BUBBLE,
+          'edge-snapped-left': isSnappedToEdge === 'left',
+          'edge-snapped-right': isSnappedToEdge === 'right',
+          'is-dragging': isDraggingState
+        }"
+        style="position: absolute; right: 0; top: 0;"
+        :style="{
+          '--ui-width': currentUiMode === UiMode.MINI ? 'auto' : (previewUiWidth ?? currentConfig?.uiWidth ?? 400) + 'px',
+          '--ui-font-size': (previewUiFontSize ?? currentConfig?.uiFontSize ?? 14) + 'px',
+          '--snapped-width': isSnappedToEdge ? `${snappedStretchWidth}px` : '32px'
+        }"
+      >
       <!-- 气泡窗变身把手，利用原 UI 的极限压缩产生无缝融合效果 -->
       <div 
         v-show="currentUiMode === UiMode.BUBBLE" 
@@ -48,8 +49,7 @@
           class="statusbar-header"
           @mousedown="startDrag"
           @touchstart="startDrag"
-          @dblclick="resetPosition"
-          title="拖拽移动，双击还原位置"
+          title="拖拽移动"
         >
           <div class="title" v-if="currentUiMode === UiMode.FULL"><span class="icon">📖</span> 方舟世界书控制台</div>
           <div class="title mini" v-else><span class="icon">📖</span> 世界书 (预警: {{ pendingEntries.length }})</div>
@@ -64,14 +64,14 @@
           </div>
         </div>
 
-        <div class="statusbar-tabs" v-show="currentUiMode === UiMode.FULL">
+        <div class="statusbar-tabs" v-show="currentUiMode === UiMode.FULL && !isTransitioningMode">
           <button :class="{ active: currentTab === 'interceptor' }" @click="currentTab = 'interceptor'">拦截预警</button>
           <button :class="{ active: currentTab === 'all' }" @click="currentTab = 'all'">全部条目</button>
           <button :class="{ active: currentTab === 'history' }" @click="currentTab = 'history'">记录(Git)</button>
           <button :class="{ active: currentTab === 'settings' }" @click="currentTab = 'settings'">设置</button>
         </div>
 
-        <div class="statusbar-content" v-show="currentUiMode === UiMode.FULL">
+        <div class="statusbar-content full-content-fade" v-show="currentUiMode === UiMode.FULL && !isTransitioningMode">
           <InterceptorTab v-show="currentTab === 'interceptor'" @close-panel="currentUiMode = UiMode.MINI" />
           <WorldbookTab v-show="currentTab === 'all'" />
           <HistoryTab v-show="currentTab === 'history'" />
@@ -137,6 +137,9 @@ const isSystemEnabled = computed(() => currentConfig.value?.isSystemEnabled ?? t
 
 const statusBarEl = ref<HTMLElement | null>(null);
 
+// 用于二次状态延迟法
+const isTransitioningMode = ref(false);
+
 // ==========================================
 // 业务视图层 与 纯物理引擎层的切割交接点
 // ==========================================
@@ -144,10 +147,10 @@ const {
   transformX,
   transformY,
   isDraggingState,
+  isSnapping,
   isSnappedToEdge,
   snappedStretchWidth,
   startDrag,
-  resetPosition,
   checkBounds
 } = useDraggablePhysics(statusBarEl, currentUiMode);
 
@@ -155,8 +158,16 @@ const toggleMinimize = () => {
   if (currentUiMode.value === UiMode.FULL) {
     currentUiMode.value = UiMode.MINI;
   } else if (currentUiMode.value === UiMode.MINI) {
+    // 高跷修复：二次状态延迟法
+    // 1. 先改变状态和模式让宽度开始拉伸，但通过 isTransitioningMode 锁住内容区不让它撑开高度
+    isTransitioningMode.value = true;
     currentUiMode.value = UiMode.FULL;
     currentTab.value = 'interceptor';
+    
+    // 2. 等待 CSS 中的宽度 transition (0.3s) 跑完，再释放内容让高度真正长出
+    setTimeout(() => {
+      isTransitioningMode.value = false;
+    }, 300);
   }
   
   // 给 CSS 的 transition (0.3s) 留出时间后，执行最后一次物理兜底碰撞收口
@@ -234,7 +245,15 @@ onMounted(() => {
     if (matchedEntries.length > 0 || isManualTest) {
       pendingEntries.value = matchedEntries;
       currentTab.value = 'interceptor';
-      currentUiMode.value = UiMode.FULL; // 原 isMiniMode = false
+      
+      // 如果是被动触发拦截，同样走二次延迟法防高跷
+      if (currentUiMode.value !== UiMode.FULL) {
+        isTransitioningMode.value = true;
+        currentUiMode.value = UiMode.FULL;
+        setTimeout(() => {
+          isTransitioningMode.value = false;
+        }, 300);
+      }
 
       if (!isSystemEnabled.value) {
         configStore.updateConfig({ isSystemEnabled: true });
@@ -556,5 +575,24 @@ onMounted(() => {
 .ark-global-statusbar.edge-snapped:hover {
   opacity: 1;
   background: rgba(0, 123, 255, 0.2) !important;
+}
+
+/* =========================================================================
+   新增：物理壳平滑阻尼过渡 (用于处理碰撞墙壁及状态跳转时的瞬间回弹)
+   ========================================================================= */
+.ark-global-statusbar-shell.is-snapping {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =========================================================================
+   新增：内容防“高跷”拉伸保护淡入
+   ========================================================================= */
+@keyframes fadeInContent {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.full-content-fade {
+  animation: fadeInContent 0.3s ease forwards;
 }
 </style>
