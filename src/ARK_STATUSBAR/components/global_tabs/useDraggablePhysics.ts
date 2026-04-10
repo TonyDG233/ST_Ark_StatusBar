@@ -113,7 +113,7 @@ export function useDraggablePhysics(statusBarEl: Ref<HTMLElement | null>, curren
       const maxAllowedWidth = viewportWidth * 0.9;
       const actualWidth = rect.width > 50 ? rect.width : 400;
       currentWidth = Math.min(actualWidth, maxAllowedWidth);
-      
+
       const maxAllowedHeight = viewportHeight - 80;
       currentHeight = Math.min(Math.max(rect.height, statusBarEl.value.scrollHeight || 400), maxAllowedHeight);
     } else if (currentUiMode.value === UiMode.BUBBLE) {
