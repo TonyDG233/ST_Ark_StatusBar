@@ -65,15 +65,24 @@ class SendInterceptor {
 
   /**
    * 用户点击发送按钮或按下回车时触发拦截的 Handler
+   * （使用事件委托在 document 上捕获，防止 ST 动态重建 DOM 导致监听丢失）
    */
   private handleIntercept = async (e: Event) => {
+    const target = e.target as HTMLElement;
+    
+    // 判断事件目标是否为发送按钮（或其内部图标）或输入框
+    const isSendBtn = target.id === 'send_but' || !!target.closest('#send_but');
+    const isTextarea = target.id === 'send_textarea';
+
+    // 如果不是我们关心的元素触发的事件，直接放行
+    if (!isSendBtn && !isTextarea) return;
+
     const ST_DOC = window.parent?.document || document;
     const textarea = ST_DOC.querySelector('#send_textarea') as HTMLTextAreaElement;
     const text = textarea?.value?.trim() || '';
     const currentConfig = unref(useArkConfig());
 
-    // 如果是键盘事件
-    if (e.type.startsWith('key')) {
+    if (isTextarea && e.type.startsWith('key')) {
       const keyboardEvent = e as KeyboardEvent;
       if (keyboardEvent.key === 'Enter') {
         // 守护判断：如果未开启回车拦截，或者是换行 (shift+Enter)，则完全放行
@@ -93,10 +102,13 @@ class SendInterceptor {
         // 其他按键直接放行
         return;
       }
-    } else {
+    } else if (isSendBtn && e.type === 'click') {
       // 这是点击 Send 按钮的事件
       e.preventDefault();
       e.stopImmediatePropagation();
+    } else {
+      // 忽略不相关的组合事件，如 textarea 的 click，或 sendBtn 的 keydown
+      return;
     }
 
     if (!text) return;
@@ -106,23 +118,20 @@ class SendInterceptor {
   };
 
   /**
-   * 将拦截逻辑绑定到原生的 Send 按钮和文本输入框。
+   * 将拦截逻辑通过事件委托绑定到 document。
+   * 这样可以防止 SillyTavern 动态重新渲染 DOM 导致原本直接绑定的元素丢失监听器。
    * 采用捕获阶段(true)优先拿到事件，并在多个键相上挂载以彻底屏蔽。
    */
   public bindInterceptor() {
     if (this.interceptorBound) return;
     const ST_DOC = window.parent?.document || document;
-    const sendBtn = ST_DOC.querySelector('#send_but');
-    const textarea = ST_DOC.querySelector('#send_textarea');
 
-    if (sendBtn && textarea) {
-      sendBtn.addEventListener('click', this.handleIntercept, true);
-      textarea.addEventListener('keydown', this.handleIntercept, true);
-      textarea.addEventListener('keypress', this.handleIntercept, true);
-      textarea.addEventListener('keyup', this.handleIntercept, true);
-      this.interceptorBound = true;
-      console.info('[ARK_Interceptor] Interceptor bound.');
-    }
+    ST_DOC.addEventListener('click', this.handleIntercept, true);
+    ST_DOC.addEventListener('keydown', this.handleIntercept, true);
+    ST_DOC.addEventListener('keypress', this.handleIntercept, true);
+    ST_DOC.addEventListener('keyup', this.handleIntercept, true);
+    this.interceptorBound = true;
+    console.info('[ARK_Interceptor] Interceptor bound using event delegation.');
   }
 
   /**
@@ -131,17 +140,13 @@ class SendInterceptor {
   public unbindInterceptor() {
     if (!this.interceptorBound) return;
     const ST_DOC = window.parent?.document || document;
-    const sendBtn = ST_DOC.querySelector('#send_but');
-    const textarea = ST_DOC.querySelector('#send_textarea');
 
-    if (sendBtn && textarea) {
-      sendBtn.removeEventListener('click', this.handleIntercept, true);
-      textarea.removeEventListener('keydown', this.handleIntercept, true);
-      textarea.removeEventListener('keypress', this.handleIntercept, true);
-      textarea.removeEventListener('keyup', this.handleIntercept, true);
-      this.interceptorBound = false;
-      console.info('[ARK_Interceptor] Interceptor unbound.');
-    }
+    ST_DOC.removeEventListener('click', this.handleIntercept, true);
+    ST_DOC.removeEventListener('keydown', this.handleIntercept, true);
+    ST_DOC.removeEventListener('keypress', this.handleIntercept, true);
+    ST_DOC.removeEventListener('keyup', this.handleIntercept, true);
+    this.interceptorBound = false;
+    console.info('[ARK_Interceptor] Interceptor unbound.');
   }
 
   /**
