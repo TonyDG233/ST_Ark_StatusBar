@@ -221,6 +221,9 @@ export class EntryService {
     try {
       let diffChanges: { uid: number; comment: string; from: boolean; to: boolean }[] = [];
 
+      // 辅助函数：统一替换中英文括号，避免预设和条目名括号全半角不均等导致无法匹配
+      const normalizeCompare = (str: string) => str.replace(/（/g, '(').replace(/）/g, ')');
+
       await updateWorldbookWith(targetBook, entries => {
         entries.forEach(entry => {
           const name = entry.name;
@@ -228,12 +231,15 @@ export class EntryService {
 
           const originalState = !!entry.enabled;
           let newState = originalState;
+          
+          const normalizedName = normalizeCompare(name);
 
           // 1. 应用 Enable (开启) 逻辑：检查条目名或关键字是否命中需要开启的列表
           if (
             scenario.linkedWorldInfo.some(keyword => {
+              const normKeyword = normalizeCompare(keyword);
               const keys = entry.strategy?.keys || [];
-              return name === keyword || keys.includes(keyword);
+              return normalizedName === normKeyword || keys.some(k => typeof k === 'string' && normalizeCompare(k) === normKeyword);
             })
           ) {
             newState = true;
@@ -243,8 +249,9 @@ export class EntryService {
           if (
             scenario.disabledWorldInfo &&
             scenario.disabledWorldInfo.some(keyword => {
+              const normKeyword = normalizeCompare(keyword);
               const keys = entry.strategy?.keys || [];
-              return name === keyword || keys.includes(keyword);
+              return normalizedName === normKeyword || keys.some(k => typeof k === 'string' && normalizeCompare(k) === normKeyword);
             })
           ) {
             newState = false;

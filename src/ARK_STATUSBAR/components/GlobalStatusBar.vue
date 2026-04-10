@@ -263,7 +263,7 @@ onMounted(() => {
   const diffHandler = () => {
     if (typeof toastr !== 'undefined') {
       toastr.warning(
-        '检测到当前世界书带有开局剧情或手动修改的残余状态。为防止剧情串台，建议在侧边栏重置。',
+        '检测到当前世界书带有开局剧情或手动修改的残余状态。为防止剧情串台，建议在侧边栏或历史记录处重置。',
         'ARK_STATUSBAR 提示',
         { timeOut: 8000, positionClass: 'toast-top-center' },
       );

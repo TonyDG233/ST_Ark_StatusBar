@@ -8,3504 +8,4204 @@ export interface BaselineEntry {
 }
 
 export const BASELINE_STATE: Record<string, BaselineEntry> = {
-  '[强调]:备注': {
-    enabled: true,
-    type: 'constant',
-    category: '强调',
-  },
-  '[设定]:世界观': {
-    enabled: true,
-    type: 'constant',
-    category: '设定',
-  },
-  '[角色]:魔王（与特蕾西娅选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[特殊]:状态栏（基本废弃，请保持关闭）': {
-    enabled: false,
-    type: 'constant',
-    category: '特殊',
-  },
-  '[特殊]:快回（抽象，非游玩请关闭）': {
-    enabled: false,
-    type: 'constant',
-    category: '特殊',
-  },
-  '[设定]:历史（详细历史，非必须使用时建议关闭）': {
-    enabled: false,
-    type: 'constant',
-    category: '设定',
-  },
-  '[设定]:历史大事件': {
-    enabled: true,
-    type: 'selective',
-    category: '设定',
-  },
-  '[特殊]:干员档案（废弃，请保持关闭）': {
-    enabled: false,
-    type: 'selective',
-    category: '特殊',
-  },
-  '[特殊]:干员档案-思考（同干员档案）': {
-    enabled: false,
-    type: 'selective',
-    category: '特殊',
-  },
-  '[文明]:前文明': {
-    enabled: true,
-    type: 'selective',
-    category: '文明',
-  },
-  '[设定]:泰拉': {
-    enabled: true,
-    type: 'constant',
-    category: '设定',
-  },
-  '[种族]:人类': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:黎博利': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[特殊]:特别感谢版本彩蛋（豌豆写的，后由Fox进行文本优化）': {
-    enabled: true,
-    type: 'selective',
-    category: '特殊',
-  },
-  '[种族]:菲林': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[角色]:泰拉大陆调查团': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:凯尔希（本格，与Ama-10、巴别塔、预见末日的贤人选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[种族]:卡特斯': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:鲁珀': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:沃尔珀': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:佩洛': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[角色]:莱伊': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[种族]:丰蹄': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[化物]:墨魉': {
-    enabled: true,
-    type: 'selective',
-    category: '化物',
-  },
-  '[种族]:卡普里尼': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:乌萨斯': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[角色]:风笛': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[种族]:库兰塔': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:埃拉菲亚': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:札拉克': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:阿纳缇': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:萨科塔': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:龙': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:德拉克': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:阿斯兰': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:斐迪亚': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:瓦伊凡': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:萨卡兹': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:血魔': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:温迪戈': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:石翼魔': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:食腐者': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:女妖': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:变形者': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:巫妖': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:独眼巨人': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:笞心魔': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[角色]:星熊（本格，与异格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[种族]:炎魔': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:死魂灵': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[角色]:白金': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[生物]:海嗣': {
-    enabled: true,
-    type: 'selective',
-    category: '生物',
-  },
-  '[种族]:阿戈尔': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:依特拉': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[侵蚀]:邪魔': {
-    enabled: true,
-    type: 'selective',
-    category: '侵蚀',
-  },
-  '[种族]:曼提柯': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:麒麟': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:阿达克利斯': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:萨弗拉': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:瑞柏巴': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:塞拉托': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[种族]:安努拉': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[组织]:罗德岛': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[国家]:拉特兰': {
-    enabled: true,
-    type: 'selective',
-    category: '国家',
-  },
-  '[国家]:卡兹戴尔': {
-    enabled: true,
-    type: 'selective',
-    category: '国家',
-  },
-  '[国家]:炎国': {
-    enabled: true,
-    type: 'selective',
-    category: '国家',
-  },
-  '[城市]:龙门': {
-    enabled: true,
-    type: 'selective',
-    category: '城市',
-  },
-  '[组织]:企鹅物流': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[国家]:乌萨斯帝国': {
-    enabled: true,
-    type: 'selective',
-    category: '国家',
-  },
-  '[组织]:整合运动': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[国家]:维多利亚': {
-    enabled: true,
-    type: 'selective',
-    category: '国家',
-  },
-  '[国家]:哥伦比亚': {
-    enabled: true,
-    type: 'selective',
-    category: '国家',
-  },
-  '[组织]:黑钢国际': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[组织]:莱茵生命': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[国家]:叙拉古': {
-    enabled: true,
-    type: 'selective',
-    category: '国家',
-  },
-  '[国家]:卡西米尔': {
-    enabled: true,
-    type: 'selective',
-    category: '国家',
-  },
-  '[国家]:阿戈尔': {
-    enabled: true,
-    type: 'selective',
-    category: '国家',
-  },
-  '[国家]:伊比利亚': {
-    enabled: true,
-    type: 'selective',
-    category: '国家',
-  },
-  '[国家]:萨尔贡': {
-    enabled: true,
-    type: 'selective',
-    category: '国家',
-  },
-  '[城市]:汐斯塔': {
-    enabled: true,
-    type: 'selective',
-    category: '城市',
-  },
-  '[国家]:谢拉格': {
-    enabled: true,
-    type: 'selective',
-    category: '国家',
-  },
-  '[组织]:喀兰贸易': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[国家]:萨米': {
-    enabled: true,
-    type: 'selective',
-    category: '国家',
-  },
-  '[组织]:深海教会': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[国家]:莱塔尼亚': {
-    enabled: true,
-    type: 'selective',
-    category: '国家',
-  },
-  '[角色]:魏彦吾': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:特雷西斯（本格，与898年、内战选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:赫德雷': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:讯使': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:梅菲斯特': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:霜星': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:碎骨': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:安玛': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:阿丽娜': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:赫尔昏佐伦': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:W（本格，与维什戴尔、超新星选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:陈（本格，与幼年、异格、二异选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:诗怀雅（本格，与幼年、异格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:塔露拉（斗士，与幼年、黑蛇选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:阿米娅（本格，与幼年、医疗、炉芯终曲选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:博士（男，与女博选一开，以博士身份游玩时请关闭）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:鞭刃': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:忍冬': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:玛恩纳（本格，与远路选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:临光（本格，与异格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:瑕光': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:苇草（本格，与幼龙、异格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[强调]:Mon3tr锚定': {
-    enabled: true,
-    type: 'constant',
-    category: '强调',
-  },
-  '[角色]:死芒（本格，与幼龙选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:祐天寺若麦（本格，与菲林选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:左乐': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:华法琳': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:拉普兰德（本格，与幼狼、异格、无序的谦卑选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:德克萨斯（本格，与幼狼、异格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:可颂': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:空': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:能天使（本格，与幼年、异格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:林（本格，与幼年选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:银灰（本格，与异格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:望（本格，与早年选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:初雪（本格，与异格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:崖心': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:锏': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:灵知': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:黑': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:煌（本格，与异格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:狮蝎': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:惊蛰（本格，与异格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:推进之王（本格，与异格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:斯卡蒂（本格，与异格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:塑心（本格，与幼年选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:归溟幽灵鲨（异格，与本格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:艾丽妮': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:莫斯提马（本格，与少女选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:蕾缪安（本格，与少女选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:菲亚梅塔（本格，与少女选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:迷迭香': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '丰川祥子（本格，与萨卡兹选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '未分类',
-  },
-  '[角色]:缪尔赛思': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:霍尔海雅': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:伊芙利特': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:塞雷娅': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:赫默（本格，与异格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:多萝西': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:白面鸮': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:梅尔': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:星极': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:星源（本格，与异格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:三角初华（本格，与佩洛选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:若叶睦（本格，与卡特斯选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:八幡海铃（本格，与鲁珀选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:锡兰': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:铃兰': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:斥罪': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:红': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:羽毛笔': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:暗索': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:麦哲伦': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:刻俄柏': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:特蕾西娅（本格，与898年、巴别塔、魔王选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:伊内丝': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:科西切': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:文月': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:鼠王': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:角峰': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:米莎': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:爱国者（本格，与博卓卡斯替选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:希尔德加德': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:浮士德': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[国家]:东国': {
-    enabled: true,
-    type: 'selective',
-    category: '国家',
-  },
-  '[角色]:白雪': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:普瑞赛斯': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:博士（女，与男博选一开，以博士身份游玩时请关闭）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Mon3tr': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:可露希尔': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Mechanist': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:ACE': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Scout': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Sharp': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Pith': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Stormeye': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Touch': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Misery': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Raidian': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Outcast': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:年（本格，与早年选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:夕（本格，与早年选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:令（本格，与早年选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:黍（本格，与早年选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:余（本格，与早年选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:重岳（本格，与朔、朔壳选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:仇白': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:九': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Logos': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:U-Official': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:薇薇安娜（本格，与幼年选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:歌蕾蒂娅（本格，与少女选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:乌尔比安': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:浊心斯卡蒂（异格，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:史尔特尔': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:耶拉': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:阿玛雅': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:卡谢娜': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:水月': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:渡魂剑': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:澄闪': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:佩佩': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:菈玛莲（本格，与898年选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:克丽斯腾': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:可萝尔': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:阿斯卡纶': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[源石]:源石': {
-    enabled: true,
-    type: 'selective',
-    category: '源石',
-  },
-  '[源石]:矿石病': {
-    enabled: true,
-    type: 'selective',
-    category: '源石',
-  },
-  '[角色]:祐天寺若麦（菲林，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[源石]:源石技术': {
-    enabled: true,
-    type: 'selective',
-    category: '源石',
-  },
-  '[组织]:深海猎人': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[种族]:兽主': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[角色]:闪灵': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:夜莺': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:三角初华（佩洛，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:格特鲁德': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:鸿雪': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:琴柳': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:绩（本格，与早年选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[种族]:巨兽': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[角色]:丰川祥子（萨卡兹，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[组织]:巴别塔': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[角色]:大帝': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:百炼嘉维尔（异格，与本格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:森蚺': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:特米米': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:妮芙': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:泥岩': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:提丰': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:安洁莉娜': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:号角': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:艾雅法拉（本格，与异格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:行箸': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:食铁兽': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:亚叶': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:寒檀': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:凛视': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[特殊]:罗德岛论坛': {
-    enabled: true,
-    type: 'selective',
-    category: '特殊',
-  },
-  '[角色]:桃金娘': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:子月': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:阮薇薇': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[化物]:龙泡泡': {
-    enabled: true,
-    type: 'selective',
-    category: '化物',
-  },
-  '[角色]:弑君者': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:早露': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:凛冬': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:烈夏': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:真理': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:古米': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[强调]:user锚定（以博士身份游玩时请关闭）': {
-    enabled: true,
-    type: 'constant',
-    category: '强调',
-  },
-  '[角色]:蔓德拉（本格，与幼年选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:和弦': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:若叶睦（卡特斯，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[特殊]:罗德岛论坛（美化版，非游玩时请关闭）': {
-    enabled: false,
-    type: 'selective',
-    category: '特殊',
-  },
-  '[角色]:白铁': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:凯瑟琳': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:因陀罗': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:摩根': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:达格达': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:戴菲恩': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:杰西卡（本格，与异格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:雷蛇': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:芙兰卡': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:涤火杰西卡（异格，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:新约能天使（异格，与幼年、本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:睚': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:塔露拉（黑蛇，与幼年、斗士选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:八幡海铃（鲁珀，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:嘉维尔（本格，与异格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:幽灵鲨（本格，与异格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:缄默德克萨斯（异格，与幼狼、本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:荒芜拉普兰德（异格，与幼狼、本格、无序的谦卑选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:维什戴尔（异格，与本格W、超新星选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:司霆惊蛰（异格，与本格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:烛煌（异格，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:歌利亚': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[生物]:恐鱼': {
-    enabled: true,
-    type: 'selective',
-    category: '生物',
-  },
-  '[生物]:海嗣种类': {
-    enabled: true,
-    type: 'selective',
-    category: '生物',
-  },
-  '[开局]:海嗣灭世（非游玩时请关闭）': {
-    enabled: false,
-    type: 'constant',
-    category: '开局',
-  },
-  '[开局]:你与她的终末（非游玩时请关闭）': {
-    enabled: false,
-    type: 'constant',
-    category: '开局',
-  },
-  '[组织]:塞壬唱片MSR': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[角色]:皇帝的利刃': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:麒麟R夜刀（异格，与本格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:夜刀（本格，与异格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:杜林': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:黑角（本格，与异格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:巡林者': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:火龙S黑角（异格，与本格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:斩业星熊（异格，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:遥': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:琳琅诗怀雅（异格，与幼年、本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:假日威龙陈（异格，与幼年、本格、二异选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[开局]:罗德岛学院（非游玩时请关闭）': {
-    enabled: false,
-    type: 'constant',
-    category: '开局',
-  },
-  '[角色]:阿米娅（医疗，与幼年、本格、炉芯终曲选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:纯烬艾雅法拉（异格，与本格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:玫兰莎': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:宴': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:格拉尼': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:绮良': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:耀骑士临光（异格，与本格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:老鲤': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:缠丸': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[地点]:界园': {
-    enabled: true,
-    type: 'selective',
-    category: '地点',
-  },
-  '[化物]:器伥': {
-    enabled: true,
-    type: 'selective',
-    category: '化物',
-  },
-  '[角色]:焰影苇草（异格，与幼龙、本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:爱布拉娜·都柏林（幼龙，与本格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:拉芙希妮·都柏林（幼龙，与本格、异格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[组织]:司岁台': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[角色]:血魔大君': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Miss.Christine': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:食腐者之王（本格，与898年选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:变形者集群': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:易（本格，与早年选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:弗莱蒙特（本格，与898年选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:多利': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:大祭司': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[开局]:终末地（非游玩时请关闭）': {
-    enabled: false,
-    type: 'constant',
-    category: '开局',
-  },
-  '[角色]:扎罗': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[强调]:锚定（有点用但不多）': {
-    enabled: true,
-    type: 'constant',
-    category: '强调',
-  },
-  '[角色]:罗素': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:乔万娜': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:伊斯': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:坎诺特': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:曼弗雷德': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:埃芒加德': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:隐德来希': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:空弦': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:维娜·维多利亚（异格，与本格推进之王选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:晓歌': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:卡莱莎': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:厄尔苏拉': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:苏苏洛': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:青枳': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:流明': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:寒芒克洛丝（异格，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:克洛丝（本格，与异格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:极境': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:棘刺（本格，与异格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:引星棘刺（异格，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:送葬人（本格，与幼年、异格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:圣约送葬人（异格，与幼年、本格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:安赛尔': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:预见末日的贤人（与Ama-10、凯尔希、巴别塔选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:杜宾': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:极光': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:傀影（本格，与酒神选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:酒神（异格，与本格傀影选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:“酒神”': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:蒂比': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:薄绿': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Mantra': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:圣愚': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:管理员（女，同终末地条目，与男管选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:陈千语（同终末地条目）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:佩丽卡（同终末地条目）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:伊冯（同终末地条目）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:赛希（同终末地条目）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:冬时': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:颉（本格，与早年选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:折桠': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:塞西莉亚': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:伊蒂达': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:槐琥': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:槐天裴': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:阿米娅（幼年，与本格、医疗、炉芯终曲选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:阿米娅·炉芯终曲（与幼年、本格、医疗选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:暴行': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:吽': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:阿': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:孑': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:董阿伯': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:阿消': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:天火': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:砾': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:深靛': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:蓝毒': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:芬（本格，与异格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:历阵锐枪芬（异格，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:锡人': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Ama-10（前文明，与本格凯尔希、巴别塔、预见末日的贤人选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:凯尔希（巴别塔，与Ama-10、本格、预见末日的贤人选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:希尔达': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:莫菲丝': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:特蕾西娅（898年，与本格、巴别塔、魔王选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:特蕾西娅（巴别塔，与本格、898年、魔王选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:特雷西斯（898年，与本格、内战选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:特雷西斯（内战，与本格、898年选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:蕾缪乐（幼年，与本格、异格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:阿尔图罗·吉亚洛（幼年，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:费德里科·吉亚洛（幼年，与本格、异格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:蕾缪安（少女，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:莫斯提马（少女，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:奎萨图什塔': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:萨卢斯': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:荒芜拉普兰德（无序的谦卑，与幼狼、本格、异格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:朔（早年，与本格重岳、朔壳选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:望（早年，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:令（早年，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:黍（早年，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:绩（早年，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:易（早年，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:年（早年，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:夕（早年，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:余（早年，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:潘格尼尼': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[组织]:梦城堡': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[角色]:爱丽丝': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:贝娜': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:海沫': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:娜仁图亚': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:伺夜': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:信仰搅拌机': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Ash': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Ela': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Iana': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Frost（彩六）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:弗莱蒙特（898年，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:贝尔莎（非游玩魔王开局请关闭）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:大女妖（非游玩魔王开局时请关闭）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:菈玛莲（898年，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:食腐者之王（898年，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:博卓卡斯替（与本格爱国者选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Tachanka': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Fuze': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Doc': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Blitz': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:玛露西尔': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:莱欧斯': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:森西': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:齐尔查克': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:罗小黑': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Lancet-2': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:梓兰': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:老天师': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:泡普卡': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[工业]:基建材料': {
-    enabled: true,
-    type: 'selective',
-    category: '工业',
-  },
-  '[工业]:工业材料': {
-    enabled: true,
-    type: 'selective',
-    category: '工业',
-  },
-  '[角色]:太傅': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[生物]:驼兽': {
-    enabled: true,
-    type: 'selective',
-    category: '生物',
-  },
-  '[种族]:杜林': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[城市]:际崖城': {
-    enabled: true,
-    type: 'selective',
-    category: '城市',
-  },
-  '[组织]:梅兰德基金会': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[角色]:太尉': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:菲亚梅塔（少女，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:切利尼娜·德克萨斯（幼狼，与本格、异格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:拉普兰德·萨卢佐（幼狼，与本格、异格、无序的谦卑选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:阿尔贝托': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:聆音': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:埃莉丝（肉鸽仙人跳之萨科塔修女）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[生物]:羽兽': {
-    enabled: true,
-    type: 'selective',
-    category: '生物',
-  },
-  '[生物]:瘤兽': {
-    enabled: true,
-    type: 'selective',
-    category: '生物',
-  },
-  '[生物]:沙地兽': {
-    enabled: true,
-    type: 'selective',
-    category: '生物',
-  },
-  '[生物]:裂兽': {
-    enabled: true,
-    type: 'selective',
-    category: '生物',
-  },
-  '[生物]:钳兽': {
-    enabled: true,
-    type: 'selective',
-    category: '生物',
-  },
-  '[生物]:云兽': {
-    enabled: true,
-    type: 'selective',
-    category: '生物',
-  },
-  '[生物]:循兽': {
-    enabled: true,
-    type: 'selective',
-    category: '生物',
-  },
-  '[生物]:鼷兽': {
-    enabled: true,
-    type: 'selective',
-    category: '生物',
-  },
-  '[组织]:锈锤': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[组织]:鲤氏侦探事务所': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[组织]:雷神工业': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[组织]:太阳谷机械工业': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[设定]:泰拉经济体系': {
-    enabled: true,
-    type: 'constant',
-    category: '设定',
-  },
-  '[设定]:泰拉货币体系': {
-    enabled: true,
-    type: 'constant',
-    category: '设定',
-  },
-  '[地点]:塔拉': {
-    enabled: true,
-    type: 'selective',
-    category: '地点',
-  },
-  '[国家]:高卢': {
-    enabled: true,
-    type: 'selective',
-    category: '国家',
-  },
-  '[角色]:“桥夹”克里夫': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[国家]:玻利瓦尔': {
-    enabled: true,
-    type: 'selective',
-    category: '国家',
-  },
-  '[国家]:米诺斯': {
-    enabled: true,
-    type: 'selective',
-    category: '国家',
-  },
-  '[国家]:雷姆必拓': {
-    enabled: true,
-    type: 'selective',
-    category: '国家',
-  },
-  '[组织]:约翰老妈': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[组织]:塔山生物科技': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[组织]:玫瑰报业联合集团': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[角色]:梁洵': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:宁辞秋': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:柳儿': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:奎隆·摩诃萨埵权化（佛祖，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:奎隆（本格，与佛祖选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[设定]:战力分级标准（详细，与简略选一开）': {
-    enabled: false,
-    type: 'constant',
-    category: '设定',
-  },
-  '[种族]:阿纳萨': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[角色]:雅拉': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:梅厄斯': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:逐魇骑士': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:血骑士': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:凛御银灰（异格，与本格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:圣聆初雪（异格，与本格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:溯光星源（异格，与本格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:焰尾': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:远牙': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:灰毫': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:野鬃': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:温蒂': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:嵯峨': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:帕拉斯': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:卡涅利安': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:蜜蜡': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:异客（本格，与幼年选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:山': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:赫拉格': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:娜斯提（本格，与幼年选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:黑键': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:止颂': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[种族]:鬼': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[角色]:瑰盐': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:空构': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:桑葚': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:安多恩': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:洁尔佩塔（同终末地条目）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:艾尔黛拉（同终末地条目）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:昼雪（同终末地条目）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:骏卫（同终末地条目）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:余烬（同终末地条目）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:絮雨': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:九色鹿': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[开局]:构史成真了喵（非游玩时请关闭喵）': {
-    enabled: false,
-    type: 'constant',
-    category: '开局',
-  },
-  '[角色]:红豆': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[组织]:深池': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[角色]:“校官”': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:“禁军小教头”': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:安纳斯塔西奥': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[组织]:峯驰物流': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[组织]:日落即逝': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[角色]:海蒂': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:调香师': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:火神': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:豆苗': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:淬羽赫默（异格，与本格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:香草': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[组织]:太古集团': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[角色]:拜松': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:欧厄尔': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:贾维': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:布洛卡': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:奥斯塔': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:“正义骑士号”': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:水灯心': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:芙蓉（本格，与异格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:濯尘芙蓉（异格，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:白垩': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:炎熔（本格，与异格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:炎狱炎熔（异格，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:米格鲁': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:珀茜瓦尔': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:莉泽洛特': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:雷德': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:梅希亚': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:天空盒': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:澪': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:三船光平': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:斐尔迪南': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:小贾斯汀': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:杰斯顿': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:莫妮克': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:罗伊': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:炎客': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:芳汀': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:巫恋': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:卡夫卡': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:杏仁': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:四月': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[组织]:“灰礼帽”': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[角色]:灰喉': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:空爆': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:月见夜': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:斑点': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:贝林厄姆': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Aya': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Alty': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Dan': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Frost（日落即逝）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:伊万杰利斯塔十一世': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:安费莉丝': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[工业]:高速战舰': {
-    enabled: true,
-    type: 'selective',
-    category: '工业',
-  },
-  '[角色]:贝尔德': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[组织]:格拉斯哥帮': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[角色]:缇缇': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:杜遥夜': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:薇尔丽芙': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:莎草': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[地点]:愚人号': {
-    enabled: true,
-    type: 'selective',
-    category: '地点',
-  },
-  '[角色]:撷英调香师': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:塔露拉·雅特利亚斯（幼年，与斗士、黑蛇选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:陈晖洁（幼年，与本格、异格、二异选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:碧翠克斯·施怀雅（幼年，与本格、异格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:林雨霞（幼年，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:霜叶': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[组织]:山海众': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[角色]:蜜莓': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:罗宾': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:普罗旺斯': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:坚雷': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:稀音': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[种族]:皮洛萨': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[角色]:安哲拉': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[设定]:战力分级标准（简略，与详细选一开）': {
-    enabled: true,
-    type: 'constant',
-    category: '设定',
-  },
-  '[角色]:苦艾': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:小满': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[种族]:匹特拉姆': {
-    enabled: true,
-    type: 'selective',
-    category: '种族',
-  },
-  '[角色]:蛇屠箱': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:赫拉提娅': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:克莱门莎': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:截云': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:阿勒黛': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:克洛维希娅': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:娜斯提·鲁诺瑞伊（幼年，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[源石]:源石技艺': {
-    enabled: true,
-    type: 'selective',
-    category: '源石',
-  },
-  '[角色]:拂哀菈': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:菈塔托丝': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:休露丝': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:尤卡坦': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:玛恩纳·临光（远路，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:阿克托斯': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:塔季扬娜': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:维什戴尔（超新星，与本格、异格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:Friston-3': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:卡缇': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:翎羽': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:安德切尔': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:史都华德': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:12F': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:均（本格，与早年选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:洛洛': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:龙舌兰': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[组织]:猩红剧团': {
-    enabled: true,
-    type: 'selective',
-    category: '组织',
-  },
-  '[角色]:薇薇安娜·冯·霍赫贝格（幼年，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:卡门': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:达里奥': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:阿方索': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:加西亚': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:见行者': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:隐现': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:格雷伊（本格，与异格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:承曦格雷伊（异格，与本格选一开）': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:夜魔': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:但书': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:赤刃明霄陈（二异，与幼年、本格、异格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:深海色': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:柏喙': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:清流': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:暮落': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:夜半': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:乌有': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:托兰': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:郁金香': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:塑料骑士': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:锈铜骑士': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:左手骑士': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:腐败骑士': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:凋零骑士': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:鸭爵': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:高普尼克': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:流泪小子': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:圆仔': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:高文': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:路加萨尔古斯': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:哈兰杜汗': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:祖拜尔': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:西妮斯卡': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:卡珊卓拉': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[设定]:泰拉个体远程武器': {
-    enabled: true,
-    type: 'selective',
-    category: '设定',
-  },
-  '[角色]:里底娅': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:摆渡人': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:陈昭芊': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:椿': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:均（早年，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:颉（早年，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:蔓德拉（幼年，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:艾利奥特·格罗夫（幼年，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:莫佚': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:真龙': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:岁': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:执白者': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:矩': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:西西里夫人': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:阿格尼尔': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:吉星': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:更纱': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:格劳克斯': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:图耶': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:太阳谷联络员': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:谌彻': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:马里亚姆': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:朔（朔壳，与本格、朔选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:歌蕾蒂娅（少女，与本格选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:松桐': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:克雷松': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:赤冬': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:铸铁': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:雪雉': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:录武官': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:万顷': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:寻澜': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:深巡': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:管理员（男，同终末地条目，与女管选一开）': {
-    enabled: false,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:守林人': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[角色]:冰酿': {
-    enabled: true,
-    type: 'selective',
-    category: '角色',
-  },
-  '[SYS_CONFIG]系统配置文件请勿打开': {
-    enabled: false,
-    type: 'constant',
-    category: 'SYS_CONFIG',
-  },
+  "[强调]:备注": {
+    "enabled": true,
+    "type": "constant",
+    "category": "强调"
+  },
+  "[设定]:世界观": {
+    "enabled": true,
+    "type": "constant",
+    "category": "设定"
+  },
+  "[角色]:魔王（与特蕾西娅选一开）": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[特殊]:状态栏(基本废弃，请保持关闭)": {
+    "enabled": false,
+    "type": "constant",
+    "category": "特殊"
+  },
+  "[特殊]:快回(抽象，非游玩请关闭)": {
+    "enabled": false,
+    "type": "constant",
+    "category": "特殊"
+  },
+  "[设定]:历史(详细历史，非必须使用时建议关闭)": {
+    "enabled": false,
+    "type": "constant",
+    "category": "设定"
+  },
+  "[设定]:历史大事件": {
+    "enabled": true,
+    "type": "selective",
+    "category": "设定"
+  },
+  "[特殊]:干员档案": {
+    "enabled": true,
+    "type": "selective",
+    "category": "特殊"
+  },
+  "[特殊]:干员档案-思考": {
+    "enabled": true,
+    "type": "selective",
+    "category": "特殊"
+  },
+  "[文明]:前文明": {
+    "enabled": true,
+    "type": "selective",
+    "category": "文明"
+  },
+  "[设定]:泰拉": {
+    "enabled": true,
+    "type": "constant",
+    "category": "设定"
+  },
+  "[种族]:人类": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:黎博利": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[特殊]:特别感谢版本彩蛋（豌豆写的，后由Fox进行文本优化）": {
+    "enabled": true,
+    "type": "selective",
+    "category": "特殊"
+  },
+  "[种族]:菲林": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[角色]:泰拉大陆调查团": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:凯尔希(简略本格,与详细本格、Ama-10、巴别塔、预见末日的贤人选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[种族]:卡特斯": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:鲁珀": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:沃尔珀": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:佩洛": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[角色]:莱伊": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[种族]:丰蹄": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[化物]:墨魉": {
+    "enabled": true,
+    "type": "selective",
+    "category": "化物"
+  },
+  "[种族]:卡普里尼": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:乌萨斯": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[角色]:风笛": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[种族]:库兰塔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:埃拉菲亚": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:札拉克": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:阿纳缇": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:萨科塔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:龙": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:德拉克": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:阿斯兰": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:斐迪亚": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:瓦伊凡": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:萨卡兹": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:血魔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:温迪戈": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:石翼魔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:食腐者": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:女妖": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:变形者": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:巫妖": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:独眼巨人": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:笞心魔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[角色]:星熊(本格,与异格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[种族]:炎魔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:死魂灵": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[角色]:白金": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[生物]:海嗣": {
+    "enabled": true,
+    "type": "selective",
+    "category": "生物"
+  },
+  "[种族]:阿戈尔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:依特拉": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[侵蚀]:邪魔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "侵蚀"
+  },
+  "[种族]:曼提柯": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:麒麟": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:阿达克利斯": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:萨弗拉": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:瑞柏巴": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:塞拉托": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[种族]:安努拉": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[组织]:罗德岛": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[国家]:拉特兰": {
+    "enabled": true,
+    "type": "selective",
+    "category": "国家"
+  },
+  "[国家]:卡兹戴尔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "国家"
+  },
+  "[国家]:炎国": {
+    "enabled": true,
+    "type": "selective",
+    "category": "国家"
+  },
+  "[城市]:龙门": {
+    "enabled": true,
+    "type": "selective",
+    "category": "城市"
+  },
+  "[组织]:企鹅物流": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[国家]:乌萨斯帝国": {
+    "enabled": true,
+    "type": "selective",
+    "category": "国家"
+  },
+  "[组织]:整合运动": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[国家]:维多利亚": {
+    "enabled": true,
+    "type": "selective",
+    "category": "国家"
+  },
+  "[国家]:哥伦比亚": {
+    "enabled": true,
+    "type": "selective",
+    "category": "国家"
+  },
+  "[组织]:黑钢国际": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[组织]:莱茵生命": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[国家]:叙拉古": {
+    "enabled": true,
+    "type": "selective",
+    "category": "国家"
+  },
+  "[国家]:卡西米尔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "国家"
+  },
+  "[国家]:阿戈尔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "国家"
+  },
+  "[国家]:伊比利亚": {
+    "enabled": true,
+    "type": "selective",
+    "category": "国家"
+  },
+  "[国家]:萨尔贡": {
+    "enabled": true,
+    "type": "selective",
+    "category": "国家"
+  },
+  "[城市]:汐斯塔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "城市"
+  },
+  "[国家]:谢拉格": {
+    "enabled": true,
+    "type": "selective",
+    "category": "国家"
+  },
+  "[组织]:喀兰贸易": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[国家]:萨米": {
+    "enabled": true,
+    "type": "selective",
+    "category": "国家"
+  },
+  "[组织]:深海教会": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[国家]:莱塔尼亚": {
+    "enabled": true,
+    "type": "selective",
+    "category": "国家"
+  },
+  "[角色]:魏彦吾": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:特雷西斯(本格,与898年、内战选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:赫德雷": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:讯使": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:梅菲斯特": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:霜星": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:碎骨": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:安玛": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:阿丽娜": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:赫尔昏佐伦": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:W(本格,与维什戴尔、超新星选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:陈(本格,与幼年、异格、二异选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:诗怀雅(本格,与幼年、异格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:塔露拉(斗士,与幼年、黑蛇选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:阿米娅(本格,与幼年、医疗、炉芯终曲选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:博士(男，与女博选一开，以博士身份游玩时请关闭)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:鞭刃": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:忍冬": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:玛恩纳(本格,与远路选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:临光(本格,与异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:瑕光": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:苇草(本格,与幼龙、异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[强调]:Mon3tr锚定": {
+    "enabled": true,
+    "type": "constant",
+    "category": "强调"
+  },
+  "[角色]:死芒(本格,与幼龙选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:祐天寺若麦(本格,与菲林选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:左乐": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:华法琳": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:拉普兰德(本格,与幼狼、异格、无序的谦卑选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:德克萨斯(本格,与幼狼、异格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:可颂": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:空": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:能天使(本格,与幼年、异格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:林(本格,与幼年选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:银灰(本格,与异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:望(本格,与早年选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:初雪(本格,与异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:崖心": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:锏": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:灵知": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:黑": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:煌(本格,与异格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:狮蝎": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:惊蛰(本格,与异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:推进之王(本格,与异格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:斯卡蒂(本格,与异格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:塑心(本格,与幼年选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:归溟幽灵鲨(异格,与本格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:艾丽妮": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:莫斯提马(本格,与少女选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:蕾缪安(本格,与少女选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:菲亚梅塔(本格,与少女选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:迷迭香": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:丰川祥子(本格,与萨卡兹选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:缪尔赛思": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:霍尔海雅": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:伊芙利特": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:塞雷娅": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:赫默(本格,与异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:多萝西": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:白面鸮": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:梅尔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:星极": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:星源(本格,与异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:三角初华(本格,与佩洛选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:若叶睦(本格,与卡特斯选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:八幡海铃(本格,与鲁珀选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:锡兰": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:铃兰": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:斥罪": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:红": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:羽毛笔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:暗索": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:麦哲伦": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:刻俄柏": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:特蕾西娅(本格,与898年、巴别塔、魔王选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:伊内丝": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:科西切": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:文月": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:鼠王": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:角峰": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:米莎": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:爱国者(本格,与博卓卡斯替选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:希尔德加德": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:浮士德": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[国家]:东国": {
+    "enabled": true,
+    "type": "selective",
+    "category": "国家"
+  },
+  "[角色]:白雪": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:普瑞赛斯": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:博士(女，与男博选一开，以博士身份游玩时请关闭)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Mon3tr": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:可露希尔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Mechanist": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:ACE": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Scout": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Sharp": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Pith": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Stormeye": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Touch": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Misery": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Raidian": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Outcast": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:年(本格,与早年选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:夕(本格,与早年选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:令(本格,与早年选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:黍(本格,与早年选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:余(本格,与早年选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:重岳(本格,与朔、朔壳选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:仇白": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:九": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Logos": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:U-Official": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:薇薇安娜(本格,与幼年选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:歌蕾蒂娅(本格,与少女选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:乌尔比安": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:浊心斯卡蒂(异格,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:史尔特尔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:耶拉": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:阿玛雅": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:卡谢娜": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:水月": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:渡魂剑": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:澄闪": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:佩佩": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:菈玛莲(本格,与898年选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:克丽斯腾": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:可萝尔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:阿斯卡纶": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[源石]:源石": {
+    "enabled": true,
+    "type": "selective",
+    "category": "源石"
+  },
+  "[源石]:矿石病": {
+    "enabled": true,
+    "type": "selective",
+    "category": "源石"
+  },
+  "[角色]:祐天寺若麦(菲林,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[源石]:源石技术": {
+    "enabled": true,
+    "type": "selective",
+    "category": "源石"
+  },
+  "[组织]:深海猎人": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[种族]:兽主": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[角色]:闪灵": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:夜莺": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:三角初华(佩洛,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:格特鲁德": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:鸿雪": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:琴柳": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:绩(本格,与早年选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[种族]:巨兽": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[角色]:丰川祥子(萨卡兹,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[组织]:巴别塔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[角色]:大帝": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:百炼嘉维尔(异格,与本格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:森蚺": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:特米米": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:妮芙": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:泥岩": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:提丰": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:安洁莉娜": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:号角": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:艾雅法拉(本格,与异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:行箸": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:食铁兽": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:亚叶": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:寒檀": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:凛视": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[特殊]:罗德岛论坛": {
+    "enabled": true,
+    "type": "selective",
+    "category": "特殊"
+  },
+  "[角色]:桃金娘": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:子月": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:阮薇薇": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[化物]:龙泡泡": {
+    "enabled": true,
+    "type": "selective",
+    "category": "化物"
+  },
+  "[角色]:弑君者": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:早露": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:凛冬": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:烈夏": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:真理": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:古米": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[强调]:user锚定(以博士身份游玩时请关闭)": {
+    "enabled": true,
+    "type": "constant",
+    "category": "强调"
+  },
+  "[角色]:蔓德拉(本格,与幼年选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:和弦": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:若叶睦(卡特斯,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[特殊]:罗德岛论坛(美化版，非游玩时请关闭)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "特殊"
+  },
+  "[角色]:白铁": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:凯瑟琳": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:因陀罗": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:摩根": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:达格达": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:戴菲恩": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:杰西卡(本格,与异格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:雷蛇": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:芙兰卡": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:涤火杰西卡(异格,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:新约能天使(异格,与幼年、本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:睚": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:塔露拉(黑蛇,与幼年、斗士选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:八幡海铃(鲁珀,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:嘉维尔(本格,与异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:幽灵鲨(本格,与异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:缄默德克萨斯(异格,与幼狼、本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:荒芜拉普兰德(异格,与幼狼、本格、无序的谦卑选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:维什戴尔(异格,与本格W、超新星选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:司霆惊蛰(异格,与本格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:烛煌(异格,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:歌利亚": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[生物]:恐鱼": {
+    "enabled": true,
+    "type": "selective",
+    "category": "生物"
+  },
+  "[生物]:海嗣种类": {
+    "enabled": true,
+    "type": "selective",
+    "category": "生物"
+  },
+  "[开局]:海嗣灭世(非游玩时请关闭)": {
+    "enabled": false,
+    "type": "constant",
+    "category": "开局"
+  },
+  "[开局]:你与她的终末(非游玩时请关闭)": {
+    "enabled": false,
+    "type": "constant",
+    "category": "开局"
+  },
+  "[组织]:塞壬唱片MSR": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[角色]:皇帝的利刃": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:麒麟R夜刀(异格,与本格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:夜刀(本格,与异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:杜林": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:黑角(本格,与异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:巡林者": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:火龙S黑角(异格,与本格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:斩业星熊(异格,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:遥": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:琳琅诗怀雅(异格,与幼年、本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:假日威龙陈(异格,与幼年、本格、二异选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[开局]:罗德岛学院(非游玩时请关闭)": {
+    "enabled": false,
+    "type": "constant",
+    "category": "开局"
+  },
+  "[角色]:阿米娅(医疗,与幼年、本格、炉芯终曲选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:纯烬艾雅法拉(异格,与本格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:玫兰莎": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:宴": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:格拉尼": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:绮良": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:耀骑士临光(异格,与本格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:老鲤": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:缠丸": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[地点]:界园": {
+    "enabled": true,
+    "type": "selective",
+    "category": "地点"
+  },
+  "[化物]:器伥": {
+    "enabled": true,
+    "type": "selective",
+    "category": "化物"
+  },
+  "[角色]:焰影苇草(异格,与幼龙、本格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:爱布拉娜·都柏林(幼龙,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:拉芙希妮·都柏林(幼龙,与本格、异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[组织]:司岁台": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[角色]:血魔大君": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Miss.Christine": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:食腐者之王(本格,与898年选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:变形者集群": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:易(本格,与早年选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:弗莱蒙特(本格,与898年选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:多利": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:大祭司": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[开局]:终末地(非游玩时请关闭)": {
+    "enabled": false,
+    "type": "constant",
+    "category": "开局"
+  },
+  "[角色]:扎罗": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[强调]:防全知": {
+    "enabled": true,
+    "type": "constant",
+    "category": "强调"
+  },
+  "[角色]:罗素": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:乔万娜": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:伊斯": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:坎诺特": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:曼弗雷德": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:埃芒加德": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:隐德来希": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:空弦": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:维娜·维多利亚(异格,与本格推进之王选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:晓歌": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:卡莱莎": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:厄尔苏拉": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:苏苏洛": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:青枳": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:流明": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:寒芒克洛丝(异格,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:克洛丝(本格,与异格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:极境": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:棘刺(本格,与异格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:引星棘刺(异格,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:送葬人(本格,与幼年、异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:圣约送葬人(异格,与幼年、本格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:安赛尔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:预见末日的贤人（与Ama-10、凯尔希、巴别塔选一开）": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:杜宾": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:极光": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:傀影(本格,与酒神选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:酒神(异格,与本格傀影选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:“酒神”": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:蒂比": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:薄绿": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Mantra": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:圣愚": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:管理员(女,同终末地条目,与男管选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:陈千语(同终末地条目)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:佩丽卡(同终末地条目)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:伊冯(同终末地条目)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:赛希(同终末地条目)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:冬时": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:颉(本格,与早年选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:折桠": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:塞西莉亚": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:伊蒂达": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:槐琥": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:槐天裴": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:阿米娅(幼年,与本格、医疗、炉芯终曲选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:阿米娅(炉芯终曲,与幼年、本格、医疗选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:暴行": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:吽": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:阿": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:孑": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:董阿伯": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:阿消": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:天火": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:砾": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:深靛": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:蓝毒": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:芬(本格,与异格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:历阵锐枪芬(异格,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:锡人": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Ama-10(前文明,与本格凯尔希、巴别塔、预见末日的贤人选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:凯尔希(巴别塔,与Ama-10、本格、预见末日的贤人选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:希尔达": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:莫菲丝": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:特蕾西娅(898年,与本格、巴别塔、魔王选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:特蕾西娅(巴别塔,与本格、898年、魔王选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:特雷西斯(898年,与本格、内战选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:特雷西斯(内战,与本格、898年选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:蕾缪乐(幼年,与本格、异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:阿尔图罗·吉亚洛(幼年,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:费德里科·吉亚洛(幼年,与本格、异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:蕾缪安(少女,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:莫斯提马(少女,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:奎萨图什塔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:萨卢斯": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:荒芜拉普兰德(无序的谦卑,与幼狼、本格、异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:朔(早年,与本格重岳、朔壳选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:望(早年,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:令(早年,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:黍(早年,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:绩(早年,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:易(早年,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:年(早年,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:夕(早年,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:余(早年,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:潘格尼尼": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[组织]:梦城堡": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[角色]:爱丽丝": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:贝娜": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:海沫": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:娜仁图亚": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:伺夜": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:信仰搅拌机": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Ash": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Ela": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Iana": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Frost（彩六）": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:弗莱蒙特(898年,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:贝尔莎": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:大女妖(非游玩魔王开局时请关闭)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:菈玛莲(898年,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:孽茨雷(898年,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:博卓卡斯替(898年,与本格爱国者选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Tachanka": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Fuze": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Doc": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Blitz": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:玛露西尔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:莱欧斯": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:森西": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:齐尔查克": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:罗小黑": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[支援机械]:Lancet-2": {
+    "enabled": true,
+    "type": "selective",
+    "category": "支援机械"
+  },
+  "[角色]:梓兰": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:老天师": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:泡普卡": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[工业]:基建材料": {
+    "enabled": true,
+    "type": "selective",
+    "category": "工业"
+  },
+  "[工业]:工业材料": {
+    "enabled": true,
+    "type": "selective",
+    "category": "工业"
+  },
+  "[角色]:太傅": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[生物]:驼兽": {
+    "enabled": true,
+    "type": "selective",
+    "category": "生物"
+  },
+  "[种族]:杜林": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[城市]:际崖城": {
+    "enabled": true,
+    "type": "selective",
+    "category": "城市"
+  },
+  "[组织]:梅兰德基金会": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[角色]:太尉": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:菲亚梅塔(少女,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:切利尼娜·德克萨斯(幼狼,与本格、异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:拉普兰德·萨卢佐(幼狼,与本格、异格、无序的谦卑选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:阿尔贝托": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:聆音": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:埃莉丝(肉鸽仙人跳之萨科塔修女)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[生物]:羽兽": {
+    "enabled": true,
+    "type": "selective",
+    "category": "生物"
+  },
+  "[生物]:瘤兽": {
+    "enabled": true,
+    "type": "selective",
+    "category": "生物"
+  },
+  "[生物]:沙地兽": {
+    "enabled": true,
+    "type": "selective",
+    "category": "生物"
+  },
+  "[生物]:裂兽": {
+    "enabled": true,
+    "type": "selective",
+    "category": "生物"
+  },
+  "[生物]:钳兽": {
+    "enabled": true,
+    "type": "selective",
+    "category": "生物"
+  },
+  "[生物]:云兽": {
+    "enabled": true,
+    "type": "selective",
+    "category": "生物"
+  },
+  "[生物]:循兽": {
+    "enabled": true,
+    "type": "selective",
+    "category": "生物"
+  },
+  "[生物]:鼷兽": {
+    "enabled": true,
+    "type": "selective",
+    "category": "生物"
+  },
+  "[组织]:锈锤": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[组织]:鲤氏侦探事务所": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[组织]:雷神工业": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[组织]:太阳谷机械工业": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[设定]:泰拉经济体系": {
+    "enabled": true,
+    "type": "constant",
+    "category": "设定"
+  },
+  "[设定]:泰拉货币体系": {
+    "enabled": true,
+    "type": "constant",
+    "category": "设定"
+  },
+  "[地点]:塔拉": {
+    "enabled": true,
+    "type": "selective",
+    "category": "地点"
+  },
+  "[国家]:高卢": {
+    "enabled": true,
+    "type": "selective",
+    "category": "国家"
+  },
+  "[角色]:“桥夹”克里夫": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[国家]:玻利瓦尔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "国家"
+  },
+  "[国家]:米诺斯": {
+    "enabled": true,
+    "type": "selective",
+    "category": "国家"
+  },
+  "[国家]:雷姆必拓": {
+    "enabled": true,
+    "type": "selective",
+    "category": "国家"
+  },
+  "[组织]:约翰老妈": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[组织]:塔山生物科技": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[组织]:玫瑰报业联合集团": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[角色]:梁洵": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:宁辞秋": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:柳儿": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:奎隆·摩诃萨埵权化(佛祖,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:奎隆(本格,与佛祖选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[设定]:战力分级标准(详细,与简略选一开)": {
+    "enabled": false,
+    "type": "constant",
+    "category": "设定"
+  },
+  "[种族]:阿纳萨": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[角色]:雅拉": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:梅厄斯": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:逐魇骑士": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:血骑士": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:凛御银灰(异格,与本格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:圣聆初雪(异格,与本格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:溯光星源(异格,与本格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:焰尾": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:远牙": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:灰毫": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:野鬃": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:温蒂": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:嵯峨": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:帕拉斯": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:卡涅利安": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:蜜蜡": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:异客(本格,与幼年选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:山": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:赫拉格": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:娜斯提(本格,与幼年选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:黑键": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:止颂": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[种族]:鬼": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[角色]:瑰盐": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:空构": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:桑葚": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:安多恩": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:洁尔佩塔(同终末地条目)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:艾尔黛拉(同终末地条目)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:昼雪(同终末地条目)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:骏卫(同终末地条目)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:余烬(同终末地条目)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:安比尔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:至简": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:絮雨": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:松果": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:九色鹿": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[开局]:泰拉食堂(非游玩时请关闭)": {
+    "enabled": false,
+    "type": "constant",
+    "category": "开局"
+  },
+  "[开局]:构史成真了喵(非游玩时请关闭喵)": {
+    "enabled": false,
+    "type": "constant",
+    "category": "开局"
+  },
+  "[角色]:红豆": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[组织]:深池": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[角色]:“校官”": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:“禁军小教头”": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:安纳斯塔西奥": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[组织]:峯驰物流": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[组织]:日落即逝": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[角色]:海蒂(本格,与少女选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:调香师(本格,与异格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:火神": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:豆苗": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:淬羽赫默(异格,与本格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:香草": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[组织]:太古集团": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[角色]:拜松": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:欧厄尔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:贾维": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:布洛卡": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:奥斯塔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[支援机械]:“正义骑士号”": {
+    "enabled": true,
+    "type": "selective",
+    "category": "支援机械"
+  },
+  "[角色]:水灯心": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:芙蓉(本格,与异格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:濯尘芙蓉(异格,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:白垩": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:炎熔(本格,与异格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:炎狱炎熔(异格,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:米格鲁": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:珀茜瓦尔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:莉泽洛特": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:雷德": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:梅希亚": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:天空盒": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:澪": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:三船光平": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:斐尔迪南": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:小贾斯汀": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:杰斯顿": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:莫妮克": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:罗伊": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:炎客": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:芳汀": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:巫恋": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:卡夫卡": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:杏仁": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:四月": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[组织]:“灰礼帽”": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[角色]:灰喉": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:空爆": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:月见夜": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:斑点": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:贝林厄姆": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Aya": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Alty": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Dan": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:Frost（日落即逝）": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:伊万杰利斯塔十一世": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:安费莉丝": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[工业]:高速战舰": {
+    "enabled": true,
+    "type": "selective",
+    "category": "工业"
+  },
+  "[角色]:贝尔德": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[组织]:格拉斯哥帮": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[角色]:缇缇": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:杜遥夜": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:薇尔丽芙": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:莎草": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[地点]:愚人号": {
+    "enabled": true,
+    "type": "selective",
+    "category": "地点"
+  },
+  "[角色]:撷英调香师(异格,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:塔露拉·雅特利亚斯(幼年,与斗士、黑蛇选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:陈晖洁(幼年,与本格、异格、二异选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:碧翠克斯·施怀雅(幼年,与本格、异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:林雨霞(幼年,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:霜叶": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[组织]:山海众": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[角色]:蜜莓": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:罗宾": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:普罗旺斯": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:坚雷": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:稀音": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[种族]:皮洛萨": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[角色]:安哲拉": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[设定]:战力分级标准(简略，与详细选一开)": {
+    "enabled": true,
+    "type": "constant",
+    "category": "设定"
+  },
+  "[角色]:苦艾": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:小满": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[种族]:匹特拉姆": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[角色]:蛇屠箱": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:赫拉提娅": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:克莱门莎": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:截云": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:阿勒黛": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:克洛维希娅": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:娜斯提·鲁诺瑞伊(幼年,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[源石]:源石技艺": {
+    "enabled": true,
+    "type": "selective",
+    "category": "源石"
+  },
+  "[角色]:拂哀菈": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:菈塔托丝": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:休露丝": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:尤卡坦": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:玛恩纳·临光(远路,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:阿克托斯": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:塔季扬娜": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:维什戴尔(超新星,与本格、异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[支援机械]:Friston-3": {
+    "enabled": true,
+    "type": "selective",
+    "category": "支援机械"
+  },
+  "[角色]:卡缇": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:翎羽": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:安德切尔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:史都华德": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:12F": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:均(本格,与早年选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:洛洛": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:龙舌兰": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[组织]:猩红剧团": {
+    "enabled": true,
+    "type": "selective",
+    "category": "组织"
+  },
+  "[角色]:薇薇安娜·冯·霍赫贝格(幼年,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:卡门": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:达里奥": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:阿方索": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:加西亚": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:见行者": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:隐现": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:格雷伊(本格,与异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:承曦格雷伊(异格,与本格选一开)": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:夜魔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:但书": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:赤刃明霄陈(二异,与幼年、本格、异格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:深海色": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:柏喙": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:清流": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:暮落": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:夜半": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:乌有": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:托兰": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:郁金香": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:塑料骑士": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:锈铜骑士": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:左手骑士": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:腐败骑士": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:凋零骑士": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:鸭爵": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:高普尼克": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:流泪小子": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:圆仔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:高文": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:路加萨尔古斯": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:哈兰杜汗": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:祖拜尔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:西妮斯卡": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:卡珊卓拉": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[设定]:泰拉个体远程武器": {
+    "enabled": true,
+    "type": "selective",
+    "category": "设定"
+  },
+  "[角色]:里底娅": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:摆渡人": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:陈昭芊": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:椿": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:均(早年,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:颉(早年,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:蔓德拉(幼年,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:艾利奥特·格罗夫(幼年,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:莫佚": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:真龙": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:岁": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:执白者": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:矩": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:西西里夫人": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:阿格尼尔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:吉星": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:更纱": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:格劳克斯": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:图耶": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:太阳谷联络员": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:谌彻": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:马里亚姆": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:朔(朔壳,与本格、朔选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:歌蕾蒂娅(少女,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:松桐": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:克雷松": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:赤冬": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:铸铁": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:雪雉": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:录武官": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:万顷": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:寻澜": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:深巡": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:管理员(男,同终末地条目,与女管选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:守林人": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:冰酿": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:阿斯帕齐娅": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:海蒂·汤姆森(少女,与本格选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[SYS_CONFIG]系统配置文件请勿打开": {
+    "enabled": false,
+    "type": "constant",
+    "category": "SYS_CONFIG"
+  },
+  "[角色]:莉莉娅": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:维特": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:老伊辛": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:哈洛德": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:暴雨": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:慑砂": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:来自黄金之城的使者": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:赫卡德墨": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:吕刻伊昂": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:陨星": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[剧情]:思路与位置(非游玩剧情请关闭)": {
+    "enabled": false,
+    "type": "constant",
+    "category": "剧情"
+  },
+  "[角色]:桑尼": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:玛丽": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:帕尔维斯": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:阿雅吉": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:阿雅妮": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:戈尔丁": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:马克·麦克斯": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:埃拉托": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:协律": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:贝洛内": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:凯尔希(详细本格,与简略本格、Ama-10、巴别塔、预见末日的贤人选一开)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:复奏": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:尤莉叶": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:“疤眼”": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:列维": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:刺玫": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:开斯特公爵": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:威灵顿公爵": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:高多汀公爵": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:哈蒂娅": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:夏栎": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[设定]:泰拉专属名词替换-料理": {
+    "enabled": true,
+    "type": "constant",
+    "category": "设定"
+  },
+  "[角色]:风丸": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:钼铅": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:慕斯": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:明椒": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:“歧法”": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:梵里妮": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[种族]:精灵": {
+    "enabled": true,
+    "type": "selective",
+    "category": "种族"
+  },
+  "[角色]:刻刀": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:卡达": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:夜烟": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[设定]:泰拉载具": {
+    "enabled": true,
+    "type": "constant",
+    "category": "设定"
+  },
+  "[角色]:流星": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:玫拉": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:响石": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:斯凯": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:月禾": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:泡泡": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:露托": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:清道夫": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:特克诺": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:菲莱": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:断罪者": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:末药": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:海霓": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:杰克": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:艾丝黛尔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:红云": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:梅": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:雪猎": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:阿罗玛": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:火哨": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:酸糖": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:远山": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:瓦莱丝": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:莫希": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:古罗": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:“放逐王”": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:西尔维娅": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:伍德洛": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:恰尔内": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:马克维茨": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:麦基": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:莫布": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:科瓦尔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:弗格瓦尔德": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:光头马丁": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:红隼": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:燧石": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:铎铃": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:猎蜂": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:石英": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[变格角色]:维维美(本格为维什戴尔)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "变格角色"
+  },
+  "[变格角色]:米米子(本格为阿米娅)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "变格角色"
+  },
+  "[变格角色]:凯尔希炭(本格为凯尔希)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "变格角色"
+  },
+  "[变格角色]:闲游能天使(本格为能天使)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "变格角色"
+  },
+  "[变格角色]:解闷德克萨斯(本格为德克萨斯)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "变格角色"
+  },
+  "[变格角色]:靓眼银灰(本格为银灰)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "变格角色"
+  },
+  "[变格角色]:博士士(本格为博士)": {
+    "enabled": false,
+    "type": "selective",
+    "category": "变格角色"
+  },
+  "[角色]:石棉": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:洋灰": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:熔泉": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:跃跃": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:温米": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:布丁": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:微风": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:阿兰娜": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:地灵": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:波登可": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:罗比菈塔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:云迹": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:谜图": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:渡桥": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[支援机械]:CONFESS-47": {
+    "enabled": true,
+    "type": "selective",
+    "category": "支援机械"
+  },
+  "[角色]:断崖": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:苍苔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:奥达": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:休谟斯": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:骋风": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[支援机械]:Castle-3": {
+    "enabled": true,
+    "type": "selective",
+    "category": "支援机械"
+  },
+  "[角色]:车尔尼": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:深律": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:铅踝": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:莱恩哈特": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:蚀清": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:雪绒": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:怒潮凛冬": {
+    "enabled": false,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:乌啾": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:伯塔尼": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:折光": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:诺威尔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:风絮": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:褐果": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:掠风": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:衡沙": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:波卜": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[支援机械]:PhonoR-0": {
+    "enabled": true,
+    "type": "selective",
+    "category": "支援机械"
+  },
+  "[角色]:裁度": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:伊桑": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[角色]:维荻": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  },
+  "[支援机械]:THRM-EX": {
+    "enabled": true,
+    "type": "selective",
+    "category": "支援机械"
+  },
+  "[角色]:费奥多尔": {
+    "enabled": true,
+    "type": "selective",
+    "category": "角色"
+  }
 };

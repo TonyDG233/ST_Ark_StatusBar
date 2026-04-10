@@ -11,11 +11,13 @@
           <div class="arknights-logo-container">
             <img :src="ASSETS.LOGO_URL" alt="Arknights Logo" class="arknights-logo" />
           </div>
-          <p class="author-info">初版作者：打不准的豌豆射手 | v版核心作者：F.o.x.i.o</p>
+          <p class="author-info">初版作者：我是特雷西娅(旧称“豌豆”) | v版核心作者：F.o.x.i.o</p>
           <p class="author-info">
-            项目贡献者：TonyDG233(UI), 晚鸢尾(UI), 暗中观察信长(剧情), 政委x(剧情), Rylan(剧情), rdq9909(剧情),
-            "你"(剧情)
+          项目贡献者：TonyDG233(UI), 晚鸢尾(UI demo), 
           </p>
+          <p class="author-info">
+          暗中观察信长“死芒”(剧情), 政委x(剧情), Rylan(剧情), rdq9909(剧情), “血先生”(剧情)
+          </p>  
           <p class="author-info">UI重构项目：ARK_STATUSBAR</p>
         </div>
 
@@ -29,7 +31,7 @@
           请第一次使用本角色卡的用户，务必前往最后一个开局阅读<strong style="color: var(--warning-accent)"
             >“狐の言（在首次游玩前请一定要看！）”</strong
           >。<br />
-          若需管理单字干员/重置世界书状态，或管理悬浮窗UI，请点击右下角按钮打开侧边栏进行操作。
+          若需管理单字干员/重置世界书状态，或管理悬浮窗UI，请点击右上角按钮打开侧边栏进行操作。
         </div>
 
         <div class="section-title">◆ 简介</div>
@@ -92,9 +94,9 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
+import { configStore, useArkConfig } from '../core/config_store';
 import { ASSETS } from '../data/assets';
 import { STARTUP_SCENARIOS, type Scenario } from '../data/scenarios';
-import { configStore, useArkConfig } from '../core/config_store';
 import { StatusBarManager, type WorldbookStatus } from '../logic/statusbar_manager';
 import StartupSettingsPanel from './startup_tabs/StartupSettingsPanel.vue';
 

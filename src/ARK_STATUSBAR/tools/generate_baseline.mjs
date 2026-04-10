@@ -3,8 +3,8 @@ import path from 'path';
 import YAML from 'yaml';
 
 const SOURCE_FILE = path.join(process.cwd(), 'references/tools/昨夜圆车.yaml');
-const BASELINE_OUTPUT = path.join(process.cwd(), 'src/ARK_STATUSBAR/config/baseline.ts');
-const SINGLE_CHAR_OUTPUT = path.join(process.cwd(), 'src/ARK_STATUSBAR/config/single_char_entries.ts');
+const BASELINE_OUTPUT = path.join(process.cwd(), 'src/ARK_STATUSBAR/data/baseline.ts');
+const SINGLE_CHAR_OUTPUT = path.join(process.cwd(), 'src/ARK_STATUSBAR/data/single_char_entries.ts');
 
 try {
   console.log('Reading Worldbook YAML...');
@@ -59,7 +59,7 @@ try {
         }
       }
 
-      if (isSingleChar) {
+      if (isSingleChar && name.startsWith('[角色]')) {
         singleCharEntries.push(name);
       }
     }
