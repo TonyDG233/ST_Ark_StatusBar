@@ -169,6 +169,9 @@ $(() => {
 
 // 卸载阶段清理
 $(window).on('pagehide', () => {
+  // 清理全局管理器带来的副作用（解绑母窗口上的拦截器，防死锁）
+  StatusBarManager.getInstance().destroy();
+
   deteleportStyle();
   if (globalStatusBarApp) {
     globalStatusBarApp.unmount();

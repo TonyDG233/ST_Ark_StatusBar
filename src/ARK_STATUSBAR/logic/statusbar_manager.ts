@@ -199,4 +199,13 @@ export class StatusBarManager {
     const { sendInterceptor } = await import('./worldbook/send_interceptor');
     sendInterceptor.bindInterceptor();
   }
+
+  /**
+   * 销毁管理器，清理所有通过它初始化的全局副作用（防止热重载导致幽灵监听器死锁）
+   */
+  public async destroy() {
+    console.info('[ARK_StatusBar] Destroying Manager...');
+    const { sendInterceptor } = await import('./worldbook/send_interceptor');
+    sendInterceptor.unbindInterceptor();
+  }
 }
