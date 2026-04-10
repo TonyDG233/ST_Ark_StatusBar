@@ -107,14 +107,19 @@ export function useDraggablePhysics(statusBarEl: Ref<HTMLElement | null>, curren
     let currentHeight = 60;
 
     if (currentUiMode.value === UiMode.FULL) {
-      currentWidth = Math.max(rect.width, 400);
+      // 修复移动端震荡 Bug：CSS 限制了 max-width: 90vw，如果强制 400 会导致物理引擎与实际渲染尺寸脱节，从而引发左右锚点频繁移交的死循环
+      const maxAllowedWidth = viewportWidth * 0.9;
+      currentWidth = Math.min(Math.max(rect.width, 400), maxAllowedWidth);
+      
       const maxAllowedHeight = viewportHeight - 80;
       currentHeight = Math.min(Math.max(rect.height, statusBarEl.value.scrollHeight || 400), maxAllowedHeight);
     } else if (currentUiMode.value === UiMode.BUBBLE) {
       currentWidth = snappedStretchWidth.value;
       currentHeight = 60;
     } else {
-      currentWidth = Math.max(rect.width, 180);
+      // MINI 模式下：抛弃写死的 180 像素限制，允许随着 font-size 缩小（兜底由设备宽度预估）
+      const fallbackWidth = viewportWidth <= 768 ? 156 : 182;
+      currentWidth = rect.width > 50 ? rect.width : fallbackWidth;
       currentHeight = 90;
     }
 
@@ -140,19 +145,27 @@ export function useDraggablePhysics(statusBarEl: Ref<HTMLElement | null>, curren
     }
     // 正常截断与锚点移交
     else {
-      // 通过中心点判断应该交给谁管辖
-      const centerX = newLeft + currentWidth / 2;
-      const isLeftHalf = centerX < viewportWidth / 2;
-      currentAnchor.value = isLeftHalf ? 'left' : 'right';
-
-      // 撞墙检测
-      if (newLeft < 0) {
+      // 避免当组件宽度大于或等于屏幕宽度时出现左右锚点死循环震荡
+      if (currentWidth >= viewportWidth - 10) {
+        currentAnchor.value = 'left';
         newLeft = 0;
+        newRight = Math.max(0, viewportWidth - currentWidth);
         outOfBounds = true;
-      }
-      if (newRight < 0) {
-        newRight = 0;
-        outOfBounds = true;
+      } else {
+        // 通过中心点判断应该交给谁管辖
+        const centerX = newLeft + currentWidth / 2;
+        const isLeftHalf = centerX < viewportWidth / 2;
+        currentAnchor.value = isLeftHalf ? 'left' : 'right';
+
+        // 撞墙检测
+        if (newLeft < 0) {
+          newLeft = 0;
+          outOfBounds = true;
+        }
+        if (newRight < 0) {
+          newRight = 0;
+          outOfBounds = true;
+        }
       }
     }
 

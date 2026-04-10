@@ -361,8 +361,8 @@ onMounted(() => {
 }
 
 .ark-global-statusbar.mini-mode {
-  width: 180px; /* <--- 修复点：抛弃 auto 避免宽度动画断层，固定 180px */
-  max-width: 180px;
+  width: 13em; /* <--- 修复点：抛弃死板的 px 避免移动端过宽，随 font-size (14px-2px) 等比缩小 */
+  max-width: 13em;
   border-radius: 20px;
   opacity: 0.8;
 }
