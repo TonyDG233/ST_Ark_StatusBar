@@ -110,7 +110,7 @@ export function useDraggablePhysics(statusBarEl: Ref<HTMLElement | null>, curren
       // 修复移动端震荡 Bug：CSS 限制了 max-width: 90vw，如果强制 400 会导致物理引擎与实际渲染尺寸脱节，从而引发左右锚点频繁移交的死循环
       const maxAllowedWidth = viewportWidth * 0.9;
       currentWidth = Math.min(Math.max(rect.width, 400), maxAllowedWidth);
-      
+
       const maxAllowedHeight = viewportHeight - 80;
       currentHeight = Math.min(Math.max(rect.height, statusBarEl.value.scrollHeight || 400), maxAllowedHeight);
     } else if (currentUiMode.value === UiMode.BUBBLE) {
