@@ -1,69 +1,111 @@
 <template>
+  <!-- [物理外壳层] 完全负责承载物理位移，不参与任何样式形变或渐变过渡 -->
   <div
     v-if="isSystemEnabled"
-    class="ark-global-statusbar"
     v-show="isVisible"
-    :class="{
-      'light-theme': currentConfig?.theme === 'light',
-      'dark-theme': currentConfig?.theme === 'dark',
-      'transparent-theme': currentConfig?.theme === 'transparent',
-      'mini-mode': isMiniMode,
-    }"
+    class="ark-global-statusbar-shell"
+    :class="{ 'is-snapping': isSnapping }"
+    style="position: fixed; top: 0; z-index: 9999;"
     :style="{
-      '--ui-width': isMiniMode ? 'auto' : (previewUiWidth ?? currentConfig?.uiWidth ?? 400) + 'px',
-      '--ui-font-size': (previewUiFontSize ?? currentConfig?.uiFontSize ?? 14) + 'px',
-      transform: `translate(${transformX}px, ${transformY}px)`,
+      left: currentAnchor === 'left' ? `${transformLeft}px` : 'auto',
+      right: currentAnchor === 'right' ? `${transformRight}px` : 'auto',
+      transform: `translateY(${transformY}px)`
     }"
     ref="statusBarEl"
   >
-    <div
-      class="statusbar-header"
-      @mousedown="startDrag"
-      @touchstart="startDrag"
-      @dblclick="resetPosition"
-      title="拖拽移动，双击还原位置"
-    >
-      <div class="title" v-if="!isMiniMode"><span class="icon">📖</span> 方舟世界书控制台</div>
-      <div class="title mini" v-else><span class="icon">📖</span> 世界书 (预警: {{ pendingEntries.length }})</div>
-      <div class="controls">
-        <button class="icon-btn" @click="toggleMinimize" title="折叠/展开">
-          {{ isMiniMode ? '↗' : '↙' }}
-        </button>
+    <!-- [视觉 UI 容器层] 负责所有颜色、尺寸、伸缩渐变。
+         根据外壳给定的 currentAnchor 动态调整自己的 transform-origin 
+         使得向外展开的动画总是完美的！ -->
+      <div
+        class="ark-global-statusbar"
+        :class="{
+          'light-theme': currentConfig?.theme === 'light',
+          'dark-theme': currentConfig?.theme === 'dark',
+          'transparent-theme': currentConfig?.theme === 'transparent',
+          'mini-mode': currentUiMode === UiMode.MINI,
+          'edge-snapped': currentUiMode === UiMode.BUBBLE,
+          'edge-snapped-left': isSnappedToEdge === 'left',
+          'edge-snapped-right': isSnappedToEdge === 'right',
+          'is-dragging': isDraggingState
+        }"
+        :style="{
+          'transform-origin': currentAnchor === 'left' ? 'left top' : 'right top',
+          '--ui-width': currentUiMode === UiMode.MINI ? '180px' : (previewUiWidth ?? currentConfig?.uiWidth ?? 400) + 'px',
+          '--ui-font-size': (previewUiFontSize ?? currentConfig?.uiFontSize ?? 14) + 'px',
+          '--snapped-width': isSnappedToEdge ? `${snappedStretchWidth}px` : '32px'
+        }"
+      >
+      <!-- 气泡窗变身把手，利用原 UI 的极限压缩产生无缝融合效果 -->
+      <div 
+        v-show="currentUiMode === UiMode.BUBBLE" 
+        class="edge-snap-indicator"
+        @mousedown="startDrag"
+        @touchstart="startDrag"
+        title="向屏幕内侧拖动以展开窗口"
+      >
+        <span class="icon">📖</span>
       </div>
-    </div>
 
-    <div class="statusbar-tabs" v-show="!isMiniMode">
-      <button :class="{ active: currentTab === 'interceptor' }" @click="currentTab = 'interceptor'">拦截预警</button>
-      <button :class="{ active: currentTab === 'all' }" @click="currentTab = 'all'">全部条目</button>
-      <button :class="{ active: currentTab === 'history' }" @click="currentTab = 'history'">记录(Git)</button>
-      <button :class="{ active: currentTab === 'settings' }" @click="currentTab = 'settings'">设置</button>
-    </div>
-
-    <div class="statusbar-content" v-show="!isMiniMode">
-      <InterceptorTab v-show="currentTab === 'interceptor'" @close-panel="isMiniMode = true" />
-      <WorldbookTab v-show="currentTab === 'all'" />
-      <HistoryTab v-show="currentTab === 'history'" />
-      <SettingsTab v-show="currentTab === 'settings'" />
-    </div>
-
-    <!-- [FEATURE: MINI_SNAPSHOT] -> Compact list shown ONLY in mini mode -->
-    <div class="statusbar-mini-content" v-show="isMiniMode">
-      <div v-if="(pendingEntries.length > 0 ? pendingEntries : lastTriggeredEntries).length === 0" class="mini-empty">
-        无近期触发记录
-      </div>
-      <ul v-else class="mini-entry-list">
-        <li
-          v-for="entry in pendingEntries.length > 0 ? pendingEntries : lastTriggeredEntries"
-          :key="entry.uid || Math.random()"
+      <!-- 常规完整面板内容 (包含 FULL 和 MINI 模式) -->
+      <template v-if="currentUiMode !== UiMode.BUBBLE">
+        <div
+          class="statusbar-header"
+          @mousedown="startDrag"
+          @touchstart="startDrag"
+          title="拖拽移动"
         >
-          <span class="indicator" :class="{ blocked: entry.enabled === false }"></span>
-          <span class="text">{{
-            entry.name || (entry.strategy?.keys && entry.strategy.keys.length ? entry.strategy.keys[0] : '未知')
-          }}</span>
-        </li>
-      </ul>
+          <div class="title" v-if="currentUiMode === UiMode.FULL"><span class="icon">📖</span> 方舟世界书控制台</div>
+          <div class="title mini" v-else><span class="icon">📖</span> 世界书 (预警: {{ pendingEntries.length }})</div>
+          <div class="controls">
+            <!-- 引入了沙盒版的四角翻转按钮 -->
+            <button class="icon-btn toggle-btn" @click="toggleMinimize" title="折叠/展开" :class="{ 'is-mini': currentUiMode === UiMode.MINI }">
+              <div class="corner top-left"></div>
+              <div class="corner top-right"></div>
+              <div class="corner bottom-left"></div>
+              <div class="corner bottom-right"></div>
+            </button>
+          </div>
+        </div>
+
+        <!-- 高跷防护：使用 Grid 0fr 方案包裹内容 -->
+        <div class="statusbar-content-wrapper" :class="{ 'is-full-expanded': currentUiMode === UiMode.FULL }">
+          <div class="statusbar-content-inner">
+            <div class="statusbar-tabs" v-show="currentUiMode === UiMode.FULL">
+              <button :class="{ active: currentTab === 'interceptor' }" @click="currentTab = 'interceptor'">拦截预警</button>
+              <button :class="{ active: currentTab === 'all' }" @click="currentTab = 'all'">全部条目</button>
+              <button :class="{ active: currentTab === 'history' }" @click="currentTab = 'history'">记录(Git)</button>
+              <button :class="{ active: currentTab === 'settings' }" @click="currentTab = 'settings'">设置</button>
+            </div>
+
+            <div class="statusbar-content" v-show="currentUiMode === UiMode.FULL">
+              <InterceptorTab v-show="currentTab === 'interceptor'" @close-panel="currentUiMode = UiMode.MINI" />
+              <WorldbookTab v-show="currentTab === 'all'" />
+              <HistoryTab v-show="currentTab === 'history'" />
+              <SettingsTab v-show="currentTab === 'settings'" />
+            </div>
+          </div>
+        </div>
+
+        <!-- [FEATURE: MINI_SNAPSHOT] -> Compact list shown ONLY in mini mode -->
+        <div class="statusbar-mini-content" v-show="currentUiMode === UiMode.MINI">
+          <div v-if="(pendingEntries.length > 0 ? pendingEntries : lastTriggeredEntries).length === 0" class="mini-empty">
+            无近期触发记录
+          </div>
+          <ul v-else class="mini-entry-list">
+            <li
+              v-for="entry in pendingEntries.length > 0 ? pendingEntries : lastTriggeredEntries"
+              :key="entry.uid || Math.random()"
+            >
+              <span class="indicator" :class="{ blocked: entry.enabled === false }"></span>
+              <span class="text">{{
+                entry.name || (entry.strategy?.keys && entry.strategy.keys.length ? entry.strategy.keys[0] : '未知')
+              }}</span>
+            </li>
+          </ul>
+        </div>
+        <!-- [FEATURE: MINI_SNAPSHOT] END -->
+      </template>
     </div>
-    <!-- [FEATURE: MINI_SNAPSHOT] END -->
   </div>
 </template>
 
@@ -91,113 +133,44 @@ import InterceptorTab from './global_tabs/interceptor/InterceptorTab.vue';
 import SettingsTab from './global_tabs/settings/SettingsTab.vue';
 import WorldbookTab from './global_tabs/worldbook/WorldbookTab.vue';
 
-// --- 外壳退化层：仅保留纯粹的视图控制与拖拽物理逻辑 ---
+// --- 全局单一状态机 & 独立物理引擎钩子 ---
+import { UiMode, useDraggablePhysics } from './global_tabs/useDraggablePhysics';
+
 const isVisible = ref(true);
-const isMiniMode = ref(true);
+const currentUiMode = ref<UiMode>(UiMode.MINI); 
 const currentTab = ref('interceptor');
 const currentConfig = useArkConfig();
 const manager = StatusBarManager.getInstance();
 const isSystemEnabled = computed(() => currentConfig.value?.isSystemEnabled ?? true);
 
-const toggleMinimize = () => {
-  isMiniMode.value = !isMiniMode.value;
-  if (isMiniMode.value) {
-    currentTab.value = 'interceptor';
-  }
-};
-
-// --- DOM 节点与拖拽坐标 ---
 const statusBarEl = ref<HTMLElement | null>(null);
 
-const transformX = ref(0);
-const transformY = ref(0);
-let isDragging = false;
-let startX = 0;
-let startY = 0;
-let initialX = 0;
-let initialY = 0;
+// ==========================================
+// 业务视图层 与 纯物理引擎层的切割交接点
+// ==========================================
+const {
+  currentAnchor,
+  transformLeft,
+  transformRight,
+  transformY,
+  isDraggingState,
+  isSnapping,
+  isSnappedToEdge,
+  snappedStretchWidth,
+  startDrag,
+  checkBounds
+} = useDraggablePhysics(statusBarEl, currentUiMode);
 
-const startDrag = (e: MouseEvent | TouchEvent) => {
-  isDragging = true;
-  if (e.type === 'touchstart') {
-    const touch = (e as TouchEvent).touches[0];
-    startX = touch.clientX;
-    startY = touch.clientY;
-  } else {
-    startX = (e as MouseEvent).clientX;
-    startY = (e as MouseEvent).clientY;
+const toggleMinimize = () => {
+  if (currentUiMode.value === UiMode.FULL) {
+    currentUiMode.value = UiMode.MINI;
+  } else if (currentUiMode.value === UiMode.MINI) {
+    currentUiMode.value = UiMode.FULL;
+    currentTab.value = 'interceptor';
   }
-
-  initialX = transformX.value;
-  initialY = transformY.value;
-
-  const ST_DOC = window.parent?.document || document;
-  ST_DOC.addEventListener('mousemove', onDrag);
-  ST_DOC.addEventListener('touchmove', onDrag, { passive: false });
-  ST_DOC.addEventListener('mouseup', stopDrag);
-  ST_DOC.addEventListener('touchend', stopDrag);
-};
-
-const onDrag = (e: MouseEvent | TouchEvent) => {
-  if (!isDragging || !statusBarEl.value) return;
-  e.preventDefault();
-
-  let clientX = 0;
-  let clientY = 0;
-  if (e.type === 'touchmove') {
-    const touch = (e as TouchEvent).touches[0];
-    clientX = touch.clientX;
-    clientY = touch.clientY;
-  } else {
-    clientX = (e as MouseEvent).clientX;
-    clientY = (e as MouseEvent).clientY;
-  }
-
-  const dx = clientX - startX;
-  const dy = clientY - startY;
-
-  transformX.value = initialX + dx;
-  transformY.value = initialY + dy;
-};
-
-const checkBounds = () => {
-  if (!statusBarEl.value) return;
-  const rect = statusBarEl.value.getBoundingClientRect();
-  const ST_WIN = window.parent || window;
-
-  const viewportWidth = ST_WIN.innerWidth;
-  const viewportHeight = ST_WIN.innerHeight;
-
-  let deltaX = 0;
-  let deltaY = 0;
-
-  if (rect.right > viewportWidth) deltaX = viewportWidth - rect.right;
-  if (rect.left + deltaX < 0) deltaX = 0 - rect.left;
-  if (rect.bottom > viewportHeight) deltaY = viewportHeight - rect.bottom;
-
-  const SAFE_TOP = 70;
-  if (rect.top + deltaY < SAFE_TOP) deltaY = SAFE_TOP - rect.top;
-
-  if (deltaX !== 0 || deltaY !== 0) {
-    transformX.value += deltaX;
-    transformY.value += deltaY;
-  }
-};
-
-const stopDrag = () => {
-  isDragging = false;
-  const ST_DOC = window.parent?.document || document;
-  ST_DOC.removeEventListener('mousemove', onDrag);
-  ST_DOC.removeEventListener('touchmove', onDrag);
-  ST_DOC.removeEventListener('mouseup', stopDrag);
-  ST_DOC.removeEventListener('touchend', stopDrag);
-
-  requestAnimationFrame(() => checkBounds());
-};
-
-const resetPosition = () => {
-  transformX.value = 0;
-  transformY.value = 0;
+  
+  // 给 CSS 的 transition (0.3s) 留出时间后，执行最后一次物理兜底碰撞收口
+  setTimeout(() => checkBounds(), 350);
 };
 
 // --- 环境联动与事件总线挂载 ---
@@ -232,7 +205,6 @@ const loadPrimaryWorldbookName = async () => {
 };
 
 onMounted(() => {
-  // 第 3 步：激活全局的事件总线，让 shared_ui_state 作为唯一数据源开始监听原生与内部变动
   setupGlobalListeners();
 
   document.addEventListener('ark-config-updated', ((e: CustomEvent) => {
@@ -248,7 +220,6 @@ onMounted(() => {
     loadWorldbookLists();
   }
 
-  // 接管底层的拦截预警推送，分配到 shared_state 给各个微组件使用
   document.addEventListener('ark-interceptor-triggered', ((e: CustomEvent) => {
     const triggered = e.detail.entries || [];
     const isManualTest = !!e.detail.isManualTest;
@@ -271,7 +242,7 @@ onMounted(() => {
     if (matchedEntries.length > 0 || isManualTest) {
       pendingEntries.value = matchedEntries;
       currentTab.value = 'interceptor';
-      isMiniMode.value = false;
+      currentUiMode.value = UiMode.FULL;
 
       if (!isSystemEnabled.value) {
         configStore.updateConfig({ isSystemEnabled: true });
@@ -281,12 +252,6 @@ onMounted(() => {
       manager.releaseInterceptAndSend();
     }
   }) as EventListener);
-
-  if (statusBarEl.value) {
-    const resizeObserver = new ResizeObserver(() => requestAnimationFrame(() => checkBounds()));
-    resizeObserver.observe(statusBarEl.value);
-  }
-  requestAnimationFrame(() => checkBounds());
 
   // 替换掉原有的原生 CustomEvent 监听
   const diffHandler = () => {
@@ -300,8 +265,6 @@ onMounted(() => {
   };
   ArkEventBus.on('worldbook:baseline_diff_detected', diffHandler);
 
-  // 原有的 ark-chat-changed 用于重新拉取 primary 名称，它不属于 diff，可以直接放到 loadWorldbookLists 中，或者这里先保留自定义事件兼容
-  // 后续如果 chat-changed 也是核心总线，就继续替换。
   const chatChangedHandler = () => {
     if (currentConfig.value?.isSystemEnabled) {
       loadPrimaryWorldbookName();
@@ -315,13 +278,15 @@ onMounted(() => {
 
     if (newState) {
       loadPrimaryWorldbookName();
-      requestAnimationFrame(() => checkBounds());
+      checkBounds(); // 原 requestAnimationFrame
     }
   };
   ArkEventBus.on('system:toggle', toggleSystemHandler);
 
   const ST_WIN = window.parent || window;
-  const handleWindowResize = () => requestAnimationFrame(() => checkBounds());
+  // 尺寸变化的重新测算工作已交由 useDraggablePhysics 内的 ResizeObserver 接管
+  // 这里只保留一个最粗糙的外部兜底触发即可
+  const handleWindowResize = () => checkBounds();
   ST_WIN.addEventListener('resize', handleWindowResize);
 
   // 组件卸载时解绑
@@ -338,24 +303,36 @@ onMounted(() => {
 @import './styles/theme.scss';
 @import './styles/shared_ui.scss';
 
+/* =========================================================================
+   🚨 绝对警报 🚨
+   不要在这里手动修改、推翻任何关于 `ark-global-statusbar` 本身的 CSS！
+   这是遗留下来的原版单壳样式，它保证了你看到的圆角、背景、列表样式原汁原味。
+   
+   我们要做的仅仅是把外层物理防线与这套样式通过 Vue <template> 层隔开。
+   ========================================================================= */
+
 .ark-global-statusbar {
-  position: fixed;
-  bottom: 60px;
-  right: 20px;
+  /* position: fixed; 和 transform 被抽离到了外层物理壳 (shell) 中。
+     这里改成了 absolute; right: 0;，为了配合物理壳的右上角锚点。 */
+  /* bottom: 60px; (由 transformY 控制) */
+  /* right: 20px; (由 transformX 控制) */
   width: var(--ui-width, 400px);
   max-width: 90vw;
   max-height: calc(100dvh - 80px);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  overflow: hidden; /* <--- 修复：强制截断流出的子元素，以配合内部滚动条 */
+  /* 
+    【重点解耦】：因为不再和物理坐标纠缠，这里的 transition 可以放心大胆地加上宽度变化。
+    且它不会像以前那样导致由于右边缘抽搐而被撕裂。
+  */
   transition:
     background-color 0.3s ease,
     border-color 0.3s ease,
     color 0.3s ease,
-    opacity 0.3s ease;
+    opacity 0.3s ease,
+    width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .ark-global-statusbar.light-theme {
@@ -378,7 +355,7 @@ onMounted(() => {
 }
 
 .ark-global-statusbar.mini-mode {
-  width: auto;
+  width: 180px; /* <--- 修复点：抛弃 auto 避免宽度动画断层，固定 180px */
   max-width: 180px;
   border-radius: 20px;
   opacity: 0.8;
@@ -513,5 +490,114 @@ onMounted(() => {
   padding: 15px;
   max-height: 400px;
   overflow-y: auto;
+}
+
+/* =========================================================================
+   新增：气泡贴边无缝变身特效 (BUBBLE 模式)
+   ========================================================================= */
+
+.ark-global-statusbar.is-dragging {
+  /* 拖拽拉伸时禁用任何视觉动画，保证黏性物理手感 0 延迟 */
+  transition: none !important;
+}
+
+.ark-global-statusbar.edge-snapped {
+  width: var(--snapped-width, 32px) !important;
+  height: 60px !important;
+  min-width: 32px !important;
+  opacity: 0.8;
+  cursor: grab;
+  /* 屏蔽原版所有普通内容的展示 */
+  display: flex !important;
+  flex-direction: row; /* 水平居中把手图标 */
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--SmartThemeBorderColor, rgba(255, 255, 255, 0.2)) !important;
+  background: var(--SmartThemeBlurTintColor, rgba(40, 40, 40, 0.85)) !important;
+  backdrop-filter: blur(8px);
+  /* 无缝压缩的奥秘所在： */
+  border-radius: 30px; 
+}
+
+/* 根据外壳传进来的靠墙方向，动态切平那一侧的圆角，营造“从墙里长出来”的视觉融合 */
+.ark-global-statusbar.edge-snapped-left {
+  /* 左侧靠墙，将左边上下两个角切平 (直角 0) */
+  border-radius: 0 30px 30px 0 !important;
+  border-left: none !important;
+}
+
+.ark-global-statusbar.edge-snapped-right {
+  /* 右侧靠墙，将右边上下两个角切平 (直角 0) */
+  border-radius: 30px 0 0 30px !important;
+  border-right: none !important;
+}
+
+.edge-snap-indicator {
+  /* 充满气泡内部作为拖拽抓手 */
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1em;
+  cursor: grab;
+}
+
+/* 如果有弹性拉伸，图标应该跟着圆弧部分走，而不是呆在正中央 */
+.ark-global-statusbar.edge-snapped-left .edge-snap-indicator {
+  justify-content: flex-end;
+  padding-right: 8px;
+}
+
+.ark-global-statusbar.edge-snapped-right .edge-snap-indicator {
+  justify-content: flex-start;
+  padding-left: 8px;
+}
+
+.edge-snap-indicator .icon {
+  display: inline-block;
+  line-height: 1;
+  pointer-events: none;
+}
+.edge-snap-indicator:active {
+  cursor: grabbing;
+}
+.ark-global-statusbar.edge-snapped:hover {
+  opacity: 1;
+  background: rgba(0, 123, 255, 0.2) !important;
+}
+
+/* =========================================================================
+   新增：物理壳平滑阻尼过渡 (用于处理碰撞墙壁及状态跳转时的瞬间回弹)
+   ========================================================================= */
+.ark-global-statusbar-shell.is-snapping {
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), right 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =========================================================================
+   新增：内容防“高跷”拉伸保护淡入 (Grid 0fr 方案)
+   ========================================================================= */
+.statusbar-content-wrapper {
+  display: grid;
+  grid-template-rows: 0fr; 
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  width: 100%; /* 防止 Grid 宽度失控 (Grid Blowout) */
+}
+
+.statusbar-content-wrapper.is-full-expanded {
+  grid-template-rows: 1fr;
+}
+
+.statusbar-content-inner {
+  min-height: 0;
+  min-width: 0; /* 防止 Grid 内的 Flex 子项撑破父级限制的绝对关键 */
+  width: 100%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.statusbar-content-wrapper.is-full-expanded .statusbar-content-inner {
+  opacity: 1;
 }
 </style>
