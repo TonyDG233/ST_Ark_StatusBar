@@ -69,7 +69,7 @@ class SendInterceptor {
    */
   private handleIntercept = async (e: Event) => {
     const target = e.target as HTMLElement;
-    
+
     // 判断事件目标是否为发送按钮（或其内部图标）或输入框
     const isSendBtn = target.id === 'send_but' || !!target.closest('#send_but');
     const isTextarea = target.id === 'send_textarea';
