@@ -5,39 +5,40 @@
     v-show="isVisible"
     class="ark-global-statusbar-shell"
     :class="{ 'is-snapping': isSnapping }"
-    style="position: fixed; top: 0; z-index: 9999;"
+    style="position: fixed; top: 0; z-index: 9999"
     :style="{
       left: currentAnchor === 'left' ? `${transformLeft}px` : 'auto',
       right: currentAnchor === 'right' ? `${transformRight}px` : 'auto',
-      transform: `translateY(${transformY}px)`
+      transform: `translateY(${transformY}px)`,
     }"
     ref="statusBarEl"
   >
     <!-- [视觉 UI 容器层] 负责所有颜色、尺寸、伸缩渐变。
          根据外壳给定的 currentAnchor 动态调整自己的 transform-origin 
          使得向外展开的动画总是完美的！ -->
-      <div
-        class="ark-global-statusbar"
-        :class="{
-          'light-theme': currentConfig?.theme === 'light',
-          'dark-theme': currentConfig?.theme === 'dark',
-          'transparent-theme': currentConfig?.theme === 'transparent',
-          'mini-mode': currentUiMode === UiMode.MINI,
-          'edge-snapped': currentUiMode === UiMode.BUBBLE,
-          'edge-snapped-left': isSnappedToEdge === 'left',
-          'edge-snapped-right': isSnappedToEdge === 'right',
-          'is-dragging': isDraggingState
-        }"
-        :style="{
-          'transform-origin': currentAnchor === 'left' ? 'left top' : 'right top',
-          '--ui-width': currentUiMode === UiMode.MINI ? '180px' : (previewUiWidth ?? currentConfig?.uiWidth ?? 400) + 'px',
-          '--ui-font-size': (previewUiFontSize ?? currentConfig?.uiFontSize ?? 14) + 'px',
-          '--snapped-width': isSnappedToEdge ? `${snappedStretchWidth}px` : '32px'
-        }"
-      >
+    <div
+      class="ark-global-statusbar"
+      :class="{
+        'light-theme': currentConfig?.theme === 'light',
+        'dark-theme': currentConfig?.theme === 'dark',
+        'transparent-theme': currentConfig?.theme === 'transparent',
+        'mini-mode': currentUiMode === UiMode.MINI,
+        'edge-snapped': currentUiMode === UiMode.BUBBLE,
+        'edge-snapped-left': isSnappedToEdge === 'left',
+        'edge-snapped-right': isSnappedToEdge === 'right',
+        'is-dragging': isDraggingState,
+      }"
+      :style="{
+        'transform-origin': currentAnchor === 'left' ? 'left top' : 'right top',
+        '--ui-width':
+          currentUiMode === UiMode.MINI ? '180px' : (previewUiWidth ?? currentConfig?.uiWidth ?? 400) + 'px',
+        '--ui-font-size': (previewUiFontSize ?? currentConfig?.uiFontSize ?? 14) + 'px',
+        '--snapped-width': isSnappedToEdge ? `${snappedStretchWidth}px` : '32px',
+      }"
+    >
       <!-- 气泡窗变身把手，利用原 UI 的极限压缩产生无缝融合效果 -->
-      <div 
-        v-show="currentUiMode === UiMode.BUBBLE" 
+      <div
+        v-show="currentUiMode === UiMode.BUBBLE"
         class="edge-snap-indicator"
         @mousedown="startDrag"
         @touchstart="startDrag"
@@ -48,17 +49,17 @@
 
       <!-- 常规完整面板内容 (包含 FULL 和 MINI 模式) -->
       <template v-if="currentUiMode !== UiMode.BUBBLE">
-        <div
-          class="statusbar-header"
-          @mousedown="startDrag"
-          @touchstart="startDrag"
-          title="拖拽移动"
-        >
+        <div class="statusbar-header" @mousedown="startDrag" @touchstart="startDrag" title="拖拽移动">
           <div class="title" v-if="currentUiMode === UiMode.FULL"><span class="icon">📖</span> 方舟世界书控制台</div>
           <div class="title mini" v-else><span class="icon">📖</span> 世界书 (预警: {{ pendingEntries.length }})</div>
           <div class="controls">
             <!-- 引入了沙盒版的四角翻转按钮 -->
-            <button class="icon-btn toggle-btn" @click="toggleMinimize" title="折叠/展开" :class="{ 'is-mini': currentUiMode === UiMode.MINI }">
+            <button
+              class="icon-btn toggle-btn"
+              @click="toggleMinimize"
+              title="折叠/展开"
+              :class="{ 'is-mini': currentUiMode === UiMode.MINI }"
+            >
               <div class="corner top-left"></div>
               <div class="corner top-right"></div>
               <div class="corner bottom-left"></div>
@@ -71,7 +72,9 @@
         <div class="statusbar-content-wrapper" :class="{ 'is-full-expanded': currentUiMode === UiMode.FULL }">
           <div class="statusbar-content-inner">
             <div class="statusbar-tabs" v-show="currentUiMode === UiMode.FULL">
-              <button :class="{ active: currentTab === 'interceptor' }" @click="currentTab = 'interceptor'">拦截预警</button>
+              <button :class="{ active: currentTab === 'interceptor' }" @click="currentTab = 'interceptor'">
+                拦截预警
+              </button>
               <button :class="{ active: currentTab === 'all' }" @click="currentTab = 'all'">全部条目</button>
               <button :class="{ active: currentTab === 'history' }" @click="currentTab = 'history'">记录(Git)</button>
               <button :class="{ active: currentTab === 'settings' }" @click="currentTab = 'settings'">设置</button>
@@ -88,7 +91,10 @@
 
         <!-- [FEATURE: MINI_SNAPSHOT] -> Compact list shown ONLY in mini mode -->
         <div class="statusbar-mini-content" v-show="currentUiMode === UiMode.MINI">
-          <div v-if="(pendingEntries.length > 0 ? pendingEntries : lastTriggeredEntries).length === 0" class="mini-empty">
+          <div
+            v-if="(pendingEntries.length > 0 ? pendingEntries : lastTriggeredEntries).length === 0"
+            class="mini-empty"
+          >
             无近期触发记录
           </div>
           <ul v-else class="mini-entry-list">
@@ -137,7 +143,7 @@ import WorldbookTab from './global_tabs/worldbook/WorldbookTab.vue';
 import { UiMode, useDraggablePhysics } from './global_tabs/useDraggablePhysics';
 
 const isVisible = ref(true);
-const currentUiMode = ref<UiMode>(UiMode.MINI); 
+const currentUiMode = ref<UiMode>(UiMode.MINI);
 const currentTab = ref('interceptor');
 const currentConfig = useArkConfig();
 const manager = StatusBarManager.getInstance();
@@ -158,7 +164,7 @@ const {
   isSnappedToEdge,
   snappedStretchWidth,
   startDrag,
-  checkBounds
+  checkBounds,
 } = useDraggablePhysics(statusBarEl, currentUiMode);
 
 const toggleMinimize = () => {
@@ -168,7 +174,7 @@ const toggleMinimize = () => {
     currentUiMode.value = UiMode.FULL;
     currentTab.value = 'interceptor';
   }
-  
+
   // 给 CSS 的 transition (0.3s) 留出时间后，执行最后一次物理兜底碰撞收口
   setTimeout(() => checkBounds(), 350);
 };
@@ -516,7 +522,7 @@ onMounted(() => {
   background: var(--SmartThemeBlurTintColor, rgba(40, 40, 40, 0.85)) !important;
   backdrop-filter: blur(8px);
   /* 无缝压缩的奥秘所在： */
-  border-radius: 30px; 
+  border-radius: 30px;
 }
 
 /* 根据外壳传进来的靠墙方向，动态切平那一侧的圆角，营造“从墙里长出来”的视觉融合 */
@@ -571,7 +577,10 @@ onMounted(() => {
    新增：物理壳平滑阻尼过渡 (用于处理碰撞墙壁及状态跳转时的瞬间回弹)
    ========================================================================= */
 .ark-global-statusbar-shell.is-snapping {
-  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), right 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    right 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* =========================================================================
@@ -579,7 +588,7 @@ onMounted(() => {
    ========================================================================= */
 .statusbar-content-wrapper {
   display: grid;
-  grid-template-rows: 0fr; 
+  grid-template-rows: 0fr;
   transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   width: 100%; /* 防止 Grid 宽度失控 (Grid Blowout) */

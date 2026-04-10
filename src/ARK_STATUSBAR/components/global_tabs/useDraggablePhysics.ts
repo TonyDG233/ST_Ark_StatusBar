@@ -2,8 +2,8 @@ import { onMounted, onUnmounted, Ref, ref } from 'vue';
 
 // 全局唯一的 UI 状态机
 export enum UiMode {
-  FULL = 'FULL',     // 完全展开状态 (拥有 Tab 等完整功能)
-  MINI = 'MINI',     // 折叠小窗状态 (只显示一条/列表概览)
+  FULL = 'FULL', // 完全展开状态 (拥有 Tab 等完整功能)
+  MINI = 'MINI', // 折叠小窗状态 (只显示一条/列表概览)
   BUBBLE = 'BUBBLE', // 隐藏气泡状态 (贴边吸附，仅显示一个把手)
 }
 
@@ -11,10 +11,10 @@ export enum UiMode {
 export const PHYSICS_CONSTANTS = {
   // --- 触发阈值 ---
   /** 当组件距离屏幕左/右边缘小于等于此值时，触发贴边磁吸 */
-  SNAP_ALIGN_THRESHOLD: 20, 
+  SNAP_ALIGN_THRESHOLD: 20,
   /** 仅在 MINI 模式下，靠近屏幕边缘小于此值，触发收起为胶囊气泡模式 */
-  HIDE_THRESHOLD: -15,   
-  /** 当处于胶囊气泡状态时，向内拉扯的宽度大于此值时，松手判定为展开悬浮窗 */    
+  HIDE_THRESHOLD: -15,
+  /** 当处于胶囊气泡状态时，向内拉扯的宽度大于此值时，松手判定为展开悬浮窗 */
   STRETCH_RELEASE_THRESHOLD: 45,
 
   // --- 尺寸预估与安全边距 ---
@@ -32,14 +32,11 @@ export const PHYSICS_CONSTANTS = {
 
 /**
  * 拖拽与边界物理引擎 Hook (v2.0 双轨锚点版)
- * 
+ *
  * 职责：接管所有的 `mousedown/touchstart` 等原生 DOM 拖拽事件。
  * 输出：根据组件所在的屏幕半区，动态输出 `transformLeft` 或 `transformRight` 绝对坐标。
  */
-export function useDraggablePhysics(
-  statusBarEl: Ref<HTMLElement | null>,
-  currentUiMode: Ref<UiMode>
-) {
+export function useDraggablePhysics(statusBarEl: Ref<HTMLElement | null>, currentUiMode: Ref<UiMode>) {
   // =========================================================================
   // 【核心升级】：动态双轨坐标系
   // 不再死守单一的 transformX，而是根据当前所在的屏幕半区，动态决定输出哪个坐标。
@@ -49,9 +46,9 @@ export function useDraggablePhysics(
   const transformLeft = ref(0);
   const transformRight = ref(20); // 默认右侧起步
   const transformY = ref(0);
-  
+
   // 对外暴露的拖拽中状态，供 Vue 层增加 `.is-dragging` 类名禁用 CSS Transition 以保证帧率
-  const isDraggingState = ref(false); 
+  const isDraggingState = ref(false);
   const isSnapping = ref(false);
 
   // 对外暴露的边缘吸附状态，决定是否渲染成气泡
@@ -98,27 +95,27 @@ export function useDraggablePhysics(
    */
   const checkBounds = (forceSmooth = false) => {
     if (!statusBarEl.value) return;
-    
+
     const ST_WIN = window.parent || window;
     const viewportWidth = ST_WIN.innerWidth;
     const viewportHeight = ST_WIN.innerHeight;
 
     // 1. 获取物理尺寸
     const rect = statusBarEl.value.getBoundingClientRect();
-    
+
     let currentWidth = 180; // 默认给 MINI
     let currentHeight = 60;
-    
+
     if (currentUiMode.value === UiMode.FULL) {
-      currentWidth = Math.max(rect.width, 400); 
-      const maxAllowedHeight = viewportHeight - 80; 
+      currentWidth = Math.max(rect.width, 400);
+      const maxAllowedHeight = viewportHeight - 80;
       currentHeight = Math.min(Math.max(rect.height, statusBarEl.value.scrollHeight || 400), maxAllowedHeight);
     } else if (currentUiMode.value === UiMode.BUBBLE) {
       currentWidth = snappedStretchWidth.value;
       currentHeight = 60;
     } else {
       currentWidth = Math.max(rect.width, 180);
-      currentHeight = 90; 
+      currentHeight = 90;
     }
 
     // 每次计算前，先互相拉平两个锚点的绝对值
@@ -132,13 +129,13 @@ export function useDraggablePhysics(
     // ==========================================
     // 绝对防飞出物理墙 (Clamping)
     // ==========================================
-    
+
     // 气泡死锁覆盖
     if (isSnappedToEdge.value === 'left') {
-      newLeft = 0; 
+      newLeft = 0;
       currentAnchor.value = 'left';
     } else if (isSnappedToEdge.value === 'right') {
-      newRight = 0; 
+      newRight = 0;
       currentAnchor.value = 'right';
     }
     // 正常截断与锚点移交
@@ -171,7 +168,7 @@ export function useDraggablePhysics(
       newY = PHYSICS_CONSTANTS.SAFE_TOP;
       outOfBounds = true;
     }
-    
+
     // 非拖拽时严防沉底
     if (!isDragging) {
       const bottomLimit = viewportHeight - currentHeight - PHYSICS_CONSTANTS.SAFE_MARGIN_BOTTOM;
@@ -213,36 +210,37 @@ export function useDraggablePhysics(
     if (isSnappedToEdge.value) {
       if (isSnappedToEdge.value === 'left') {
         const pullDist = dx; // 往右拉正数
-        snappedStretchWidth.value = pullDist > 0 
-          ? Math.min(PHYSICS_CONSTANTS.MAX_STRETCH, PHYSICS_CONSTANTS.BUBBLE_WIDTH + pullDist * 0.5)
-          : PHYSICS_CONSTANTS.BUBBLE_WIDTH;
-        transformLeft.value = 0; 
-      } 
-      else if (isSnappedToEdge.value === 'right') {
+        snappedStretchWidth.value =
+          pullDist > 0
+            ? Math.min(PHYSICS_CONSTANTS.MAX_STRETCH, PHYSICS_CONSTANTS.BUBBLE_WIDTH + pullDist * 0.5)
+            : PHYSICS_CONSTANTS.BUBBLE_WIDTH;
+        transformLeft.value = 0;
+      } else if (isSnappedToEdge.value === 'right') {
         const pullDist = -dx; // 往左拉负数转正
-        snappedStretchWidth.value = pullDist > 0 
-          ? Math.min(PHYSICS_CONSTANTS.MAX_STRETCH, PHYSICS_CONSTANTS.BUBBLE_WIDTH + pullDist * 0.5)
-          : PHYSICS_CONSTANTS.BUBBLE_WIDTH;
+        snappedStretchWidth.value =
+          pullDist > 0
+            ? Math.min(PHYSICS_CONSTANTS.MAX_STRETCH, PHYSICS_CONSTANTS.BUBBLE_WIDTH + pullDist * 0.5)
+            : PHYSICS_CONSTANTS.BUBBLE_WIDTH;
         transformRight.value = 0;
       }
       transformY.value = initialY + dy;
-    } 
+    }
     // 正常移动 (只更新当前管辖的锚点，在 checkBounds 中统一同步)
     else {
       if (currentAnchor.value === 'left') {
         transformLeft.value = initialLeft + dx;
       } else {
         // 向右移 dx 是正，但距离右边缘其实是变小，所以是减去
-        transformRight.value = initialRight - dx; 
+        transformRight.value = initialRight - dx;
       }
       transformY.value = initialY + dy;
-      
+
       // 实时切换锚点归属权，让跟手更丝滑
       const ST_WIN = window.parent || window;
       const currentWidth = statusBarEl.value.offsetWidth || 180;
       syncAnchors(ST_WIN.innerWidth, currentWidth); // 互相同步
       const centerX = transformLeft.value + currentWidth / 2;
-      currentAnchor.value = centerX < (ST_WIN.innerWidth / 2) ? 'left' : 'right';
+      currentAnchor.value = centerX < ST_WIN.innerWidth / 2 ? 'left' : 'right';
     }
   };
 
@@ -261,14 +259,14 @@ export function useDraggablePhysics(
         // 展开悬浮窗
         const edge = isSnappedToEdge.value;
         isSnappedToEdge.value = false;
-        currentUiMode.value = UiMode.MINI; 
+        currentUiMode.value = UiMode.MINI;
         snappedStretchWidth.value = PHYSICS_CONSTANTS.BUBBLE_WIDTH;
 
         if (edge === 'left') {
           transformLeft.value = PHYSICS_CONSTANTS.EXPAND_BOUNCE_MARGIN;
           currentAnchor.value = 'left';
         } else {
-          transformRight.value = PHYSICS_CONSTANTS.EXPAND_BOUNCE_MARGIN; 
+          transformRight.value = PHYSICS_CONSTANTS.EXPAND_BOUNCE_MARGIN;
           currentAnchor.value = 'right';
         }
         triggerSmoothSnap();
@@ -279,7 +277,7 @@ export function useDraggablePhysics(
         if (isSnappedToEdge.value === 'right') transformRight.value = 0;
         triggerSmoothSnap();
       }
-    } 
+    }
     // --- 正常态贴边判定 ---
     else {
       if (currentUiMode.value === UiMode.MINI) {
@@ -296,13 +294,13 @@ export function useDraggablePhysics(
           snappedStretchWidth.value = PHYSICS_CONSTANTS.BUBBLE_WIDTH;
           currentAnchor.value = 'right';
           willSnap = true;
-        } 
+        }
         // 右侧较近 -> 磁吸对齐
         else if (distRight <= PHYSICS_CONSTANTS.SNAP_ALIGN_THRESHOLD) {
           transformRight.value = 0;
           currentAnchor.value = 'right';
           willSnap = true;
-        } 
+        }
         // 左侧极近 -> 气泡化
         else if (distLeft < PHYSICS_CONSTANTS.HIDE_THRESHOLD) {
           isSnappedToEdge.value = 'left';
@@ -311,7 +309,7 @@ export function useDraggablePhysics(
           snappedStretchWidth.value = PHYSICS_CONSTANTS.BUBBLE_WIDTH;
           currentAnchor.value = 'left';
           willSnap = true;
-        } 
+        }
         // 左侧较近 -> 磁吸对齐
         else if (distLeft <= PHYSICS_CONSTANTS.SNAP_ALIGN_THRESHOLD) {
           transformLeft.value = 0;
@@ -329,15 +327,18 @@ export function useDraggablePhysics(
   };
 
   const startDrag = (e: MouseEvent | TouchEvent) => {
-    if ((e.target as HTMLElement).closest('button, .icon-btn') && !(e.target as HTMLElement).closest('.edge-snap-indicator')) {
-        return;
+    if (
+      (e.target as HTMLElement).closest('button, .icon-btn') &&
+      !(e.target as HTMLElement).closest('.edge-snap-indicator')
+    ) {
+      return;
     }
-    
+
     isDragging = true;
     isDraggingState.value = true;
-    isSnapping.value = false; 
+    isSnapping.value = false;
     if (snappingTimeout !== null) clearTimeout(snappingTimeout);
-    
+
     if (e.type === 'touchstart') {
       const touch = (e as TouchEvent).touches[0];
       startX = touch.clientX;
@@ -349,10 +350,10 @@ export function useDraggablePhysics(
 
     // 同步一次当前的真实位置作为拖拽基准
     if (statusBarEl.value) {
-       const ST_WIN = window.parent || window;
-       syncAnchors(ST_WIN.innerWidth, statusBarEl.value.offsetWidth || 180);
+      const ST_WIN = window.parent || window;
+      syncAnchors(ST_WIN.innerWidth, statusBarEl.value.offsetWidth || 180);
     }
-    
+
     initialLeft = transformLeft.value;
     initialRight = transformRight.value;
     initialY = transformY.value;
@@ -367,14 +368,14 @@ export function useDraggablePhysics(
   const resetPosition = () => {
     const ST_WIN = window.parent || window;
     const viewportHeight = ST_WIN.innerHeight;
-    
+
     // 默认回城：右侧偏下
     currentAnchor.value = 'right';
-    transformRight.value = 20; 
-    transformY.value = Math.max(PHYSICS_CONSTANTS.SAFE_TOP, viewportHeight - 120); 
-    
+    transformRight.value = 20;
+    transformY.value = Math.max(PHYSICS_CONSTANTS.SAFE_TOP, viewportHeight - 120);
+
     isSnappedToEdge.value = false;
-    currentUiMode.value = UiMode.MINI; 
+    currentUiMode.value = UiMode.MINI;
     triggerSmoothSnap();
   };
 
@@ -385,7 +386,7 @@ export function useDraggablePhysics(
       });
       resizeObserver.observe(statusBarEl.value);
     }
-    
+
     heartbeatTimer = window.setInterval(() => {
       if (!isDragging) requestAnimationFrame(() => checkBounds());
     }, 1000);
@@ -410,6 +411,6 @@ export function useDraggablePhysics(
     snappedStretchWidth,
     startDrag,
     resetPosition,
-    checkBounds
+    checkBounds,
   };
 }
