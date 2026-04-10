@@ -231,7 +231,7 @@ export class EntryService {
 
           const originalState = !!entry.enabled;
           let newState = originalState;
-          
+
           const normalizedName = normalizeCompare(name);
 
           // 1. 应用 Enable (开启) 逻辑：检查条目名或关键字是否命中需要开启的列表
@@ -239,7 +239,10 @@ export class EntryService {
             scenario.linkedWorldInfo.some(keyword => {
               const normKeyword = normalizeCompare(keyword);
               const keys = entry.strategy?.keys || [];
-              return normalizedName === normKeyword || keys.some(k => typeof k === 'string' && normalizeCompare(k) === normKeyword);
+              return (
+                normalizedName === normKeyword ||
+                keys.some(k => typeof k === 'string' && normalizeCompare(k) === normKeyword)
+              );
             })
           ) {
             newState = true;
@@ -251,7 +254,10 @@ export class EntryService {
             scenario.disabledWorldInfo.some(keyword => {
               const normKeyword = normalizeCompare(keyword);
               const keys = entry.strategy?.keys || [];
-              return normalizedName === normKeyword || keys.some(k => typeof k === 'string' && normalizeCompare(k) === normKeyword);
+              return (
+                normalizedName === normKeyword ||
+                keys.some(k => typeof k === 'string' && normalizeCompare(k) === normKeyword)
+              );
             })
           ) {
             newState = false;

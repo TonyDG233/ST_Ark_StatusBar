@@ -91,7 +91,11 @@ export const STARTUP_SCENARIOS: Scenario[] = [
   {
     swipeId: 7,
     title: '“穿越了，但穿的是迷迭香”',
-    linkedWorldInfo: ['[角色]:迷迭香', '[角色]:凯尔希(简略本格,与详细本格、Ama-10、巴别塔、预见末日的贤人选一开)', '[组织]:罗德岛'],
+    linkedWorldInfo: [
+      '[角色]:迷迭香',
+      '[角色]:凯尔希(简略本格,与详细本格、Ama-10、巴别塔、预见末日的贤人选一开)',
+      '[组织]:罗德岛',
+    ],
   },
   {
     swipeId: 8,
@@ -214,7 +218,7 @@ export const STARTUP_SCENARIOS: Scenario[] = [
     swipeId: 21,
     title: '“我的幼驯染天使”',
     linkedWorldInfo: [
-      '[国家]:拉特兰', 
+      '[国家]:拉特兰',
       '[角色]:蕾缪乐(幼年，与本格、异格选一开)',
       '[角色]:蕾缪安(少女,与本格选一开)',
       '[角色]:莫斯提马(少女,与本格选一开)',
@@ -503,7 +507,7 @@ export const STARTUP_SCENARIOS: Scenario[] = [
   {
     swipeId: 51,
     title: '奸商交流会～期间限定商品☆绝赞贩售中～',
-    linkedWorldInfo: ['[角色]:可露希尔','[角色]:绩(本格,与早年选一开)','[角色]:坎诺特'],
+    linkedWorldInfo: ['[角色]:可露希尔', '[角色]:绩(本格,与早年选一开)', '[角色]:坎诺特'],
   },
   {
     swipeId: 52,
@@ -541,12 +545,17 @@ export const STARTUP_SCENARIOS: Scenario[] = [
   {
     swipeId: 53,
     title: '破碎日冕',
-    linkedWorldInfo: ['[国家]:维多利亚','[角色]:克洛维希娅'],
+    linkedWorldInfo: ['[国家]:维多利亚', '[角色]:克洛维希娅'],
   },
   {
     swipeId: 54,
     title: '精英干员，Fire！',
-    linkedWorldInfo: ['[组织]:罗德岛','[角色]:煌(本格,与异格选一开)','[角色]:迷迭香','[角色]:凯尔希(简略本格,与详细本格、Ama-10、巴别塔、预见末日的贤人选一开)'],
+    linkedWorldInfo: [
+      '[组织]:罗德岛',
+      '[角色]:煌(本格,与异格选一开)',
+      '[角色]:迷迭香',
+      '[角色]:凯尔希(简略本格,与详细本格、Ama-10、巴别塔、预见末日的贤人选一开)',
+    ],
   },
   {
     swipeId: 55,
