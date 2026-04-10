@@ -3,7 +3,11 @@
     "build:dev": "webpack --mode development",
     "build": "webpack --mode production",
     "watch": "webpack --mode development --watch --progress",
+<<<<<<< HEAD
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,css,scss,html,vue}\"",
+=======
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,css,scss,html,vue}\" --no-error-on-unmatched-pattern",
+>>>>>>> 304e8c08c9a8646568197fb30d79c23676d3a5a0
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "dump": "node dump_schema.ts",
@@ -49,7 +53,11 @@
     "postcss-load-config": "^6.0.1",
     "postcss-loader": "^8.2.1",
     "postcss-minify": "^1.2.0",
+<<<<<<< HEAD
     "prettier": "^3.8.1",
+=======
+    "prettier": "^3.8.2",
+>>>>>>> 304e8c08c9a8646568197fb30d79c23676d3a5a0
     "remark": "^15.0.1",
     "remark-html": "^16.0.1",
     "remark-loader": "^6.0.0",
@@ -73,7 +81,12 @@
     "vue-style-loader": "^4.1.3",
     "webpack": "^5.106.0",
     "webpack-cli": "^6.0.1",
+<<<<<<< HEAD
     "webpack-obfuscator": "^3.6.1"
+=======
+    "webpack-obfuscator": "^3.6.1",
+    "yaml-loader": "^0.9.0"
+>>>>>>> 304e8c08c9a8646568197fb30d79c23676d3a5a0
   },
   "dependencies": {
     "@pixi/react": "8.0.0-beta.25",
@@ -82,11 +95,20 @@
     "@vueuse/integrations": "^13.9.0",
     "@vueuse/shared": "^13.9.0",
     "async-wait-until": "^2.0.31",
+<<<<<<< HEAD
+=======
+    "axios": "1.14.0",
+>>>>>>> 304e8c08c9a8646568197fb30d79c23676d3a5a0
     "compare-versions": "^6.1.1",
     "dedent": "^1.7.2",
     "gsap": "^3.14.2",
     "jquery": "^3.7.1",
     "jqueryui": "^1.11.1",
+<<<<<<< HEAD
+=======
+    "json5": "^2.2.3",
+    "jsonrepair": "^3.13.3",
+>>>>>>> 304e8c08c9a8646568197fb30d79c23676d3a5a0
     "klona": "^2.0.6",
     "lodash": "^4.18.1",
     "pinia": "^3.0.4",
@@ -97,6 +119,10 @@
     "vue": "^3.5.32",
     "vue-final-modal": "^4.5.5",
     "vue-router": "^4.6.4",
+<<<<<<< HEAD
+=======
+    "vue-word-highlighter": "^1.2.6",
+>>>>>>> 304e8c08c9a8646568197fb30d79c23676d3a5a0
     "vue3-pixi": "1.0.0-beta.3",
     "yaml": "^2.8.3",
     "zod": "^4.3.6"
