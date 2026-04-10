@@ -16,25 +16,25 @@
     <!-- [视觉 UI 容器层] 负责所有颜色、尺寸、伸缩渐变。
          根据外壳给定的 currentAnchor 动态调整自己的 transform-origin 
          使得向外展开的动画总是完美的！ -->
-    <div
-      class="ark-global-statusbar"
-      :class="{
-        'light-theme': currentConfig?.theme === 'light',
-        'dark-theme': currentConfig?.theme === 'dark',
-        'transparent-theme': currentConfig?.theme === 'transparent',
-        'mini-mode': currentUiMode === UiMode.MINI,
-        'edge-snapped': currentUiMode === UiMode.BUBBLE,
-        'edge-snapped-left': isSnappedToEdge === 'left',
-        'edge-snapped-right': isSnappedToEdge === 'right',
-        'is-dragging': isDraggingState
-      }"
-      :style="{
-        'transform-origin': currentAnchor === 'left' ? 'left top' : 'right top',
-        '--ui-width': currentUiMode === UiMode.MINI ? 'auto' : (previewUiWidth ?? currentConfig?.uiWidth ?? 400) + 'px',
-        '--ui-font-size': (previewUiFontSize ?? currentConfig?.uiFontSize ?? 14) + 'px',
-        '--snapped-width': isSnappedToEdge ? `${snappedStretchWidth}px` : '32px'
-      }"
-    >
+      <div
+        class="ark-global-statusbar"
+        :class="{
+          'light-theme': currentConfig?.theme === 'light',
+          'dark-theme': currentConfig?.theme === 'dark',
+          'transparent-theme': currentConfig?.theme === 'transparent',
+          'mini-mode': currentUiMode === UiMode.MINI,
+          'edge-snapped': currentUiMode === UiMode.BUBBLE,
+          'edge-snapped-left': isSnappedToEdge === 'left',
+          'edge-snapped-right': isSnappedToEdge === 'right',
+          'is-dragging': isDraggingState
+        }"
+        :style="{
+          'transform-origin': currentAnchor === 'left' ? 'left top' : 'right top',
+          '--ui-width': currentUiMode === UiMode.MINI ? '180px' : (previewUiWidth ?? currentConfig?.uiWidth ?? 400) + 'px',
+          '--ui-font-size': (previewUiFontSize ?? currentConfig?.uiFontSize ?? 14) + 'px',
+          '--snapped-width': isSnappedToEdge ? `${snappedStretchWidth}px` : '32px'
+        }"
+      >
       <!-- 气泡窗变身把手，利用原 UI 的极限压缩产生无缝融合效果 -->
       <div 
         v-show="currentUiMode === UiMode.BUBBLE" 
@@ -355,7 +355,7 @@ onMounted(() => {
 }
 
 .ark-global-statusbar.mini-mode {
-  width: auto;
+  width: 180px; /* <--- 修复点：抛弃 auto 避免宽度动画断层，固定 180px */
   max-width: 180px;
   border-radius: 20px;
   opacity: 0.8;
