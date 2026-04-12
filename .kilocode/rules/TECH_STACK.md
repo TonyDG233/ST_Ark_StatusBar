@@ -35,15 +35,14 @@
         console.log(e.detail.message);
       };
       // 直接作为 EventListener 传入
-      document.addEventListener('ark:log-debug', myListener as EventListener);
+      document.addEventListener('ark:log-debug', myListener);
     });
 
     onUnmounted(() => {
       // 必须在这里解绑，防止热重载堆积！
-      document.removeEventListener('ark:log-debug', myListener as EventListener);
+      document.removeEventListener('ark:log-debug', myListener);
     });
     ```
-    *(注：对于 Vue 组件，由于 TS 检查的限制，我们在 `addEventListener` 和 `removeEventListener` 的末尾暂时允许使用 `as EventListener` 作为妥协。但这必须建立在你的 `e` 参数已经标注为 `CustomEvent` 的基础上。)*
 
 ---
 *更多模块的具象规范将随工程进展补充于此...*
