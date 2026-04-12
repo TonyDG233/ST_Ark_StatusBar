@@ -1,5 +1,4 @@
 import { configStore, useArkConfig } from '../../core/config_store';
-import { ArkEventBus } from '../../core/event_bus';
 import { BASELINE_STATE } from '../../data/baseline';
 
 /**
@@ -59,7 +58,7 @@ class WorldbookAutomator {
               });
 
               // 抛出内部自定义事件：后端主动修改了底层数据
-              ArkEventBus.emit('worldbook:data_changed', worldName);
+              document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: worldName } }));
             } catch (err) {
               hasFailures = true;
               failedItems.push(...uids.map(uid => ({ world: worldName, uid })));
@@ -141,7 +140,7 @@ class WorldbookAutomator {
 
       // 如果存在差异，通过自定义事件总线分发
       if (hasDiff) {
-        ArkEventBus.emit('worldbook:baseline_diff_detected');
+        document.dispatchEvent(new CustomEvent('ark:worldbook-baseline-diff-detected'));
       }
     } catch (e) {
       console.error('[ARK_Automator] Diff check failed', e);

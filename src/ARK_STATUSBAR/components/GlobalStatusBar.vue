@@ -118,7 +118,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { configStore, useArkConfig } from '../core/config_store';
-import { ArkEventBus } from '../core/event_bus';
 import { StatusBarManager } from '../logic/statusbar_manager';
 import {
   allAvailableWorldbooks,
@@ -210,23 +209,31 @@ const loadPrimaryWorldbookName = async () => {
   }
 };
 
+// 保存对事件处理函数的引用以便在 onUnmounted 中移除
+let configUpdatedListener: (e: CustomEvent) => void;
+let interceptorTriggeredListener: (e: CustomEvent) => void;
+let baselineDiffListener: (e: Event) => void;
+let chatChangedListener: (e: Event) => void;
+let systemToggleListener: (e: Event) => void;
+
 onMounted(() => {
   setupGlobalListeners();
 
-  document.addEventListener('ark-config-updated', ((e: CustomEvent) => {
+  configUpdatedListener = ((e: CustomEvent) => {
     const config = e.detail;
     if (config && config.isSystemEnabled) {
       loadPrimaryWorldbookName();
       loadWorldbookLists();
     }
-  }) as EventListener);
+  });
+  document.addEventListener('ark-config-updated', configUpdatedListener);
 
   if (currentConfig.value && currentConfig.value.isSystemEnabled) {
     loadPrimaryWorldbookName();
     loadWorldbookLists();
   }
 
-  document.addEventListener('ark-interceptor-triggered', ((e: CustomEvent) => {
+  interceptorTriggeredListener = ((e: CustomEvent) => {
     const triggered = e.detail.entries || [];
     const isManualTest = !!e.detail.isManualTest;
     isTestMode.value = isManualTest;
@@ -257,10 +264,10 @@ onMounted(() => {
     } else {
       manager.releaseInterceptAndSend();
     }
-  }) as EventListener);
+  });
+  document.addEventListener('ark-interceptor-triggered', interceptorTriggeredListener);
 
-  // 替换掉原有的原生 CustomEvent 监听
-  const diffHandler = () => {
+  baselineDiffListener = (() => {
     if (typeof toastr !== 'undefined') {
       toastr.warning(
         '检测到当前世界书带有开局剧情或手动修改的残余状态。为防止剧情串台，建议在侧边栏或历史记录处重置。',
@@ -268,17 +275,17 @@ onMounted(() => {
         { timeOut: 8000, positionClass: 'toast-top-center' },
       );
     }
-  };
-  ArkEventBus.on('worldbook:baseline_diff_detected', diffHandler);
+  });
+  document.addEventListener('ark:worldbook-baseline-diff-detected', baselineDiffListener);
 
-  const chatChangedHandler = () => {
+  chatChangedListener = (() => {
     if (currentConfig.value?.isSystemEnabled) {
       loadPrimaryWorldbookName();
     }
-  };
-  ArkEventBus.on('system:chat_changed', chatChangedHandler);
+  });
+  document.addEventListener('ark:system-chat-changed', chatChangedListener);
 
-  const toggleSystemHandler = () => {
+  systemToggleListener = (() => {
     const newState = !(currentConfig.value?.isSystemEnabled ?? true);
     configStore.updateConfig({ isSystemEnabled: newState });
 
@@ -286,8 +293,8 @@ onMounted(() => {
       loadPrimaryWorldbookName();
       checkBounds(); // 原 requestAnimationFrame
     }
-  };
-  ArkEventBus.on('system:toggle', toggleSystemHandler);
+  });
+  document.addEventListener('ark:system-toggle', systemToggleListener);
 
   const ST_WIN = window.parent || window;
   // 尺寸变化的重新测算工作已交由 useDraggablePhysics 内的 ResizeObserver 接管
@@ -297,9 +304,11 @@ onMounted(() => {
 
   // 组件卸载时解绑
   onUnmounted(() => {
-    ArkEventBus.off('worldbook:baseline_diff_detected', diffHandler);
-    ArkEventBus.off('system:chat_changed', chatChangedHandler);
-    ArkEventBus.off('system:toggle', toggleSystemHandler);
+    document.removeEventListener('ark-config-updated', configUpdatedListener);
+    document.removeEventListener('ark-interceptor-triggered', interceptorTriggeredListener);
+    document.removeEventListener('ark:worldbook-baseline-diff-detected', baselineDiffListener);
+    document.removeEventListener('ark:system-chat-changed', chatChangedListener);
+    document.removeEventListener('ark:system-toggle', systemToggleListener);
     ST_WIN.removeEventListener('resize', handleWindowResize);
   });
 });

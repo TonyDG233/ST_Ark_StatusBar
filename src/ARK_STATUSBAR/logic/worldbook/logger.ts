@@ -1,6 +1,5 @@
 import { unref } from 'vue';
 import { useArkConfig } from '../../core/config_store';
-import { ArkEventBus } from '../../core/event_bus';
 import { DEBUG_ENTRY_FULL_NAME } from '../../types/system_config';
 
 class LoggerService {
@@ -10,7 +9,8 @@ class LoggerService {
 
   private constructor() {
     // 监听内部日志事件
-    ArkEventBus.on('log:debug', (message: string, isDryRun?: boolean) => {
+    document.addEventListener('ark:log-debug', (e) => {
+      const { message, isDryRun } = e.detail;
       // 由于之前强依赖了 worldbook 名称，为了解耦，先做全局默认收集
       this.logDebug(message, { isDryRun }, null);
     });

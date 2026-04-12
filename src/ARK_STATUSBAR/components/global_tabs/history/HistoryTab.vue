@@ -237,7 +237,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { configStore, useArkConfig } from '../../../core/config_store';
-import { ArkEventBus } from '../../../core/event_bus';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
 import { ArkCommit } from '../../../types/system_config';
 import { allAvailableWorldbooks, currentPrimaryWorldbook } from '../shared_ui_state';
@@ -401,7 +400,7 @@ const applyInverseChanges = async (commitList: ArkCommit[]) => {
     });
 
     // 主动通知底层修改
-    ArkEventBus.emit('worldbook:data_changed', worldName);
+    document.dispatchEvent(new CustomEvent('ark:worldbook:data_changed'));
   }
 };
 

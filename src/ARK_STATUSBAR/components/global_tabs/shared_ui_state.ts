@@ -1,5 +1,4 @@
 import { computed, ref } from 'vue';
-import { ArkEventBus } from '../../core/event_bus';
 
 import type { WorldbookEntry } from '../../types/st_worldbook_types';
 
@@ -89,9 +88,9 @@ export const setupGlobalListeners = () => {
   }
 
   // 2. 监听我们自己底层的“黑盒修改”抛出的内部事件（主动通知，保证极速反馈）
-  ArkEventBus.on('worldbook:data_changed', async (targetWb: string) => {
-    if (targetWb) {
-      await refreshWorldbookCache(targetWb);
+  document.addEventListener('ark:worldbook-data-changed', async (e) => {
+    if (e.detail.worldbookName) {
+      await refreshWorldbookCache(e.detail.worldbookName);
     }
   });
 };

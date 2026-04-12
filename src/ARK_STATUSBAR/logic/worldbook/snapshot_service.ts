@@ -1,6 +1,5 @@
 import { unref } from 'vue';
 import { useArkConfig } from '../../core/config_store';
-import { ArkEventBus } from '../../core/event_bus';
 
 /**
  * 负责世界书快照生命周期 (保存、恢复、删除) 的底层黑盒服务
@@ -32,7 +31,7 @@ export class SnapshotService {
       if (currentConfig) {
         const snapshots = [...(currentConfig.snapshots || []), newSnapshot];
         // 抛出配置更新事件
-        ArkEventBus.emit('config:update_requested', { snapshots });
+        document.dispatchEvent(new CustomEvent('ark:config-update-requested', { detail: { snapshots } }));
         toastr.success(`快照 [${snapshotName}] 保存成功`);
       }
     } catch (e) {
@@ -70,11 +69,11 @@ export class SnapshotService {
       });
 
       // 抛出内部自定义事件
-      ArkEventBus.emit('worldbook:data_changed', snapshot.worldbook);
+      document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: snapshot.worldbook } }));
 
       // 从记录历史中删除该世界书的历史操作记录，因为已彻底回滚到了最初的快照状态
       const commits = currentConfig.commits.filter(c => c.worldbook !== snapshot.worldbook);
-      ArkEventBus.emit('config:update_requested', { commits });
+      document.dispatchEvent(new CustomEvent('ark:config-update-requested', { detail: { commits } }));
 
       toastr.success(`快照 [${snapshot.name}] 恢复成功`);
     } catch (e) {
@@ -90,7 +89,7 @@ export class SnapshotService {
     const currentConfig = unref(useArkConfig());
     if (currentConfig && currentConfig.snapshots) {
       const snapshots = currentConfig.snapshots.filter(s => s.id !== snapshotId);
-      ArkEventBus.emit('config:update_requested', { snapshots });
+      document.dispatchEvent(new CustomEvent('ark:config-update-requested', { detail: { snapshots } }));
     }
   }
 }

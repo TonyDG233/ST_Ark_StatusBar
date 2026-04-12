@@ -128,9 +128,7 @@ $(() => {
       if (globalEventOn) {
         globalEventOn(btnEvent, () => {
           // 派发事件以切换全局 UI 的显示状态
-          import('./core/event_bus').then(({ ArkEventBus }) => {
-            ArkEventBus.emit('system:toggle');
-          });
+          document.dispatchEvent(new CustomEvent('ark:system-toggle'));
         });
       }
     } catch (e) {

@@ -1,4 +1,3 @@
-import { ArkEventBus } from '../../core/event_bus';
 import { BASELINE_STATE } from '../../data/baseline';
 import { STARTUP_SCENARIOS } from '../../data/scenarios';
 import { SINGLE_CHAR_ENTRIES } from '../../data/single_char_entries';
@@ -97,7 +96,7 @@ export class EntryService {
         return entries;
       });
       // 抛出内部自定义事件：后端已主动修改了底层数据，请求前端数据中心刷新倒影
-      ArkEventBus.emit('worldbook:data_changed', targetBook);
+      document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: targetBook } }));
 
       toastr.success('世界书已重置为初始状态');
     } catch (error) {
@@ -173,7 +172,7 @@ export class EntryService {
       });
 
       // 抛出内部自定义事件
-      ArkEventBus.emit('worldbook:data_changed', targetBook);
+      document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: targetBook } }));
 
       toastr.success('已关闭所有单字条目');
 
@@ -185,7 +184,7 @@ export class EntryService {
           worldbook: targetBook,
           changes: diffChanges,
         };
-        ArkEventBus.emit('history:commit_added', newCommit);
+        document.dispatchEvent(new CustomEvent('ark:history-commit-added', { detail: newCommit }));
       }
     } catch (error) {
       console.error('[ARK_EntryService] Bulk close failed:', error);
@@ -278,7 +277,7 @@ export class EntryService {
       });
 
       // 抛出内部自定义事件
-      ArkEventBus.emit('worldbook:data_changed', targetBook);
+      document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: targetBook } }));
 
       toastr.success(`开局设置应用成功`);
       console.info('[ARK_EntryService] Scenario applied successfully.');
@@ -291,7 +290,7 @@ export class EntryService {
           description: `[Apply Scenario] “${scenario.title}”`,
           changes: diffChanges,
         };
-        ArkEventBus.emit('history:commit_added', newCommit);
+        document.dispatchEvent(new CustomEvent('ark:history-commit-added', { detail: newCommit }));
       }
     } catch (error) {
       console.error('[ARK_EntryService] Apply Scenario failed:', error);

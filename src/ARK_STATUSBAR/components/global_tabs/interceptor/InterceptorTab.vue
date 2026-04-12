@@ -161,7 +161,6 @@
 
 <script setup lang="ts">
 import { configStore, useArkConfig } from '../../../core/config_store';
-import { ArkEventBus } from '../../../core/event_bus';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
 import {
   currentPrimaryWorldbook,
@@ -241,7 +240,7 @@ const toggleEntrySilent = async (entry: UIWorldbookEntry) => {
     });
 
     // 主动通知底层修改
-    ArkEventBus.emit('worldbook:data_changed', targetWorldbook);
+    document.dispatchEvent(new CustomEvent('ark:worldbook:data_changed'));
   } catch (e) {
     console.error('Failed to toggle entry silently', e);
   }
@@ -301,7 +300,7 @@ const toggleEntry = async (entry: UIWorldbookEntry, explicitWbName?: string) => 
     });
 
     // 主动通知底层修改
-    ArkEventBus.emit('worldbook:data_changed', targetWorldbook);
+    document.dispatchEvent(new CustomEvent('ark:worldbook:data_changed'));
 
     const newCommit = {
       id: Math.random().toString(36).substr(2, 6),
