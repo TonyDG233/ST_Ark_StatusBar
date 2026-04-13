@@ -17,15 +17,15 @@ let startupApp: ReturnType<typeof createApp> | null = null;
 let returnBtnApp: ReturnType<typeof createApp> | null = null;
 let mountLoopTimer: number | null = null;
 let globalStatusBarApp: ReturnType<typeof createApp> | null = null;
-let isArknightsCardGlobal: boolean = false;
 
 /**
  * 更新全局角色身份状态并广播
+ * 这是给 Vue 层 (shared_ui_state) 用的信号，让 UI 立刻知道角色卡切换了。
  */
 const updateIdentityAndBroadcast = () => {
   const charName = getCurrentCharacterName() || '';
-  isArknightsCardGlobal = charName.includes('明日方舟');
-  document.dispatchEvent(new CustomEvent('ark:identity-updated', { detail: { isArknights: isArknightsCardGlobal } }));
+  const isArknights = charName.includes('明日方舟');
+  document.dispatchEvent(new CustomEvent('ark:identity-updated', { detail: { isArknights } }));
 };
 
 /**
@@ -54,8 +54,14 @@ const startMountingLoop = () => {
       const $mesText = $message0.find('.mes_text');
       if ($mesText.length === 0) return;
 
-      // 2. 检查是否为特定角色卡 (明日方舟)
-      if (!isArknightsCardGlobal) {
+      // 2. 【例外设计：强制同步鉴权】
+      // 破坏性的 DOM 操作（清空文本、挂载/卸载 UI）绝不能依赖任何异步或外部事件。
+      // 这里每 500ms 强制同步读取一次内存，彻底杜绝切卡瞬间产生的“时序竞态”，
+      // 防止错把别人的开局剧情给 empty() 删除了！
+      const charName = getCurrentCharacterName() || '';
+      const isArknights = charName.includes('明日方舟');
+
+      if (!isArknights) {
         // 如果不是，强制物理移除（如果已经存在）开局UI和返回按钮，并终止挂载流程
         if ($mesText.find(`.${STARTUP_CONTAINER_CLASS}`).length > 0) {
           if (startupApp) {
@@ -203,7 +209,10 @@ async function bootstrap() {
 
   // --- 2. 角色身份鉴定与事件注册 ---
   updateIdentityAndBroadcast();
-  document.addEventListener('ark:system-chat-changed', updateIdentityAndBroadcast);
+  // 【例外监听：提升 UI 响应速度】
+  // 我们直接监听最底层的原生 CHAT_CHANGED 事件，为了让 Vue 的界面在切卡的瞬间立马就能识别出是否是方舟角色
+  // 而不是死板地等待后端把配置都加载完才变装。这大大缓解了 UI 响应卡顿的问题。
+  eventOn(tavern_events.CHAT_CHANGED, updateIdentityAndBroadcast);
 
   // --- 3. 注入外部控制台按钮 ---
   // 这是向宿主环境 (SillyTavern) 注入控制 UI 交互的按钮
