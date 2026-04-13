@@ -1,8 +1,15 @@
 <template>
   <div class="tab-panel flex-col">
     <!-- 区域 A：快照与高危操作 -->
-    <div class="snapshot-panel" style="margin-bottom: 20px">
-      <!-- 快照管理顶栏 (黄框介绍) -->
+      <div class="snapshot-panel" style="margin-bottom: 20px">
+        <div v-if="!isArknightsCard && !hasSnapshotForPrimary && currentPrimaryWorldbook" class="warning-box" style="margin-bottom: 10px; background-color: rgba(220, 53, 69, 0.2); border-color: #dc3545">
+          <strong style="color: #ff6b6b; display: block; margin-bottom: 4px">⚠️ 警告：检测到角色卡主书快照缺失</strong>
+          <p style="margin: 0; font-size: 0.9em; opacity: 0.9">
+            检测到当前角色卡世界书尚无快照。在您首次操作世界书前，强烈建议您拍摄一张快照，以便在需要时无损回滚。
+          </p>
+        </div>
+
+        <!-- 快照管理顶栏 (黄框介绍) -->
       <div class="warning-box" style="margin-bottom: 0; padding: 10px; border-radius: 6px 6px 0 0; border-bottom: none">
         <strong style="display: block; margin-bottom: 4px">📸 世界书快照管理</strong>
         <p style="margin: 0; font-size: 0.9em; opacity: 0.9">
@@ -79,6 +86,7 @@
 
       <!-- 危险操作区域 (白细框包围) -->
       <div
+        v-if="isArknightsCard"
         style="
           margin-top: 15px;
           border: 1px solid rgba(255, 255, 255, 0.2);
@@ -239,11 +247,16 @@ import { computed, ref } from 'vue';
 import { configStore, useArkConfig } from '../../../core/config_store';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
 import { ArkCommit } from '../../../types/system_config';
-import { allAvailableWorldbooks, currentPrimaryWorldbook } from '../shared_ui_state';
-import { UIWorldbookEntry } from '../shared_ui_state';
+import { allAvailableWorldbooks, currentPrimaryWorldbook, isArknightsCard, UIWorldbookEntry } from '../shared_ui_state';
 
 const currentConfig = useArkConfig();
 const manager = StatusBarManager.getInstance();
+
+// --- Computed ---
+const hasSnapshotForPrimary = computed(() => {
+  if (!currentPrimaryWorldbook.value) return false;
+  return currentConfig.value?.snapshots?.some((s: any) => s.worldbook === currentPrimaryWorldbook.value) ?? false;
+});
 
 // --- Local UI State for History Tab ---
 const newSnapshotName = ref('');

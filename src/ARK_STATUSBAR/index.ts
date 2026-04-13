@@ -17,6 +17,16 @@ let startupApp: ReturnType<typeof createApp> | null = null;
 let returnBtnApp: ReturnType<typeof createApp> | null = null;
 let mountLoopTimer: number | null = null;
 let globalStatusBarApp: ReturnType<typeof createApp> | null = null;
+let isArknightsCardGlobal: boolean = false;
+
+/**
+ * 更新全局角色身份状态并广播
+ */
+const updateIdentityAndBroadcast = () => {
+  const charName = getCurrentCharacterName() || '';
+  isArknightsCardGlobal = charName.includes('明日方舟');
+  document.dispatchEvent(new CustomEvent('ark:identity-updated', { detail: { isArknights: isArknightsCardGlobal } }));
+};
 
 /**
  * 主挂载逻辑循环
@@ -44,12 +54,32 @@ const startMountingLoop = () => {
       const $mesText = $message0.find('.mes_text');
       if ($mesText.length === 0) return;
 
-      // 2. 检查当前处于哪个 Swipe ID
+      // 2. 检查是否为特定角色卡 (明日方舟)
+      if (!isArknightsCardGlobal) {
+        // 如果不是，强制物理移除（如果已经存在）开局UI和返回按钮，并终止挂载流程
+        if ($mesText.find(`.${STARTUP_CONTAINER_CLASS}`).length > 0) {
+          if (startupApp) {
+            startupApp.unmount();
+            startupApp = null;
+          }
+          $mesText.find(`.${STARTUP_CONTAINER_CLASS}`).remove();
+        }
+        if ($mesText.find(`.${RETURN_BTN_CONTAINER_CLASS}`).length > 0) {
+          if (returnBtnApp) {
+            returnBtnApp.unmount();
+            returnBtnApp = null;
+          }
+          $mesText.find(`.${RETURN_BTN_CONTAINER_CLASS}`).remove();
+        }
+        return;
+      }
+
+      // 3. 检查当前处于哪个 Swipe ID
       // 以 SillyTavern.chat[0] 为真实数据源
       const firstMessage = SillyTavern.chat[0];
       const swipeId = firstMessage.swipe_id || 0;
 
-      // 3. 挂载逻辑
+      // 4. 挂载逻辑
       if (swipeId === 0) {
         // --- 开局设定模式 (STARTUP MODE) ---
         // 确保返回按钮已被清理 (一般切换 swipe 时原生 DOM 会被清空，但这里做双保险检查)
@@ -171,15 +201,19 @@ async function bootstrap() {
   const manager = StatusBarManager.getInstance();
   await manager.init();
 
-  // --- 2. 注入外部控制台按钮 ---
+  // --- 2. 角色身份鉴定与事件注册 ---
+  updateIdentityAndBroadcast();
+  document.addEventListener('ark:system-chat-changed', updateIdentityAndBroadcast);
+
+  // --- 3. 注入外部控制台按钮 ---
   // 这是向宿主环境 (SillyTavern) 注入控制 UI 交互的按钮
   injectTavernControls();
 
-  // --- 3. 准备渲染 UI ---
+  // --- 4. 准备渲染 UI ---
   // 先应用可能需要的样式传送 (将 iframe 内部的样式注入到外部母网页)
   teleportStyle();
 
-  // --- 4. 挂载 UI 元素 ---
+  // --- 5. 挂载 UI 元素 ---
   // 挂载可能一直存在的全局状态栏 (挂载于 document body)
   mountGlobalStatusBar();
 

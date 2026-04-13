@@ -39,6 +39,9 @@ export const globalMountedWorldbooks = ref<string[]>([]);
 export const charBoundWorldbooks = ref<string[]>([]);
 export const currentPrimaryWorldbook = ref<string | null>(null);
 
+// 泛用性标志：当前角色卡是否包含“明日方舟”，用于决定是否开启特定UI和底层功能
+export const isArknightsCard = ref<boolean>(false);
+
 // 手风琴抽屉（Accordion）的展开状态和已加载的条目缓存
 // 剥离出来，防止切换 Tab 时手风琴状态丢失
 export const expandedWorldbooks = ref<string[]>([]);
@@ -130,6 +133,12 @@ export const setupGlobalListeners = () => {
     if (config && config.isSystemEnabled) {
       await loadPrimaryWorldbookName();
       await loadWorldbookLists();
+    }
+  });
+
+  document.addEventListener('ark:identity-updated', (e: any) => {
+    if (e.detail && typeof e.detail.isArknights === 'boolean') {
+      isArknightsCard.value = e.detail.isArknights;
     }
   });
 

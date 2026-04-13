@@ -52,5 +52,9 @@ declare global {
     // 兼容原有的事件名，避免类型报错
     'ark-config-updated': CustomEvent<Partial<ArkConfig> | void>;
     'ark-interceptor-triggered': CustomEvent<{ entries?: any[]; isManualTest?: boolean; tokenCount?: number | string }>;
+    /**
+     * 角色身份鉴定更新事件（由 index 抛出，通知 UI 当前角色卡是否为明日方舟专属）
+     */
+    'ark:identity-updated': CustomEvent<{ isArknights: boolean }>;
   }
 }
