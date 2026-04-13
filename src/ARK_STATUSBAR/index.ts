@@ -14,12 +14,18 @@ const RETURN_BTN_CONTAINER_CLASS = 'ark-return-btn-mount-point';
 
 let startupApp: ReturnType<typeof createApp> | null = null;
 let returnBtnApp: ReturnType<typeof createApp> | null = null;
+let mountLoopTimer: number | null = null;
 
 /**
  * 主挂载逻辑循环
  */
 const startMountingLoop = () => {
-  setInterval(() => {
+  // 如果已经存在定时器，先清理防重入
+  if (mountLoopTimer !== null) {
+    window.clearInterval(mountLoopTimer);
+  }
+
+  mountLoopTimer = window.setInterval(() => {
     try {
       if (typeof SillyTavern === 'undefined' || !SillyTavern.chat) {
         return; // 环境未就绪
@@ -167,6 +173,12 @@ $(() => {
 
 // 卸载阶段清理
 $(window).on('pagehide', () => {
+  // 清理挂载轮询死循环定时器
+  if (mountLoopTimer !== null) {
+    window.clearInterval(mountLoopTimer);
+    mountLoopTimer = null;
+  }
+
   // 清理全局管理器带来的副作用（解绑母窗口上的拦截器，防死锁）
   StatusBarManager.getInstance().destroy();
 

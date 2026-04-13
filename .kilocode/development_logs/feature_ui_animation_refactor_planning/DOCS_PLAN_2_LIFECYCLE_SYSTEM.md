@@ -82,3 +82,28 @@
 ### ⚠️ 风险 2: 状态锁死 (Deadlock in Booting)
 由于网络卡顿或 API 失效导致 `Booting` 无限期挂起，系统将永远无法到达 `READY`，玩家永远无法发送消息。
 **防范措施**：在 `StatusBarManager.init()` 中增加 `Promise.race` 或设置最长超时（如 3000ms）。超时后强制进入 `READY` 并使用降级默认配置，弹出醒目警告。
+
+---
+
+## 5. 补充更新：监听职责边界与生命周期统一收束 (2026-04-13)
+
+针对现有项目中“监听职责混淆”的问题，我们必须在生命周期重构中划清“谁该听什么”的界限，这也是消除混乱的根本：
+
+### 5.1 监听职责严格分层
+1. **底层与代理层 (Biz_Logic & Registry)**
+   - **负责者**：`worldbook_automator.ts` 和即将新建的 `tavern_events_registry.ts`。
+   - **职责**：专门监听**酒馆宿主的外部事件**（如 `CHAT_CHANGED`, `WORLDINFO_UPDATED`）。
+   - **处理方式**：将外部事件转化为内部动作（如读取底层数据），并向内抛出 `ark:*` 自定义事件或直接更新数据中枢，**绝对不碰 UI**。
+2. **中枢调度与数据总管 (Facade & UI_State)**
+   - **负责者**：`StatusBarManager` (流程) 和 `shared_ui_state.ts` (数据)。
+   - **职责**：`StatusBarManager` 监听生命周期信号；`shared_ui_state.ts` **只监听内部加工好的信号**（如 `ark:worldbook-data-changed`）或直接读取 `configStore`。
+   - **处理方式**：收到信号后，静静地更新 Vue 响应式数据。这就好比“货架”从内部仓库进货，而不是自己跑去供应商那里。
+3. **展示层 (UI Components)**
+   - **负责者**：`GlobalStatusBar.vue` 及其内部各 Tab。
+   - **职责**：**只能监听纯 UI 表现相关的事件**（如 `click`, `window.resize`, `ark:system-toggle`）。
+   - **禁令**：**绝对禁止** UI 组件直接监听业务数据刷新事件（如 `ark-config-updated`）。UI 只应被动地呈现 `shared_ui_state.ts` 中的响应式数据。
+
+### 5.2 子阶段 1 (修复泄漏) 附加任务
+在补充缺失的 `removeEventListener` 的同时：
+- **清理 `GlobalStatusBar.vue`**：移除其中不该出现的业务事件监听（如 `ark-config-updated` 等），将其逻辑交由 `shared_ui_state` 的响应式机制或直接的组件 prop/watch 解决。
+- **清理 `shared_ui_state.ts`**：移除其直接调用的原生 `eventOn(WORLDINFO_UPDATED, ...)` 逻辑，将该职责上移给 `worldbook_automator`，再通过内部通讯机制通知 `shared_ui_state`。
