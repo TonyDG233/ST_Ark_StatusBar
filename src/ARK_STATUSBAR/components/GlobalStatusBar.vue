@@ -120,6 +120,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { configStore, useArkConfig } from '../core/config_store';
 import {
   currentTokenCount,
+  isArknightsCard,
   isTestMode,
   lastTriggeredEntries,
   pendingEntries,
@@ -201,6 +202,7 @@ onMounted(() => {
   document.addEventListener('ark-interceptor-triggered', interceptorTriggeredListener);
 
   baselineDiffListener = (() => {
+    if (!isArknightsCard.value) return; // 非方舟专属角色卡，忽略基准线检查警告
     if (typeof toastr !== 'undefined') {
       toastr.warning(
         '检测到当前世界书带有开局剧情或手动修改的残余状态。为防止剧情串台，建议在侧边栏或历史记录处重置。',

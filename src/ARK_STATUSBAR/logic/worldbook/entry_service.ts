@@ -5,6 +5,38 @@ import { SINGLE_CHAR_ENTRIES } from '../../data/single_char_entries';
 export type WorldbookStatus = 'original' | 'single_char_closed' | 'modified';
 
 /**
+ * 深度归一化全角半角符号、统一大小写并去除首尾空格，避免匹配失败
+ */
+export const normalizeCompare = (str: string) => {
+  if (!str) return '';
+  let s = str
+    .replace(/【/g, '[')
+    .replace(/】/g, ']')
+    .replace(/《/g, '<')
+    .replace(/》/g, '>')
+    .replace(/“|”/g, '"')
+    .replace(/‘|’/g, "'")
+    .replace(/。/g, '.')
+    .replace(/、/g, ',');
+
+  // 全角字符转半角字符 (ASCII码段)
+  s = s.replace(/[\uff01-\uff5e]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xfee0));
+
+  // 处理全角空格
+  s = s.replace(/\u3000/g, ' ');
+
+  return s.trim().toLowerCase();
+};
+
+// 预先建立一个归一化的单字干员对照表，以提升性能
+const NORMALIZED_SINGLE_CHAR_ENTRIES = SINGLE_CHAR_ENTRIES.map(normalizeCompare);
+// 预先建立一个归一化的基准线字典映射
+const NORMALIZED_BASELINE_STATE: Record<string, any> = {};
+for (const [key, value] of Object.entries(BASELINE_STATE)) {
+  NORMALIZED_BASELINE_STATE[normalizeCompare(key)] = value;
+}
+
+/**
  * 负责单字关闭、条目重置、开局设定等底层黑盒服务
  */
 export class EntryService {
@@ -78,19 +110,22 @@ export class EntryService {
     try {
       await updateWorldbookWith(targetBook, entries => {
         entries.forEach(entry => {
-          if (entry.name && BASELINE_STATE.hasOwnProperty(entry.name)) {
-            const baseline = BASELINE_STATE[entry.name];
-            entry.enabled = baseline.enabled;
+          if (entry.name) {
+            const normalizedName = normalizeCompare(entry.name);
+            if (NORMALIZED_BASELINE_STATE.hasOwnProperty(normalizedName)) {
+              const baseline = NORMALIZED_BASELINE_STATE[normalizedName];
+              entry.enabled = baseline.enabled;
 
-            if (!entry.strategy) {
-              entry.strategy = {
-                type: 'selective',
-                keys: [],
-                keys_secondary: { logic: 'and_any', keys: [] },
-                scan_depth: 'same_as_global',
-              };
+              if (!entry.strategy) {
+                entry.strategy = {
+                  type: 'selective',
+                  keys: [],
+                  keys_secondary: { logic: 'and_any', keys: [] },
+                  scan_depth: 'same_as_global',
+                };
+              }
+              entry.strategy.type = baseline.type as 'constant' | 'selective' | 'vectorized';
             }
-            entry.strategy.type = baseline.type as 'constant' | 'selective' | 'vectorized';
           }
         });
         return entries;
@@ -114,26 +149,28 @@ export class EntryService {
       let isOriginal = true;
       let isSingleCharClosed = true;
 
-      for (const key of Object.keys(BASELINE_STATE)) {
-        const entry = entries.find(e => e.name === key);
-        if (!entry) continue;
+      for (const entry of entries) {
+        if (!entry.name) continue;
+        const normalizedName = normalizeCompare(entry.name);
+        
+        if (NORMALIZED_BASELINE_STATE.hasOwnProperty(normalizedName)) {
+          const baseline = NORMALIZED_BASELINE_STATE[normalizedName];
+          const currentEnabled = entry.enabled;
+          const currentType = entry.strategy?.type || 'selective';
 
-        const baseline = BASELINE_STATE[key];
-        const currentEnabled = entry.enabled;
-        const currentType = entry.strategy?.type || 'selective';
-
-        if (currentEnabled !== baseline.enabled || currentType !== baseline.type) {
-          isOriginal = false;
-        }
-
-        const isSingleChar = SINGLE_CHAR_ENTRIES.includes(key);
-        if (isSingleChar) {
-          if (currentEnabled !== false) {
-            isSingleCharClosed = false;
-          }
-        } else {
           if (currentEnabled !== baseline.enabled || currentType !== baseline.type) {
-            isSingleCharClosed = false;
+            isOriginal = false;
+          }
+
+          const isSingleChar = NORMALIZED_SINGLE_CHAR_ENTRIES.includes(normalizedName);
+          if (isSingleChar) {
+            if (currentEnabled !== false) {
+              isSingleCharClosed = false;
+            }
+          } else {
+            if (currentEnabled !== baseline.enabled || currentType !== baseline.type) {
+              isSingleCharClosed = false;
+            }
           }
         }
       }
@@ -156,7 +193,7 @@ export class EntryService {
       let diffChanges: { uid: number; comment: string; from: boolean; to: boolean }[] = [];
       await updateWorldbookWith(targetBook, entries => {
         entries.forEach(entry => {
-          if (entry.name && SINGLE_CHAR_ENTRIES.includes(entry.name)) {
+          if (entry.name && NORMALIZED_SINGLE_CHAR_ENTRIES.includes(normalizeCompare(entry.name))) {
             if (entry.enabled) {
               entry.enabled = false;
               diffChanges.push({
@@ -219,28 +256,6 @@ export class EntryService {
 
     try {
       let diffChanges: { uid: number; comment: string; from: boolean; to: boolean }[] = [];
-
-      // 辅助函数：深度归一化全角半角符号、统一大小写并去除首尾空格，避免匹配失败
-      const normalizeCompare = (str: string) => {
-        if (!str) return '';
-        let s = str
-          .replace(/【/g, '[')
-          .replace(/】/g, ']')
-          .replace(/《/g, '<')
-          .replace(/》/g, '>')
-          .replace(/“|”/g, '"')
-          .replace(/‘|’/g, "'")
-          .replace(/。/g, '.')
-          .replace(/、/g, ',');
-        
-        // 全角字符转半角字符 (ASCII码段)
-        s = s.replace(/[\uff01-\uff5e]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0));
-        
-        // 处理全角空格
-        s = s.replace(/\u3000/g, ' ');
-        
-        return s.trim().toLowerCase();
-      };
 
       await updateWorldbookWith(targetBook, entries => {
         entries.forEach(entry => {

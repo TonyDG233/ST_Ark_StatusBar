@@ -1,5 +1,6 @@
 import { configStore, useArkConfig } from '../../core/config_store';
 import { BASELINE_STATE } from '../../data/baseline';
+import { normalizeCompare } from './entry_service';
 
 /**
  * 专门负责暗中监听酒馆原生事件并执行状态补偿的自动化组件。
@@ -135,9 +136,10 @@ class WorldbookAutomator {
 
       const entries = await getWorldbook(targetWorldbook);
       let hasDiff = false;
-      for (const key of Object.keys(BASELINE_STATE)) {
-        const entry = entries.find(e => e.name === key);
-        const baseline = BASELINE_STATE[key];
+      
+      for (const [key, baseline] of Object.entries(BASELINE_STATE)) {
+        const normalizedKey = normalizeCompare(key);
+        const entry = entries.find(e => e.name && normalizeCompare(e.name) === normalizedKey);
 
         if (entry) {
           const currentType = entry.strategy?.type || 'selective';
