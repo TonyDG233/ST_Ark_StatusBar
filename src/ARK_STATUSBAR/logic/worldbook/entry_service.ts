@@ -220,8 +220,27 @@ export class EntryService {
     try {
       let diffChanges: { uid: number; comment: string; from: boolean; to: boolean }[] = [];
 
-      // 辅助函数：统一替换中英文括号，避免预设和条目名括号全半角不均等导致无法匹配
-      const normalizeCompare = (str: string) => str.replace(/（/g, '(').replace(/）/g, ')');
+      // 辅助函数：深度归一化全角半角符号、统一大小写并去除首尾空格，避免匹配失败
+      const normalizeCompare = (str: string) => {
+        if (!str) return '';
+        let s = str
+          .replace(/【/g, '[')
+          .replace(/】/g, ']')
+          .replace(/《/g, '<')
+          .replace(/》/g, '>')
+          .replace(/“|”/g, '"')
+          .replace(/‘|’/g, "'")
+          .replace(/。/g, '.')
+          .replace(/、/g, ',');
+        
+        // 全角字符转半角字符 (ASCII码段)
+        s = s.replace(/[\uff01-\uff5e]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0));
+        
+        // 处理全角空格
+        s = s.replace(/\u3000/g, ' ');
+        
+        return s.trim().toLowerCase();
+      };
 
       await updateWorldbookWith(targetBook, entries => {
         entries.forEach(entry => {
