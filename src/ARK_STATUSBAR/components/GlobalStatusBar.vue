@@ -118,18 +118,13 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { configStore, useArkConfig } from '../core/config_store';
-import { StatusBarManager } from '../logic/statusbar_manager';
 import {
-  allAvailableWorldbooks,
-  charBoundWorldbooks,
-  currentPrimaryWorldbook,
   currentTokenCount,
-  globalMountedWorldbooks,
   isTestMode,
   lastTriggeredEntries,
   pendingEntries,
   previewUiFontSize,
-  previewUiWidth,
+  previewUiWidth
 } from './global_tabs/shared_ui_state';
 
 // 引入彻底解耦的微型 Domain Tab 组件
@@ -145,7 +140,6 @@ const isVisible = ref(true);
 const currentUiMode = ref<UiMode>(UiMode.MINI);
 const currentTab = ref('interceptor');
 const currentConfig = useArkConfig();
-const manager = StatusBarManager.getInstance();
 const isSystemEnabled = computed(() => currentConfig.value?.isSystemEnabled ?? true);
 
 const statusBarEl = ref<HTMLElement | null>(null);
@@ -181,57 +175,13 @@ const toggleMinimize = () => {
 // --- 环境联动与事件总线挂载 ---
 import { setupGlobalListeners } from './global_tabs/shared_ui_state';
 
-const getEntryType = (
-  entry: Partial<import('../types/st_worldbook_types').WorldbookEntry> & Partial<SillyTavern.FlattenedWorldInfoEntry>,
-) => {
-  if (entry.constant === true) return 'constant';
-  if (entry.constant === false) return 'selective';
-  return entry.strategy?.type || 'selective';
-};
-
-const loadWorldbookLists = async () => {
-  try {
-    allAvailableWorldbooks.value = await manager.worldbook.getAllAvailableWorldbooks();
-    globalMountedWorldbooks.value = await manager.worldbook.getGlobalMountedWorldbooks();
-    charBoundWorldbooks.value = await manager.worldbook.getCharBoundWorldbooks();
-  } catch (e) {
-    console.error('[ARK_UI] loadWorldbookLists failed', e);
-  }
-};
-
-const loadPrimaryWorldbookName = async () => {
-  try {
-    const result = await getCharWorldbookNames('current');
-    currentPrimaryWorldbook.value =
-      result.primary || (result.additional && result.additional.length > 0 ? result.additional[0] : null);
-  } catch (e) {
-    console.error('Failed to load primary worldbook', e);
-  }
-};
-
 // 保存对事件处理函数的引用以便在 onUnmounted 中移除
-let configUpdatedListener: (e: CustomEvent) => void;
 let interceptorTriggeredListener: (e: CustomEvent) => void;
 let baselineDiffListener: (e: Event) => void;
-let chatChangedListener: (e: Event) => void;
 let systemToggleListener: (e: Event) => void;
 
 onMounted(() => {
   setupGlobalListeners();
-
-  configUpdatedListener = ((e: CustomEvent) => {
-    const config = e.detail;
-    if (config && config.isSystemEnabled) {
-      loadPrimaryWorldbookName();
-      loadWorldbookLists();
-    }
-  });
-  document.addEventListener('ark-config-updated', configUpdatedListener);
-
-  if (currentConfig.value && currentConfig.value.isSystemEnabled) {
-    loadPrimaryWorldbookName();
-    loadWorldbookLists();
-  }
 
   interceptorTriggeredListener = ((e: CustomEvent) => {
     const triggered = e.detail.entries || [];
@@ -239,31 +189,14 @@ onMounted(() => {
     isTestMode.value = isManualTest;
     currentTokenCount.value = e.detail.tokenCount ?? 0;
 
-    let matchedEntries = triggered.map((raw: any) => {
-      raw.enabled = raw.enabled !== false;
-      if (!raw.world && currentPrimaryWorldbook.value) {
-        raw.world = currentPrimaryWorldbook.value;
-      }
-      if (!raw.strategy) raw.strategy = {};
-      return raw;
-    });
+    pendingEntries.value = triggered;
+    currentTab.value = 'interceptor';
+    currentUiMode.value = UiMode.FULL;
 
-    if (!currentConfig.value?.showConstantEntries) {
-      matchedEntries = matchedEntries.filter((entry: any) => getEntryType(entry) !== 'constant');
+    if (!isSystemEnabled.value) {
+      configStore.updateConfig({ isSystemEnabled: true });
     }
-
-    if (matchedEntries.length > 0 || isManualTest) {
-      pendingEntries.value = matchedEntries;
-      currentTab.value = 'interceptor';
-      currentUiMode.value = UiMode.FULL;
-
-      if (!isSystemEnabled.value) {
-        configStore.updateConfig({ isSystemEnabled: true });
-      }
-      if (isManualTest && typeof toastr !== 'undefined') toastr.success('检测完成。', 'ARK_STATUSBAR');
-    } else {
-      manager.releaseInterceptAndSend();
-    }
+    if (isManualTest && typeof toastr !== 'undefined') toastr.success('检测完成。', 'ARK_STATUSBAR');
   });
   document.addEventListener('ark-interceptor-triggered', interceptorTriggeredListener);
 
@@ -278,19 +211,11 @@ onMounted(() => {
   });
   document.addEventListener('ark:worldbook-baseline-diff-detected', baselineDiffListener);
 
-  chatChangedListener = (() => {
-    if (currentConfig.value?.isSystemEnabled) {
-      loadPrimaryWorldbookName();
-    }
-  });
-  document.addEventListener('ark:system-chat-changed', chatChangedListener);
-
   systemToggleListener = (() => {
     const newState = !(currentConfig.value?.isSystemEnabled ?? true);
     configStore.updateConfig({ isSystemEnabled: newState });
 
     if (newState) {
-      loadPrimaryWorldbookName();
       checkBounds(); // 原 requestAnimationFrame
     }
   });
@@ -304,10 +229,8 @@ onMounted(() => {
 
   // 组件卸载时解绑
   onUnmounted(() => {
-    document.removeEventListener('ark-config-updated', configUpdatedListener);
     document.removeEventListener('ark-interceptor-triggered', interceptorTriggeredListener);
     document.removeEventListener('ark:worldbook-baseline-diff-detected', baselineDiffListener);
-    document.removeEventListener('ark:system-chat-changed', chatChangedListener);
     document.removeEventListener('ark:system-toggle', systemToggleListener);
     ST_WIN.removeEventListener('resize', handleWindowResize);
   });

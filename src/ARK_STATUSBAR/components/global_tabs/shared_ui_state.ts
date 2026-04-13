@@ -64,6 +64,31 @@ export const refreshWorldbookCache = async (wbName: string) => {
 };
 
 /**
+ * 集中在此处响应环境变化并预先拉取所有的业务所需的数据列表
+ */
+export const loadWorldbookLists = async () => {
+  try {
+    const { StatusBarManager } = await import('../../logic/statusbar_manager');
+    const manager = StatusBarManager.getInstance();
+    allAvailableWorldbooks.value = await manager.worldbook.getAllAvailableWorldbooks();
+    globalMountedWorldbooks.value = await manager.worldbook.getGlobalMountedWorldbooks();
+    charBoundWorldbooks.value = await manager.worldbook.getCharBoundWorldbooks();
+  } catch (e) {
+    console.error('[ARK_UI] loadWorldbookLists failed', e);
+  }
+};
+
+export const loadPrimaryWorldbookName = async () => {
+  try {
+    const result = await getCharWorldbookNames('current');
+    currentPrimaryWorldbook.value =
+      result.primary || (result.additional && result.additional.length > 0 ? result.additional[0] : null);
+  } catch (e) {
+    console.error('Failed to load primary worldbook', e);
+  }
+};
+
+/**
  * 全局挂载：监听所有可能导致世界书状态变化的原生及自定义事件。
  * 这个函数只应在外壳组件初始化时被调用一次。
  */
@@ -84,15 +109,40 @@ export const setupGlobalListeners = () => {
       if (currentPrimaryWorldbook.value && !expandedWorldbooks.value.includes(currentPrimaryWorldbook.value)) {
         await refreshWorldbookCache(currentPrimaryWorldbook.value);
       }
+      await loadWorldbookLists();
+    });
+    
+    // 聊天切换时，重载基本列表
+    eventOn(tavern_events.CHAT_CHANGED, async () => {
+      await loadPrimaryWorldbookName();
     });
   }
 
   // 2. 监听我们自己底层的“黑盒修改”抛出的内部事件（主动通知，保证极速反馈）
-  document.addEventListener('ark:worldbook-data-changed', async (e) => {
+  document.addEventListener('ark:worldbook-data-changed', async (e: any) => {
     if (e.detail.worldbookName) {
       await refreshWorldbookCache(e.detail.worldbookName);
     }
   });
+
+  document.addEventListener('ark-config-updated', async (e: any) => {
+    const config = e.detail;
+    if (config && config.isSystemEnabled) {
+      await loadPrimaryWorldbookName();
+      await loadWorldbookLists();
+    }
+  });
+
+  // 启动时初始化一次数据
+  const initData = async () => {
+    const { useArkConfig } = await import('../../core/config_store');
+    const currentConfig = useArkConfig();
+    if (currentConfig.value && currentConfig.value.isSystemEnabled) {
+      await loadPrimaryWorldbookName();
+      await loadWorldbookLists();
+    }
+  };
+  initData();
 };
 
 // ----------------------------------------------------------------------------

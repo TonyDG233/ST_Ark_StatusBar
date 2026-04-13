@@ -52,6 +52,19 @@
 
     <div class="setting-item">
       <div style="display: flex; align-items: center; gap: 10px">
+        <label>Token 计算器 (性能选项)</label>
+        <label class="switch">
+          <input type="checkbox" :checked="currentConfig?.enableTokenCalculator" @change="toggleTokenCalculator" />
+          <span class="slider round"></span>
+        </label>
+      </div>
+      <p class="hint" style="margin-top: 5px; font-size: 0.85em; opacity: 0.8">
+        预检拦截时，同时估算即将发送的 Token 消耗。<strong style="color: #ff9800;">如果遇到拦截严重卡顿或超时，请关闭此项。</strong>
+      </p>
+    </div>
+
+    <div class="setting-item">
+      <div style="display: flex; align-items: center; gap: 10px">
         <label style="color: #dc3545; font-weight: bold">🔧 开启调试日志导出</label>
         <label class="switch">
           <input type="checkbox" :checked="currentConfig?.isDebugMode" @change="toggleDebugMode" />
@@ -159,6 +172,11 @@ const toggleShowConstantEntries = (e: Event) => {
   configStore.updateConfig({ showConstantEntries: checked });
 };
 
+const toggleTokenCalculator = (e: Event) => {
+  const checked = (e.target as HTMLInputElement).checked;
+  configStore.updateConfig({ enableTokenCalculator: checked });
+};
+
 const toggleDebugMode = (e: Event) => {
   const checked = (e.target as HTMLInputElement).checked;
   configStore.updateConfig({ isDebugMode: checked });
@@ -185,19 +203,20 @@ const clearPins = async () => {
  */
 const factoryReset = async () => {
   if (confirm('确定要清除本插件的所有配置、快照和修改记录吗？此操作不可逆！')) {
-    configStore.updateConfig({
-      commits: [],
-      snapshots: [],
-      pinnedEntries: [],
-      pinnedWorldbooks: [],
-      isSystemEnabled: true,
-      isInterceptorEnabled: true,
-      enableEnterToIntercept: false,
-      showConstantEntries: false,
-      theme: 'light',
-      uiWidth: 400,
-      uiFontSize: 14,
-      isDebugMode: false,
+      configStore.updateConfig({
+        commits: [],
+        snapshots: [],
+        pinnedEntries: [],
+        pinnedWorldbooks: [],
+        isSystemEnabled: true,
+        isInterceptorEnabled: true,
+        enableTokenCalculator: true,
+        enableEnterToIntercept: false,
+        showConstantEntries: false,
+        theme: 'light',
+        uiWidth: 400,
+        uiFontSize: 14,
+        isDebugMode: false,
     });
     if (typeof toastr !== 'undefined') toastr.success('已恢复初始设置，页面即将刷新');
     setTimeout(() => {

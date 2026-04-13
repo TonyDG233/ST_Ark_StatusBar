@@ -11,10 +11,12 @@ import './components/StartupNavigator.vue';
 const MOUNT_INTERVAL_MS = 500;
 const STARTUP_CONTAINER_CLASS = 'ark-startup-mount-point';
 const RETURN_BTN_CONTAINER_CLASS = 'ark-return-btn-mount-point';
+const GLOBAL_STATUSBAR_CONTAINER_CLASS = 'ark-global-statusbar-mount-point';
 
 let startupApp: ReturnType<typeof createApp> | null = null;
 let returnBtnApp: ReturnType<typeof createApp> | null = null;
 let mountLoopTimer: number | null = null;
+let globalStatusBarApp: ReturnType<typeof createApp> | null = null;
 
 /**
  * 主挂载逻辑循环
@@ -104,18 +106,7 @@ const startMountingLoop = () => {
   }, MOUNT_INTERVAL_MS);
 };
 
-let globalStatusBarApp: ReturnType<typeof createApp> | null = null;
-const GLOBAL_STATUSBAR_CONTAINER_CLASS = 'ark-global-statusbar-mount-point';
-
-// 当脚本加载完成时启动主逻辑
-$(() => {
-  console.info('[ARK_STATUSBAR] Module Loaded. Initializing...');
-
-  // --- 初始化管理器 ---
-  const manager = StatusBarManager.getInstance();
-  manager.init();
-
-  // --- 通过 TavernHelper 注入控制台按钮 ---
+function injectTavernControls() {
   const BTN_NAME = '📖 控制台开关';
   if (
     typeof appendInexistentScriptButtons === 'function' ||
@@ -141,8 +132,9 @@ $(() => {
       console.error('[ARK_STATUSBAR] Failed to inject button:', e);
     }
   }
+}
 
-  // --- 挂载全局状态栏 ---
+function mountGlobalStatusBar() {
   const ST_DOC = window.parent?.document || document;
   let globalContainer = ST_DOC.querySelector(`.${GLOBAL_STATUSBAR_CONTAINER_CLASS}`);
   if (!globalContainer) {
@@ -162,16 +154,51 @@ $(() => {
   // 注意：我们直接进行挂载，但它的显示与隐藏完全由组件内部的自身状态控制
   globalStatusBarApp = createApp(GlobalStatusBar);
   globalStatusBarApp.mount(globalContainer);
+}
 
-  // --- 前端初始构建 (立即执行) ---
-  // 1. 将样式从 iframe 传输/穿透到酒馆主窗口 (Teleport)
+// -----------------------------------------------------------------------------
+// 引导程序 (Bootstrapper)
+// -----------------------------------------------------------------------------
+/**
+ * 引导程序：显式地定义启动序列 (Pipeline)
+ * 作用：取代过去的散装初始化，提供一个从上到下、明确的生命周期主干。
+ */
+async function bootstrap() {
+  console.info('[ARK_STATUSBAR] Module Loaded. Bootstrapping...');
+
+  // --- 1. 初始化业务管理器 ---
+  // 它内部会处理挂载配置、唤醒拦截器、以及注册专属于世界书业务的环境监听器
+  const manager = StatusBarManager.getInstance();
+  await manager.init();
+
+  // --- 2. 注入外部控制台按钮 ---
+  // 这是向宿主环境 (SillyTavern) 注入控制 UI 交互的按钮
+  injectTavernControls();
+
+  // --- 3. 准备渲染 UI ---
+  // 先应用可能需要的样式传送 (将 iframe 内部的样式注入到外部母网页)
   teleportStyle();
 
-  // 2. 启动前端轮询挂载循环
+  // --- 4. 挂载 UI 元素 ---
+  // 挂载可能一直存在的全局状态栏 (挂载于 document body)
+  mountGlobalStatusBar();
+
+  // 启动轮询：用于寻找聊天流中的特定消息气泡 (第0楼) 并在其上动态挂载 开局UI/返回按钮
+  // 注意：我们没有干涉原有的轮询挂载 DOM 的逻辑 (`startMountingLoop`)，
+  // 只是确保它在核心业务 (manager.init()) 就绪之后才启动，避免了业务没准备好 UI 就跑出来的尴尬。
   startMountingLoop();
+  
+  console.info('[ARK_STATUSBAR] Bootstrapping Complete.');
+}
+
+// 当脚本加载完成时启动主逻辑
+$(() => {
+  bootstrap();
 });
 
-// 卸载阶段清理
+// -----------------------------------------------------------------------------
+// 卸载阶段清理 (Teardown)
+// -----------------------------------------------------------------------------
 $(window).on('pagehide', () => {
   // 清理挂载轮询死循环定时器
   if (mountLoopTimer !== null) {

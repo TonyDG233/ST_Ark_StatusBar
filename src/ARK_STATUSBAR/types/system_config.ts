@@ -25,6 +25,7 @@ export interface ArkConfig {
   theme: 'light' | 'dark' | 'transparent'; // 当前 UI 主题
   isSystemEnabled: boolean; // 系统总开关，控制整个状态栏是否启用
   isInterceptorEnabled: boolean; // 拦截器开关，控制是否在发送时拦截预警
+  enableTokenCalculator: boolean; // 是否在拦截器中执行 Token 假生成计算 (默认开启，低配终端建议关闭)
   enableEnterToIntercept: boolean; // 是否拦截回车键 (默认关闭)
   showConstantEntries: boolean; // 是否在拦截器和主动检测中显示常驻(蓝灯)条目
   isDebugMode?: boolean; // 是否开启调试模式
@@ -61,6 +62,7 @@ export const DEFAULT_CONFIG: ArkConfig = {
   theme: 'light', // 默认主题为浅色
   isSystemEnabled: true,
   isInterceptorEnabled: true,
+  enableTokenCalculator: true, // 默认开启 Token 计算
   enableEnterToIntercept: false, // 默认关闭回车拦截
   showConstantEntries: false, // 默认隐藏蓝灯条目
   isDebugMode: false,

@@ -163,7 +163,10 @@ class SendInterceptor {
     }
 
     this.isDryRunning = true;
-    document.dispatchEvent(new CustomEvent('ark:log-debug', { detail: { message: `executeDualTrackDryRun_START | isManualTest:${isManualTest} | length:${text.length}`, isDryRun: false } }));
+    const currentRunId = Date.now(); // 生成请求流水号，防事件穿透
+    const currentConfig = unref(useArkConfig());
+
+    document.dispatchEvent(new CustomEvent('ark:log-debug', { detail: { message: `executeDualTrackDryRun_START | runId:${currentRunId} | isManualTest:${isManualTest} | length:${text.length}`, isDryRun: false } }));
 
     try {
       // 兼容获取 context (避免裸取导致代理对象遗失)
@@ -219,25 +222,15 @@ class SendInterceptor {
       mockChat.reverse();
       (mockChat as any).__isMock = true;
 
-      // 【防重复冒出修复】：不仅要接收被激活的条目，还要处理酒馆在内部运算中（比如分层扫描 Depth、Keyword、Token 等计算）
-      // 可能多次发射 world_info_activated 事件的问题。我们不能仅仅覆盖或者追加，而应当以 uid + world 或 uid + name 的复合键去重。
       let activatedEntries: any[] = [];
       const worldInfoListener = (evt: any) => {
+        // 如果我们收到的事件不是本次请求引发的，丢弃它（防穿透）
+        if (!this.isDryRunning) return;
+
         const raw = evt.detail || evt;
         document.dispatchEvent(new CustomEvent('ark:log-debug', { detail: { message: 'executeDualTrackDryRun_RAW_ENTRIES_RECEIVED', isDryRun: false } }));
 
         if (Array.isArray(raw)) {
-          // 由于原逻辑是 `activatedEntries = raw || []`（覆盖），而我们在防线修复中改成了合并（push），
-          // 如果某次检测（比如主动检测）在内部循环中引发了多轮 `world_info_activated`（例如：常驻检查一轮、深度检查一轮），
-          // 这会导致重复推入。同时，酒馆助手（或Tavern原系统）有时会直接发送之前累积的结果（比如上一次点击或者重试的结果），
-          // 这也是为什么 4 个世界书会导致 6 个甚至更多重复内容冒出的原因之一（多轮次累加或者缓存穿透）。
-
-          // 【彻底隔离】因此我们不再盲目追加。我们应当认识到：`world_info_activated` 传递的 `raw` 已经是**本次计算最终的所有激活条目聚合**。
-          // 原本 `activatedEntries = raw` 的逻辑其实在处理单轮发射时是对的，
-          // 但因为有些酒馆版本/插件可能多次触发它，我们只需要【取出最后一次触发、或者直接用其自带的结构去重】即可。
-          // 最安全的做法：每次收到事件时，以当前 `raw` 中的数组为基准覆盖，但对 `raw` 本身进行深度去重，
-          // 确保这一批次的数据没有多本同名书籍导入时带来的垃圾副本。
-
           const uniqueMap = new Map();
           for (const newEntry of raw) {
             // 洗净并映射回标准结构
@@ -275,15 +268,23 @@ class SendInterceptor {
       try {
         await Promise.race([
           worldInfoPromise(),
-          new Promise((_, reject) => setTimeout(() => reject(timeoutError), 5000)),
+          // 第一轨超时拉长到 10s
+          new Promise((_, reject) => setTimeout(() => reject(timeoutError), 10000)),
         ]);
       } catch (error) {
         if (error === timeoutError) {
-          console.warn('[ARK_Interceptor] World Info dry run timeout after 5s.');
+          console.warn(`[ARK_Interceptor] [RunID:${currentRunId}] World Info dry run timeout after 10s.`);
           document.dispatchEvent(new CustomEvent('ark:log-debug', { detail: { message: 'executeDualTrackDryRun_TIMEOUT_WORLDINFO', isDryRun: false } }));
+          // 致命错误：超时不可原谅，绝对不能静默放行
+          if (typeof toastr !== 'undefined') {
+            toastr.error('世界书检测超时，请检查配置或稍后重试。', 'ARK 发送拦截器阻断');
+          }
+          return; // 终止整个管线，绝不执行 releaseInterceptAndSend
         } else {
-          console.error('[ARK_Interceptor] World Info dry run failed', error);
+          console.error(`[ARK_Interceptor] [RunID:${currentRunId}] World Info dry run failed`, error);
           document.dispatchEvent(new CustomEvent('ark:log-debug', { detail: { message: `executeDualTrackDryRun_ERROR_WORLDINFO: ${error}`, isDryRun: false } }));
+          if (typeof toastr !== 'undefined') toastr.error('世界书检测出错，拦截已中止。');
+          return;
         }
       } finally {
         eventTarget.removeEventListener('world_info_activated', worldInfoListener);
@@ -295,90 +296,121 @@ class SendInterceptor {
       // 第二轨：获取完整的组装聚合 Token (使用 generate)
       // ==========================================
       let tokenCount: number | string = 0;
-      const promptReadyListener = async (evt: any) => {
-        const data = evt.detail || evt;
-        if (!data.dryRun) return;
+      
+      // 用户可以配置关闭以提升发信体验
+      if (currentConfig?.enableTokenCalculator) {
+        const promptReadyListener = async (evt: any) => {
+          if (!this.isDryRunning) return; // 防穿透
 
-        document.dispatchEvent(new CustomEvent('ark:log-debug', { detail: { message: `executeDualTrackDryRun_PROMPT_READY | chatLength:${data.chat?.length} | promptLength:${data.prompt?.length}`, isDryRun: false } }));
+          const data = evt.detail || evt;
+          if (!data.dryRun) return;
 
-        const payloadStrings = data.chat || data.prompt || [];
-        let fullText = '';
-        if (Array.isArray(payloadStrings)) {
-          if (payloadStrings.length > 0 && typeof payloadStrings[0] === 'object') {
-            fullText = payloadStrings.map((m: any) => m.content || `${m.name}: ${m.mes}`).join('\n');
+          document.dispatchEvent(new CustomEvent('ark:log-debug', { detail: { message: `executeDualTrackDryRun_PROMPT_READY | chatLength:${data.chat?.length} | promptLength:${data.prompt?.length}`, isDryRun: false } }));
+
+          const payloadStrings = data.chat || data.prompt || [];
+          let fullText = '';
+          if (Array.isArray(payloadStrings)) {
+            if (payloadStrings.length > 0 && typeof payloadStrings[0] === 'object') {
+              fullText = payloadStrings.map((m: any) => m.content || `${m.name}: ${m.mes}`).join('\n');
+            } else {
+              fullText = payloadStrings.join('\n');
+            }
           } else {
-            fullText = payloadStrings.join('\n');
+            fullText = String(payloadStrings);
           }
-        } else {
-          fullText = String(payloadStrings);
-        }
-        try {
-          if (typeof SillyTavern !== 'undefined' && typeof (SillyTavern as any).getTokenCountAsync === 'function') {
-            tokenCount = await (SillyTavern as any).getTokenCountAsync(fullText);
-            document.dispatchEvent(new CustomEvent('ark:log-debug', { detail: { message: `executeDualTrackDryRun_TOKEN_CALCULATED | count:${tokenCount}`, isDryRun: false } }));
-          } else {
-            tokenCount = 'API失效';
+          try {
+            if (typeof SillyTavern !== 'undefined' && typeof (SillyTavern as any).getTokenCountAsync === 'function') {
+              tokenCount = await (SillyTavern as any).getTokenCountAsync(fullText);
+              document.dispatchEvent(new CustomEvent('ark:log-debug', { detail: { message: `executeDualTrackDryRun_TOKEN_CALCULATED | count:${tokenCount}`, isDryRun: false } }));
+            } else {
+              tokenCount = 'API失效';
+            }
+          } catch (e) {
+            console.error('[ARK_Interceptor] Failed to count tokens', e);
+            tokenCount = '计算失败';
           }
-        } catch (e) {
-          console.error('[ARK_Interceptor] Failed to count tokens', e);
-          tokenCount = '计算失败';
-        }
-      };
+        };
 
-      eventTarget.addEventListener('chat_completion_prompt_ready', promptReadyListener);
-      // @ts-ignore
-      if (typeof eventOn === 'function') eventOn('chat_completion_prompt_ready', promptReadyListener);
-
-      const generatePromise = async () => {
-        if (generateFn) {
-          document.dispatchEvent(new CustomEvent('ark:log-debug', { detail: { message: 'executeDualTrackDryRun_BEFORE_AWAIT_GENERATE', isDryRun: false } }));
-          await generateFn('normal', {}, true);
-          document.dispatchEvent(new CustomEvent('ark:log-debug', { detail: { message: 'executeDualTrackDryRun_AFTER_AWAIT_GENERATE', isDryRun: false } }));
-        } else {
-          console.warn('[ARK_Interceptor] generate API not available, skipping precise token count.');
-          tokenCount = '未获取到API';
-        }
-      };
-
-      try {
-        await Promise.race([
-          generatePromise(),
-          new Promise((_, reject) => setTimeout(() => reject(timeoutError), 8000)),
-        ]);
-      } catch (error) {
-        if (error === timeoutError) {
-          console.warn('[ARK_Interceptor] Prompt Token dry run timeout after 8s.');
-          tokenCount = '计算超时';
-          document.dispatchEvent(new CustomEvent('ark:log-debug', { detail: { message: 'executeDualTrackDryRun_TIMEOUT_GENERATE', isDryRun: false } }));
-        } else {
-          console.error('[ARK_Interceptor] Prompt Token dry run failed', error);
-          tokenCount = '干跑失败';
-          document.dispatchEvent(new CustomEvent('ark:log-debug', { detail: { message: `executeDualTrackDryRun_ERROR_GENERATE: ${error}`, isDryRun: false } }));
-        }
-      } finally {
-        eventTarget.removeEventListener('chat_completion_prompt_ready', promptReadyListener);
+        eventTarget.addEventListener('chat_completion_prompt_ready', promptReadyListener);
         // @ts-ignore
-        if (typeof eventOff === 'function') eventOff('chat_completion_prompt_ready', promptReadyListener);
+        if (typeof eventOn === 'function') eventOn('chat_completion_prompt_ready', promptReadyListener);
+
+        const generatePromise = async () => {
+          if (generateFn) {
+            document.dispatchEvent(new CustomEvent('ark:log-debug', { detail: { message: 'executeDualTrackDryRun_BEFORE_AWAIT_GENERATE', isDryRun: false } }));
+            await generateFn('normal', {}, true);
+            document.dispatchEvent(new CustomEvent('ark:log-debug', { detail: { message: 'executeDualTrackDryRun_AFTER_AWAIT_GENERATE', isDryRun: false } }));
+          } else {
+            console.warn('[ARK_Interceptor] generate API not available, skipping precise token count.');
+            tokenCount = '未获取到API';
+          }
+        };
+
+        try {
+          await Promise.race([
+            generatePromise(),
+            // 第二轨超时拉长到 15s
+            new Promise((_, reject) => setTimeout(() => reject(timeoutError), 15000)),
+          ]);
+        } catch (error) {
+          if (error === timeoutError) {
+            console.warn(`[ARK_Interceptor] [RunID:${currentRunId}] Prompt Token dry run timeout after 15s.`);
+            tokenCount = '计算超时';
+            document.dispatchEvent(new CustomEvent('ark:log-debug', { detail: { message: 'executeDualTrackDryRun_TIMEOUT_GENERATE', isDryRun: false } }));
+            // 注意：Token计算超时并不致命，不需要阻断发送，记录状态即可
+          } else {
+            console.error(`[ARK_Interceptor] [RunID:${currentRunId}] Prompt Token dry run failed`, error);
+            tokenCount = '干跑失败';
+            document.dispatchEvent(new CustomEvent('ark:log-debug', { detail: { message: `executeDualTrackDryRun_ERROR_GENERATE: ${error}`, isDryRun: false } }));
+          }
+        } finally {
+          eventTarget.removeEventListener('chat_completion_prompt_ready', promptReadyListener);
+          // @ts-ignore
+          if (typeof eventOff === 'function') eventOff('chat_completion_prompt_ready', promptReadyListener);
+        }
+      } else {
+        tokenCount = '计算已关闭';
       }
 
       document.dispatchEvent(new CustomEvent('ark:log-debug', { detail: { message: `executeDualTrackDryRun_END_DISPATCH | finalActivatedCount:${activatedEntries?.length} | tokenCount:${tokenCount}`, isDryRun: false } }));
 
       // ==========================================
-      // 终点：统合抛出预警结果
+      // 终点：仲裁过滤与统合抛出预警结果 (接管了原先 UI 的工作)
       // ==========================================
+      
+      const getEntryType = (entry: any) => {
+        if (entry.constant === true) return 'constant';
+        if (entry.constant === false) return 'selective';
+        return entry.strategy?.type || 'selective';
+      };
+
+      // 无论主动检测还是拦截，先洗出需要处理的条目
+      let matchedEntries = activatedEntries.map((raw: any) => {
+        raw.enabled = raw.enabled !== false;
+        if (!raw.strategy) raw.strategy = {};
+        return raw;
+      });
+
+      // 根据配置，过滤不需要展示预警的常驻条目
+      if (!currentConfig?.showConstantEntries) {
+        matchedEntries = matchedEntries.filter((entry: any) => getEntryType(entry) !== 'constant');
+      }
+
       if (isManualTest) {
+        // 主动检测永远抛出给 UI 展示（即便是空结果）
         const event = new CustomEvent('ark-interceptor-triggered', {
-          detail: { entries: activatedEntries, isManualTest: true, tokenCount },
+          detail: { entries: matchedEntries, isManualTest: true, tokenCount },
         });
         document.dispatchEvent(event);
       } else {
-        if (activatedEntries && activatedEntries.length > 0) {
+        if (matchedEntries.length > 0) {
+          // 有实质性的拦截预警，交给 UI 处理
           const event = new CustomEvent('ark-interceptor-triggered', {
-            detail: { entries: activatedEntries, isManualTest: false, tokenCount },
+            detail: { entries: matchedEntries, isManualTest: false, tokenCount },
           });
           document.dispatchEvent(event);
         } else {
-          // 没有触发任何目标词条，静默放行
+          // 【核心控制流】：如果没有触发任何需要预警的词条，由后端主动放行
           document.dispatchEvent(new CustomEvent('ark:log-debug', { detail: { message: 'executeDualTrackDryRun_SILENT_PASS', isDryRun: false } }));
           this.releaseInterceptAndSend();
         }
