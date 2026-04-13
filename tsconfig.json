@@ -12,9 +12,19 @@
     "target": "ESNext",
     "module": "ESNext",
     "outDir": "dist",
+<<<<<<< HEAD
     "paths": {
       "@/*": [
         "./*"
+=======
+    "baseUrl": ".",
+    "paths": {
+      "@util/*": [
+        "./util/*"
+      ],
+      "@/*": [
+        "./src/*"
+>>>>>>> df19bf5a213c5e38b25c07c65b47a908c4cdd7ce
       ]
     },
     "moduleDetection": "auto",
@@ -36,12 +46,22 @@
   },
   "include": [
     "@types",
+<<<<<<< HEAD
     "src",
+=======
+    "初始模板",
+    "示例",
+    "src",
+    "util",
+>>>>>>> df19bf5a213c5e38b25c07c65b47a908c4cdd7ce
     "*.d.ts",
   ],
   "exclude": [
     "**/dist/**",
     "**/node_modules/**",
+<<<<<<< HEAD
     "src/poc/**",
+=======
+>>>>>>> df19bf5a213c5e38b25c07c65b47a908c4cdd7ce
   ]
 }
