@@ -114,7 +114,7 @@ export const setupGlobalListeners = () => {
       }
       await loadWorldbookLists();
     });
-    
+
     // 聊天切换时，重载基本列表
     eventOn(tavern_events.CHAT_CHANGED, async () => {
       await loadPrimaryWorldbookName();

@@ -9,7 +9,7 @@ class LoggerService {
 
   private constructor() {
     // 监听内部日志事件
-    document.addEventListener('ark:log-debug', (e) => {
+    document.addEventListener('ark:log-debug', e => {
       const { message, isDryRun } = e.detail;
       // 由于之前强依赖了 worldbook 名称，为了解耦，先做全局默认收集
       this.logDebug(message, { isDryRun });
@@ -69,7 +69,8 @@ class LoggerService {
     this.flushTimeout = window.setTimeout(async () => {
       try {
         const result = typeof getCharWorldbookNames === 'function' ? await getCharWorldbookNames('current') : null;
-        const wb = result?.primary || (result?.additional && result.additional.length > 0 ? result.additional[0] : null);
+        const wb =
+          result?.primary || (result?.additional && result.additional.length > 0 ? result.additional[0] : null);
         if (wb) {
           this.flushDebugLogsToWorldbook(wb);
         }

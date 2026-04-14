@@ -152,7 +152,7 @@ export class EntryService {
       for (const entry of entries) {
         if (!entry.name) continue;
         const normalizedName = normalizeCompare(entry.name);
-        
+
         if (NORMALIZED_BASELINE_STATE.hasOwnProperty(normalizedName)) {
           const baseline = NORMALIZED_BASELINE_STATE[normalizedName];
           const currentEnabled = entry.enabled;

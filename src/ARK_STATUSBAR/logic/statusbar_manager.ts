@@ -156,16 +156,16 @@ export class StatusBarManager {
     this.eventsBound = true;
 
     import('./worldbook/worldbook_automator').then(({ worldbookAutomator }) => {
-        worldbookAutomator.startWatching(
-          async () => {
-            // 在触发事件时，重新获取当前的角色并更新 targetWorldbook
-            const result = await getCharWorldbookNames('current');
-            if (result && result.primary) this.targetWorldbook = result.primary;
-            else if (result && result.additional && result.additional.length > 0)
-              this.targetWorldbook = result.additional[0];
+      worldbookAutomator.startWatching(
+        async () => {
+          // 在触发事件时，重新获取当前的角色并更新 targetWorldbook
+          const result = await getCharWorldbookNames('current');
+          if (result && result.primary) this.targetWorldbook = result.primary;
+          else if (result && result.additional && result.additional.length > 0)
+            this.targetWorldbook = result.additional[0];
 
-            return this.targetWorldbook;
-          },
+          return this.targetWorldbook;
+        },
         () => this.tempDisabledEntries,
         () => {
           this.tempDisabledEntries = [];

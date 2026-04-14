@@ -125,7 +125,7 @@ import {
   lastTriggeredEntries,
   pendingEntries,
   previewUiFontSize,
-  previewUiWidth
+  previewUiWidth,
 } from './global_tabs/shared_ui_state';
 
 // 引入彻底解耦的微型 Domain Tab 组件
@@ -184,7 +184,7 @@ let systemToggleListener: (e: Event) => void;
 onMounted(() => {
   setupGlobalListeners();
 
-  interceptorTriggeredListener = ((e: CustomEvent) => {
+  interceptorTriggeredListener = (e: CustomEvent) => {
     const triggered = e.detail.entries || [];
     const isManualTest = !!e.detail.isManualTest;
     isTestMode.value = isManualTest;
@@ -198,10 +198,10 @@ onMounted(() => {
       configStore.updateConfig({ isSystemEnabled: true });
     }
     if (isManualTest && typeof toastr !== 'undefined') toastr.success('检测完成。', 'ARK_STATUSBAR');
-  });
+  };
   document.addEventListener('ark-interceptor-triggered', interceptorTriggeredListener);
 
-  baselineDiffListener = (() => {
+  baselineDiffListener = () => {
     if (!isArknightsCard.value) return; // 非方舟专属角色卡，忽略基准线检查警告
     if (typeof toastr !== 'undefined') {
       toastr.warning(
@@ -210,17 +210,17 @@ onMounted(() => {
         { timeOut: 8000, positionClass: 'toast-top-center' },
       );
     }
-  });
+  };
   document.addEventListener('ark:worldbook-baseline-diff-detected', baselineDiffListener);
 
-  systemToggleListener = (() => {
+  systemToggleListener = () => {
     const newState = !(currentConfig.value?.isSystemEnabled ?? true);
     configStore.updateConfig({ isSystemEnabled: newState });
 
     if (newState) {
       checkBounds(); // 原 requestAnimationFrame
     }
-  });
+  };
   document.addEventListener('ark:system-toggle', systemToggleListener);
 
   const ST_WIN = window.parent || window;

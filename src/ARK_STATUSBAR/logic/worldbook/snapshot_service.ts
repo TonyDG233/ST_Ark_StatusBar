@@ -69,7 +69,9 @@ export class SnapshotService {
       });
 
       // 抛出内部自定义事件
-      document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: snapshot.worldbook } }));
+      document.dispatchEvent(
+        new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: snapshot.worldbook } }),
+      );
 
       // 从记录历史中删除该世界书的历史操作记录，因为已彻底回滚到了最初的快照状态
       const commits = currentConfig.commits.filter(c => c.worldbook !== snapshot.worldbook);

@@ -26,7 +26,7 @@ class ConfigStore {
     );
 
     // 监听总线历史记录更新事件
-    document.addEventListener('ark:history-commit-added', (e) => {
+    document.addEventListener('ark:history-commit-added', e => {
       const current = unref(this.state);
       this.updateConfig({
         commits: [...current.commits, e.detail],
@@ -34,7 +34,7 @@ class ConfigStore {
     });
 
     // 监听请求配置更新事件
-    document.addEventListener('ark:config-update-requested', (e) => {
+    document.addEventListener('ark:config-update-requested', e => {
       this.updateConfig(e.detail);
     });
   }

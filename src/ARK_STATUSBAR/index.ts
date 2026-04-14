@@ -230,7 +230,7 @@ async function bootstrap() {
   // 注意：我们没有干涉原有的轮询挂载 DOM 的逻辑 (`startMountingLoop`)，
   // 只是确保它在核心业务 (manager.init()) 就绪之后才启动，避免了业务没准备好 UI 就跑出来的尴尬。
   startMountingLoop();
-  
+
   console.info('[ARK_STATUSBAR] Bootstrapping Complete.');
 }
 

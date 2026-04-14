@@ -59,7 +59,9 @@
         </label>
       </div>
       <p class="hint" style="margin-top: 5px; font-size: 0.85em; opacity: 0.8">
-        预检拦截时，同时估算即将发送的 Token 消耗。<strong style="color: #ff9800;">如果遇到拦截严重卡顿或超时，请关闭此项。</strong>
+        预检拦截时，同时估算即将发送的 Token 消耗。<strong style="color: #ff9800"
+          >如果遇到拦截严重卡顿或超时，请关闭此项。</strong
+        >
       </p>
     </div>
 
@@ -203,20 +205,20 @@ const clearPins = async () => {
  */
 const factoryReset = async () => {
   if (confirm('确定要清除本插件的所有配置、快照和修改记录吗？此操作不可逆！')) {
-      configStore.updateConfig({
-        commits: [],
-        snapshots: [],
-        pinnedEntries: [],
-        pinnedWorldbooks: [],
-        isSystemEnabled: true,
-        isInterceptorEnabled: true,
-        enableTokenCalculator: true,
-        enableEnterToIntercept: false,
-        showConstantEntries: false,
-        theme: 'light',
-        uiWidth: 400,
-        uiFontSize: 14,
-        isDebugMode: false,
+    configStore.updateConfig({
+      commits: [],
+      snapshots: [],
+      pinnedEntries: [],
+      pinnedWorldbooks: [],
+      isSystemEnabled: true,
+      isInterceptorEnabled: true,
+      enableTokenCalculator: true,
+      enableEnterToIntercept: false,
+      showConstantEntries: false,
+      theme: 'light',
+      uiWidth: 400,
+      uiFontSize: 14,
+      isDebugMode: false,
     });
     if (typeof toastr !== 'undefined') toastr.success('已恢复初始设置，页面即将刷新');
     setTimeout(() => {
