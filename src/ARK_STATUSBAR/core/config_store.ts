@@ -1,6 +1,5 @@
 import { ref, unref, watch } from 'vue';
-import { ArkCommit, ArkConfig, CONFIG_ENTRY_PREFIX, DEFAULT_CONFIG } from '../types/system_config';
-import { ArkEventBus } from './event_bus';
+import { ArkConfig, CONFIG_ENTRY_PREFIX, DEFAULT_CONFIG } from '../types/system_config';
 
 /**
  * 唯一的配置响应式存储中心 (Single Source of Truth)
@@ -27,16 +26,16 @@ class ConfigStore {
     );
 
     // 监听总线历史记录更新事件
-    ArkEventBus.on('history:commit_added', commitData => {
+    document.addEventListener('ark:history-commit-added', (e) => {
       const current = unref(this.state);
       this.updateConfig({
-        commits: [...current.commits, commitData as ArkCommit],
+        commits: [...current.commits, e.detail],
       });
     });
 
     // 监听请求配置更新事件
-    ArkEventBus.on('config:update_requested', partialConfig => {
-      this.updateConfig(partialConfig as Partial<ArkConfig>);
+    document.addEventListener('ark:config-update-requested', (e) => {
+      this.updateConfig(e.detail);
     });
   }
 
@@ -101,8 +100,8 @@ class ConfigStore {
 
     this.isLoaded = true;
 
-    // 派发全局事件通知 UI 更新配置 (兼容遗留代码，未来可全转为 Vue reactivity)
-    document.dispatchEvent(new CustomEvent('ark-config-updated', { detail: unref(this.state) }));
+    // 派发全局事件通知 UI 更新配置
+    document.dispatchEvent(new CustomEvent('ark-config-updated'));
 
     this.checkInterceptorState();
   }
@@ -127,7 +126,7 @@ class ConfigStore {
           SillyTavern.saveSettingsDebounced();
         }
       }
-      document.dispatchEvent(new CustomEvent('ark-config-updated', { detail: configVal }));
+      document.dispatchEvent(new CustomEvent('ark-config-updated'));
       this.checkInterceptorState();
     } catch (error) {
       console.error('[ARK_ConfigStore] Failed to save config:', error);
@@ -137,7 +136,7 @@ class ConfigStore {
   private checkInterceptorState() {
     const config = unref(this.state);
     const shouldEnable = config.isSystemEnabled && config.isInterceptorEnabled;
-    ArkEventBus.emit('config:interceptor_state_changed', shouldEnable);
+    document.dispatchEvent(new CustomEvent('ark:config-interceptor-state-changed', { detail: { shouldEnable } }));
   }
 }
 

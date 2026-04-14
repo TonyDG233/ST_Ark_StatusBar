@@ -106,12 +106,23 @@ export class StatusBarManager {
     console.info('[ARK_StatusBar] Initializing Manager...');
     try {
       // 获取当前角色所绑定的世界书名称
-      const result = await getCharWorldbookNames('current');
-      if (result.primary) this.targetWorldbook = result.primary;
-      else if (result.additional && result.additional.length > 0) this.targetWorldbook = result.additional[0];
+      // 【修复】捕获这里的错误，避免酒馆初始化尚未完成时导致整个管理器挂掉
+      try {
+        const result = await getCharWorldbookNames('current');
+        if (result.primary) this.targetWorldbook = result.primary;
+        else if (result.additional && result.additional.length > 0) this.targetWorldbook = result.additional[0];
+      } catch (e) {
+        console.warn('[ARK_StatusBar] getCharWorldbookNames failed during init (character may not be loaded yet).', e);
+        if (typeof toastr !== 'undefined') {
+          toastr.warning('ARK 状态栏：正在等待角色卡加载...', '初始化提示', { timeOut: 3000 });
+        }
+      }
 
       if (!this.targetWorldbook) {
-        console.warn('[ARK_StatusBar] No worldbook bound to current character.');
+        console.warn('[ARK_StatusBar] No worldbook bound to current character at startup.');
+        if (typeof toastr !== 'undefined') {
+          toastr.info('ARK 状态栏：当前角色卡未绑定世界书，部分功能可能受限。', '初始化提示', { timeOut: 3000 });
+        }
       }
 
       // 将原来的 loadOrInitConfig 和 saveConfig 逻辑都委托给 Store
@@ -145,39 +156,21 @@ export class StatusBarManager {
     this.eventsBound = true;
 
     import('./worldbook/worldbook_automator').then(({ worldbookAutomator }) => {
-      worldbookAutomator.startWatching(
-        () => {
-          // 在触发事件时，重新获取当前的角色并更新 targetWorldbook
-          // 使用异步方式但不返回 promise 给同步的 callback
-          const result = getCharWorldbookNames('current');
-          if (result && result.primary) this.targetWorldbook = result.primary;
-          else if (result && result.additional && result.additional.length > 0)
-            this.targetWorldbook = result.additional[0];
+        worldbookAutomator.startWatching(
+          async () => {
+            // 在触发事件时，重新获取当前的角色并更新 targetWorldbook
+            const result = await getCharWorldbookNames('current');
+            if (result && result.primary) this.targetWorldbook = result.primary;
+            else if (result && result.additional && result.additional.length > 0)
+              this.targetWorldbook = result.additional[0];
 
-          return this.targetWorldbook;
-        },
+            return this.targetWorldbook;
+          },
         () => this.tempDisabledEntries,
         () => {
           this.tempDisabledEntries = [];
         },
       );
-    });
-
-    // 监听 CHAT_CHANGED，单纯为了派发 ark-chat-changed 事件通知 UI 刷新 "全部条目" 列表。
-    // 差异检查等繁重逻辑已经剥离给 Automator 处理了。
-    eventOn(tavern_events.CHAT_CHANGED, () => {
-      // 通过自定义事件总线分发
-      import('./../core/event_bus').then(({ ArkEventBus }) => {
-        ArkEventBus.emit('worldbook:data_changed', this.targetWorldbook || '');
-        ArkEventBus.emit('system:chat_changed');
-      });
-    });
-
-    // 监听生成结束事件：同样抛出事件以便状态同步（因为生成过程中可能条目状态变了）
-    eventOn(tavern_events.GENERATION_ENDED, () => {
-      import('./../core/event_bus').then(({ ArkEventBus }) => {
-        ArkEventBus.emit('worldbook:data_changed', this.targetWorldbook || '');
-      });
     });
   }
 

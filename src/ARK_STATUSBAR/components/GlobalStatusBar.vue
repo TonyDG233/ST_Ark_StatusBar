@@ -118,19 +118,14 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { configStore, useArkConfig } from '../core/config_store';
-import { ArkEventBus } from '../core/event_bus';
-import { StatusBarManager } from '../logic/statusbar_manager';
 import {
-  allAvailableWorldbooks,
-  charBoundWorldbooks,
-  currentPrimaryWorldbook,
   currentTokenCount,
-  globalMountedWorldbooks,
+  isArknightsCard,
   isTestMode,
   lastTriggeredEntries,
   pendingEntries,
   previewUiFontSize,
-  previewUiWidth,
+  previewUiWidth
 } from './global_tabs/shared_ui_state';
 
 // 引入彻底解耦的微型 Domain Tab 组件
@@ -146,7 +141,6 @@ const isVisible = ref(true);
 const currentUiMode = ref<UiMode>(UiMode.MINI);
 const currentTab = ref('interceptor');
 const currentConfig = useArkConfig();
-const manager = StatusBarManager.getInstance();
 const isSystemEnabled = computed(() => currentConfig.value?.isSystemEnabled ?? true);
 
 const statusBarEl = ref<HTMLElement | null>(null);
@@ -182,85 +176,33 @@ const toggleMinimize = () => {
 // --- 环境联动与事件总线挂载 ---
 import { setupGlobalListeners } from './global_tabs/shared_ui_state';
 
-const getEntryType = (
-  entry: Partial<import('../types/st_worldbook_types').WorldbookEntry> & Partial<SillyTavern.FlattenedWorldInfoEntry>,
-) => {
-  if (entry.constant === true) return 'constant';
-  if (entry.constant === false) return 'selective';
-  return entry.strategy?.type || 'selective';
-};
-
-const loadWorldbookLists = async () => {
-  try {
-    allAvailableWorldbooks.value = await manager.worldbook.getAllAvailableWorldbooks();
-    globalMountedWorldbooks.value = await manager.worldbook.getGlobalMountedWorldbooks();
-    charBoundWorldbooks.value = await manager.worldbook.getCharBoundWorldbooks();
-  } catch (e) {
-    console.error('[ARK_UI] loadWorldbookLists failed', e);
-  }
-};
-
-const loadPrimaryWorldbookName = async () => {
-  try {
-    const result = await getCharWorldbookNames('current');
-    currentPrimaryWorldbook.value =
-      result.primary || (result.additional && result.additional.length > 0 ? result.additional[0] : null);
-  } catch (e) {
-    console.error('Failed to load primary worldbook', e);
-  }
-};
+// 保存对事件处理函数的引用以便在 onUnmounted 中移除
+let interceptorTriggeredListener: (e: CustomEvent) => void;
+let baselineDiffListener: (e: Event) => void;
+let systemToggleListener: (e: Event) => void;
 
 onMounted(() => {
   setupGlobalListeners();
 
-  document.addEventListener('ark-config-updated', ((e: CustomEvent) => {
-    const config = e.detail;
-    if (config && config.isSystemEnabled) {
-      loadPrimaryWorldbookName();
-      loadWorldbookLists();
-    }
-  }) as EventListener);
-
-  if (currentConfig.value && currentConfig.value.isSystemEnabled) {
-    loadPrimaryWorldbookName();
-    loadWorldbookLists();
-  }
-
-  document.addEventListener('ark-interceptor-triggered', ((e: CustomEvent) => {
+  interceptorTriggeredListener = ((e: CustomEvent) => {
     const triggered = e.detail.entries || [];
     const isManualTest = !!e.detail.isManualTest;
     isTestMode.value = isManualTest;
     currentTokenCount.value = e.detail.tokenCount ?? 0;
 
-    let matchedEntries = triggered.map((raw: any) => {
-      raw.enabled = raw.enabled !== false;
-      if (!raw.world && currentPrimaryWorldbook.value) {
-        raw.world = currentPrimaryWorldbook.value;
-      }
-      if (!raw.strategy) raw.strategy = {};
-      return raw;
-    });
+    pendingEntries.value = triggered;
+    currentTab.value = 'interceptor';
+    currentUiMode.value = UiMode.FULL;
 
-    if (!currentConfig.value?.showConstantEntries) {
-      matchedEntries = matchedEntries.filter((entry: any) => getEntryType(entry) !== 'constant');
+    if (!isSystemEnabled.value) {
+      configStore.updateConfig({ isSystemEnabled: true });
     }
+    if (isManualTest && typeof toastr !== 'undefined') toastr.success('检测完成。', 'ARK_STATUSBAR');
+  });
+  document.addEventListener('ark-interceptor-triggered', interceptorTriggeredListener);
 
-    if (matchedEntries.length > 0 || isManualTest) {
-      pendingEntries.value = matchedEntries;
-      currentTab.value = 'interceptor';
-      currentUiMode.value = UiMode.FULL;
-
-      if (!isSystemEnabled.value) {
-        configStore.updateConfig({ isSystemEnabled: true });
-      }
-      if (isManualTest && typeof toastr !== 'undefined') toastr.success('检测完成。', 'ARK_STATUSBAR');
-    } else {
-      manager.releaseInterceptAndSend();
-    }
-  }) as EventListener);
-
-  // 替换掉原有的原生 CustomEvent 监听
-  const diffHandler = () => {
+  baselineDiffListener = (() => {
+    if (!isArknightsCard.value) return; // 非方舟专属角色卡，忽略基准线检查警告
     if (typeof toastr !== 'undefined') {
       toastr.warning(
         '检测到当前世界书带有开局剧情或手动修改的残余状态。为防止剧情串台，建议在侧边栏或历史记录处重置。',
@@ -268,26 +210,18 @@ onMounted(() => {
         { timeOut: 8000, positionClass: 'toast-top-center' },
       );
     }
-  };
-  ArkEventBus.on('worldbook:baseline_diff_detected', diffHandler);
+  });
+  document.addEventListener('ark:worldbook-baseline-diff-detected', baselineDiffListener);
 
-  const chatChangedHandler = () => {
-    if (currentConfig.value?.isSystemEnabled) {
-      loadPrimaryWorldbookName();
-    }
-  };
-  ArkEventBus.on('system:chat_changed', chatChangedHandler);
-
-  const toggleSystemHandler = () => {
+  systemToggleListener = (() => {
     const newState = !(currentConfig.value?.isSystemEnabled ?? true);
     configStore.updateConfig({ isSystemEnabled: newState });
 
     if (newState) {
-      loadPrimaryWorldbookName();
       checkBounds(); // 原 requestAnimationFrame
     }
-  };
-  ArkEventBus.on('system:toggle', toggleSystemHandler);
+  });
+  document.addEventListener('ark:system-toggle', systemToggleListener);
 
   const ST_WIN = window.parent || window;
   // 尺寸变化的重新测算工作已交由 useDraggablePhysics 内的 ResizeObserver 接管
@@ -297,9 +231,9 @@ onMounted(() => {
 
   // 组件卸载时解绑
   onUnmounted(() => {
-    ArkEventBus.off('worldbook:baseline_diff_detected', diffHandler);
-    ArkEventBus.off('system:chat_changed', chatChangedHandler);
-    ArkEventBus.off('system:toggle', toggleSystemHandler);
+    document.removeEventListener('ark-interceptor-triggered', interceptorTriggeredListener);
+    document.removeEventListener('ark:worldbook-baseline-diff-detected', baselineDiffListener);
+    document.removeEventListener('ark:system-toggle', systemToggleListener);
     ST_WIN.removeEventListener('resize', handleWindowResize);
   });
 });

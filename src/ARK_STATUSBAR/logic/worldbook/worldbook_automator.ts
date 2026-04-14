@@ -1,6 +1,6 @@
 import { configStore, useArkConfig } from '../../core/config_store';
-import { ArkEventBus } from '../../core/event_bus';
 import { BASELINE_STATE } from '../../data/baseline';
+import { normalizeCompare } from './entry_service';
 
 /**
  * 专门负责暗中监听酒馆原生事件并执行状态补偿的自动化组件。
@@ -13,11 +13,11 @@ class WorldbookAutomator {
    * 启动监听器
    * @param getTargetWorldbook 获取当前目标世界书名称的函数
    */
-  public startWatching(
-    getTargetWorldbook: () => string | null,
-    getTempDisabledEntries: () => { uid: number; world: string }[],
-    clearTempDisabledEntries: () => void,
-  ) {
+    public startWatching(
+      getTargetWorldbook: () => Promise<string | null> | string | null,
+      getTempDisabledEntries: () => { uid: number; world: string }[],
+      clearTempDisabledEntries: () => void,
+    ) {
     if (this.eventsBound) return;
     this.eventsBound = true;
 
@@ -58,8 +58,8 @@ class WorldbookAutomator {
                 return wbEntries;
               });
 
-              // 抛出内部自定义事件：后端主动修改了底层数据
-              ArkEventBus.emit('worldbook:data_changed', worldName);
+              // 抛出内部自定义事件：后端主动修改了底层数据，通知 UI 层刷新
+              document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: worldName } }));
             } catch (err) {
               hasFailures = true;
               failedItems.push(...uids.map(uid => ({ world: worldName, uid })));
@@ -90,6 +90,12 @@ class WorldbookAutomator {
         } catch (e) {
           console.error('[ARK_Automator] Failed to process temp disabled entries restoration', e);
         }
+      } else {
+        // 如果没有临时阻断的条目，也要抛出一个事件以便 UI 能够响应生成结束，比如取消某些 loading 状态
+        const targetWorldbook = getTargetWorldbook();
+        if (targetWorldbook) {
+          document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: targetWorldbook } }));
+        }
       }
     });
 
@@ -98,10 +104,15 @@ class WorldbookAutomator {
       console.info('[ARK_Automator] Chat changed, checking baseline diff and reloading...');
 
       try {
-        const targetWorldbook = getTargetWorldbook();
+        const targetWorldbook = await getTargetWorldbook();
         if (targetWorldbook) {
           await configStore.loadOrInitConfig(targetWorldbook);
           await this.checkBaselineDiff(targetWorldbook); // 检查当前状态是否偏离了设定的 Baseline
+          
+          // 等待所有的重度加载和比较工作（await）全部结束之后，
+          // 由 Automator 作为唯一的权威来源抛出数据就绪事件，告知 UI 刷新，杜绝竞态。
+          document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: targetWorldbook } }));
+          document.dispatchEvent(new CustomEvent('ark:system-chat-changed'));
         }
       } catch (error) {
         console.error('[ARK_Automator] Failed to handle chat change', error);
@@ -125,9 +136,10 @@ class WorldbookAutomator {
 
       const entries = await getWorldbook(targetWorldbook);
       let hasDiff = false;
-      for (const key of Object.keys(BASELINE_STATE)) {
-        const entry = entries.find(e => e.name === key);
-        const baseline = BASELINE_STATE[key];
+      
+      for (const [key, baseline] of Object.entries(BASELINE_STATE)) {
+        const normalizedKey = normalizeCompare(key);
+        const entry = entries.find(e => e.name && normalizeCompare(e.name) === normalizedKey);
 
         if (entry) {
           const currentType = entry.strategy?.type || 'selective';
@@ -141,7 +153,7 @@ class WorldbookAutomator {
 
       // 如果存在差异，通过自定义事件总线分发
       if (hasDiff) {
-        ArkEventBus.emit('worldbook:baseline_diff_detected');
+        document.dispatchEvent(new CustomEvent('ark:worldbook-baseline-diff-detected'));
       }
     } catch (e) {
       console.error('[ARK_Automator] Diff check failed', e);

@@ -137,7 +137,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { configStore, useArkConfig } from '../../../core/config_store';
-import { ArkEventBus } from '../../../core/event_bus';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
 import {
   allAvailableWorldbooks,
@@ -370,7 +369,7 @@ const toggleEntryType = async (entry: UIWorldbookEntry, explicitWbName?: string)
     });
 
     // 主动通知底层修改
-    ArkEventBus.emit('worldbook:data_changed', targetWorldbook);
+    document.dispatchEvent(new CustomEvent('ark:worldbook:data_changed'));
 
     const newCommit = {
       id: Math.random().toString(36).substr(2, 6),
@@ -404,7 +403,7 @@ const toggleEntry = async (entry: UIWorldbookEntry, explicitWbName?: string) => 
     });
 
     // 主动通知底层修改
-    ArkEventBus.emit('worldbook:data_changed', targetWorldbook);
+    document.dispatchEvent(new CustomEvent('ark:worldbook:data_changed'));
 
     const newCommit = {
       id: Math.random().toString(36).substr(2, 6),
