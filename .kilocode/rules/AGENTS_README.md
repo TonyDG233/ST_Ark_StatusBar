@@ -14,13 +14,9 @@
 *   **宿主环境**: SillyTavern (酒馆)
 *   **加载器**: Tavern Helper (酒馆助手)
 *   **前端 UI**: Vue 3 (结合 TailwindCSS)，以无沙盒 iframe 形式在消息楼层中挂载。
-*   **状态与变量管理**: 
-    *   **Zod**: 定义和校验变量结构 (`schema.ts`)。
-    *   **MVU (Magical Variable Update)**: 通过自然语言输出和 JSON Patch 实现变量更新的框架。
-*   **核心依赖**: Prompt Template Plugin (提示词模板插件)，用于处理世界书 (Worldbook) 与 EJS 动态提示词逻辑。
 
 ### 1.3 核心目录结构 (五大平级独立模块与周边)
-> 详情请见 [07_frontend_flat_modular_architecture.md](../development_logs/architecture/07_frontend_flat_modular_architecture.md) 中的 Mermaid 拓扑图。
+> 详情请见 [TECH_STACK.md](TECH_STACK.md) 中的 Mermaid 拓扑图。
 ```text
 src/
 ├── ARK_STATUSBAR/          # 项目核心开发主目录 (平级模块化架构)
@@ -37,20 +33,6 @@ src/
 └── util/                   # 共享工具函数箱 (mvu.ts, script.ts)
 ```
 
-### 1.4 模块边界与扩展接口规范 (Module Boundaries & Extension Rules)
-为了防止代码腐化为庞大的面条代码或“上帝对象”，本项目确立了**平级模块化 (Flat Modularization)** 与 **数据接口防腐 (Interface ACL)** 边界。所有 Agent 必须遵照执行：
-*   **1. 严格的单向或平级依赖限制**: 
-    *   `Components` (UI)、`Logic` (业务) 均可平级、合法且直接地调用 `Types` (契约) 与 `Core` (基建)。
-    *   `Components` (UI) 若需执行业务修改（如应用剧情、写入快照），**只能**调用 `Logic` 层提供的统一门面方法（如 `StatusBarManager` 的方法）。
-    *   **绝对禁止**：UI 直接 import 底层的 Service（如 `entry_service.ts`）；禁止逆向依赖（如 `Core` 去引用 `Logic` 或 `Components`）。
-*   **2. 数据结构防腐映射 (Mapper)**: 
-    *   从 `Logic` (服务层) 返回给 `Components` 渲染中枢 (`shared_ui_state`) 的数据，在规划中必须被清洗为 `Types` 中自定义的业务实体（如 `ArkStatusItem`），严禁酒馆原生结构（`WorldbookEntry` 或 `any`）向上传染前端模板。
-*   **3. 基础设施层 (Core) 的绝对纯净**: 
-    *   `core/` 下只能存放诸如 `event_bus.ts` 等无副作用的纯技术组件。一旦包含调用宿主底层且带修改副作用的操作（如 `logger` 写入世界书落盘），必须将其划入 `Logic` 下作为业务服务，严禁挂载于 `Core`。
-*   **4. 高度自治的前端组件与响应式防撕裂**: 
-    *   各个 Tab 子组件负责独立的视图呈现，拒绝形式主义的“胖容器”。
-    *   通过基于 Vue 的 `shared_ui_state.ts` 以及底层的 `worldbook:data_changed` 事件，实现组件间内存同频，抛弃陈旧的 `emit` 事件瀑布流。
-
 ---
 
 ## 2. 核心索引 (Core Indexes)
@@ -58,7 +40,8 @@ src/
 **在处理任何新任务前，请务必查阅相关资料：**
 
 ### 2.1 规则文档 (`.kilocode/rules/`)
-*   **`项目基本概念.md`**: 项目基本结构、第三方库、交互方式。
+*   **`TECH_STACK.md`**(重要！): 项目基本结构、第三方库、交互方式。
+*   **`开发环境基本概念.md`**: 开发环境的基本结构、第三方库、交互方式。
 *   **`酒馆助手接口.md`**: 酒馆助手所提供的各种接口归类与说明 (如 `chat_message.d.ts`, `worldbook.d.ts`)。
 *   **`前端界面.md` & `脚本.md`**: 编写 UI 和后台逻辑的规范（含 iframe 挂载、teleport style 等）。
 *   **`mvu变量框架.md` & `mvu角色卡.md`**: 具体 MVU 相关接口使用和角色卡的结构定义参考。
@@ -75,27 +58,11 @@ src/
 *   **何时阅读**: 仅在需要追溯特定模块的历史踩坑原因，或查阅某项黑盒 API 的 PoC 测试结论时按需阅读。不要在日常开发中盲目通读。
 *   **何时同步**: 在完成阶段性 MVP、攻克重大 Bug、或完成一次 `src/poc/` 的探索并得出确切结论后，必须立刻在此处新增记录。（必要时可创建子文件夹以分类存储对应日志，规划，测试报告。）
 
-### 2.4 系统架构状态字典 (`.kilocode/state/`)
-*   **用途**: 包含 `PRD.md` (需求)、`ARCH.md` (架构结论与防线规约)、`PROJECT_STATE.md` (当前进度看板)。
-*   **何时阅读**: **每次开启新任务或新会话前必须优先阅读**，以对齐项目当前的绝对真相。
-*   **何时同步**: 当引入新技术、重构核心逻辑、或发现新的环境防雷点时，必须同步覆写对应内容，保持高信噪比摘要。
-
 ---
 
-## 3. 项目当前状态与历史 (Current Status & History)
+## 3. 人机协作协议 (Collaboration Protocol)
 
-### 3.1 开发阶段回顾
-*   **Phase 1-2**: 实现了基础架构和世界书控制。
-*   **Phase 3 尝试**: 试图实现完整的“后端控制、任务队列、双模型路由”的罗德岛终端。
-*   **重大重构与隔离**: 在 Phase 3 中，遭遇了“初始化风暴”(Initialization Storm) 问题（由于每次 Swipe 都加载脚本，导致第 0 轮时 MVU 初始化与后端逻辑竞态碰撞，引发循环触发与崩溃）。
-    *   **当前状态**: 原 Phase 3 的后端逻辑 (在 `src/ARK_STATUSBAR/index.ts` 中的 `initializeBackendLogic` 调用) **已被注释并逻辑隔离**，保留在原位供后续参考。
-    *   **修复防线**: 在 `src/ARK_STATUSBAR/logic/updaters/global.ts` 中添加了 `turn === 0` 的保护锁，避免“初始化风暴”。
-
----
-
-## 4. 人机协作协议 (Collaboration Protocol)
-
-### 4.1 项目核心原则 (Core Project Principles)
+### 3.1 项目核心原则 (Core Project Principles)
 *   **必须做 (MUST DO)**:
     *   **环境勘探 (PoC) 优先**: 涉及酒馆宿主环境的新功能，必须先写独立的 `src/poc/` 脚本进行验证。验证后**必须**将勘探结论和边界出具成报告写入 `development_logs`，禁止无结论的盲目瞎试。
     *   **强制文档同步**: 制定任务计划或 Todo 时，必须将“同步更新 ARCH.md、PROJECT_STATE.md 或开发日志”纳入强制考量。
@@ -114,7 +81,7 @@ src/
         *   所有流转到业务层和 UI 层的数据结构，上游接口，必须依赖于 `@types/` 目录下确切的原生声明（如 `WorldbookEntry`），或者由项目内部 `types/` 目录下提供经过严格验证的 `interface`。
         *   任何因属性缺失引起的 TS 编译错误，必须通过查阅实际类型定义来寻找安全访问路径（如 `?.` 可选链），绝不允许为了消灭飘红而将对象退化为 `any` 或 `unknown` 去绕过编译器。
 
-### 4.2 项目阶段工作流 (Phased Workflows)
+### 3.2 项目阶段工作流 (Phased Workflows)
 *   **核心安全机制 (红绿灯工作流)**:
     *   🔴 **红灯 (静默勘探)**: 默认状态。仅执行读取操作 (`read_file`, `list_files`) 收集信息。严禁执行写入或提出建议。
     *   🟡 **黄灯 (对齐确认)**: 在进行复杂写入前，必须先提交详尽的**伪代码**。发现指令模糊时，仅客观提问，绝不猜测。
@@ -127,11 +94,11 @@ src/
     *   遇上需要**获取网页内容**：建议申请使用 `agent-browser` skill。
     *   遇上需要**分析代码结构**：建议申请使用 `nexus-mapper/query` skill。
 
-### 4.3 “指令结构体”与文档协作规范
+### 3.3 “指令结构体”与文档协作规范
 
 为保证项目长期的可维护性，Agent 在处理复杂任务时必须遵循以下文档协作规范。
 
-#### 4.3.1 复杂任务指令下发示例
+#### 3.3.1 复杂任务指令下发示例
 建议 User 下发复杂任务时使用以下格式，Agent 也会引导使用此格式聚合零散思路：
 ```markdown
 **[任务名称]**: ...
@@ -141,7 +108,7 @@ src/
 **[验收标准 (Acceptance Criteria)]**: (判断任务完成的标志)
 ```
 
-#### 4.3.2 事前规划文件结构 (Master Plan)
+#### 3.3.2 事前规划文件结构 (Master Plan)
 当涉及大范围重构、跨模块物理移动或新增核心机制前，Agent 必须**先出具一份事前规划文件**存入 `.kilocode/development_logs/architecture/`。
 **文件结构模板**：
 1. **架构演进背景与核心痛点**：为什么需要改动？解决了什么数据流向或耦合矛盾？
@@ -149,7 +116,7 @@ src/
 3. **功能扩展协作规范与代码示例**：以一个假想的新功能为例，演示 UI、Facade、Service、Types 四层的联动伪代码，并反思当前妥协。
 4. **实施重构的涉及文件、工作量与风险预案**：列出核心指令，并至少提供 2 个潜在风险（如路径断裂、时序死锁）及解决预案。
 
-#### 4.3.3 开发日志结构 (Development Log)
+#### 3.3.3 开发日志结构 (Development Log)
 日常的 Bug 修复、MVP 落地后，Agent 必须更新开发日志以形成历史防线。
 **文件结构模板**：
 1. **核心目标 / 修复的问题**：一句话总结。
@@ -157,13 +124,3 @@ src/
 3. **落地实施摘要 (Actions Taken)**：按模块列出关键动作。
 4. **遗留防线与后续 TODO (Takeaways)**：记录本次修改定下的规矩或留下的坑。
 
----
-
-## 5. 初始化确认协议 (Initialization Protocol)
-
-**[CRITICAL / 最高指令]**
-当 Agent 在任何新会话中**首次读取到本文档**时，必须执行“起飞前检查单” (Pre-flight Checklist) 机制：
-
-1.  **内部核对**：Agent 必须在自己的**思维链 (Thought Chain)** 中，逐条回顾第 4.1 节的“项目核心原则”（必须做、建议做、禁止做），确保完全理解本项目的绝对边界和存活法则。
-2.  **就绪宣告**：在完成内部回顾后，输出给 User 的**第一句话**必须是以下固定句式（不要做任何修改，不要中二加戏）：
-    > ">> 协议确认完毕：已锁定红绿灯边界，开启状态同步意识，准备就绪。"
