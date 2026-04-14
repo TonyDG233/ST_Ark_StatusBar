@@ -13,11 +13,11 @@ class WorldbookAutomator {
    * 启动监听器
    * @param getTargetWorldbook 获取当前目标世界书名称的函数
    */
-  public startWatching(
-    getTargetWorldbook: () => string | null,
-    getTempDisabledEntries: () => { uid: number; world: string }[],
-    clearTempDisabledEntries: () => void,
-  ) {
+    public startWatching(
+      getTargetWorldbook: () => Promise<string | null> | string | null,
+      getTempDisabledEntries: () => { uid: number; world: string }[],
+      clearTempDisabledEntries: () => void,
+    ) {
     if (this.eventsBound) return;
     this.eventsBound = true;
 
@@ -104,7 +104,7 @@ class WorldbookAutomator {
       console.info('[ARK_Automator] Chat changed, checking baseline diff and reloading...');
 
       try {
-        const targetWorldbook = getTargetWorldbook();
+        const targetWorldbook = await getTargetWorldbook();
         if (targetWorldbook) {
           await configStore.loadOrInitConfig(targetWorldbook);
           await this.checkBaselineDiff(targetWorldbook); // 检查当前状态是否偏离了设定的 Baseline

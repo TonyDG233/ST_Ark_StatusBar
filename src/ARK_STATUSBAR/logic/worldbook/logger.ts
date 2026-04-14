@@ -12,7 +12,7 @@ class LoggerService {
     document.addEventListener('ark:log-debug', (e) => {
       const { message, isDryRun } = e.detail;
       // 由于之前强依赖了 worldbook 名称，为了解耦，先做全局默认收集
-      this.logDebug(message, { isDryRun }, null);
+      this.logDebug(message, { isDryRun });
     });
   }
 
@@ -27,7 +27,7 @@ class LoggerService {
    * 追加调试日志到内存队列，并延迟持久化到世界书
    * 需要传入 targetWorldbook 才能真正落盘到对于的世界书，否则只会存在于 Console
    */
-  public logDebug(action: string, data: unknown, targetWorldbook: string | null = null) {
+  public logDebug(action: string, data: unknown) {
     if (!unref(useArkConfig()).isDebugMode) return;
 
     // 控制台打印
@@ -61,15 +61,21 @@ class LoggerService {
       this.debugLogQueue.splice(0, this.debugLogQueue.length - 50);
     }
 
-    if (targetWorldbook) {
-      this.scheduleFlushDebugLogs(targetWorldbook);
-    }
+    this.scheduleFlushDebugLogs();
   }
 
-  private scheduleFlushDebugLogs(targetWorldbook: string) {
+  private scheduleFlushDebugLogs() {
     if (this.flushTimeout) clearTimeout(this.flushTimeout);
-    this.flushTimeout = setTimeout(() => {
-      this.flushDebugLogsToWorldbook(targetWorldbook);
+    this.flushTimeout = window.setTimeout(async () => {
+      try {
+        const result = typeof getCharWorldbookNames === 'function' ? await getCharWorldbookNames('current') : null;
+        const wb = result?.primary || (result?.additional && result.additional.length > 0 ? result.additional[0] : null);
+        if (wb) {
+          this.flushDebugLogsToWorldbook(wb);
+        }
+      } catch (e) {
+        console.error('[ARK_DEBUG] Failed to resolve target worldbook for logs', e);
+      }
     }, 2000); // 防抖 2 秒
   }
 
