@@ -11,6 +11,40 @@
       </div>
     </div>
 
+    <!-- 增加一个固定宽度的内部容器，防止拖动滑块时因为整体UI实时缩放导致鼠标相对位置产生巨大偏移（“发抖”、“极度灵敏”现象） -->
+    <div style="width: 100%; max-width: 300px">
+      <div class="setting-item flex-col-align-start">
+        <label>UI 宽度 ({{ displayWidth }}px)</label>
+        <!-- 将实时 @input 修改为 @change，仅在松开鼠标时应用变化，彻底根治拉条与页面宽度耦合带来的鬼畜抖动问题 -->
+        <input
+          type="range"
+          min="200"
+          max="600"
+          step="10"
+          :value="displayWidth"
+          @change="commitUiWidth"
+          class="slider-input"
+        />
+      </div>
+
+      <div class="setting-item flex-col-align-start">
+        <label
+          >字体大小 (<span class="mobile-scale-hint">移动端自动 -2px / </span>当前基准: {{ displayFontSize }}px)</label
+        >
+        <!-- 字体大小虽然影响较小，但也改为 @change，统一体验 -->
+        <input
+          type="range"
+          min="10"
+          max="24"
+          step="1"
+          :value="displayFontSize"
+          @change="commitUiFontSize"
+          class="slider-input"
+        />
+      </div>
+      <p class="hint" style="margin-top: 5px; font-size: 0.85em; opacity: 0.8">松开滑块后应用宽度变化。</p>
+    </div>
+
     <div class="setting-item">
       <div style="display: flex; align-items: center; gap: 10px">
         <label>发送预检拦截</label>
@@ -77,40 +111,6 @@
         开启后将记录所有底层检测流。当遇到检测失效等 Bug 时，请开启此项，进行一次检测，然后检查名为
         "[SYS_DEBUG]系统调试日志导出" 的世界书条目内容并反馈给开发者。
       </p>
-    </div>
-
-    <!-- 增加一个固定宽度的内部容器，防止拖动滑块时因为整体UI实时缩放导致鼠标相对位置产生巨大偏移（“发抖”、“极度灵敏”现象） -->
-    <div style="width: 100%; max-width: 300px">
-      <div class="setting-item flex-col-align-start">
-        <label>UI 宽度 ({{ displayWidth }}px)</label>
-        <!-- 将实时 @input 修改为 @change，仅在松开鼠标时应用变化，彻底根治拉条与页面宽度耦合带来的鬼畜抖动问题 -->
-        <input
-          type="range"
-          min="200"
-          max="600"
-          step="10"
-          :value="displayWidth"
-          @change="commitUiWidth"
-          class="slider-input"
-        />
-        <p class="hint" style="margin-top: 5px; font-size: 0.85em; opacity: 0.8">松开滑块后应用宽度变化。</p>
-      </div>
-
-      <div class="setting-item flex-col-align-start">
-        <label
-          >字体大小 (<span class="mobile-scale-hint">移动端自动 -2px / </span>当前基准: {{ displayFontSize }}px)</label
-        >
-        <!-- 字体大小虽然影响较小，但也改为 @change，统一体验 -->
-        <input
-          type="range"
-          min="10"
-          max="24"
-          step="1"
-          :value="displayFontSize"
-          @change="commitUiFontSize"
-          class="slider-input"
-        />
-      </div>
     </div>
 
     <div class="setting-action">
