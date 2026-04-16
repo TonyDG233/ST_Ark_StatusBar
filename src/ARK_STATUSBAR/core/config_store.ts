@@ -110,8 +110,48 @@ class ConfigStore {
    * 手动更新配置项
    */
   public async updateConfig(partial: Partial<ArkConfig>) {
+    let newCommits = partial.commits;
+    if (newCommits) {
+      newCommits = this.applyEvictionPolicy(newCommits);
+      partial.commits = newCommits;
+    }
     this.state.value = { ...unref(this.state), ...partial, lastUpdateTime: Date.now() };
     // 由于加了 deep watcher，这里无需主动调用 persistConfig
+  }
+
+  /**
+   * 实施容量驱逐策略 (LRU with Pin protection)
+   */
+  private applyEvictionPolicy(commits: import('../types/system_config').ArkCommit[]): import('../types/system_config').ArkCommit[] {
+    const config = unref(this.state);
+    const maxHistory = config.maxHistoryCommits || 100;
+    const maxHeavy = config.maxHeavyHistoryCommits || 20;
+
+    let toRemove = new Set<string>();
+
+    // 1. 检查重度记录上限
+    let heavyCommits = commits.filter(c => c.isHeavy);
+    let excessHeavy = heavyCommits.length - maxHeavy;
+    if (excessHeavy > 0) {
+      // 找出最老的非置顶 heavy commits，标记为删除
+      const unpinnedHeavy = heavyCommits.filter(c => !c.isPinned).sort((a, b) => a.timestamp - b.timestamp);
+      for (let i = 0; i < excessHeavy && i < unpinnedHeavy.length; i++) {
+        toRemove.add(unpinnedHeavy[i].id);
+      }
+    }
+
+    let result = commits.filter(c => !toRemove.has(c.id));
+
+    // 2. 检查总数上限
+    let excessTotal = result.length - maxHistory;
+    if (excessTotal > 0) {
+      const unpinnedAll = result.filter(c => !c.isPinned).sort((a, b) => a.timestamp - b.timestamp);
+      for (let i = 0; i < excessTotal && i < unpinnedAll.length; i++) {
+        toRemove.add(unpinnedAll[i].id);
+      }
+    }
+
+    return commits.filter(c => !toRemove.has(c.id));
   }
 
   /**

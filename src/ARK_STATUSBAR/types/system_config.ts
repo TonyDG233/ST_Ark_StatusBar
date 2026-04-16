@@ -38,6 +38,19 @@ export interface ArkConfig {
   pinnedWorldbooks?: string[]; // 用户置顶偏好的世界书名称列表
   worldbookInitialStates?: Record<string, Record<string, { enabled: boolean; type: string }>>; // [旧快照，将废弃]
   snapshots?: ArkSnapshot[]; // [新版] 世界书快照
+  
+  // [新增] 历史记录与备份上限配置
+  maxHistoryCommits?: number;      // 历史记录队列最大长度 (默认 100)
+  maxHeavyHistoryCommits?: number; // 长文本修改等重度历史记录的最大长度 (默认 20)
+  maxTotalBackups?: number;        // 世界书全量备份的最大数量警戒线 (默认 10)
+}
+
+export interface ArkCommitChange {
+  uid: number; // 修改的世界书条目 UID
+  comment: string; // 变动的条目名称/备注
+  path?: string; // [新增] 修改属性的路径，例如 "content", "strategy.scan_depth"。为空则默认表示修改的是 'enabled' 状态（向下兼容）。
+  from: any; // 变更前的状态/旧值
+  to?: any; // 变更后的状态/新值 (可选，仅用于UI展示，恢复逻辑主要依赖 from)
 }
 
 /**
@@ -47,13 +60,10 @@ export interface ArkCommit {
   id: string; // 唯一的提交 ID
   timestamp: number; // 提交时间戳
   description: string; // 提交的文字描述
-  worldbook?: string; // [新增] 该次操作针对的世界书名称
-  changes: {
-    uid: number; // 修改的世界书条目 UID
-    comment: string; // 变动的条目名称/备注
-    from: boolean; // 变更前的 enabled 状态
-    to: boolean; // 变更后的 enabled 状态
-  }[];
+  worldbook?: string; // 该次操作针对的世界书名称
+  isPinned?: boolean; // [新增] 是否置顶保护，防止被系统容量驱逐机制自动清理
+  isHeavy?: boolean;  // [新增] 标识本次提交是否包含大量文本数据（如修改了 content 字段）
+  changes: ArkCommitChange[];
 }
 
 // 默认的初始配置
@@ -74,4 +84,7 @@ export const DEFAULT_CONFIG: ArkConfig = {
   pinnedWorldbooks: [],
   worldbookInitialStates: {},
   snapshots: [],
+  maxHistoryCommits: 100,
+  maxHeavyHistoryCommits: 20,
+  maxTotalBackups: 10,
 };

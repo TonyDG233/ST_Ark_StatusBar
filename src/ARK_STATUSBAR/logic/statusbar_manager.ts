@@ -1,5 +1,6 @@
 import { unref } from 'vue';
 import { configStore } from './../core/config_store';
+import { backupService } from './worldbook/backup_service';
 import { entryService } from './worldbook/entry_service';
 import { snapshotService } from './worldbook/snapshot_service';
 
@@ -10,6 +11,7 @@ import { snapshotService } from './worldbook/snapshot_service';
 class WorldbookFacade {
   constructor(private getTargetWorldbook: () => string | null) {}
 
+  // --- 旧版快照功能 (保留以兼容) ---
   public async saveCurrentAsSnapshot(worldbookName: string, snapshotName: string): Promise<void> {
     if (worldbookName) {
       await snapshotService.saveCurrentAsSnapshot(worldbookName, snapshotName);
@@ -23,6 +25,27 @@ class WorldbookFacade {
   public async deleteSnapshot(snapshotId: string): Promise<void> {
     await snapshotService.deleteSnapshot(snapshotId);
   }
+
+  // --- 新版全量备份功能 ---
+  public async createFullBackup(worldbookName: string, customName?: string): Promise<string | undefined> {
+    if (worldbookName) {
+      return await backupService.createFullBackup(worldbookName, customName);
+    }
+    return undefined;
+  }
+
+  public async restoreFullBackup(targetWorldbook: string, backupWorldbook: string): Promise<void> {
+    await backupService.restoreFullBackup(targetWorldbook, backupWorldbook);
+  }
+
+  public async getAllBackups(targetWorldbook?: string): Promise<string[]> {
+    return await backupService.getAllBackups(targetWorldbook);
+  }
+
+  public async checkBackupLimitWarning(): Promise<string | null> {
+    return await backupService.checkBackupLimitWarning();
+  }
+  // -------------------------
 
   public async resetToBaseline(worldbookName?: string): Promise<void> {
     const wb = worldbookName || this.getTargetWorldbook();
