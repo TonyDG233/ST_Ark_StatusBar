@@ -17,6 +17,7 @@ let startupApp: ReturnType<typeof createApp> | null = null;
 let returnBtnApp: ReturnType<typeof createApp> | null = null;
 let mountLoopTimer: number | null = null;
 let globalStatusBarApp: ReturnType<typeof createApp> | null = null;
+let lastIsArknights: boolean | null = null;
 
 /**
  * 更新全局角色身份状态并广播
@@ -25,7 +26,11 @@ let globalStatusBarApp: ReturnType<typeof createApp> | null = null;
 const updateIdentityAndBroadcast = () => {
   const charName = getCurrentCharacterName() || '';
   const isArknights = charName.includes('明日方舟');
-  document.dispatchEvent(new CustomEvent('ark:identity-updated', { detail: { isArknights } }));
+  
+  if (lastIsArknights !== isArknights) {
+    lastIsArknights = isArknights;
+    document.dispatchEvent(new CustomEvent('ark:identity-updated', { detail: { isArknights } }));
+  }
 };
 
 /**
@@ -60,6 +65,9 @@ const startMountingLoop = () => {
       // 防止错把别人的开局剧情给 empty() 删除了！
       const charName = getCurrentCharacterName() || '';
       const isArknights = charName.includes('明日方舟');
+
+      // 同步广播身份变更（如果在此期间身份才真正被获取到，则通知Vue）
+      updateIdentityAndBroadcast();
 
       if (!isArknights) {
         // 如果不是，强制物理移除（如果已经存在）开局UI和返回按钮，并终止挂载流程

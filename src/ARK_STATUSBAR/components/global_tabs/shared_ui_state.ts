@@ -144,6 +144,12 @@ export const setupGlobalListeners = () => {
 
   // 启动时初始化一次数据
   const initData = async () => {
+    // 主动同步一次当前的身份，避免漏掉早期抛出的事件
+    if (typeof getCurrentCharacterName === 'function') {
+      const charName = getCurrentCharacterName() || '';
+      isArknightsCard.value = charName.includes('明日方舟');
+    }
+
     const { useArkConfig } = await import('../../core/config_store');
     const currentConfig = useArkConfig();
     if (currentConfig.value && currentConfig.value.isSystemEnabled) {
