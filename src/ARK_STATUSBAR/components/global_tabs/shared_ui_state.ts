@@ -18,6 +18,34 @@ export const lastTriggeredEntries = ref<UIWorldbookEntry[]>([]);
 export const isTestMode = ref(false);
 export const currentTokenCount = ref<number | string>(0);
 
+// 单个条目的 Token 数量缓存
+export const entryTokenCountCache = ref<Record<string, number>>({});
+
+/**
+ * 为条目生成唯一的缓存 Key
+ */
+export const getEntryKey = (entry: UIWorldbookEntry) => {
+  return entry.uid ? `${entry.uid}-${entry.world || 'unknown'}` : `${entry.name || 'unnamed'}-${entry.world || 'unknown'}`;
+};
+
+/**
+ * 异步计算条目的 Token 数量并存入缓存
+ */
+export const calculateTokenForEntry = async (entry: UIWorldbookEntry) => {
+  const key = getEntryKey(entry);
+  if (entryTokenCountCache.value[key] !== undefined) return;
+  
+  if (typeof SillyTavern !== 'undefined' && typeof SillyTavern.getTokenCountAsync === 'function') {
+    try {
+      const content = entry.content || '';
+      const tokens = await SillyTavern.getTokenCountAsync(content);
+      entryTokenCountCache.value[key] = tokens;
+    } catch (e) {
+      console.warn('[ARK_UI_STATE] Failed to calculate tokens for entry', key, e);
+    }
+  }
+};
+
 // 计算属性：对即将触发的条目进行排序（置顶优先）
 export const sortedPendingEntries = computed(() => {
   // 注意：在实际使用时，isPinned 方法可能需要组件引入 configStore，

@@ -55,6 +55,9 @@
                 {{
                   entry.name || (entry.strategy?.keys && entry.strategy.keys.length ? entry.strategy.keys[0] : '未知')
                 }}
+                <span v-if="entryTokenCountCache[getEntryKey(entry)] !== undefined" class="token-badge">
+                  ~{{ entryTokenCountCache[getEntryKey(entry)] }} tok
+                </span>
                 <span v-if="entry.world" style="font-size: 0.8em; opacity: 0.7; margin-left: 5px"
                   >({{ entry.world }})</span
                 >
@@ -94,6 +97,9 @@
               getEntryType(entry) === 'constant' ? '🔵' : '🟢'
             }}</span>
             {{ entry.name || (entry.strategy?.keys && entry.strategy.keys.length ? entry.strategy.keys[0] : '未知') }}
+                <span v-if="entryTokenCountCache[getEntryKey(entry)] !== undefined" class="token-badge">
+                  ~{{ entryTokenCountCache[getEntryKey(entry)] }} tok
+                </span>
             <div v-if="entry.world" style="font-size: 0.75em; color: var(--ui-text-secondary); margin-top: 2px">
               📁 来源: {{ entry.world }}
             </div>
@@ -160,22 +166,37 @@
 </template>
 
 <script setup lang="ts">
+import { watch } from 'vue';
 import { configStore, useArkConfig } from '../../../core/config_store';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
 import {
+  calculateTokenForEntry,
   currentPrimaryWorldbook,
   currentTokenCount,
+  entryTokenCountCache,
+  getEntryKey,
   isTestMode,
   lastTriggeredEntries,
   pendingEntries,
   sortedLastTriggeredEntries,
   sortedPendingEntries,
-  UIWorldbookEntry,
+  type UIWorldbookEntry
 } from '../shared_ui_state';
 
 const emit = defineEmits<{ (e: 'close-panel'): void }>();
 const currentConfig = useArkConfig();
 const manager = StatusBarManager.getInstance();
+
+// ----------------------------------------------------------------------------
+// Token 异步计算自动触发
+// ----------------------------------------------------------------------------
+watch(sortedPendingEntries, (newEntries) => {
+  newEntries.forEach(entry => calculateTokenForEntry(entry));
+}, { immediate: true });
+
+watch(sortedLastTriggeredEntries, (newEntries) => {
+  newEntries.forEach(entry => calculateTokenForEntry(entry));
+}, { immediate: true });
 
 /**
  * 触发“主动检测”：运行一次 Dry Run 并在拦截器面板显示将被触发的条目，但不实际发送。
@@ -401,5 +422,15 @@ const togglePendingEntry = async (entry: UIWorldbookEntry) => {
 .status-badges {
   display: flex;
   gap: 4px;
+}
+
+.token-badge {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8em;
+  padding: 2px 6px;
+  margin-left: 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 </style>
