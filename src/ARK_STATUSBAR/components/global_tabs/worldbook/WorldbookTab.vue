@@ -65,46 +65,61 @@
           </div>
           <div v-else class="wb-entries-container">
             <!-- 【性能修复】替换原有的大循环为动态计算属性渲染，防止在模板里重复调用复杂过滤函数 -->
-            <div
-              v-for="entry in getVisibleEntries(wb.name)"
-              :key="entry.uid"
-              class="wb-item"
-              :class="{ 'disabled-entry': !entry.enabled }"
-            >
-              <div class="wb-info">
-                <div class="wb-name">
-                  <!-- 【性能修复】直接读取对象上的 _isPinned 缓存值 -->
-                  <span v-if="entry._isPinned" class="pin-icon">📌</span>
-                  {{ entry.name || (entry.strategy?.keys ? entry.strategy.keys[0] : '未知') }}
+            <template v-for="entry in getVisibleEntries(wb.name)" :key="entry.uid">
+              <div
+                class="wb-item"
+                :class="{ 'disabled-entry': !entry.enabled }"
+              >
+                <div class="wb-info">
+                  <div class="wb-name">
+                    <!-- 【性能修复】直接读取对象上的 _isPinned 缓存值 -->
+                    <span v-if="entry._isPinned" class="pin-icon">📌</span>
+                    {{ entry.name || (entry.strategy?.keys ? entry.strategy.keys[0] : '未知') }}
+                  </div>
+                  <div class="wb-keys" v-if="entry.strategy?.keys && entry.strategy.keys.length">
+                    触发词: {{ entry.strategy.keys.join(', ') }}
+                  </div>
                 </div>
-                <div class="wb-keys" v-if="entry.strategy?.keys && entry.strategy.keys.length">
-                  触发词: {{ entry.strategy.keys.join(', ') }}
+                <div class="wb-action">
+                  <button
+                    class="icon-btn tiny"
+                    @click="toggleEditEntry(entry)"
+                    title="编辑完整属性"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    class="icon-btn tiny pin-btn"
+                    @click="togglePinEntry(entry)"
+                    :title="entry._isPinned ? '取消置顶' : '偏好置顶'"
+                    :class="{ pinned: entry._isPinned }"
+                  >
+                    {{ entry._isPinned ? '📌' : '📍' }}
+                  </button>
+                  <button
+                    class="icon-btn tiny"
+                    @click="toggleEntryType(entry, wb.name)"
+                    :title="
+                      entry._computedType === 'constant' ? '当前：蓝灯(常驻)，点击切换' : '当前：绿灯(条件)，点击切换'
+                    "
+                  >
+                    {{ entry._computedType === 'constant' ? '🔵' : '🟢' }}
+                  </button>
+                  <label class="switch">
+                    <input type="checkbox" v-model="entry.enabled" @change="toggleEntry(entry, wb.name)" />
+                    <span class="slider round"></span>
+                  </label>
                 </div>
               </div>
-              <div class="wb-action">
-                <button
-                  class="icon-btn tiny pin-btn"
-                  @click="togglePinEntry(entry)"
-                  :title="entry._isPinned ? '取消置顶' : '偏好置顶'"
-                  :class="{ pinned: entry._isPinned }"
-                >
-                  {{ entry._isPinned ? '📌' : '📍' }}
-                </button>
-                <button
-                  class="icon-btn tiny"
-                  @click="toggleEntryType(entry, wb.name)"
-                  :title="
-                    entry._computedType === 'constant' ? '当前：蓝灯(常驻)，点击切换' : '当前：绿灯(条件)，点击切换'
-                  "
-                >
-                  {{ entry._computedType === 'constant' ? '🔵' : '🟢' }}
-                </button>
-                <label class="switch">
-                  <input type="checkbox" v-model="entry.enabled" @change="toggleEntry(entry, wb.name)" />
-                  <span class="slider round"></span>
-                </label>
-              </div>
-            </div>
+              
+              <!-- 内联展开的完整编辑器 -->
+              <WorldbookEntryEditor 
+                v-if="editingEntryUid === entry.uid"
+                :entry="entry" 
+                @save="(changes, newEntry) => handleSaveEntry(changes, newEntry, wb.name)" 
+                @cancel="editingEntryUid = null" 
+              />
+            </template>
             <!-- 渐进式加载：点击加载更多区块 -->
             <div v-if="hasMoreEntries(wb.name)" class="load-more-container" style="text-align: center; padding: 10px 0">
               <button
@@ -138,6 +153,7 @@
 import { computed, ref } from 'vue';
 import { configStore, useArkConfig } from '../../../core/config_store';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
+import { ArkCommitChange } from '../../../types/system_config';
 import {
   allAvailableWorldbooks,
   charBoundWorldbooks,
@@ -149,6 +165,7 @@ import {
   UIWorldbookEntry,
   worldbookEntriesCache,
 } from '../shared_ui_state';
+import WorldbookEntryEditor from './WorldbookEntryEditor.vue';
 
 const currentConfig = useArkConfig();
 const manager = StatusBarManager.getInstance();
@@ -162,6 +179,55 @@ const filterEntryTexts = ref<Record<string, string>>({});
 // 【性能修复】保留这个基础函数供内部计算和外部点击使用，必须声明在被调用前
 const getEntryType = (entry: UIWorldbookEntry) => {
   return entry.strategy?.type || 'selective';
+};
+
+// --- Editor UI State ---
+const editingEntryUid = ref<number | null>(null);
+
+const toggleEditEntry = (entry: UIWorldbookEntry) => {
+  if (editingEntryUid.value === entry.uid) {
+    editingEntryUid.value = null; // 关闭
+  } else {
+    editingEntryUid.value = entry.uid; // 打开
+  }
+};
+
+const handleSaveEntry = async (changes: ArkCommitChange[], newEntry: UIWorldbookEntry, explicitWbName: string) => {
+  try {
+    const targetWorldbook = explicitWbName || newEntry.world || currentPrimaryWorldbook.value;
+    if (!targetWorldbook) return;
+
+    await updateWorldbookWith(targetWorldbook, (wbEntries: UIWorldbookEntry[]) => {
+      const idx = wbEntries.findIndex(x => x.uid === newEntry.uid);
+      if (idx !== -1) {
+        // 全量覆盖修改后的 entry
+        wbEntries[idx] = { ...newEntry };
+      }
+      return wbEntries;
+    });
+
+    // 主动通知底层修改
+    document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: targetWorldbook } }));
+
+    // 判断是否是 heavy commit (包含 content 的修改)
+    const isHeavy = changes.some(c => c.path === 'content');
+
+    const newCommit = {
+      id: Math.random().toString(36).substr(2, 6),
+      timestamp: Date.now(),
+      description: `[修改条目属性] ${newEntry.name || '未命名条目'}`,
+      worldbook: targetWorldbook,
+      isHeavy,
+      changes,
+    };
+    configStore.updateConfig({ commits: [...(currentConfig.value?.commits || []), newCommit] });
+
+    editingEntryUid.value = null;
+    if (typeof toastr !== 'undefined') toastr.success('保存成功');
+  } catch (e) {
+    console.error('Failed to save entry', e);
+    if (typeof toastr !== 'undefined') toastr.error('保存失败，请检查控制台');
+  }
 };
 
 // 【性能修复】提取原模板中的计算密集型操作至专门的计算属性，避免模板重渲染卡顿
