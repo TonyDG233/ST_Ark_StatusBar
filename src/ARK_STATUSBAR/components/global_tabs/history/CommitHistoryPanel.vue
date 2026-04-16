@@ -214,49 +214,74 @@ const applyInverseChanges = async (commitList: ArkCommit[]) => {
   );
 
   for (const [worldName, commits] of Object.entries(worldbookGroups)) {
-    await updateWorldbookWith(worldName, (wbEntries: UIWorldbookEntry[]) => {
-      // 必须按照提交时间的反序 (从新到老) 来还原，防止先关后开同一词条导致状态覆盖错误
-      const sortedCommits = [...commits].sort((a, b) => b.timestamp - a.timestamp);
+    // 必须按照提交时间的反序 (从新到老) 来还原
+    const sortedCommits = [...commits].sort((a, b) => b.timestamp - a.timestamp);
 
-      for (const commit of sortedCommits) {
+    // 首先按类型分离：特殊操作（新建/删除世界书或条目）和属性修改
+    // 为了保证时序，我们按 commit 依次处理
+    for (const commit of sortedCommits) {
+      // 检查是否有特殊操作
+      const hasSpecialOp = commit.changes.some(c => 
+        ['create_worldbook', 'delete_worldbook', 'create_entry', 'delete_entry'].includes(c.path as string)
+      );
+
+      if (hasSpecialOp) {
         for (const change of commit.changes) {
-          const e = wbEntries.find(x => x.uid === change.uid);
-          if (e) {
-            // 对类型的逆向恢复
-            if (commit.description.includes('changed type') || commit.description.includes('修改触发类型')) {
-              if (!e.strategy)
-                e.strategy = {
-                  type: 'selective',
-                  keys: [],
-                  keys_secondary: { logic: 'and_any', keys: [] },
-                  scan_depth: 'same_as_global',
-                };
-              e.strategy.type = change.from ? 'constant' : 'selective';
-            } else {
-              // 对于开关的恢复：要明确检查 change.from
-              // 原来为 true（开启状态），关闭操作产生了一条从 true -> false 的记录。
-              // 现在撤销，就要把状态调回 true。如果是 false->true，撤销就调回 false。
-              // 这里用严格赋值确保布尔类型
-              if (e && change.path === undefined) {
-                e.enabled = !!change.from;
-              } else if (e && change.path) {
-                // 处理基于路径的属性恢复 (比如 "content", "strategy.type")
-                const pathParts = change.path.split('.');
-                let currentObj: any = e;
-                for (let i = 0; i < pathParts.length - 1; i++) {
-                  currentObj = currentObj[pathParts[i]];
-                  if (!currentObj) break;
-                }
-                if (currentObj) {
-                  currentObj[pathParts[pathParts.length - 1]] = change.from;
+          if (change.path === 'create_worldbook') {
+            try { await deleteWorldbook(worldName); } catch (e) { console.error('Failed to delete worldbook', e); }
+          } else if (change.path === 'delete_worldbook') {
+            try { await createWorldbook(worldName, change.from); } catch (e) { console.error('Failed to restore worldbook', e); }
+          } else if (change.path === 'create_entry') {
+            try { await deleteWorldbookEntries(worldName, entry => entry.uid === change.uid); } catch (e) { console.error('Failed to delete entry', e); }
+          } else if (change.path === 'delete_entry') {
+            try { await createWorldbookEntries(worldName, [change.from]); } catch (e) { console.error('Failed to restore entry', e); }
+          }
+        }
+      }
+
+      // 处理普通属性修改
+      const propChanges = commit.changes.filter(c => 
+        !['create_worldbook', 'delete_worldbook', 'create_entry', 'delete_entry'].includes(c.path as string)
+      );
+
+      if (propChanges.length > 0) {
+        await updateWorldbookWith(worldName, (wbEntries: UIWorldbookEntry[]) => {
+          for (const change of propChanges) {
+            const e = wbEntries.find(x => x.uid === change.uid);
+            if (e) {
+              // 对类型的逆向恢复
+              if (commit.description.includes('changed type') || commit.description.includes('修改触发类型')) {
+                if (!e.strategy)
+                  e.strategy = {
+                    type: 'selective',
+                    keys: [],
+                    keys_secondary: { logic: 'and_any', keys: [] },
+                    scan_depth: 'same_as_global',
+                  };
+                e.strategy.type = change.from ? 'constant' : 'selective';
+              } else {
+                // 对于开关的恢复
+                if (e && change.path === undefined) {
+                  e.enabled = !!change.from;
+                } else if (e && change.path) {
+                  // 处理基于路径的属性恢复
+                  const pathParts = change.path.split('.');
+                  let currentObj: any = e;
+                  for (let i = 0; i < pathParts.length - 1; i++) {
+                    currentObj = currentObj[pathParts[i]];
+                    if (!currentObj) break;
+                  }
+                  if (currentObj) {
+                    currentObj[pathParts[pathParts.length - 1]] = change.from;
+                  }
                 }
               }
             }
           }
-        }
+          return wbEntries;
+        });
       }
-      return wbEntries;
-    });
+    }
 
     // 主动通知底层修改
     document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: worldName } }));

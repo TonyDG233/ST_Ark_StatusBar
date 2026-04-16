@@ -46,11 +46,11 @@ export interface ArkConfig {
 }
 
 export interface ArkCommitChange {
-  uid: number; // 修改的世界书条目 UID
+  uid: number; // 修改的世界书条目 UID (对于 create_worldbook/delete_worldbook 可以传 -1)
   comment: string; // 变动的条目名称/备注
-  path?: string; // [新增] 修改属性的路径，例如 "content", "strategy.scan_depth"。为空则默认表示修改的是 'enabled' 状态（向下兼容）。
-  from: any; // 变更前的状态/旧值
-  to?: any; // 变更后的状态/新值 (可选，仅用于UI展示，恢复逻辑主要依赖 from)
+  path?: string; // 修改属性的路径，或特殊动作：'create_worldbook', 'delete_worldbook', 'create_entry', 'delete_entry'。为空默认表示 'enabled' 状态。
+  from: any; // 变更前的状态/旧值 (对于新建操作传 null，删除操作则存放原本的数据)
+  to?: any; // 变更后的状态/新值 (可选)
 }
 
 /**
