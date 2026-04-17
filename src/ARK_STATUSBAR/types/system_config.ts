@@ -42,8 +42,8 @@ export interface ArkConfig {
   
   // [新增] 历史记录与备份上限配置
   maxHistoryCommits?: number;      // 历史记录队列最大长度 (默认 100)
-  maxHeavyHistoryCommits?: number; // 长文本修改等重度历史记录的最大长度 (默认 20)
-  maxTotalBackups?: number;        // 世界书全量备份的最大数量警戒线 (默认 10)
+  maxHeavyHistoryCommits?: number; // 长文本修改等重度历史记录的最大长度 (默认 30)
+  maxTotalBackups?: number;        // 世界书全量备份的最大数量警戒线 (默认 20)
 }
 
 export interface ArkCommitChange {
@@ -87,6 +87,6 @@ export const DEFAULT_CONFIG: ArkConfig = {
   worldbookInitialStates: {},
   snapshots: [],
   maxHistoryCommits: 100,
-  maxHeavyHistoryCommits: 20,
-  maxTotalBackups: 10,
+  maxHeavyHistoryCommits: 30,
+  maxTotalBackups: 20,
 };
