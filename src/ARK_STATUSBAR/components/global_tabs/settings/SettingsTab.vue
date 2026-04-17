@@ -19,7 +19,7 @@
         <input
           type="range"
           min="200"
-          max="600"
+          max="1000"
           step="10"
           :value="displayWidth"
           @change="commitUiWidth"
@@ -28,9 +28,24 @@
       </div>
 
       <div class="setting-item flex-col-align-start">
+        <label>
+          UI 内容高度: ({{ displayHeight ? displayHeight + 'px' : '默认 (400px)' }})
+          <span class="mobile-scale-hint">/ 仅在电脑端等宽屏生效</span>
+        </label>
+        <input
+          type="range"
+          min="200"
+          max="1200"
+          step="20"
+          :value="displayHeight"
+          @change="commitUiHeight"
+          class="slider-input"
+        />
+      </div>
+
+      <div class="setting-item flex-col-align-start">
         <label
-          >字体大小 (<span class="mobile-scale-hint">移动端自动 -2px / </span>当前基准: {{ displayFontSize }}px)</label
-        >
+          >字体大小 (<span class="mobile-scale-hint">移动端自动 -2px / </span>当前基准: {{ displayFontSize }}px)</label>
         <!-- 字体大小虽然影响较小，但也改为 @change，统一体验 -->
         <input
           type="range"
@@ -135,6 +150,7 @@ import { currentPrimaryWorldbook, previewUiFontSize, previewUiWidth, refreshWorl
 const currentConfig = useArkConfig();
 
 const displayWidth = computed(() => previewUiWidth.value ?? currentConfig.value?.uiWidth ?? 400);
+const displayHeight = computed(() => currentConfig.value?.uiHeight || 400);
 const displayFontSize = computed(() => previewUiFontSize.value ?? currentConfig.value?.uiFontSize ?? 14);
 
 // 【BugFix】：由于去除了实时的 @input 监听（为了防止滑块随着页面变宽而位移导致的抖动反馈回路）
@@ -142,6 +158,11 @@ const displayFontSize = computed(() => previewUiFontSize.value ?? currentConfig.
 const commitUiWidth = (e: Event) => {
   const finalVal = Number((e.target as HTMLInputElement).value);
   configStore.updateConfig({ uiWidth: finalVal });
+};
+
+const commitUiHeight = (e: Event) => {
+  const finalVal = Number((e.target as HTMLInputElement).value);
+  configStore.updateConfig({ uiHeight: finalVal });
 };
 
 const commitUiFontSize = (e: Event) => {

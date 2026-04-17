@@ -30,6 +30,7 @@ export interface ArkConfig {
   showConstantEntries: boolean; // 是否在拦截器和主动检测中显示常驻(蓝灯)条目
   isDebugMode?: boolean; // 是否开启调试模式
   uiWidth: number; // 状态栏 UI 的宽度
+  uiHeight?: number; // 状态栏 UI 的高度 (仅桌面端非移动端布局下生效)
   uiFontSize: number; // 状态栏 UI 的基础字体大小
   commits: ArkCommit[]; // 操作历史记录（类似 Git commit）
   lastUpdateTime: number; // 最后一次配置更新的时间戳
@@ -77,6 +78,7 @@ export const DEFAULT_CONFIG: ArkConfig = {
   showConstantEntries: false, // 默认隐藏蓝灯条目
   isDebugMode: false,
   uiWidth: 400,
+  uiHeight: 400,
   uiFontSize: 14,
   commits: [],
   lastUpdateTime: 0,

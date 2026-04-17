@@ -34,6 +34,7 @@
           currentUiMode === UiMode.MINI ? '180px' : (previewUiWidth ?? currentConfig?.uiWidth ?? 400) + 'px',
         '--ui-font-size': (previewUiFontSize ?? currentConfig?.uiFontSize ?? 14) + 'px',
         '--snapped-width': isSnappedToEdge ? `${snappedStretchWidth}px` : '32px',
+        '--ui-height-content': currentConfig?.uiHeight ? currentConfig.uiHeight + 'px' : '400px',
       }"
     >
       <!-- 气泡窗变身把手，利用原 UI 的极限压缩产生无缝融合效果 -->
@@ -261,6 +262,8 @@ onMounted(() => {
   max-height: calc(100dvh - 80px);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
   overflow: hidden; /* <--- 修复：强制截断流出的子元素，以配合内部滚动条 */
   /* 
     【重点解耦】：因为不再和物理坐标纠缠，这里的 transition 可以放心大胆地加上宽度变化。
@@ -428,8 +431,19 @@ onMounted(() => {
 
 .statusbar-content {
   padding: 15px;
-  max-height: 400px;
+  /* 移除固定的 max-height: 400px，让父级 Flexbox 控制高度。
+     如果设置了 uiHeight，我们给它一个显式的最大高度，让其可拉伸 */
+  max-height: var(--ui-height-content, 400px);
   overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+/* 响应式：在窄屏幕手机端，忽略用户设置的 ui-height，退化为默认的自适应高度限制 */
+@media (max-width: 500px) {
+  .statusbar-content {
+    max-height: 400px;
+  }
 }
 
 /* =========================================================================
@@ -526,6 +540,7 @@ onMounted(() => {
   transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   width: 100%; /* 防止 Grid 宽度失控 (Grid Blowout) */
+  min-height: 0; /* 允许在父级 Flex 容器中被压缩 */
 }
 
 .statusbar-content-wrapper.is-full-expanded {
@@ -538,6 +553,8 @@ onMounted(() => {
   width: 100%;
   opacity: 0;
   transition: opacity 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .statusbar-content-wrapper.is-full-expanded .statusbar-content-inner {
