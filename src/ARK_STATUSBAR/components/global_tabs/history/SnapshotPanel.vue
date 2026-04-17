@@ -15,7 +15,7 @@
     <div class="warning-box" style="margin-bottom: 0; padding: 10px; border-radius: 6px 6px 0 0; border-bottom: none">
       <strong style="display: block; margin-bottom: 4px">📸 世界书快照管理</strong>
       <p style="margin: 0; font-size: 0.9em; opacity: 0.9">
-        在此处可以对任意世界书拍摄（保存）当前所有条目状态的“快照”，并在日后随时无损恢复。
+        此处可以对任意世界书保存当前所有条目 “蓝/绿灯”，“开启/禁用状态” 的快照，并在日后随时无损恢复。
       </p>
     </div>
 
@@ -48,12 +48,12 @@
             @click="createSnapshot"
             style="padding: 6px 12px; white-space: nowrap; flex-grow: 1"
           >
-            拍摄轻量快照
+            拍摄快照
           </button>
         </div>
       </div>
 
-      <div v-if="!currentConfig?.snapshots?.length" class="empty-state" style="padding: 10px">暂无保存的轻量快照。</div>
+      <div v-if="!currentConfig?.snapshots?.length" class="empty-state" style="padding: 10px">暂无保存的快照。</div>
       <ul v-else class="entry-list read-only" style="margin: 0; max-height: 200px; overflow-y: auto">
         <li
           v-for="snap in currentConfig?.snapshots"
@@ -93,9 +93,9 @@ import { computed, onMounted, ref } from 'vue';
 import { useArkConfig } from '../../../core/config_store';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
 import {
-    allAvailableWorldbooks,
-    currentPrimaryWorldbook,
-    isArknightsCard
+  allAvailableWorldbooks,
+  currentPrimaryWorldbook,
+  isArknightsCard
 } from '../shared_ui_state';
 
 const currentConfig = useArkConfig();

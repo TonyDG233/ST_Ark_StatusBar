@@ -2,9 +2,9 @@
   <div>
     <!-- 全量备份区域 (新) -->
     <div class="warning-box" style="margin-top: 20px; margin-bottom: 0; padding: 10px; border-radius: 6px 6px 0 0; border-bottom: none; background-color: rgba(23, 162, 184, 0.1); border-color: #17a2b8;">
-      <strong style="display: block; margin-bottom: 4px; color: #17a2b8">💾 世界书全量备份 (灾备)</strong>
+      <strong style="display: block; margin-bottom: 4px; color: #17a2b8">💾 世界书全量备份</strong>
       <p style="margin: 0; font-size: 0.9em; opacity: 0.9">
-        克隆目标世界书所有的条目内容并创建独立文件。适用于大范围编辑或重构前的安全兜底。
+        克隆目标世界书所有的条目内容与状态并创建独立文件。适用于大范围编辑或重构前的安全兜底。
       </p>
     </div>
     <div
@@ -83,8 +83,8 @@
 import { onMounted, ref } from 'vue';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
 import {
-    allAvailableWorldbooks,
-    currentPrimaryWorldbook,
+  allAvailableWorldbooks,
+  currentPrimaryWorldbook,
 } from '../shared_ui_state';
 
 const manager = StatusBarManager.getInstance();
@@ -121,7 +121,16 @@ const createFullBackup = async () => {
     await manager.worldbook.createFullBackup(targetWb, name || undefined);
     newFullBackupName.value = '';
     await fetchBackups(); // 刷新列表
-    if (typeof toastr !== 'undefined') toastr.success('世界书全量备份创建成功！');
+    if (typeof toastr !== 'undefined') {
+      toastr.success('世界书全量备份创建成功！');
+      if (backupWarningMsg.value) {
+        if (backupWarningMsg.value.includes('接近上限')) {
+          toastr.info(backupWarningMsg.value);
+        } else {
+          toastr.warning(backupWarningMsg.value);
+        }
+      }
+    }
   } catch (e) {
     if (typeof toastr !== 'undefined') toastr.error('备份失败，详见控制台');
   }

@@ -35,7 +35,7 @@ export class BackupService {
 
   /**
    * 检查备份数量是否超过全局配置的上限
-   * 如果超过，会返回一个警告信息，否则返回 null
+   * 如果超过或接近，会返回一个带具体数值的警告信息，否则返回 null
    */
   public async checkBackupLimitWarning(): Promise<string | null> {
     const config = configStore.state.value;
@@ -43,7 +43,9 @@ export class BackupService {
     const allBackups = await this.getAllBackups();
 
     if (allBackups.length >= maxBackups) {
-      return `当前系统内存在的全量备份数量 (${allBackups.length}) 已达到或超过上限 (${maxBackups})，建议前往管理面板清理旧备份以释放空间。`;
+      return `当前系统内存在的全量备份数量已达上限 (${allBackups.length}/${maxBackups})，强烈建议前往清理旧备份以释放空间。`;
+    } else if (allBackups.length >= maxBackups - 2) {
+      return `全量备份数量已接近上限 (${allBackups.length}/${maxBackups})，建议提前清理不再需要的备份。`;
     }
     return null;
   }

@@ -129,6 +129,7 @@ class ConfigStore {
 
     let toRemove = new Set<string>();
 
+    let removedHeavyCount = 0;
     // 1. 检查重度记录上限
     let heavyCommits = commits.filter(c => c.isHeavy);
     let excessHeavy = heavyCommits.length - maxHeavy;
@@ -137,10 +138,17 @@ class ConfigStore {
       const unpinnedHeavy = heavyCommits.filter(c => !c.isPinned).sort((a, b) => a.timestamp - b.timestamp);
       for (let i = 0; i < excessHeavy && i < unpinnedHeavy.length; i++) {
         toRemove.add(unpinnedHeavy[i].id);
+        removedHeavyCount++;
+      }
+    } else if (excessHeavy > -3 && excessHeavy <= 0) {
+      // 预警级 (Info)：距离上限不到 3 条
+      if (typeof toastr !== 'undefined') {
+        toastr.info(`重度修改记录已接近上限 (${heavyCommits.length}/${maxHeavy})，继续操作将自动清理旧记录。`);
       }
     }
 
     let result = commits.filter(c => !toRemove.has(c.id));
+    let removedNormalCount = 0;
 
     // 2. 检查总数上限
     let excessTotal = result.length - maxHistory;
@@ -148,7 +156,20 @@ class ConfigStore {
       const unpinnedAll = result.filter(c => !c.isPinned).sort((a, b) => a.timestamp - b.timestamp);
       for (let i = 0; i < excessTotal && i < unpinnedAll.length; i++) {
         toRemove.add(unpinnedAll[i].id);
+        removedNormalCount++;
       }
+    } else if (excessTotal > -5 && excessTotal <= 0 && excessHeavy <= -3) {
+      // 预警级 (Info)：总数距离上限不到 5 条，且重度记录没在预警
+      if (typeof toastr !== 'undefined') {
+        toastr.info(`操作记录总数已接近上限 (${result.length}/${maxHistory})，即将开始自动清理。`);
+      }
+    }
+
+    // 驱逐级 (Warning)
+    if (removedHeavyCount > 0 && typeof toastr !== 'undefined') {
+      toastr.warning(`超出重度修改上限 (${heavyCommits.length}/${maxHeavy})，已清理 ${removedHeavyCount} 条最旧的未保护记录。`);
+    } else if (removedNormalCount > 0 && typeof toastr !== 'undefined') {
+      toastr.warning(`超出操作记录总上限 (${result.length}/${maxHistory})，已清理 ${removedNormalCount} 条最旧的未保护记录。`);
     }
 
     return commits.filter(c => !toRemove.has(c.id));
