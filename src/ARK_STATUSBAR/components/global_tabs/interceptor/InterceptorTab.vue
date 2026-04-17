@@ -432,5 +432,7 @@ const togglePendingEntry = async (entry: UIWorldbookEntry) => {
   margin-left: 6px;
   border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.15);
+  display: inline-block;
+  white-space: nowrap;
 }
 </style>
