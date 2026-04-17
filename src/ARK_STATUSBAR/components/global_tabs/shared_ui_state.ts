@@ -25,7 +25,9 @@ export const entryTokenCountCache = ref<Record<string, number>>({});
  * 为条目生成唯一的缓存 Key
  */
 export const getEntryKey = (entry: UIWorldbookEntry) => {
-  return entry.uid ? `${entry.uid}-${entry.world || 'unknown'}` : `${entry.name || 'unnamed'}-${entry.world || 'unknown'}`;
+  return entry.uid
+    ? `${entry.uid}-${entry.world || 'unknown'}`
+    : `${entry.name || 'unnamed'}-${entry.world || 'unknown'}`;
 };
 
 /**
@@ -34,7 +36,7 @@ export const getEntryKey = (entry: UIWorldbookEntry) => {
 export const calculateTokenForEntry = async (entry: UIWorldbookEntry) => {
   const key = getEntryKey(entry);
   if (entryTokenCountCache.value[key] !== undefined) return;
-  
+
   if (typeof SillyTavern !== 'undefined' && typeof SillyTavern.getTokenCountAsync === 'function') {
     try {
       const content = entry.content || '';

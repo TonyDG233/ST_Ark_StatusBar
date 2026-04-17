@@ -21,10 +21,19 @@
     <!-- Action Buttons -->
     <div class="wb-action">
       <button class="icon-btn tiny" @click="toggleEdit" title="编辑完整属性">✏️</button>
-      <button class="icon-btn tiny pin-btn" @click="togglePin" :title="entry._isPinned ? '取消置顶' : '偏好置顶'" :class="{ pinned: entry._isPinned }">
+      <button
+        class="icon-btn tiny pin-btn"
+        @click="togglePin"
+        :title="entry._isPinned ? '取消置顶' : '偏好置顶'"
+        :class="{ pinned: entry._isPinned }"
+      >
         {{ entry._isPinned ? '📌' : '📍' }}
       </button>
-      <button class="icon-btn tiny" @click="toggleType" :title="entry._computedType === 'constant' ? '当前：蓝灯(常驻)，点击切换' : '当前：绿灯(条件)，点击切换'">
+      <button
+        class="icon-btn tiny"
+        @click="toggleType"
+        :title="entry._computedType === 'constant' ? '当前：蓝灯(常驻)，点击切换' : '当前：绿灯(条件)，点击切换'"
+      >
         {{ entry._computedType === 'constant' ? '🔵' : '🟢' }}
       </button>
       <label class="switch" title="开启/关闭">
@@ -36,12 +45,7 @@
   </div>
 
   <!-- 内联展开的完整编辑器 -->
-  <WorldbookEntryEditor 
-    v-if="isEditing"
-    :entry="entry" 
-    @save="onSave" 
-    @cancel="isEditing = false" 
-  />
+  <WorldbookEntryEditor v-if="isEditing" :entry="entry" @save="onSave" @cancel="isEditing = false" />
 </template>
 
 <script setup lang="ts">
@@ -66,12 +70,12 @@ const isEditing = ref(false);
 
 const isSelected = computed({
   get: () => props.selectedEntries.includes(props.entry.uid),
-  set: (val) => {
+  set: val => {
     let newList = [...props.selectedEntries];
     if (val) newList.push(props.entry.uid);
     else newList = newList.filter(u => u !== props.entry.uid);
     emit('update:selectedEntries', newList);
-  }
+  },
 });
 
 const toggleEdit = () => {

@@ -24,15 +24,15 @@
       <!-- 2. 绿灯专属：关键词与逻辑 -->
       <div class="form-group" v-if="localEntry.strategy.type === 'selective'">
         <label>主关键词 (逗号分隔)</label>
-        <input 
-          type="text" 
-          :value="joinKeys(localEntry.strategy.keys)" 
-          @input="updateKeys($event, 'keys')" 
-          class="editor-input" 
-          placeholder="例如: 阿米娅, 罗德岛" 
+        <input
+          type="text"
+          :value="joinKeys(localEntry.strategy.keys)"
+          @input="updateKeys($event, 'keys')"
+          class="editor-input"
+          placeholder="例如: 阿米娅, 罗德岛"
         />
-        
-        <div class="row" style="margin-top: 8px;">
+
+        <div class="row" style="margin-top: 8px">
           <div class="form-item flex-1">
             <label>可选逻辑 (Logic)</label>
             <select v-model="localEntry.strategy.keys_secondary.logic" class="editor-select">
@@ -44,12 +44,12 @@
           </div>
           <div class="form-item flex-2">
             <label>可选过滤器/次要关键词 (逗号分隔)</label>
-            <input 
-              type="text" 
-              :value="joinKeys(localEntry.strategy.keys_secondary.keys)" 
-              @input="updateKeys($event, 'keys_secondary')" 
-              class="editor-input" 
-              placeholder="需要结合可选逻辑生效..." 
+            <input
+              type="text"
+              :value="joinKeys(localEntry.strategy.keys_secondary.keys)"
+              @input="updateKeys($event, 'keys_secondary')"
+              class="editor-input"
+              placeholder="需要结合可选逻辑生效..."
             />
           </div>
         </div>
@@ -110,7 +110,7 @@
           延迟到递归
         </label>
       </div>
-      
+
       <!-- 5. 正文内容 -->
       <div class="form-group">
         <label>内容 (Content)</label>
@@ -146,7 +146,12 @@ const localEntry = ref<UIWorldbookEntry>(cloneDeep(props.entry));
 // 初始化防护：确保所有被用到的嵌套对象都存在，防止 v-model 报错
 onMounted(() => {
   if (!localEntry.value.strategy) {
-    localEntry.value.strategy = { type: 'selective', keys: [], keys_secondary: { logic: 'and_any', keys: [] }, scan_depth: 'same_as_global' };
+    localEntry.value.strategy = {
+      type: 'selective',
+      keys: [],
+      keys_secondary: { logic: 'and_any', keys: [] },
+      scan_depth: 'same_as_global',
+    };
   }
   if (!localEntry.value.strategy.keys_secondary) {
     localEntry.value.strategy.keys_secondary = { logic: 'and_any', keys: [] };
@@ -169,7 +174,10 @@ const joinKeys = (keys: (string | RegExp)[] | undefined) => {
 
 const updateKeys = (event: Event, target: 'keys' | 'keys_secondary') => {
   const val = (event.target as HTMLInputElement).value;
-  const arr = val.split(',').map(s => s.trim()).filter(s => s !== '');
+  const arr = val
+    .split(',')
+    .map(s => s.trim())
+    .filter(s => s !== '');
   if (target === 'keys') {
     localEntry.value.strategy.keys = arr;
   } else {
@@ -194,7 +202,7 @@ const saveChanges = () => {
   if (orig.name !== curr.name) {
     changes.push({ uid, comment, path: 'name', from: orig.name, to: curr.name });
   }
-  
+
   // 2. 检查策略类型
   if (orig.strategy?.type !== curr.strategy.type) {
     changes.push({ uid, comment, path: 'strategy.type', from: orig.strategy?.type, to: curr.strategy.type });
@@ -202,15 +210,33 @@ const saveChanges = () => {
 
   // 3. 检查主关键词
   if (!isEqual(orig.strategy?.keys, curr.strategy.keys)) {
-    changes.push({ uid, comment, path: 'strategy.keys', from: cloneDeep(orig.strategy?.keys || []), to: cloneDeep(curr.strategy.keys) });
+    changes.push({
+      uid,
+      comment,
+      path: 'strategy.keys',
+      from: cloneDeep(orig.strategy?.keys || []),
+      to: cloneDeep(curr.strategy.keys),
+    });
   }
 
   // 4. 检查次要关键词与逻辑
   if (orig.strategy?.keys_secondary?.logic !== curr.strategy.keys_secondary.logic) {
-    changes.push({ uid, comment, path: 'strategy.keys_secondary.logic', from: orig.strategy?.keys_secondary?.logic, to: curr.strategy.keys_secondary.logic });
+    changes.push({
+      uid,
+      comment,
+      path: 'strategy.keys_secondary.logic',
+      from: orig.strategy?.keys_secondary?.logic,
+      to: curr.strategy.keys_secondary.logic,
+    });
   }
   if (!isEqual(orig.strategy?.keys_secondary?.keys, curr.strategy.keys_secondary.keys)) {
-    changes.push({ uid, comment, path: 'strategy.keys_secondary.keys', from: cloneDeep(orig.strategy?.keys_secondary?.keys || []), to: cloneDeep(curr.strategy.keys_secondary.keys) });
+    changes.push({
+      uid,
+      comment,
+      path: 'strategy.keys_secondary.keys',
+      from: cloneDeep(orig.strategy?.keys_secondary?.keys || []),
+      to: cloneDeep(curr.strategy.keys_secondary.keys),
+    });
   }
 
   // 5. 检查插入位置相关
@@ -234,13 +260,31 @@ const saveChanges = () => {
 
   // 7. 检查递归选项
   if (orig.recursion?.prevent_incoming !== curr.recursion.prevent_incoming) {
-    changes.push({ uid, comment, path: 'recursion.prevent_incoming', from: !!orig.recursion?.prevent_incoming, to: curr.recursion.prevent_incoming });
+    changes.push({
+      uid,
+      comment,
+      path: 'recursion.prevent_incoming',
+      from: !!orig.recursion?.prevent_incoming,
+      to: curr.recursion.prevent_incoming,
+    });
   }
   if (orig.recursion?.prevent_outgoing !== curr.recursion.prevent_outgoing) {
-    changes.push({ uid, comment, path: 'recursion.prevent_outgoing', from: !!orig.recursion?.prevent_outgoing, to: curr.recursion.prevent_outgoing });
+    changes.push({
+      uid,
+      comment,
+      path: 'recursion.prevent_outgoing',
+      from: !!orig.recursion?.prevent_outgoing,
+      to: curr.recursion.prevent_outgoing,
+    });
   }
   if (orig.recursion?.delay_until !== curr.recursion.delay_until) {
-    changes.push({ uid, comment, path: 'recursion.delay_until', from: orig.recursion?.delay_until, to: curr.recursion.delay_until });
+    changes.push({
+      uid,
+      comment,
+      path: 'recursion.delay_until',
+      from: orig.recursion?.delay_until,
+      to: curr.recursion.delay_until,
+    });
   }
 
   // 8. 检查内容 (Content)
@@ -317,8 +361,12 @@ const saveChanges = () => {
   gap: 4px;
 }
 
-.flex-1 { flex: 1; }
-.flex-2 { flex: 2; }
+.flex-1 {
+  flex: 1;
+}
+.flex-2 {
+  flex: 2;
+}
 
 label {
   font-size: 0.85em;
@@ -326,7 +374,8 @@ label {
   font-weight: 500;
 }
 
-.editor-input, .editor-select {
+.editor-input,
+.editor-select {
   width: 100%;
   padding: 6px 8px;
   background: rgba(0, 0, 0, 0.3);
@@ -338,7 +387,8 @@ label {
   transition: border-color 0.2s;
 }
 
-.editor-input:focus, .editor-select:focus {
+.editor-input:focus,
+.editor-select:focus {
   border-color: #1e90ff;
 }
 
@@ -389,7 +439,9 @@ label {
   cursor: pointer;
   font-weight: bold;
 }
-.btn-primary:hover { background: #187bcd; }
+.btn-primary:hover {
+  background: #187bcd;
+}
 
 .btn-secondary {
   background: transparent;
@@ -399,5 +451,7 @@ label {
   border-radius: 4px;
   cursor: pointer;
 }
-.btn-secondary:hover { background: rgba(255, 255, 255, 0.1); }
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
 </style>

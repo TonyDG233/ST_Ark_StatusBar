@@ -1,7 +1,18 @@
 <template>
   <div>
     <!-- 全量备份区域 (新) -->
-    <div class="warning-box" style="margin-top: 20px; margin-bottom: 0; padding: 10px; border-radius: 6px 6px 0 0; border-bottom: none; background-color: rgba(23, 162, 184, 0.1); border-color: #17a2b8;">
+    <div
+      class="warning-box"
+      style="
+        margin-top: 20px;
+        margin-bottom: 0;
+        padding: 10px;
+        border-radius: 6px 6px 0 0;
+        border-bottom: none;
+        background-color: rgba(23, 162, 184, 0.1);
+        border-color: #17a2b8;
+      "
+    >
       <strong style="display: block; margin-bottom: 4px; color: #17a2b8">💾 世界书全量备份</strong>
       <p style="margin: 0; font-size: 0.9em; opacity: 0.9">
         克隆目标世界书所有的条目内容与状态并创建独立文件。适用于大范围编辑或重构前的安全兜底。
@@ -17,9 +28,13 @@
         background: rgba(0, 0, 0, 0.15);
       "
     >
-      <div v-if="backupWarningMsg" class="warning-box" style="margin-bottom: 10px; background-color: rgba(255, 193, 7, 0.2); border-color: #ffc107; color: #ffc107;">
+      <div
+        v-if="backupWarningMsg"
+        class="warning-box"
+        style="margin-bottom: 10px; background-color: rgba(255, 193, 7, 0.2); border-color: #ffc107; color: #ffc107"
+      >
         <strong>⚠️ 备份数量警告</strong>
-        <p style="margin: 0; font-size: 0.85em;">{{ backupWarningMsg }}</p>
+        <p style="margin: 0; font-size: 0.85em">{{ backupWarningMsg }}</p>
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px">
@@ -38,7 +53,13 @@
           <button
             class="btn-primary"
             @click="createFullBackup"
-            style="padding: 6px 12px; white-space: nowrap; flex-grow: 1; background-color: #17a2b8; border-color: #17a2b8"
+            style="
+              padding: 6px 12px;
+              white-space: nowrap;
+              flex-grow: 1;
+              background-color: #17a2b8;
+              border-color: #17a2b8;
+            "
           >
             新建独立备份
           </button>
@@ -62,11 +83,7 @@
           </div>
           <div style="font-size: 0.8em; opacity: 0.7; margin-bottom: 8px">📁 实体文件: {{ snap }}</div>
           <div class="action-bar compact">
-            <button
-              class="btn-success tiny"
-              @click="restoreFullBackup(snap)"
-              style="padding: 4px; font-size: 0.85em"
-            >
+            <button class="btn-success tiny" @click="restoreFullBackup(snap)" style="padding: 4px; font-size: 0.85em">
               ✅ 完整覆盖
             </button>
             <button class="btn-danger tiny" @click="deleteFullBackup(snap)" style="padding: 4px; font-size: 0.85em">
@@ -82,10 +99,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
-import {
-  allAvailableWorldbooks,
-  currentPrimaryWorldbook,
-} from '../shared_ui_state';
+import { allAvailableWorldbooks, currentPrimaryWorldbook } from '../shared_ui_state';
 
 const manager = StatusBarManager.getInstance();
 

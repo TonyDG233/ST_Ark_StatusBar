@@ -2,30 +2,45 @@
   <div class="tab-panel flex-col">
     <div class="filters">
       <input type="text" v-model="filterText" placeholder="搜索世界书..." class="search-input" />
-      <div style="display: flex; gap: 20px; justify-content: center;">
+      <div style="display: flex; gap: 20px; justify-content: center">
         <button class="icon-btn pill tiny" title="新建世界书" @click="actions.createNewWorldbook">➕ 新建世界书</button>
-        <button class="icon-btn pill tiny" title="批量管理" @click="toggleGlobalBatchMode" :class="{ active: isGlobalBatchMode }">📑 批量管理</button>
+        <button
+          class="icon-btn pill tiny"
+          title="批量管理"
+          @click="toggleGlobalBatchMode"
+          :class="{ active: isGlobalBatchMode }"
+        >
+          📑 批量管理
+        </button>
       </div>
     </div>
-    
-    <div v-if="isGlobalBatchMode" class="batch-toolbar compact" style="margin-bottom: 10px;">
-       <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
-         <input type="checkbox" :checked="isAllWorldbooksSelected" @change="toggleSelectAllWorldbooks" /> 全选
-       </label>
-       <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-         <button class="icon-btn pill tiny" @click="actions.batchPinWorldbooks(selectedWorldbooks, true)">📌置顶</button>
-         <button class="icon-btn pill tiny" @click="actions.batchPinWorldbooks(selectedWorldbooks, false)">📍消顶</button>
-         <button class="icon-btn pill tiny" @click="actions.batchMountWorldbooks(selectedWorldbooks, true)">🔗挂载</button>
-         <button class="icon-btn pill tiny" @click="actions.batchMountWorldbooks(selectedWorldbooks, false)">⛓️卸载</button>
-         <button class="icon-btn pill tiny" style="color: #ff6b6b; border-color: #ff6b6b55;" @click="handleBatchDelete">🗑️删除</button>
-       </div>
+
+    <div v-if="isGlobalBatchMode" class="batch-toolbar compact" style="margin-bottom: 10px">
+      <label style="cursor: pointer; display: flex; align-items: center; gap: 4px">
+        <input type="checkbox" :checked="isAllWorldbooksSelected" @change="toggleSelectAllWorldbooks" /> 全选
+      </label>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap">
+        <button class="icon-btn pill tiny" @click="actions.batchPinWorldbooks(selectedWorldbooks, true)">📌置顶</button>
+        <button class="icon-btn pill tiny" @click="actions.batchPinWorldbooks(selectedWorldbooks, false)">
+          📍消顶
+        </button>
+        <button class="icon-btn pill tiny" @click="actions.batchMountWorldbooks(selectedWorldbooks, true)">
+          🔗挂载
+        </button>
+        <button class="icon-btn pill tiny" @click="actions.batchMountWorldbooks(selectedWorldbooks, false)">
+          ⛓️卸载
+        </button>
+        <button class="icon-btn pill tiny" style="color: #ff6b6b; border-color: #ff6b6b55" @click="handleBatchDelete">
+          🗑️删除
+        </button>
+      </div>
     </div>
 
     <div class="all-wbs-list">
-      <WorldbookItem 
-        v-for="wb in filteredWorldbooks" 
-        :key="wb.name" 
-        :wb="wb" 
+      <WorldbookItem
+        v-for="wb in filteredWorldbooks"
+        :key="wb.name"
+        :wb="wb"
         :isGlobalBatchMode="isGlobalBatchMode"
         v-model:selectedWorldbooks="selectedWorldbooks"
       />

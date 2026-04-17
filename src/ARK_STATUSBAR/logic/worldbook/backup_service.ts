@@ -57,10 +57,10 @@ export class BackupService {
    * @returns 创建好的备份世界书名称
    */
   public async createFullBackup(targetWorldbook: string, customName?: string): Promise<string> {
-    const backupName = customName 
+    const backupName = customName
       ? `${BACKUP_PREFIX_BASE}${customName}]_${targetWorldbook}`
       : this.generateBackupName(targetWorldbook);
-    
+
     try {
       const originalEntries = await getWorldbook(targetWorldbook);
       // 创建新的世界书实体作为备份，使用 debounce 渲染以提高性能
@@ -82,11 +82,13 @@ export class BackupService {
       const backupEntries = await getWorldbook(backupWorldbook);
       // 完全覆盖原世界书的内容
       await replaceWorldbook(targetWorldbook, backupEntries, { render: 'debounced' });
-      
+
       // 主动触发事件以通知 UI 同步
-      document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', {
-        detail: { worldbookName: targetWorldbook }
-      }));
+      document.dispatchEvent(
+        new CustomEvent('ark:worldbook-data-changed', {
+          detail: { worldbookName: targetWorldbook },
+        }),
+      );
     } catch (e) {
       console.error(`[ARK_BackupService] 恢复备份失败 (${backupWorldbook} -> ${targetWorldbook}):`, e);
       throw e;

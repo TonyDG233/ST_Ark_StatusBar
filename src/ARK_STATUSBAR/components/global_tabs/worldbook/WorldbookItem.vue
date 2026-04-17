@@ -26,33 +26,31 @@
         >
           {{ wb.type === 'global' ? '⛓️' : '🔗' }}
         </button>
-        <button
-          class="icon-btn tiny"
-          style="color: #ff6b6b"
-          @click.stop="deleteWorldbookUI"
-          title="删除世界书"
-        >
+        <button class="icon-btn tiny" style="color: #ff6b6b" @click.stop="deleteWorldbookUI" title="删除世界书">
           🗑️
         </button>
         <span class="accordion-arrow" v-if="!isGlobalBatchMode">{{ isExpanded ? '▼' : '▶' }}</span>
       </div>
     </div>
 
-    <WorldbookEntryList 
-      v-if="isExpanded" 
-      :wbName="wb.name" 
-    />
+    <WorldbookEntryList v-if="isExpanded" :wbName="wb.name" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { CONFIG_ENTRY_PREFIX, expandedWorldbooks, isLoadingWb, UIWorldbookEntry, worldbookEntriesCache } from '../shared_ui_state';
+import {
+  CONFIG_ENTRY_PREFIX,
+  expandedWorldbooks,
+  isLoadingWb,
+  UIWorldbookEntry,
+  worldbookEntriesCache,
+} from '../shared_ui_state';
 import { useWorldbookActions } from './useWorldbookActions';
 import WorldbookEntryList from './WorldbookEntryList.vue';
 
 const props = defineProps<{
-  wb: { name: string; type: string; isPinned: boolean; };
+  wb: { name: string; type: string; isPinned: boolean };
   isGlobalBatchMode: boolean;
   selectedWorldbooks: string[];
 }>();
@@ -65,12 +63,12 @@ const actions = useWorldbookActions();
 
 const isSelected = computed({
   get: () => props.selectedWorldbooks.includes(props.wb.name),
-  set: (val) => {
+  set: val => {
     let newList = [...props.selectedWorldbooks];
     if (val) newList.push(props.wb.name);
     else newList = newList.filter(u => u !== props.wb.name);
     emit('update:selectedWorldbooks', newList);
-  }
+  },
 });
 
 const isExpanded = computed(() => expandedWorldbooks.value.includes(props.wb.name));

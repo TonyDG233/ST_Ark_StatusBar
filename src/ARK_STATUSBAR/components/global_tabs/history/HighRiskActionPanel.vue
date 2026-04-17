@@ -38,11 +38,7 @@
 <script setup lang="ts">
 import { configStore } from '../../../core/config_store';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
-import {
-    allAvailableWorldbooks,
-    currentPrimaryWorldbook,
-    isArknightsCard
-} from '../shared_ui_state';
+import { allAvailableWorldbooks, currentPrimaryWorldbook, isArknightsCard } from '../shared_ui_state';
 
 const manager = StatusBarManager.getInstance();
 

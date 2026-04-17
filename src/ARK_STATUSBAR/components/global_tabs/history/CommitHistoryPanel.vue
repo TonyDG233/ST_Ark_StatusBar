@@ -21,21 +21,50 @@
     </div>
 
     <!-- 筛选工具栏 -->
-    <div class="filter-bar" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; padding: 5px; background: rgba(0,0,0,0.1); border-radius: 4px;">
-      <div style="display: flex; gap: 10px; align-items: center; flex: 1; min-width: 200px;">
-        <label style="font-size: 0.9em; opacity: 0.8; white-space: nowrap;">🔍 属性筛选：</label>
-        <select v-model="selectedFilter" style="background: var(--SmartThemeChatBackgroundColor); color: var(--SmartThemeBodyColor); border: 1px solid var(--SmartThemeBorderColor); border-radius: 4px; padding: 4px; flex: 1; min-width: 0;">
+    <div
+      class="filter-bar"
+      style="
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+        padding: 5px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+      "
+    >
+      <div style="display: flex; gap: 10px; align-items: center; flex: 1; min-width: 200px">
+        <label style="font-size: 0.9em; opacity: 0.8; white-space: nowrap">🔍 属性筛选：</label>
+        <select
+          v-model="selectedFilter"
+          style="
+            background: var(--SmartThemeChatBackgroundColor);
+            color: var(--SmartThemeBodyColor);
+            border: 1px solid var(--SmartThemeBorderColor);
+            border-radius: 4px;
+            padding: 4px;
+            flex: 1;
+            min-width: 0;
+          "
+        >
           <option value="all">显示全部 ({{ currentConfig?.commits?.length || 0 }})</option>
           <option v-for="filter in availableFilters" :key="filter.value" :value="filter.value">
             {{ filter.label }} ({{ filter.count }})
           </option>
         </select>
       </div>
-      
+
       <button
         v-if="currentConfig?.commits?.length"
         class="icon-btn tiny"
-        style="padding: 4px 8px; border: 1px solid var(--SmartThemeBorderColor, #444); background: rgba(0, 0, 0, 0.2); white-space: nowrap;"
+        style="
+          padding: 4px 8px;
+          border: 1px solid var(--SmartThemeBorderColor, #444);
+          background: rgba(0, 0, 0, 0.2);
+          white-space: nowrap;
+        "
         @click="toggleBatchMode"
       >
         {{ isBatchMode ? '退出多选' : '批量多选' }}
@@ -104,11 +133,13 @@
         </div>
         <ul class="commit-changes">
           <li v-for="change in commit.changes" :key="change.uid">
-            {{ change.comment }} 
+            {{ change.comment }}
             <span v-if="change.path" style="color: #1e90ff">[{{ change.path }}]</span>
-            : 
-            <span style="color: #dc3545; text-decoration: line-through;">{{ getChangeText(commit, change.from) }}</span>
-            <span v-if="change.to !== undefined"> -> <span style="color: #28a745">{{ getChangeText(commit, change.to) }}</span></span>
+            :
+            <span style="color: #dc3545; text-decoration: line-through">{{ getChangeText(commit, change.from) }}</span>
+            <span v-if="change.to !== undefined">
+              -> <span style="color: #28a745">{{ getChangeText(commit, change.to) }}</span></span
+            >
           </li>
         </ul>
         <div
@@ -120,7 +151,10 @@
             class="icon-btn tiny"
             @click.stop="togglePinCommit(commit)"
             :title="commit.isPinned ? '取消保护' : '置顶保护，防止被自动清理'"
-            :style="{ border: commit.isPinned ? '1px solid #ffc107' : '1px solid #888', color: commit.isPinned ? '#ffc107' : '#888' }"
+            :style="{
+              border: commit.isPinned ? '1px solid #ffc107' : '1px solid #888',
+              color: commit.isPinned ? '#ffc107' : '#888',
+            }"
           >
             {{ commit.isPinned ? '📌 已保护' : '📍 保护' }}
           </button>
@@ -158,8 +192,8 @@ const currentConfig = useArkConfig();
 const selectedFilter = ref<string>('all');
 
 const pathLabels: Record<string, string> = {
-  'enabled': '状态开关 (Enabled)',
-  'name': '条目名称 (Name)',
+  enabled: '状态开关 (Enabled)',
+  name: '条目名称 (Name)',
   'strategy.type': '触发类型',
   'strategy.keys': '主关键词',
   'strategy.keys_secondary.logic': '次要关键词逻辑',
@@ -168,15 +202,15 @@ const pathLabels: Record<string, string> = {
   'position.order': '插入顺序',
   'position.role': '插入角色',
   'position.depth': '插入深度',
-  'probability': '触发概率',
+  probability: '触发概率',
   'recursion.prevent_incoming': '递归: 阻止传入',
   'recursion.prevent_outgoing': '递归: 阻止传出',
   'recursion.delay_until': '递归: 延迟直到',
-  'content': '条目内容',
-  'create_entry': '新建条目',
-  'delete_entry': '删除条目',
-  'create_worldbook': '新建世界书',
-  'delete_worldbook': '删除世界书'
+  content: '条目内容',
+  create_entry: '新建条目',
+  delete_entry: '删除条目',
+  create_worldbook: '新建世界书',
+  delete_worldbook: '删除世界书',
 };
 
 const getChangePath = (commit: ArkCommit, change: any) => {
@@ -191,29 +225,31 @@ const getChangePath = (commit: ArkCommit, change: any) => {
 const availableFilters = computed(() => {
   const commits = currentConfig.value?.commits || [];
   const counts: Record<string, number> = {};
-  
+
   commits.forEach(c => {
     const pathsInCommit = new Set<string>();
     c.changes.forEach(ch => {
       pathsInCommit.add(getChangePath(c, ch));
     });
-    
+
     pathsInCommit.forEach(path => {
       counts[path] = (counts[path] || 0) + 1;
     });
   });
-  
-  return Object.keys(counts).map(path => ({
-    value: path,
-    label: pathLabels[path] || path,
-    count: counts[path]
-  })).sort((a, b) => b.count - a.count);
+
+  return Object.keys(counts)
+    .map(path => ({
+      value: path,
+      label: pathLabels[path] || path,
+      count: counts[path],
+    }))
+    .sort((a, b) => b.count - a.count);
 });
 
 const filteredCommits = computed(() => {
   const commits = [...(currentConfig.value?.commits || [])].reverse();
   if (selectedFilter.value === 'all') return commits;
-  
+
   return commits.filter(commit => {
     return commit.changes.some(change => {
       return getChangePath(commit, change) === selectedFilter.value;
@@ -306,27 +342,43 @@ const applyInverseChanges = async (commitList: ArkCommit[]) => {
     // 为了保证时序，我们按 commit 依次处理
     for (const commit of sortedCommits) {
       // 检查是否有特殊操作
-      const hasSpecialOp = commit.changes.some(c => 
-        ['create_worldbook', 'delete_worldbook', 'create_entry', 'delete_entry'].includes(c.path as string)
+      const hasSpecialOp = commit.changes.some(c =>
+        ['create_worldbook', 'delete_worldbook', 'create_entry', 'delete_entry'].includes(c.path as string),
       );
 
       if (hasSpecialOp) {
         for (const change of commit.changes) {
           if (change.path === 'create_worldbook') {
-            try { await deleteWorldbook(worldName); } catch (e) { console.error('Failed to delete worldbook', e); }
+            try {
+              await deleteWorldbook(worldName);
+            } catch (e) {
+              console.error('Failed to delete worldbook', e);
+            }
           } else if (change.path === 'delete_worldbook') {
-            try { await createWorldbook(worldName, change.from); } catch (e) { console.error('Failed to restore worldbook', e); }
+            try {
+              await createWorldbook(worldName, change.from);
+            } catch (e) {
+              console.error('Failed to restore worldbook', e);
+            }
           } else if (change.path === 'create_entry') {
-            try { await deleteWorldbookEntries(worldName, entry => entry.uid === change.uid); } catch (e) { console.error('Failed to delete entry', e); }
+            try {
+              await deleteWorldbookEntries(worldName, entry => entry.uid === change.uid);
+            } catch (e) {
+              console.error('Failed to delete entry', e);
+            }
           } else if (change.path === 'delete_entry') {
-            try { await createWorldbookEntries(worldName, [change.from]); } catch (e) { console.error('Failed to restore entry', e); }
+            try {
+              await createWorldbookEntries(worldName, [change.from]);
+            } catch (e) {
+              console.error('Failed to restore entry', e);
+            }
           }
         }
       }
 
       // 处理普通属性修改
-      const propChanges = commit.changes.filter(c => 
-        !['create_worldbook', 'delete_worldbook', 'create_entry', 'delete_entry'].includes(c.path as string)
+      const propChanges = commit.changes.filter(
+        c => !['create_worldbook', 'delete_worldbook', 'create_entry', 'delete_entry'].includes(c.path as string),
       );
 
       if (propChanges.length > 0) {

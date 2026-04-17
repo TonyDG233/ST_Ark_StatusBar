@@ -26,7 +26,7 @@ let lastIsArknights: boolean | null = null;
 const updateIdentityAndBroadcast = () => {
   const charName = getCurrentCharacterName() || '';
   const isArknights = charName.includes('明日方舟');
-  
+
   if (lastIsArknights !== isArknights) {
     lastIsArknights = isArknights;
     document.dispatchEvent(new CustomEvent('ark:identity-updated', { detail: { isArknights } }));

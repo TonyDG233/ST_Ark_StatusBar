@@ -39,11 +39,11 @@ export interface ArkConfig {
   pinnedWorldbooks?: string[]; // 用户置顶偏好的世界书名称列表
   worldbookInitialStates?: Record<string, Record<string, { enabled: boolean; type: string }>>; // [旧快照，将废弃]
   snapshots?: ArkSnapshot[]; // [新版] 世界书快照
-  
+
   // [新增] 历史记录与备份上限配置
-  maxHistoryCommits?: number;      // 历史记录队列最大长度 (默认 100)
+  maxHistoryCommits?: number; // 历史记录队列最大长度 (默认 100)
   maxHeavyHistoryCommits?: number; // 长文本修改等重度历史记录的最大长度 (默认 30)
-  maxTotalBackups?: number;        // 世界书全量备份的最大数量警戒线 (默认 20)
+  maxTotalBackups?: number; // 世界书全量备份的最大数量警戒线 (默认 20)
 }
 
 export interface ArkCommitChange {
@@ -63,7 +63,7 @@ export interface ArkCommit {
   description: string; // 提交的文字描述
   worldbook?: string; // 该次操作针对的世界书名称
   isPinned?: boolean; // [新增] 是否置顶保护，防止被系统容量驱逐机制自动清理
-  isHeavy?: boolean;  // [新增] 标识本次提交是否包含大量文本数据（如修改了 content 字段）
+  isHeavy?: boolean; // [新增] 标识本次提交是否包含大量文本数据（如修改了 content 字段）
   changes: ArkCommitChange[];
 }
 

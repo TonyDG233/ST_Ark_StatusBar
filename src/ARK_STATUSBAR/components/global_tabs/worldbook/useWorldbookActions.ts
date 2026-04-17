@@ -1,7 +1,12 @@
 import { configStore, useArkConfig } from '../../../core/config_store';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
 import { ArkCommitChange } from '../../../types/system_config';
-import { allAvailableWorldbooks, currentPrimaryWorldbook, globalMountedWorldbooks, UIWorldbookEntry } from '../shared_ui_state';
+import {
+  allAvailableWorldbooks,
+  currentPrimaryWorldbook,
+  globalMountedWorldbooks,
+  UIWorldbookEntry,
+} from '../shared_ui_state';
 
 /**
  * 封装并接管 Worldbook 的所有增删改查动作，
@@ -52,7 +57,7 @@ export function useWorldbookActions() {
         ],
       };
       configStore.updateConfig({ commits: [...(currentConfig.value?.commits || []), newCommit] });
-      
+
       allAvailableWorldbooks.value = allAvailableWorldbooks.value.filter(n => n !== wbName);
     } catch (e) {
       console.error('delete worldbook failed', e);
@@ -72,7 +77,7 @@ export function useWorldbookActions() {
     try {
       await createWorldbook(name.trim(), []);
       allAvailableWorldbooks.value.push(name.trim());
-      
+
       const newCommit = {
         id: Math.random().toString(36).substr(2, 6),
         timestamp: Date.now(),
@@ -163,7 +168,9 @@ export function useWorldbookActions() {
         return wbEntries;
       });
 
-      document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: targetWorldbook } }));
+      document.dispatchEvent(
+        new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: targetWorldbook } }),
+      );
 
       const newCommit = {
         id: Math.random().toString(36).substr(2, 6),
@@ -196,7 +203,9 @@ export function useWorldbookActions() {
         return wbEntries;
       });
 
-      document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: targetWorldbook } }));
+      document.dispatchEvent(
+        new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: targetWorldbook } }),
+      );
 
       const newCommit = {
         id: Math.random().toString(36).substr(2, 6),
@@ -225,7 +234,9 @@ export function useWorldbookActions() {
         return wbEntries;
       });
 
-      document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: targetWorldbook } }));
+      document.dispatchEvent(
+        new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: targetWorldbook } }),
+      );
 
       const isHeavy = changes.some(c => c.path === 'content');
       const newCommit = {
@@ -248,9 +259,9 @@ export function useWorldbookActions() {
     if (uids.length === 0) return;
     try {
       const { deleted_entries } = await deleteWorldbookEntries(wbName, e => uids.includes(e.uid));
-      
+
       document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: wbName } }));
-      
+
       if (deleted_entries.length > 0) {
         const newCommit = {
           id: Math.random().toString(36).substr(2, 6),
@@ -261,7 +272,7 @@ export function useWorldbookActions() {
             uid: e.uid,
             comment: e.name || '未命名',
             path: 'delete_entry',
-            from: e
+            from: e,
           })),
         };
         configStore.updateConfig({ commits: [...(currentConfig.value?.commits || []), newCommit] });
@@ -283,9 +294,9 @@ export function useWorldbookActions() {
     if (!name) return null;
     try {
       const { new_entries } = await createWorldbookEntries(wbName, [{ name: name.trim() }]);
-      
+
       document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: wbName } }));
-      
+
       if (new_entries.length > 0) {
         const e = new_entries[0];
         const newCommit = {
@@ -293,13 +304,15 @@ export function useWorldbookActions() {
           timestamp: Date.now(),
           description: `[新建条目] ${e.name}`,
           worldbook: wbName,
-          changes: [{
-            uid: e.uid,
-            comment: e.name || '未命名',
-            path: 'create_entry',
-            from: null,
-            to: e,
-          }],
+          changes: [
+            {
+              uid: e.uid,
+              comment: e.name || '未命名',
+              path: 'create_entry',
+              from: null,
+              to: e,
+            },
+          ],
         };
         configStore.updateConfig({ commits: [...(currentConfig.value?.commits || []), newCommit] });
         if (typeof toastr !== 'undefined') toastr.success('创建成功，请编辑属性');
@@ -335,17 +348,27 @@ export function useWorldbookActions() {
             const currentType = getEntryType(e);
             const newType = currentType === 'constant' ? 'selective' : 'constant';
             if (!e.strategy) {
-              e.strategy = { type: 'selective', keys: [], keys_secondary: { logic: 'and_any', keys: [] }, scan_depth: 'same_as_global' };
+              e.strategy = {
+                type: 'selective',
+                keys: [],
+                keys_secondary: { logic: 'and_any', keys: [] },
+                scan_depth: 'same_as_global',
+              };
             }
             e.strategy.type = newType;
-            changes.push({ uid: e.uid, comment: e.name || '未命名', from: currentType === 'constant', to: newType === 'constant' });
+            changes.push({
+              uid: e.uid,
+              comment: e.name || '未命名',
+              from: currentType === 'constant',
+              to: newType === 'constant',
+            });
           }
         }
         return wbEntries;
       });
-      
+
       document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: wbName } }));
-      
+
       const newCommit = {
         id: Math.random().toString(36).substr(2, 6),
         timestamp: Date.now(),
@@ -374,9 +397,9 @@ export function useWorldbookActions() {
         }
         return wbEntries;
       });
-      
+
       document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: wbName } }));
-      
+
       if (changes.length > 0) {
         const newCommit = {
           id: Math.random().toString(36).substr(2, 6),

@@ -45,7 +45,8 @@
 
       <div class="setting-item flex-col-align-start">
         <label
-          >字体大小 (<span class="mobile-scale-hint">移动端自动 -2px / </span>当前基准: {{ displayFontSize }}px)</label>
+          >字体大小 (<span class="mobile-scale-hint">移动端自动 -2px / </span>当前基准: {{ displayFontSize }}px)</label
+        >
         <!-- 字体大小虽然影响较小，但也改为 @change，统一体验 -->
         <input
           type="range"

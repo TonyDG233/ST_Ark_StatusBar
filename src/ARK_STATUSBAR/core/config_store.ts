@@ -122,7 +122,9 @@ class ConfigStore {
   /**
    * 实施容量驱逐策略 (LRU with Pin protection)
    */
-  private applyEvictionPolicy(commits: import('../types/system_config').ArkCommit[]): import('../types/system_config').ArkCommit[] {
+  private applyEvictionPolicy(
+    commits: import('../types/system_config').ArkCommit[],
+  ): import('../types/system_config').ArkCommit[] {
     const config = unref(this.state);
     const maxHistory = config.maxHistoryCommits || 100;
     const maxHeavy = config.maxHeavyHistoryCommits || 20;
@@ -167,9 +169,13 @@ class ConfigStore {
 
     // 驱逐级 (Warning)
     if (removedHeavyCount > 0 && typeof toastr !== 'undefined') {
-      toastr.warning(`超出重度修改上限 (${heavyCommits.length}/${maxHeavy})，已清理 ${removedHeavyCount} 条最旧的未保护记录。`);
+      toastr.warning(
+        `超出重度修改上限 (${heavyCommits.length}/${maxHeavy})，已清理 ${removedHeavyCount} 条最旧的未保护记录。`,
+      );
     } else if (removedNormalCount > 0 && typeof toastr !== 'undefined') {
-      toastr.warning(`超出操作记录总上限 (${result.length}/${maxHistory})，已清理 ${removedNormalCount} 条最旧的未保护记录。`);
+      toastr.warning(
+        `超出操作记录总上限 (${result.length}/${maxHistory})，已清理 ${removedNormalCount} 条最旧的未保护记录。`,
+      );
     }
 
     return commits.filter(c => !toRemove.has(c.id));

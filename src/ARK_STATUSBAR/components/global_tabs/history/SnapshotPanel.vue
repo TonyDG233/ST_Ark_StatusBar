@@ -71,11 +71,7 @@
           </div>
           <div style="font-size: 0.8em; opacity: 0.7; margin-bottom: 8px">📁 来源: {{ snap.worldbook }}</div>
           <div class="action-bar compact">
-            <button
-              class="btn-success tiny"
-              @click="restoreSnapshot(snap.id)"
-              style="padding: 4px; font-size: 0.85em"
-            >
+            <button class="btn-success tiny" @click="restoreSnapshot(snap.id)" style="padding: 4px; font-size: 0.85em">
               ✅ 恢复状态
             </button>
             <button class="btn-danger tiny" @click="deleteSnapshot(snap.id)" style="padding: 4px; font-size: 0.85em">
@@ -92,11 +88,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useArkConfig } from '../../../core/config_store';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
-import {
-  allAvailableWorldbooks,
-  currentPrimaryWorldbook,
-  isArknightsCard
-} from '../shared_ui_state';
+import { allAvailableWorldbooks, currentPrimaryWorldbook, isArknightsCard } from '../shared_ui_state';
 
 const currentConfig = useArkConfig();
 const manager = StatusBarManager.getInstance();

@@ -97,9 +97,9 @@
               getEntryType(entry) === 'constant' ? '🔵' : '🟢'
             }}</span>
             {{ entry.name || (entry.strategy?.keys && entry.strategy.keys.length ? entry.strategy.keys[0] : '未知') }}
-                <span v-if="entryTokenCountCache[getEntryKey(entry)] !== undefined" class="token-badge">
-                  ~{{ entryTokenCountCache[getEntryKey(entry)] }} tok
-                </span>
+            <span v-if="entryTokenCountCache[getEntryKey(entry)] !== undefined" class="token-badge">
+              ~{{ entryTokenCountCache[getEntryKey(entry)] }} tok
+            </span>
             <div v-if="entry.world" style="font-size: 0.75em; color: var(--ui-text-secondary); margin-top: 2px">
               📁 来源: {{ entry.world }}
             </div>
@@ -180,7 +180,7 @@ import {
   pendingEntries,
   sortedLastTriggeredEntries,
   sortedPendingEntries,
-  type UIWorldbookEntry
+  type UIWorldbookEntry,
 } from '../shared_ui_state';
 
 const emit = defineEmits<{ (e: 'close-panel'): void }>();
@@ -190,13 +190,21 @@ const manager = StatusBarManager.getInstance();
 // ----------------------------------------------------------------------------
 // Token 异步计算自动触发
 // ----------------------------------------------------------------------------
-watch(sortedPendingEntries, (newEntries) => {
-  newEntries.forEach(entry => calculateTokenForEntry(entry));
-}, { immediate: true });
+watch(
+  sortedPendingEntries,
+  newEntries => {
+    newEntries.forEach(entry => calculateTokenForEntry(entry));
+  },
+  { immediate: true },
+);
 
-watch(sortedLastTriggeredEntries, (newEntries) => {
-  newEntries.forEach(entry => calculateTokenForEntry(entry));
-}, { immediate: true });
+watch(
+  sortedLastTriggeredEntries,
+  newEntries => {
+    newEntries.forEach(entry => calculateTokenForEntry(entry));
+  },
+  { immediate: true },
+);
 
 /**
  * 触发“主动检测”：运行一次 Dry Run 并在拦截器面板显示将被触发的条目，但不实际发送。

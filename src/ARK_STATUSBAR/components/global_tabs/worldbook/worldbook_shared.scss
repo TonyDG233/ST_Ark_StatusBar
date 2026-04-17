@@ -1,217 +1,217 @@
 .tab-panel.flex-col {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .filters {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 15px;
 }
 
 .search-input {
-    width: 100%;
-    padding: 8px;
-    border-radius: 4px;
-    border: 1px solid var(--SmartThemeBorderColor, #444);
-    background: rgba(0, 0, 0, 0.1);
-    color: inherit;
+  width: 100%;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid var(--SmartThemeBorderColor, #444);
+  background: rgba(0, 0, 0, 0.1);
+  color: inherit;
 }
 
 .filter-row {
-    display: flex;
-    gap: 8px;
+  display: flex;
+  gap: 8px;
 }
 
 .filter-select {
-    flex: 1;
-    padding: 6px;
-    border-radius: 4px;
-    border: 1px solid var(--SmartThemeBorderColor, #444);
-    background: rgba(0, 0, 0, 0.1);
-    color: inherit;
+  flex: 1;
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid var(--SmartThemeBorderColor, #444);
+  background: rgba(0, 0, 0, 0.1);
+  color: inherit;
 }
 
 /* --- 批量操作工具栏与胶囊按钮 --- */
 .batch-toolbar {
-    background: rgba(0, 0, 0, 0.2);
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px dashed rgba(255, 255, 255, 0.15);
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .icon-btn.pill {
-    padding: 4px 10px;
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    white-space: nowrap;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: nowrap;
 }
 
 .icon-btn.pill:hover {
-    background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .empty-state {
-    text-align: center;
-    color: #888;
-    padding: 10px;
+  text-align: center;
+  color: #888;
+  padding: 10px;
 }
 
 /* --- Worldbook Accordion Item --- */
 .wb-accordion-item {
-    border: 1px solid var(--SmartThemeBorderColor, rgba(255, 255, 255, 0.1));
-    border-radius: 6px;
-    margin-bottom: 8px;
-    background: rgba(0, 0, 0, 0.2);
-    overflow: hidden;
+  border: 1px solid var(--SmartThemeBorderColor, rgba(255, 255, 255, 0.1));
+  border-radius: 6px;
+  margin-bottom: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  overflow: hidden;
 }
 
 .wb-accordion-header {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    padding: 10px 12px;
-    cursor: pointer;
-    background: rgba(0, 0, 0, 0.1);
-    transition: background-color 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s;
 }
 
 .wb-accordion-header:hover {
-    background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .wb-accordion-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: bold;
-    width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: bold;
+  width: 100%;
 }
 
 .wb-name-text {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
 }
 
 .wb-type-badge {
-    font-size: 0.75em;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: rgba(128, 128, 128, 0.3);
-    flex-shrink: 0;
+  font-size: 0.75em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(128, 128, 128, 0.3);
+  flex-shrink: 0;
 }
 
 .wb-type-badge.char {
-    background: rgba(0, 123, 255, 0.4);
-    color: #cce5ff;
+  background: rgba(0, 123, 255, 0.4);
+  color: #cce5ff;
 }
 
 .wb-type-badge.global {
-    background: rgba(40, 167, 69, 0.4);
-    color: #d4edda;
+  background: rgba(40, 167, 69, 0.4);
+  color: #d4edda;
 }
 
 .wb-accordion-actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 12px;
-    padding-top: 4px;
-    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 4px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
 }
 
 .accordion-arrow {
-    font-size: 0.8em;
-    opacity: 0.6;
-    margin-left: 4px;
+  font-size: 0.8em;
+  opacity: 0.6;
+  margin-left: 4px;
 }
 
 /* --- Worldbook Entry List Wrapper --- */
 .wb-entries-wrapper {
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    background: rgba(0, 0, 0, 0.1);
-    padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.1);
+  padding-top: 10px;
 }
 
 .wb-entries-container {
-    padding: 0 10px 10px 10px;
+  padding: 0 10px 10px 10px;
 }
 
 /* --- Worldbook Entry Item --- */
 .wb-item {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    transition: opacity 0.3s;
-    gap: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: opacity 0.3s;
+  gap: 8px;
 }
 
 .wb-info {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
 }
 
 .batch-checkbox-container {
-    display: flex;
-    align-items: center;
-    height: 24px;
-    cursor: pointer;
-    margin-top: 2px;
+  display: flex;
+  align-items: center;
+  height: 24px;
+  cursor: pointer;
+  margin-top: 2px;
 }
 
 .wb-info-text {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 0;
-    flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
 }
 
 .wb-name {
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    white-space: normal;
-    /* Allow title to wrap naturally if extremely long */
-    word-break: break-all;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: normal;
+  /* Allow title to wrap naturally if extremely long */
+  word-break: break-all;
 }
 
 .wb-keys {
-    font-size: 0.8em;
-    opacity: 0.7;
-    white-space: normal;
-    word-break: break-all;
+  font-size: 0.8em;
+  opacity: 0.7;
+  white-space: normal;
+  word-break: break-all;
 }
 
 .wb-action {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 12px;
-    padding-top: 6px;
-    border-top: 1px dashed rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.05);
 }
 
 /* Disabled entry style */
 .disabled-entry {
-    opacity: 0.5;
+  opacity: 0.5;
 }
