@@ -3,14 +3,6 @@
     <!-- 区域 B：操作历史 (Git Log) -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px">
       <h4 style="margin: 0">📖 操作历史记录</h4>
-      <button
-        v-if="currentConfig?.commits?.length"
-        class="icon-btn tiny"
-        style="padding: 4px 8px; border: 1px solid var(--SmartThemeBorderColor, #444); background: rgba(0, 0, 0, 0.2)"
-        @click="toggleBatchMode"
-      >
-        {{ isBatchMode ? '退出多选' : '批量多选' }}
-      </button>
     </div>
 
     <div
@@ -26,6 +18,28 @@
       >：撤销该记录的操作，将世界书条目的状态回滚，并从这里删除记录。<br />
       <strong style="color: var(--SmartThemeBodyColor, #ccc); font-weight: bold">【删除】</strong
       >：仅清理这条历史记录，但保持世界书现在的状态不变。
+    </div>
+
+    <!-- 筛选工具栏 -->
+    <div class="filter-bar" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; padding: 5px; background: rgba(0,0,0,0.1); border-radius: 4px;">
+      <div style="display: flex; gap: 10px; align-items: center; flex: 1; min-width: 200px;">
+        <label style="font-size: 0.9em; opacity: 0.8; white-space: nowrap;">🔍 属性筛选：</label>
+        <select v-model="selectedFilter" style="background: var(--SmartThemeChatBackgroundColor); color: var(--SmartThemeBodyColor); border: 1px solid var(--SmartThemeBorderColor); border-radius: 4px; padding: 4px; flex: 1; min-width: 0;">
+          <option value="all">显示全部 ({{ currentConfig?.commits?.length || 0 }})</option>
+          <option v-for="filter in availableFilters" :key="filter.value" :value="filter.value">
+            {{ filter.label }} ({{ filter.count }})
+          </option>
+        </select>
+      </div>
+      
+      <button
+        v-if="currentConfig?.commits?.length"
+        class="icon-btn tiny"
+        style="padding: 4px 8px; border: 1px solid var(--SmartThemeBorderColor, #444); background: rgba(0, 0, 0, 0.2); white-space: nowrap;"
+        @click="toggleBatchMode"
+      >
+        {{ isBatchMode ? '退出多选' : '批量多选' }}
+      </button>
     </div>
 
     <!-- 批量操作工具栏 -->
@@ -67,9 +81,10 @@
     </div>
 
     <div v-if="!currentConfig?.commits?.length" class="empty-state">暂无修改记录。</div>
+    <div v-else-if="filteredCommits.length === 0" class="empty-state">没有符合当前筛选条件的记录。</div>
     <ul v-else class="commit-list">
       <li
-        v-for="commit in [...(currentConfig?.commits || [])].reverse()"
+        v-for="commit in filteredCommits"
         :key="commit.id"
         class="commit-item"
         :class="{ selectable: isBatchMode }"
@@ -132,20 +147,90 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { configStore, useArkConfig } from '../../../core/config_store';
 import { ArkCommit } from '../../../types/system_config';
 import { currentPrimaryWorldbook, UIWorldbookEntry } from '../shared_ui_state';
 
 const currentConfig = useArkConfig();
 
+// --- Filter State ---
+const selectedFilter = ref<string>('all');
+
+const pathLabels: Record<string, string> = {
+  'enabled': '状态开关 (Enabled)',
+  'name': '条目名称 (Name)',
+  'strategy.type': '触发类型',
+  'strategy.keys': '主关键词',
+  'strategy.keys_secondary.logic': '次要关键词逻辑',
+  'strategy.keys_secondary.keys': '次要关键词',
+  'position.type': '插入位置类型',
+  'position.order': '插入顺序',
+  'position.role': '插入角色',
+  'position.depth': '插入深度',
+  'probability': '触发概率',
+  'recursion.prevent_incoming': '递归: 阻止传入',
+  'recursion.prevent_outgoing': '递归: 阻止传出',
+  'recursion.delay_until': '递归: 延迟直到',
+  'content': '条目内容',
+  'create_entry': '新建条目',
+  'delete_entry': '删除条目',
+  'create_worldbook': '新建世界书',
+  'delete_worldbook': '删除世界书'
+};
+
+const getChangePath = (commit: ArkCommit, change: any) => {
+  if (change.path) return change.path as string;
+  // 兼容旧版本的记录：以前单纯的切换开关和修改类型没有写入 path 字段
+  if (commit.description?.includes('changed type') || commit.description?.includes('修改触发类型')) {
+    return 'strategy.type';
+  }
+  return 'enabled';
+};
+
+const availableFilters = computed(() => {
+  const commits = currentConfig.value?.commits || [];
+  const counts: Record<string, number> = {};
+  
+  commits.forEach(c => {
+    const pathsInCommit = new Set<string>();
+    c.changes.forEach(ch => {
+      pathsInCommit.add(getChangePath(c, ch));
+    });
+    
+    pathsInCommit.forEach(path => {
+      counts[path] = (counts[path] || 0) + 1;
+    });
+  });
+  
+  return Object.keys(counts).map(path => ({
+    value: path,
+    label: pathLabels[path] || path,
+    count: counts[path]
+  })).sort((a, b) => b.count - a.count);
+});
+
+const filteredCommits = computed(() => {
+  const commits = [...(currentConfig.value?.commits || [])].reverse();
+  if (selectedFilter.value === 'all') return commits;
+  
+  return commits.filter(commit => {
+    return commit.changes.some(change => {
+      return getChangePath(commit, change) === selectedFilter.value;
+    });
+  });
+});
+
+watch(selectedFilter, () => {
+  selectedCommits.value = [];
+});
+
 // --- Batch Operation State ---
 const isBatchMode = ref(false);
 const selectedCommits = ref<string[]>([]);
 
 const isAllSelected = computed(() => {
-  const commits = currentConfig.value?.commits || [];
-  return commits.length > 0 && selectedCommits.value.length === commits.length;
+  return filteredCommits.value.length > 0 && selectedCommits.value.length === filteredCommits.value.length;
 });
 
 const toggleBatchMode = () => {
@@ -158,7 +243,7 @@ const toggleBatchMode = () => {
 const toggleSelectAll = (e: Event) => {
   const checked = (e.target as HTMLInputElement).checked;
   if (checked) {
-    selectedCommits.value = (currentConfig.value?.commits || []).map((c: unknown) => (c as ArkCommit).id);
+    selectedCommits.value = filteredCommits.value.map((c: ArkCommit) => c.id);
   } else {
     selectedCommits.value = [];
   }
