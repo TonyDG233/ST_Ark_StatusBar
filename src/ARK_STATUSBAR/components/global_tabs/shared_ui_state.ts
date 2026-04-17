@@ -154,6 +154,8 @@ export const setupGlobalListeners = () => {
     if (e.detail.worldbookName) {
       await refreshWorldbookCache(e.detail.worldbookName);
     }
+    // 世界书级别的增删也可能发生，顺便刷新全局挂载与可用列表缓存
+    await loadWorldbookLists();
   });
 
   document.addEventListener('ark-config-updated', async (e: any) => {
