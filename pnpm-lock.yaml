@@ -19,13 +19,23 @@ importers:
         version: 13.9.0(vue@3.5.32(typescript@6.0.0-dev.20250807))
       '@vueuse/integrations':
         specifier: ^13.9.0
+<<<<<<< HEAD
         version: 13.9.0(axios@1.15.2)(focus-trap@7.6.5)(vue@3.5.32(typescript@6.0.0-dev.20250807))
+=======
+        version: 13.9.0(axios@1.14.0)(focus-trap@7.6.5)(vue@3.5.32(typescript@6.0.0-dev.20250807))
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
       '@vueuse/shared':
         specifier: ^13.9.0
         version: 13.9.0(vue@3.5.32(typescript@6.0.0-dev.20250807))
       async-wait-until:
         specifier: ^2.0.31
         version: 2.0.31
+<<<<<<< HEAD
+=======
+      axios:
+        specifier: 1.14.0
+        version: 1.14.0
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
       compare-versions:
         specifier: ^6.1.1
         version: 6.1.1
@@ -41,6 +51,15 @@ importers:
       jqueryui:
         specifier: ^1.11.1
         version: 1.11.1
+<<<<<<< HEAD
+=======
+      json5:
+        specifier: ^2.2.3
+        version: 2.2.3
+      jsonrepair:
+        specifier: ^3.14.0
+        version: 3.14.0
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
       klona:
         specifier: ^2.0.6
         version: 2.0.6
@@ -67,10 +86,20 @@ importers:
         version: 3.5.32(typescript@6.0.0-dev.20250807)
       vue-final-modal:
         specifier: ^4.5.5
+<<<<<<< HEAD
         version: 4.5.5(@vueuse/core@13.9.0(vue@3.5.32(typescript@6.0.0-dev.20250807)))(@vueuse/integrations@13.9.0(axios@1.15.2)(focus-trap@7.6.5)(vue@3.5.32(typescript@6.0.0-dev.20250807)))(focus-trap@7.6.5)(vue@3.5.32(typescript@6.0.0-dev.20250807))
       vue-router:
         specifier: ^4.6.4
         version: 4.6.4(vue@3.5.32(typescript@6.0.0-dev.20250807))
+=======
+        version: 4.5.5(@vueuse/core@13.9.0(vue@3.5.32(typescript@6.0.0-dev.20250807)))(@vueuse/integrations@13.9.0(axios@1.14.0)(focus-trap@7.6.5)(vue@3.5.32(typescript@6.0.0-dev.20250807)))(focus-trap@7.6.5)(vue@3.5.32(typescript@6.0.0-dev.20250807))
+      vue-router:
+        specifier: ^4.6.4
+        version: 4.6.4(vue@3.5.32(typescript@6.0.0-dev.20250807))
+      vue-word-highlighter:
+        specifier: ^1.2.6
+        version: 1.2.6(vue@3.5.32(typescript@6.0.0-dev.20250807))
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
       vue3-pixi:
         specifier: 1.0.0-beta.3
         version: 1.0.0-beta.3(vue@3.5.32(typescript@6.0.0-dev.20250807))
@@ -264,6 +293,12 @@ importers:
       webpack-obfuscator:
         specifier: ^3.6.1
         version: 3.6.1(javascript-obfuscator@4.2.2)(webpack@5.106.2)
+<<<<<<< HEAD
+=======
+      yaml-loader:
+        specifier: ^0.9.0
+        version: 0.9.0
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
 
 packages:
 
@@ -1275,8 +1310,13 @@ packages:
     resolution: {integrity: sha512-fjgm5MvRHLhx+osE2xoekY70AhARk3a6hkN+3Io1jc00jtquGvxYlKlsFUhmUET0V5te6CcZI7lcv2Ym61mjHA==}
     deprecated: Critical security vulnerability fixed in v0.21.1. For more information, see https://github.com/axios/axios/pull/3410
 
+<<<<<<< HEAD
   axios@1.15.2:
     resolution: {integrity: sha512-wLrXxPtcrPTsNlJmKjkPnNPK2Ihe0hn0wGSaTEiHRPxwjvJwT3hKmXF4dpqxmPO9SoNb2FsYXj/xEo0gHN+D5A==}
+=======
+  axios@1.14.0:
+    resolution: {integrity: sha512-3Y8yrqLSwjuzpXuZ0oIYZ/XGgLwUIBU3uLvbcpb0pidD9ctpShJd43KSlEEkVQg6DS0G9NKyzOvBfUtDKEyHvQ==}
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
 
   bail@2.0.2:
     resolution: {integrity: sha512-0xO6mYd7JB2YesxDKplafRpsiOzPt9V02ddPCLbY1xYGPOX24NTyN50qnUxgCPcSoYMhKpAuBTjQoRZCAkUDRw==}
@@ -1657,6 +1697,12 @@ packages:
   devlop@1.1.0:
     resolution: {integrity: sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==}
 
+<<<<<<< HEAD
+=======
+  diacritics@1.3.0:
+    resolution: {integrity: sha512-wlwEkqcsaxvPJML+rDh/2iS824jbREk6DUMUKkEaSlxdYHeS43cClJtsWglvw2RfeXGm6ohKDqsXteJ5sP5enA==}
+
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
   diff@4.0.4:
     resolution: {integrity: sha512-X07nttJQkwkfKfvTPG/KSnE2OMdcUCao6+eXF3wmnIQRn2aPAHH3VxDbDOdegkd6JbPsXqShpvEOHfAT+nCNwQ==}
     engines: {node: '>=0.3.1'}
@@ -1719,8 +1765,13 @@ packages:
   earcut@3.0.2:
     resolution: {integrity: sha512-X7hshQbLyMJ/3RPhyObLARM2sNxxmRALLKx1+NVFFnQ9gKzmCrxm9+uLIAdBcvc8FNLpctqlQ2V6AE92Ol9UDQ==}
 
+<<<<<<< HEAD
   electron-to-chromium@1.5.342:
     resolution: {integrity: sha512-GTuy59SdGxYgz+HN8KwOjFAVF2gfoKEmv0PFholcvVtbI9GPDND0m6ynGX3gAKOavcHRLrcfNy0QMbHbAemYdw==}
+=======
+  electron-to-chromium@1.5.343:
+    resolution: {integrity: sha512-YHnQ3MXI08icvL9ZKnEBy05F2EQ8ob01UaMOuMbM8l+4UcAq6MPPbBTJBbsBUg3H8JeZNt+O4fjsoWth3p6IFg==}
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
 
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
@@ -2481,6 +2532,12 @@ packages:
     engines: {node: '>=18.0.0'}
     hasBin: true
 
+<<<<<<< HEAD
+=======
+  javascript-stringify@2.1.0:
+    resolution: {integrity: sha512-JVAfqNPTvNq3sB/VHQJAFxN/sPgKnsKrCwyRt15zwNCdrMMJDdcEOdubuy+DuJYYdm0ox1J4uzEuYKkN+9yhVg==}
+
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
   jest-util@29.7.0:
     resolution: {integrity: sha512-z6EbKajIpqGKU56y5KBUgy1dt1ihhQJgWzUlZHArA/+X2ad7Cb5iF+AK1EWVL/Bo7Rz9uurpqw6SiBCefUbCGA==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -2554,6 +2611,13 @@ packages:
   jsonfile@6.2.1:
     resolution: {integrity: sha512-zwOTdL3rFQ/lRdBnntKVOX6k5cKJwEc1HdilT71BWEu7J41gXIB2MRp+vxduPSwZJPWBxEzv4yH1wYLJGUHX4Q==}
 
+<<<<<<< HEAD
+=======
+  jsonrepair@3.14.0:
+    resolution: {integrity: sha512-tWPGKMZf/8UPim+fcW2EfcQ/d/7aKUrP6IECz9G3Tu6Q5dX0orSleqJ9z6sSw7qrQkjF8/Edo4DvsWBZ8H+HNg==}
+    hasBin: true
+
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
 
@@ -3930,6 +3994,18 @@ packages:
   vue-style-loader@4.1.3:
     resolution: {integrity: sha512-sFuh0xfbtpRlKfm39ss/ikqs9AbKCoXZBpHeVZ8Tx650o0k0q/YCM7FRvigtxpACezfq6af+a7JeqVTWvncqDg==}
 
+<<<<<<< HEAD
+=======
+  vue-word-highlighter@1.2.6:
+    resolution: {integrity: sha512-XkKY3/gNg0aMkzaCxYgHrldun2yxlAofiCS5jvZfq066Hk7uRvQudK5ZgkfJO3wB8qVrya5EbdDEajsRd4i5Dg==}
+    peerDependencies:
+      '@vue/composition-api': ^1.0.0-rc.1
+      vue: ^2.0.0 || >=3.0.0
+    peerDependenciesMeta:
+      '@vue/composition-api':
+        optional: true
+
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
   vue3-pixi@1.0.0-beta.3:
     resolution: {integrity: sha512-WHDA7/VPwAGTnwPSQTxcwTOOjspjX8vh8P3Lgfrg6o2lI4mcjGmHlKiKIZabwlNYqmyr+PZKdnUtjzN/h/0e0w==}
 
@@ -4050,6 +4126,13 @@ packages:
     resolution: {integrity: sha512-0pfFzegeDWJHJIAmTLRP2DwHjdF5s7jo9tuztdQxAhINCdvS+3nGINqPd00AphqJR/0LhANUS6/+7SCb98YOfA==}
     engines: {node: '>=10'}
 
+<<<<<<< HEAD
+=======
+  yaml-loader@0.9.0:
+    resolution: {integrity: sha512-N0bPfDR42qCruELfmpF6Q8XnDu1elTULGjvVn7u6rsfDa8WhlmJbjXQRh+x5TGmpOqw8R9qfiUgc3aKP+8Hd4w==}
+    engines: {node: '>= 20'}
+
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
   yaml@2.8.3:
     resolution: {integrity: sha512-AvbaCLOO2Otw/lW5bmh9d/WEdcDFdQp2Z2ZUH3pX9U2ihyUY0nvLv7J6TrWowklRGPYbB/IuIMfYgxaCPg5Bpg==}
     engines: {node: '>= 14.6'}
@@ -4801,13 +4884,21 @@ snapshots:
       '@vueuse/shared': 14.2.1(vue@3.5.32(typescript@6.0.0-dev.20250807))
       vue: 3.5.32(typescript@6.0.0-dev.20250807)
 
+<<<<<<< HEAD
   '@vueuse/integrations@13.9.0(axios@1.15.2)(focus-trap@7.6.5)(vue@3.5.32(typescript@6.0.0-dev.20250807))':
+=======
+  '@vueuse/integrations@13.9.0(axios@1.14.0)(focus-trap@7.6.5)(vue@3.5.32(typescript@6.0.0-dev.20250807))':
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
     dependencies:
       '@vueuse/core': 13.9.0(vue@3.5.32(typescript@6.0.0-dev.20250807))
       '@vueuse/shared': 13.9.0(vue@3.5.32(typescript@6.0.0-dev.20250807))
       vue: 3.5.32(typescript@6.0.0-dev.20250807)
     optionalDependencies:
+<<<<<<< HEAD
       axios: 1.15.2
+=======
+      axios: 1.14.0
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
       focus-trap: 7.6.5
 
   '@vueuse/metadata@10.11.1': {}
@@ -5077,7 +5168,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+<<<<<<< HEAD
   axios@1.15.2:
+=======
+  axios@1.14.0:
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
     dependencies:
       follow-redirects: 1.16.0
       form-data: 4.0.5
@@ -5122,7 +5217,11 @@ snapshots:
     dependencies:
       baseline-browser-mapping: 2.10.20
       caniuse-lite: 1.0.30001788
+<<<<<<< HEAD
       electron-to-chromium: 1.5.342
+=======
+      electron-to-chromium: 1.5.343
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
       node-releases: 2.0.37
       update-browserslist-db: 1.2.3(browserslist@4.28.2)
 
@@ -5486,6 +5585,11 @@ snapshots:
     dependencies:
       dequal: 2.0.3
 
+<<<<<<< HEAD
+=======
+  diacritics@1.3.0: {}
+
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
   diff@4.0.4: {}
 
   dom-converter@0.2.0:
@@ -5569,7 +5673,11 @@ snapshots:
 
   earcut@3.0.2: {}
 
+<<<<<<< HEAD
   electron-to-chromium@1.5.342: {}
+=======
+  electron-to-chromium@1.5.343: {}
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
 
   emoji-regex@8.0.0: {}
 
@@ -6463,6 +6571,11 @@ snapshots:
       stringz: 2.1.0
       tslib: 2.8.1
 
+<<<<<<< HEAD
+=======
+  javascript-stringify@2.1.0: {}
+
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
   jest-util@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
@@ -6532,6 +6645,11 @@ snapshots:
     optionalDependencies:
       graceful-fs: 4.2.11
 
+<<<<<<< HEAD
+=======
+  jsonrepair@3.14.0: {}
+
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
   keyv@4.5.4:
     dependencies:
       json-buffer: 3.0.1
@@ -7370,7 +7488,11 @@ snapshots:
 
   remote-content@4.0.1:
     dependencies:
+<<<<<<< HEAD
       axios: 1.15.2
+=======
+      axios: 1.14.0
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
@@ -8049,10 +8171,17 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+<<<<<<< HEAD
   vue-final-modal@4.5.5(@vueuse/core@13.9.0(vue@3.5.32(typescript@6.0.0-dev.20250807)))(@vueuse/integrations@13.9.0(axios@1.15.2)(focus-trap@7.6.5)(vue@3.5.32(typescript@6.0.0-dev.20250807)))(focus-trap@7.6.5)(vue@3.5.32(typescript@6.0.0-dev.20250807)):
     dependencies:
       '@vueuse/core': 13.9.0(vue@3.5.32(typescript@6.0.0-dev.20250807))
       '@vueuse/integrations': 13.9.0(axios@1.15.2)(focus-trap@7.6.5)(vue@3.5.32(typescript@6.0.0-dev.20250807))
+=======
+  vue-final-modal@4.5.5(@vueuse/core@13.9.0(vue@3.5.32(typescript@6.0.0-dev.20250807)))(@vueuse/integrations@13.9.0(axios@1.14.0)(focus-trap@7.6.5)(vue@3.5.32(typescript@6.0.0-dev.20250807)))(focus-trap@7.6.5)(vue@3.5.32(typescript@6.0.0-dev.20250807)):
+    dependencies:
+      '@vueuse/core': 13.9.0(vue@3.5.32(typescript@6.0.0-dev.20250807))
+      '@vueuse/integrations': 13.9.0(axios@1.14.0)(focus-trap@7.6.5)(vue@3.5.32(typescript@6.0.0-dev.20250807))
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
       focus-trap: 7.6.5
       vue: 3.5.32(typescript@6.0.0-dev.20250807)
 
@@ -8075,6 +8204,15 @@ snapshots:
       hash-sum: 1.0.2
       loader-utils: 1.4.2
 
+<<<<<<< HEAD
+=======
+  vue-word-highlighter@1.2.6(vue@3.5.32(typescript@6.0.0-dev.20250807)):
+    dependencies:
+      diacritics: 1.3.0
+      vue: 3.5.32(typescript@6.0.0-dev.20250807)
+      vue-demi: 0.14.10(vue@3.5.32(typescript@6.0.0-dev.20250807))
+
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
   vue3-pixi@1.0.0-beta.3(vue@3.5.32(typescript@6.0.0-dev.20250807)):
     dependencies:
       '@antfu/utils': 0.7.10
@@ -8238,6 +8376,14 @@ snapshots:
 
   y18n@5.0.8: {}
 
+<<<<<<< HEAD
+=======
+  yaml-loader@0.9.0:
+    dependencies:
+      javascript-stringify: 2.1.0
+      yaml: 2.8.3
+
+>>>>>>> 4e7451805c5655a416233e7632d1b0693b9cade6
   yaml@2.8.3: {}
 
   yargs-parser@21.1.1: {}
