@@ -1,5 +1,5 @@
 import { createApp } from 'vue';
-import { deteleportStyle, teleportStyle } from '../util/script';
+import { teleportStyle } from '../util/script';
 import GlobalStatusBar from './components/GlobalStatusBar.vue';
 import ReturnButton from './components/ReturnButton.vue';
 import StartupNavigator from './components/StartupNavigator.vue';
@@ -18,6 +18,8 @@ let returnBtnApp: ReturnType<typeof createApp> | null = null;
 let mountLoopTimer: number | null = null;
 let globalStatusBarApp: ReturnType<typeof createApp> | null = null;
 let lastIsArknights: boolean | null = null;
+// 【新增这行】用于保存样式销毁函数的引用
+let destroyStyle: (() => void) | null = null;
 
 /**
  * 更新全局角色身份状态并广播
@@ -228,7 +230,8 @@ async function bootstrap() {
 
   // --- 4. 准备渲染 UI ---
   // 先应用可能需要的样式传送 (将 iframe 内部的样式注入到外部母网页)
-  teleportStyle();
+  const { destroy } = teleportStyle();
+  destroyStyle = destroy;
 
   // --- 5. 挂载 UI 元素 ---
   // 挂载可能一直存在的全局状态栏 (挂载于 document body)
@@ -260,7 +263,11 @@ $(window).on('pagehide', () => {
   // 清理全局管理器带来的副作用（解绑母窗口上的拦截器，防死锁）
   StatusBarManager.getInstance().destroy();
 
-  deteleportStyle();
+  // 【把 deteleportStyle(); 换成下面这段】
+  if (destroyStyle) {
+    destroyStyle();
+    destroyStyle = null;
+  }
   if (globalStatusBarApp) {
     globalStatusBarApp.unmount();
     globalStatusBarApp = null;
