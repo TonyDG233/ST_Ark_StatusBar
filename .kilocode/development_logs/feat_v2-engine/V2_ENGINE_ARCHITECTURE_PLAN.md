@@ -23,11 +23,13 @@ graph TD
     %% -------------------
     subgraph Orchestration ["多智能体流水线 (Orchestrator)"]
         hook["原生事件劫持<br>(拦截 MESSAGE_RECEIVED/SENT)"]
+        init["创世初始化器<br>(扫描世界书 [initvar])"]
         pipe["Pipeline Manager<br>(管理并发、串行 Promise 任务)"]
         subgraph Agents ["微服务 Agents"]
             agent_main["Main Story Agent<br>(调用原生发包)"]
             agent_var["Variable Agent<br>(独立调用 / 伴随提取)"]
         end
+        prompt_adapter["多端提示词适配器<br>(兼容 Function Call / JSON / 文本)"]
     end
 
     %% -------------------
@@ -54,9 +56,13 @@ graph TD
     end
 
     %% 关联
+    init -. "合并基底" .-> zod
     hook --> pipe
     pipe --> agent_main
     pipe --> agent_var
+    
+    agent_main --> prompt_adapter
+    agent_var --> prompt_adapter
     
     agent_var --> extract
     extract --> mutate
@@ -86,14 +92,16 @@ sequenceDiagram
     participant DB as 本地数据库
     participant UI as 前端 Vue 面板
 
-    ST->>DB: 【开局】读取 metadata 日志流完成水合计算
+    ST->>DB: 【开局0层】扫描世界书[initvar] 并过 Zod 落盘 (或读取 metadata 水合)
     ST->>Orch: 玩家点击发送，触发编排器
+    Orch->>Orch: [适配器] 注入兼容的 Prompt 或 Function Call 工具
     Orch->>Model: [Agent 1] 发送主线剧情请求
-    Model-->>Orch: 返回小说正文 (+ 潜在的附带 JSON)
+    Model-->>Orch: 返回小说正文 (+ 潜在的随队 JSON)
     
     alt 独立模型模式 (双轨)
-        Orch->>Model: [Agent 2] 并发发送变量分析请求 (包裹 <past_observe>)
-        Model-->>Orch: 返回 JSON Patch
+        Orch->>Orch: [适配器] 覆写低温度/独立 API，注入 <past_observe>
+        Orch->>Model: [Agent 2] 并发发送独立变量分析请求
+        Model-->>Orch: 返回专注的 JSON Patch
     end
 
     Orch->>Pipe: 移交提取的 JSON 块
@@ -157,3 +165,21 @@ sequenceDiagram
 *   **实现要点**：封装一个原生的 IndexedDB 工具类，包含 `初始化水合 (hydrate)`、`追加密码 (append)` 和 `回退截断 (rollback)` 三个核心方法。
 *   **工作规模**：极大 (~500 行代码)。涉及异步存储与生命周期管理，是全村最硬的骨头。
 *   **潜在风险**：浏览器缓存机制的复杂性可能导致读写竞态；水合运算在几万条极长日志下可能产生明显的冷启动耗时。
+
+### 3.6 创世初始态与数据水合 (Initialization & Bootstrapper)
+*   **功能介绍**：游戏开局（0 层）时的数据大爆炸。扫描世界书特定条目注入初始状态，并作为本地数据库初始化的基底数据。
+*   **参考标本**：
+    *   `mvu_core/function/initvar/variable_init.ts` (YAML 扫描与数据融合)
+*   **实现要点**：保留扫描世界书 `[initvar]` 的机制实现解耦配置。但在融合数据后，**不再推演内部 Schema**，而是直接使用硬编码的 `ArkStorySchema.parse()` 清洗并生成第一份 Absolute State 落盘。
+*   **工作规模**：较小 (~100 行代码)。
+*   **潜在风险**：YAML 解析失败或用户输入了无法被 Zod Default 拯救的残缺数据，导致初始化直接崩溃。
+
+### 3.7 提示词工程与多端兼容适配器 (Prompt & Compatibility Adapter)
+*   **功能介绍**：解决 API 调用时的“千机千面”问题。处理不同模型对“工具调用 (Function Calling)”、“结构化输出 (Structured Output)”以及“随正文输出 (Text JSON Patch)”的兼容分发，并注入对应的 System Prompt。
+*   **参考标本**：
+    *   `mvu_core/function/function_call.ts` (Zod 工具格式定义)
+    *   `mvu_core/prompts/*.txt` (如何靠威逼利诱让傻瓜模型吐出 JSON Patch)
+    *   `mvu_core/function/update/extra_model_preset.ts` (独立预设参数覆盖)
+*   **实现要点**：根据玩家在 UI 面板的选择，在发包前动态调整 Payload。对于不支持 Function Call 的老模型，必须在末尾强插 `<must>` 格式的纯文本提示词兜底。
+*   **工作规模**：中等 (~200 行代码，但需要大量时间进行黑盒模型调优与测试)。
+*   **潜在风险**：缺乏标准化的适配器会导致未来接入新模型（如深思、国产闭源大模型）时代码到处打补丁。
