@@ -46,3 +46,34 @@
 ## 4. 下一步行动纲领
 优先执行**第 1 步（项目结构调整与 index.ts 拆分）**：
 先将脏乱的 `index.ts` 拆解干净，确立 `hooks` 和 `utils` 的合理边界；然后再动手调整 `system_config.ts` 的存储模式和挂载开关。等底层干净了，再利用 Stitch 或 Figma 重绘出“硬核游戏状态栏”的全新 UI。
+
+---
+
+## 附录 A：`index.ts` 拆分与挂载解耦落地清单 (Appendix A: index.ts Refactoring Checklist)
+基于上述“重新调整项目结构”的方针，针对臃肿的 `index.ts` 执行以下精确的剥离手术：
+
+1. **抽离到 `utils/` (纯函数与辅助工具)**：
+   - 将 `getCurrentCharacterName()` 鉴定判断逻辑抽离为纯粹的工具函数 `checkIsArknights()`。
+2. **抽离到 `inject/` (宿主环境侵入层)**：
+   - 将向酒馆 UI 强行插入控制按钮的 `injectTavernControls()` 作为独立集成脚本剥离至 `src/ARK_STATUSBAR/inject/tavern_injector.ts`。
+3. **抽离到 `hooks/` (组合式环境观测)**：
+   - 将 `startMountingLoop` 中用 `setInterval` 寻找第 0 楼 DOM 的环境观测逻辑，封装为 `hooks/useChatMonitor.ts`。
+   - **注意红线**：Hook 仅负责向外抛出“就绪”或“消失”的事件回调，**绝对不能**在 Hook 内部执行 Vue 组件的实例化或挂载动作。
+4. **雷打不动地保留在 `index.ts` (生命周期总管)**：
+   - 声明所有 Vue 实例变量 (`startupApp`, `globalStatusBarApp` 等)。
+   - 在 `bootstrap()` 启动序列中引入上面的 Utils 和 Injectors。
+   - 监听 Hooks 传回的回调，在 `index.ts` 内部亲自执行 `createApp().mount()`。
+   - 在 `pagehide` 时统一执行 `app.unmount()` 安全回收内存。
+   - 引入配置挂载开关，在顶层实现“通用世界书模式”与“方舟专属模式”的灵活切换。
+
+## 附录 B：本项目的现代标准前端目录规范 (Appendix B: Modern Frontend Directory Standard)
+为避免在重构过程中出现概念混淆（如将 Hook 误认为 Util，将辅助工具误认为 Service），特此明确本项目（基于 Vue 3 + TS 扩展插件环境）的最终目录界限标准，在后续开发中必须严格遵守：
+
+*   **`src/ARK_STATUSBAR/views/` (页面级视图层)**：原 `components/global_tabs` 改版。装载占据主要视野的大模块，如 `WorldbookTab.vue`、`HistoryTab.vue`。负责拼装小组件，调用后端服务处理业务。
+*   **`src/ARK_STATUSBAR/components/` (通用基础组件层)**：装载“无脑 (Dumb)”的、可复用的 UI 积木，如带有方舟样式的 `<ArkButton>`、输入框。仅负责接 `props` 和抛出 `emit`，不含重度业务逻辑。
+*   **`src/ARK_STATUSBAR/utils/` (纯函数辅助工具层)**：纯净加工厂。例如 `checkIsArknights()`、数据格式化工具。不需要响应式状态，完全不依赖 Vue 环境。
+*   **`src/ARK_STATUSBAR/hooks/` (组合式响应函数)**：所有借助 Vue `ref`、`watch` 或生命周期的复用逻辑。通常以 `use` 开头，如 `useDraggablePhysics`、`useChatMonitor`（观测 DOM 变化并在内部产生响应式变更抛出）。
+*   **`src/ARK_STATUSBAR/inject/` (宿主侵入层 / 扩展特有)**：所有向宿主 (SillyTavern) 网页原生 DOM 强行插入按钮、拦截发包或监听原生环境 API 的“脏活”专用隔离文件夹。
+*   **`src/ARK_STATUSBAR/services/` (后端业务门面 / 由原 `logic/` 重命名)**：处理 Zod 拦截校验、世界书条目读写落盘的核心数据中心。对前端提供 Facade（门面）封装，完全隔离复杂的原生酒馆操作。
+*   **`src/ARK_STATUSBAR/store/` (全局状态层)**：存放 Pinia 仓库，集中管理跨组件的全局响应式变量，并专门负责执行配置解耦（将视觉 Config 与历史记录 History 分离存储）。
+*   **`src/ARK_STATUSBAR/types/` (系统契约与防腐层)**：存放全部核心的 TypeScript Interface (如 `ArkConfig`, `ArkCommit`)，强制执行数据校验，杜绝 Duck Typing 和 `any` 滥用。
