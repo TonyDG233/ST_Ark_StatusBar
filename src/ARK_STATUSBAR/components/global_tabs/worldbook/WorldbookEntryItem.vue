@@ -50,7 +50,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { UIWorldbookEntry } from '../shared_ui_state';
+import { UIWorldbookEntry } from '../../../store/ui_state_store';
 import { useWorldbookActions } from './useWorldbookActions';
 import WorldbookEntryEditor from './WorldbookEntryEditor.vue';
 

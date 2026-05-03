@@ -1,5 +1,5 @@
-import { configStore, useArkConfig } from '../../core/config_store';
 import { BASELINE_STATE } from '../../data/baseline';
+import { configStore, useArkConfig } from '../../store/config_store';
 import { normalizeCompare } from './entry_service';
 
 /**

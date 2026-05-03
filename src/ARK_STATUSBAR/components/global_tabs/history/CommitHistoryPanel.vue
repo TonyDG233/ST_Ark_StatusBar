@@ -182,9 +182,19 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { configStore, useArkConfig } from '../../../core/config_store';
+import { configStore, useArkConfig } from '../../../store/config_store';
+import { UIWorldbookEntry } from '../../../store/ui_state_store';
 import { ArkCommit } from '../../../types/system_config';
-import { currentPrimaryWorldbook, UIWorldbookEntry } from '../shared_ui_state';
+
+// Pinia化前端数据中心改造
+import { storeToRefs } from 'pinia';
+import { useUIStateStore } from '../../../store/ui_state_store';
+// 1. 实例化 Store
+const uiStore = useUIStateStore();
+// 2. 解构状态变量（必须用 storeToRefs 保持响应式）
+const { 
+  currentPrimaryWorldbook
+} = storeToRefs(uiStore);
 
 const currentConfig = useArkConfig();
 

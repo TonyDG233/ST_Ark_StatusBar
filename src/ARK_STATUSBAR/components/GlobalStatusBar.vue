@@ -118,16 +118,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
-import { configStore, useArkConfig } from '../core/config_store';
-import {
-  currentTokenCount,
-  isArknightsCard,
-  isTestMode,
-  lastTriggeredEntries,
-  pendingEntries,
-  previewUiFontSize,
-  previewUiWidth,
-} from './global_tabs/shared_ui_state';
+import { configStore, useArkConfig } from '../store/config_store';
 
 // 引入彻底解耦的微型 Domain Tab 组件
 import HistoryTab from './global_tabs/history/HistoryTab.vue';
@@ -137,6 +128,23 @@ import WorldbookTab from './global_tabs/worldbook/WorldbookTab.vue';
 
 // --- 全局单一状态机 & 独立物理引擎钩子 ---
 import { UiMode, useDraggablePhysics } from './global_tabs/useDraggablePhysics';
+
+// Pinia化前端数据中心改造
+import { storeToRefs } from 'pinia';
+import { useUIStateStore } from '../store/ui_state_store';
+// 1. 实例化 Store
+const uiStore = useUIStateStore();
+
+// 2. 解构状态变量（必须用 storeToRefs 保持响应式）
+const { 
+    currentTokenCount,
+    isArknightsCard,
+    isTestMode,
+    lastTriggeredEntries,
+    pendingEntries,
+    previewUiFontSize,
+    previewUiWidth,
+} = storeToRefs(uiStore);
 
 const isVisible = ref(true);
 const currentUiMode = ref<UiMode>(UiMode.MINI);
@@ -175,7 +183,9 @@ const toggleMinimize = () => {
 };
 
 // --- 环境联动与事件总线挂载 ---
-import { setupGlobalListeners } from './global_tabs/shared_ui_state';
+const { 
+  setupGlobalListeners
+} = uiStore;
 
 // 保存对事件处理函数的引用以便在 onUnmounted 中移除
 let interceptorTriggeredListener: (e: CustomEvent) => void;

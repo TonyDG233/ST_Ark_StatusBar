@@ -92,10 +92,22 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { useArkConfig } from '../../../core/config_store';
-import { isLoadingWb, UIWorldbookEntry, worldbookEntriesCache } from '../shared_ui_state';
+import { useArkConfig } from '../../../store/config_store';
+import { UIWorldbookEntry } from '../../../store/ui_state_store';
 import { useWorldbookActions } from './useWorldbookActions';
 import WorldbookEntryItem from './WorldbookEntryItem.vue';
+
+// Pinia化前端数据中心改造
+import { storeToRefs } from 'pinia';
+import { useUIStateStore } from '../../../store/ui_state_store';
+// 1. 实例化 Store
+const uiStore = useUIStateStore();
+// 2. 解构状态变量（必须用 storeToRefs 保持响应式）
+const { 
+  isLoadingWb,
+  worldbookEntriesCache
+} = storeToRefs(uiStore);
+
 
 const props = defineProps<{
   wbName: string;

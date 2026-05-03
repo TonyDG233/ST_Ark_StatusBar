@@ -167,21 +167,31 @@
 
 <script setup lang="ts">
 import { watch } from 'vue';
-import { configStore, useArkConfig } from '../../../core/config_store';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
-import {
-  calculateTokenForEntry,
+import { configStore, useArkConfig } from '../../../store/config_store';
+import { type UIWorldbookEntry } from '../../../store/ui_state_store';
+
+// Pinia化前端数据中心改造
+import { storeToRefs } from 'pinia';
+import { useUIStateStore } from '../../../store/ui_state_store';
+// 1. 实例化 Store
+const uiStore = useUIStateStore();
+// 2. 解构状态变量（必须用 storeToRefs 保持响应式）
+const { 
   currentPrimaryWorldbook,
   currentTokenCount,
   entryTokenCountCache,
-  getEntryKey,
   isTestMode,
   lastTriggeredEntries,
   pendingEntries,
   sortedLastTriggeredEntries,
   sortedPendingEntries,
-  type UIWorldbookEntry,
-} from '../shared_ui_state';
+} = storeToRefs(uiStore);
+// 3. 解构方法（不需要 storeToRefs，直接解构即可）
+const { 
+  calculateTokenForEntry,
+  getEntryKey
+} = uiStore;
 
 const emit = defineEmits<{ (e: 'close-panel'): void }>();
 const currentConfig = useArkConfig();

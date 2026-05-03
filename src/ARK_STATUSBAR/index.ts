@@ -1,3 +1,4 @@
+import { createPinia } from 'pinia';
 import { createApp } from 'vue';
 import { teleportStyle } from '../util/script';
 import GlobalStatusBar from './components/GlobalStatusBar.vue';
@@ -18,6 +19,10 @@ import { setupTavernControls } from './hooks/useTavernControls';
 import './components/StartupNavigator.vue';
 
 const GLOBAL_STATUSBAR_CONTAINER_CLASS = 'ark-global-statusbar-mount-point';
+
+// --- 创建全局唯一的 Pinia 引擎 ---
+// 保证在不同挂载点 (开局UI、返回按钮、状态栏) 的 Vue 实例之间共享同一份内存数据
+const globalPinia = createPinia();
 
 let startupApp: ReturnType<typeof createApp> | null = null;
 let returnBtnApp: ReturnType<typeof createApp> | null = null;
@@ -56,6 +61,7 @@ function setupMountListeners() {
       containerEl.appendChild(mountPoint);
       
       startupApp = createApp(StartupNavigator);
+      startupApp.use(globalPinia);
       startupApp.mount(mountPoint);
     }
   };
@@ -83,6 +89,7 @@ function setupMountListeners() {
       containerEl.appendChild(mountPoint);
       
       returnBtnApp = createApp(ReturnButton);
+      returnBtnApp.use(globalPinia);
       returnBtnApp.mount(mountPoint);
     }
   };
@@ -137,6 +144,7 @@ function mountGlobalStatusBar() {
   }
 
   globalStatusBarApp = createApp(GlobalStatusBar);
+  globalStatusBarApp.use(globalPinia);
   globalStatusBarApp.mount(globalContainer);
 }
 

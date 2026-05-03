@@ -145,8 +145,23 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { configStore, useArkConfig } from '../../../core/config_store';
-import { currentPrimaryWorldbook, previewUiFontSize, previewUiWidth, refreshWorldbookCache } from '../shared_ui_state';
+import { configStore, useArkConfig } from '../../../store/config_store';
+
+// Pinia化前端数据中心改造
+import { storeToRefs } from 'pinia';
+import { useUIStateStore } from '../../../store/ui_state_store';
+// 1. 实例化 Store
+const uiStore = useUIStateStore();
+// 2. 解构状态变量（必须用 storeToRefs 保持响应式）
+const { 
+  currentPrimaryWorldbook, 
+  previewUiFontSize, 
+  previewUiWidth
+} = storeToRefs(uiStore);
+// 3. 解构方法（不需要 storeToRefs，直接解构即可）
+const { 
+  refreshWorldbookCache
+} = uiStore;
 
 const currentConfig = useArkConfig();
 

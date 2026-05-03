@@ -128,8 +128,8 @@
 <script setup lang="ts">
 import { cloneDeep, isEqual } from 'lodash';
 import { onMounted, ref } from 'vue';
+import { UIWorldbookEntry } from '../../../store/ui_state_store';
 import { ArkCommitChange } from '../../../types/system_config';
-import { UIWorldbookEntry } from '../shared_ui_state';
 
 const props = defineProps<{
   entry: UIWorldbookEntry;

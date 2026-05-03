@@ -1,18 +1,23 @@
-import { configStore, useArkConfig } from '../../../core/config_store';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
+import { configStore, useArkConfig } from '../../../store/config_store';
+import { UIWorldbookEntry } from '../../../store/ui_state_store';
 import { ArkCommitChange } from '../../../types/system_config';
-import {
-  allAvailableWorldbooks,
-  currentPrimaryWorldbook,
-  globalMountedWorldbooks,
-  UIWorldbookEntry,
-} from '../shared_ui_state';
+
+import { storeToRefs } from 'pinia';
+import { useUIStateStore } from '../../../store/ui_state_store';
 
 /**
  * 封装并接管 Worldbook 的所有增删改查动作，
  * 及生成 `ArkCommit` 的逻辑。供 UI 层调用。
  */
 export function useWorldbookActions() {
+  const uiStore = useUIStateStore();
+  const {
+    allAvailableWorldbooks,
+    currentPrimaryWorldbook,
+    globalMountedWorldbooks
+  } = storeToRefs(uiStore);
+
   const currentConfig = useArkConfig();
   const manager = StatusBarManager.getInstance();
 

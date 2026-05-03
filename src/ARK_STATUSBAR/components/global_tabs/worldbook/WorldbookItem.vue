@@ -39,15 +39,25 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import {
-  CONFIG_ENTRY_PREFIX,
-  expandedWorldbooks,
-  isLoadingWb,
-  UIWorldbookEntry,
-  worldbookEntriesCache,
-} from '../shared_ui_state';
+import type { UIWorldbookEntry } from '../../../store/ui_state_store';
 import { useWorldbookActions } from './useWorldbookActions';
 import WorldbookEntryList from './WorldbookEntryList.vue';
+
+// Pinia化前端数据中心改造
+import { storeToRefs } from 'pinia';
+import { useUIStateStore } from '../../../store/ui_state_store';
+// 1. 实例化 Store
+const uiStore = useUIStateStore();
+// 2. 解构状态变量（必须用 storeToRefs 保持响应式）
+const { 
+  expandedWorldbooks,
+  isLoadingWb,
+  worldbookEntriesCache
+} = storeToRefs(uiStore);
+// 3. 解构方法（不需要 storeToRefs，直接解构即可）
+const { 
+  CONFIG_ENTRY_PREFIX
+} = uiStore;
 
 const props = defineProps<{
   wb: { name: string; type: string; isPinned: boolean };

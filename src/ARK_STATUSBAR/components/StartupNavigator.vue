@@ -91,10 +91,10 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { configStore, useArkConfig } from '../core/config_store';
 import { ASSETS } from '../data/assets';
 import { STARTUP_SCENARIOS, type Scenario } from '../data/scenarios';
 import { StatusBarManager, type WorldbookStatus } from '../logic/statusbar_manager';
+import { configStore, useArkConfig } from '../store/config_store';
 import StartupSettingsPanel from './startup_tabs/StartupSettingsPanel.vue';
 
 // --- 状态与变量定义 ---

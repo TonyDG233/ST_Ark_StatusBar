@@ -1,5 +1,5 @@
 import { unref } from 'vue';
-import { useArkConfig } from '../../core/config_store';
+import { useArkConfig } from '../../store/config_store';
 import { DEBUG_ENTRY_FULL_NAME } from '../../types/system_config';
 
 class LoggerService {

@@ -1,5 +1,5 @@
 import { unref } from 'vue';
-import { useArkConfig } from '../../core/config_store';
+import { useArkConfig } from '../../store/config_store';
 import { WorldbookMapper } from './worldbook_mapper';
 
 /**

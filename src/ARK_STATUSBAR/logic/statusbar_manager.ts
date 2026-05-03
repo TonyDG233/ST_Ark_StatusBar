@@ -1,5 +1,5 @@
 import { unref } from 'vue';
-import { configStore } from './../core/config_store';
+import { configStore } from '../store/config_store';
 import { backupService } from './worldbook/backup_service';
 import { entryService } from './worldbook/entry_service';
 import { snapshotService } from './worldbook/snapshot_service';

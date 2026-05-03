@@ -36,9 +36,21 @@
 </template>
 
 <script setup lang="ts">
-import { configStore } from '../../../core/config_store';
 import { StatusBarManager } from '../../../logic/statusbar_manager';
-import { allAvailableWorldbooks, currentPrimaryWorldbook, isArknightsCard } from '../shared_ui_state';
+import { configStore } from '../../../store/config_store';
+
+// Pinia化前端数据中心改造
+import { storeToRefs } from 'pinia';
+import { useUIStateStore } from '../../../store/ui_state_store';
+// 1. 实例化 Store
+const uiStore = useUIStateStore();
+// 2. 解构状态变量（必须用 storeToRefs 保持响应式）
+const { 
+  allAvailableWorldbooks, 
+  currentPrimaryWorldbook, 
+  isArknightsCard
+} = storeToRefs(uiStore);
+
 
 const manager = StatusBarManager.getInstance();
 

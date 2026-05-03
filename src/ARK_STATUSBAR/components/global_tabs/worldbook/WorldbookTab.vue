@@ -51,10 +51,21 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { useArkConfig } from '../../../core/config_store';
-import { allAvailableWorldbooks, charBoundWorldbooks, globalMountedWorldbooks } from '../shared_ui_state';
+import { useArkConfig } from '../../../store/config_store';
 import { useWorldbookActions } from './useWorldbookActions';
 import WorldbookItem from './WorldbookItem.vue';
+
+// Pinia化前端数据中心改造
+import { storeToRefs } from 'pinia';
+import { useUIStateStore } from '../../../store/ui_state_store';
+// 1. 实例化 Store
+const uiStore = useUIStateStore();
+// 2. 解构状态变量（必须用 storeToRefs 保持响应式）
+const { 
+  allAvailableWorldbooks, 
+  charBoundWorldbooks, 
+  globalMountedWorldbooks
+} = storeToRefs(uiStore);
 
 const currentConfig = useArkConfig();
 const actions = useWorldbookActions();

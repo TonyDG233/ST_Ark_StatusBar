@@ -1,4 +1,4 @@
-import { configStore } from '../../core/config_store';
+import { configStore } from '../../store/config_store';
 
 const BACKUP_PREFIX_BASE = '[ARK_BACKUP_';
 
