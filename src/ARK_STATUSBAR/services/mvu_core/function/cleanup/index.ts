@@ -1,9 +1,9 @@
 import { useDataStore } from '../../store';
 import { controlledStoppableEventOn } from '../../util';
-import { checkAndCleanupLegacyChat } from '../cleanup/legacy_chat';
-import { restoreVariables } from '../cleanup/restore_variables';
 import { checkAndRemoveChatVariables } from './chat_variables';
 import { cleanupMessageVariables } from './cleanup_variables';
+import { checkAndCleanupLegacyChat } from './legacy_chat';
+import { restoreVariables } from './restore_variables';
 
 export function initCleanup() {
     const store = useDataStore();

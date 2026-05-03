@@ -1,5 +1,5 @@
 import { useDataStore } from '../../store';
-import { cleanupMessageVariables } from '../cleanup/cleanup_variables';
+import { cleanupMessageVariables } from './cleanup_variables';
 
 export async function checkAndCleanupLegacyChat() {
     const store = useDataStore();

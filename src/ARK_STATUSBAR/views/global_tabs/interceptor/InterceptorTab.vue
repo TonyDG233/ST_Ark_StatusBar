@@ -167,7 +167,7 @@
 
 <script setup lang="ts">
 import { watch } from 'vue';
-import { StatusBarManager } from '../../../logic/statusbar_manager';
+import { StatusBarManager } from '../../../services/statusbar_manager';
 import { configStore, useArkConfig } from '../../../store/config_store';
 import { type UIWorldbookEntry } from '../../../store/ui_state_store';
 

@@ -127,7 +127,7 @@ import SettingsTab from './global_tabs/settings/SettingsTab.vue';
 import WorldbookTab from './global_tabs/worldbook/WorldbookTab.vue';
 
 // --- 全局单一状态机 & 独立物理引擎钩子 ---
-import { UiMode, useDraggablePhysics } from './global_tabs/useDraggablePhysics';
+import { UiMode, useDraggablePhysics } from '../hooks/useDraggablePhysics';
 
 // Pinia化前端数据中心改造
 import { storeToRefs } from 'pinia';

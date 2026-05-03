@@ -1,8 +1,8 @@
 import { is_jest_environment } from '../../jest';
 
-import { onMessageReceived } from '../../function/update/on_message_received';
-import { handleVariablesInMessage } from '../../function/update_variables';
 import { controlledStoppableEventOn } from '../../util';
+import { handleVariablesInMessage } from '../update_variables';
+import { onMessageReceived } from './on_message_received';
 
 export function initResponse() {
     const stop_list: Array<() => void> = [];

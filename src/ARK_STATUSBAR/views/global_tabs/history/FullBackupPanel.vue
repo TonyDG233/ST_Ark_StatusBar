@@ -98,7 +98,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { StatusBarManager } from '../../../logic/statusbar_manager';
+import { StatusBarManager } from '../../../services/statusbar_manager';
 
 // Pinia化前端数据中心改造
 import { storeToRefs } from 'pinia';

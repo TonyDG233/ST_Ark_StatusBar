@@ -1,8 +1,8 @@
-import { isExtraModelSupported } from '../../function/is_extra_model_supported';
-import { isFunctionCallingSupported } from '../../function/is_function_calling_supported';
-import { invokeExtraModelWithStrategy } from '../../function/update/invoke_extra_model';
-import { handleVariablesInMessage } from '../../function/update_variables';
 import { useDataStore } from '../../store';
+import { isExtraModelSupported } from '../is_extra_model_supported';
+import { isFunctionCallingSupported } from '../is_function_calling_supported';
+import { handleVariablesInMessage } from '../update_variables';
+import { invokeExtraModelWithStrategy } from './invoke_extra_model';
 
 export async function onMessageReceived(
     message_id: number,

@@ -93,7 +93,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { ASSETS } from '../data/assets';
 import { STARTUP_SCENARIOS, type Scenario } from '../data/scenarios';
-import { StatusBarManager, type WorldbookStatus } from '../logic/statusbar_manager';
+import { StatusBarManager, type WorldbookStatus } from '../services/statusbar_manager';
 import { configStore, useArkConfig } from '../store/config_store';
 import StartupSettingsPanel from './startup_tabs/StartupSettingsPanel.vue';
 

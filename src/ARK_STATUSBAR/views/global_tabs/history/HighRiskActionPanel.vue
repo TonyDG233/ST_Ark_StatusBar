@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { StatusBarManager } from '../../../logic/statusbar_manager';
+import { StatusBarManager } from '../../../services/statusbar_manager';
 import { configStore } from '../../../store/config_store';
 
 // Pinia化前端数据中心改造

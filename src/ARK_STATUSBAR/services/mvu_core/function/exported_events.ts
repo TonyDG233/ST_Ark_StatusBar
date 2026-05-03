@@ -1,6 +1,6 @@
-import { updateVariable, updateVariables } from '../function/update_variables';
 import { controlledStoppableEventOn } from '../util';
 import { exported_events, VariableData } from '../variable_def';
+import { updateVariable, updateVariables } from './update_variables';
 
 export async function handleVariablesInCallback(
     message_content: string,

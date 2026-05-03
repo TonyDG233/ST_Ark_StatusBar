@@ -80,8 +80,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import type { WorldbookStatus } from '../../services/statusbar_manager';
 import type { ArkConfig } from '../../types/system_config';
-import type { WorldbookStatus } from '../../logic/statusbar_manager';
 
 const props = defineProps<{
   isOpen: boolean;

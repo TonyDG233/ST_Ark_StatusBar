@@ -1,4 +1,4 @@
-import type { ExtraModelRequestOverrides } from '../../function/update/extra_model_preset';
+import type { ExtraModelRequestOverrides } from '../update/extra_model_preset';
 
 let current_request_overrides: ExtraModelRequestOverrides | null = null;
 

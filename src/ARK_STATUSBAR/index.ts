@@ -1,10 +1,10 @@
 import { createPinia } from 'pinia';
 import { createApp } from 'vue';
 import { teleportStyle } from '../util/script';
-import GlobalStatusBar from './components/GlobalStatusBar.vue';
-import ReturnButton from './components/ReturnButton.vue';
-import StartupNavigator from './components/StartupNavigator.vue';
-import { StatusBarManager } from './logic/statusbar_manager';
+import { StatusBarManager } from './services/statusbar_manager';
+import GlobalStatusBar from './views/GlobalStatusBar.vue';
+import ReturnButton from './views/ReturnButton.vue';
+import StartupNavigator from './views/StartupNavigator.vue';
 
 // 导入重构抽离的模块
 import {
@@ -16,7 +16,7 @@ import {
 import { setupTavernControls } from './hooks/useTavernControls';
 
 // 导入全局样式
-import './components/StartupNavigator.vue';
+import './views/StartupNavigator.vue';
 
 const GLOBAL_STATUSBAR_CONTAINER_CLASS = 'ark-global-statusbar-mount-point';
 

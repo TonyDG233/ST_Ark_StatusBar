@@ -1,12 +1,6 @@
 import { parseString } from '@/src/util/common';
 import { klona } from 'klona';
 import * as math from 'mathjs';
-import {
-    cleanUpMetadata,
-    generateSchema,
-    getSchemaForPath,
-    reconcileAndApplySchema,
-} from '../function/schema';
 import { useDataStore } from '../store';
 import { getLastValidVariable, isJsonPatch } from '../util';
 import {
@@ -19,6 +13,12 @@ import {
     UpdateContext,
     variable_events,
 } from '../variable_def';
+import {
+    cleanUpMetadata,
+    generateSchema,
+    getSchemaForPath,
+    reconcileAndApplySchema,
+} from './schema';
 
 export function trimQuotesAndBackslashes(str: string): string {
     if (!_.isString(str)) return str;

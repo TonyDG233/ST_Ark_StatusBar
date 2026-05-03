@@ -1,19 +1,5 @@
 import { literalYamlify, uuidv4 } from '@/src/util/common';
 import { compare } from 'compare-versions';
-import {
-    extractFromFormattedOutput,
-    extractFromGenerateToolCallResult,
-    MVU_JSON_PATCH_RESPONSE_SCHEMA,
-    MVU_TOOL_DEFINITION,
-} from '../../function/function_call';
-import {
-    clearExtraModelRequestOverrides,
-    setExtraModelRequestOverrides,
-} from '../../function/request/extra_model_request_override';
-import {
-    buildOtherPresetGenerateConfig,
-    getExtraModelPreset,
-} from '../../function/update/extra_model_preset';
 import claude_head from '../../prompts/claude_head.txt?raw';
 import claude_tail from '../../prompts/claude_tail.txt?raw';
 import extra_model_task from '../../prompts/extra_model_task.txt?raw';
@@ -21,6 +7,20 @@ import gemini_head from '../../prompts/gemini_head.txt?raw';
 import gemini_tail from '../../prompts/gemini_tail.txt?raw';
 import { useDataStore } from '../../store';
 import { normalizeBaseURL } from '../../util';
+import {
+    extractFromFormattedOutput,
+    extractFromGenerateToolCallResult,
+    MVU_JSON_PATCH_RESPONSE_SCHEMA,
+    MVU_TOOL_DEFINITION,
+} from '../function_call';
+import {
+    clearExtraModelRequestOverrides,
+    setExtraModelRequestOverrides,
+} from '../request/extra_model_request_override';
+import {
+    buildOtherPresetGenerateConfig,
+    getExtraModelPreset,
+} from './extra_model_preset';
 
 //测试用，为了使首次请求必失败
 let debug_extra_request_counter = 0;

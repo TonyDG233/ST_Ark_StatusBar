@@ -115,7 +115,7 @@ export const useUIStateStore = defineStore('ark_ui_state', () => {
    */
   const loadWorldbookLists = async () => {
     try {
-      const { StatusBarManager } = await import('../logic/statusbar_manager');
+      const { StatusBarManager } = await import('../services/statusbar_manager');
       const manager = StatusBarManager.getInstance();
       allAvailableWorldbooks.value = await manager.worldbook.getAllAvailableWorldbooks();
       globalMountedWorldbooks.value = await manager.worldbook.getGlobalMountedWorldbooks();

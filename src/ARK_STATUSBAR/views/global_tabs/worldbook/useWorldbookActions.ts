@@ -1,4 +1,4 @@
-import { StatusBarManager } from '../../../logic/statusbar_manager';
+import { StatusBarManager } from '../../../services/statusbar_manager';
 import { configStore, useArkConfig } from '../../../store/config_store';
 import { UIWorldbookEntry } from '../../../store/ui_state_store';
 import { ArkCommitChange } from '../../../types/system_config';

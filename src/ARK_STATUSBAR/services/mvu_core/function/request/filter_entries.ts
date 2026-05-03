@@ -1,7 +1,7 @@
-import { isExtraModelSupported } from '../../function/is_extra_model_supported';
-import { isFunctionCallingSupported } from '../../function/is_function_calling_supported';
 import { useDataStore } from '../../store';
 import { PLOT_REGEX, UPDATE_REGEX } from '../../variable_def';
+import { isExtraModelSupported } from '../is_extra_model_supported';
+import { isFunctionCallingSupported } from '../is_function_calling_supported';
 
 export async function filterEntries(lores: {
     globalLore: Record<string, any>[];
