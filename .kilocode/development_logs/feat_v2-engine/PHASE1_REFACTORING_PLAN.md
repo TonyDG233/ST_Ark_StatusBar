@@ -66,14 +66,17 @@
    - 在 `pagehide` 时统一执行 `app.unmount()` 安全回收内存。
    - 引入配置挂载开关，在顶层实现“通用世界书模式”与“方舟专属模式”的灵活切换。
 
-## 附录 B：本项目的现代标准前端目录规范 (Appendix B: Modern Frontend Directory Standard)
-为避免在重构过程中出现概念混淆（如将 Hook 误认为 Util，将辅助工具误认为 Service），特此明确本项目（基于 Vue 3 + TS 扩展插件环境）的最终目录界限标准，在后续开发中必须严格遵守：
+## 附录 B：V2 引擎架构与物理防线规范 (Appendix B: V2 Architecture Standard)
+为配合我们独有的 MVU 核心架构和高可用的单向管线防线，绝对禁止用传统的 Vue 习惯去颠覆现有的平级模块化架构。以下是各个目录严苛的职责防线与边界，后续开发必须无条件遵守：
 
-*   **`src/ARK_STATUSBAR/views/` (页面级视图层)**：原 `components/global_tabs` 改版。装载占据主要视野的大模块，如 `WorldbookTab.vue`、`HistoryTab.vue`。负责拼装小组件，调用后端服务处理业务。
-*   **`src/ARK_STATUSBAR/components/` (通用基础组件层)**：装载“无脑 (Dumb)”的、可复用的 UI 积木，如带有方舟样式的 `<ArkButton>`、输入框。仅负责接 `props` 和抛出 `emit`，不含重度业务逻辑。
-*   **`src/ARK_STATUSBAR/utils/` (纯函数辅助工具层)**：纯净加工厂。例如 `checkIsArknights()`、数据格式化工具。不需要响应式状态，完全不依赖 Vue 环境。
-*   **`src/ARK_STATUSBAR/hooks/` (组合式响应函数)**：所有借助 Vue `ref`、`watch` 或生命周期的复用逻辑。通常以 `use` 开头，如 `useDraggablePhysics`、`useChatMonitor`（观测 DOM 变化并在内部产生响应式变更抛出）。
-*   **`src/ARK_STATUSBAR/inject/` (宿主侵入层 / 扩展特有)**：所有向宿主 (SillyTavern) 网页原生 DOM 强行插入按钮、拦截发包或监听原生环境 API 的“脏活”专用隔离文件夹。
-*   **`src/ARK_STATUSBAR/services/` (后端业务门面 / 由原 `logic/` 重命名)**：处理 Zod 拦截校验、世界书条目读写落盘的核心数据中心。对前端提供 Facade（门面）封装，完全隔离复杂的原生酒馆操作。
-*   **`src/ARK_STATUSBAR/store/` (全局状态层)**：存放 Pinia 仓库，集中管理跨组件的全局响应式变量，并专门负责执行配置解耦（将视觉 Config 与历史记录 History 分离存储）。
-*   **`src/ARK_STATUSBAR/types/` (系统契约与防腐层)**：存放全部核心的 TypeScript Interface (如 `ArkConfig`, `ArkCommit`)，强制执行数据校验，杜绝 Duck Typing 和 `any` 滥用。
+*   **`src/ARK_STATUSBAR/views/` (页面级视图层)**：装载占据主要视野的大模块（原 `components/global_tabs`），如 `WorldbookTab.vue`。它们负责与底层数据交互，并拼装下方的小组件。
+*   **`src/ARK_STATUSBAR/components/` (通用基础组件层)**：装载纯粹、可复用的 UI 积木（如 `<ArkButton>`）。这类通用组件可通过 `props` 接收渲染数据，极个别纯展示交互可使用 `emit`，但严禁包含重度引擎层业务逻辑。
+*   **`src/ARK_STATUSBAR/utils/` (纯函数辅助工具层)**：纯净的数据加工厂或无副作用判定，如 `checkIsArknights()`。
+    *   **红线**：不使用响应式，完全不依赖 Vue 环境。
+*   **`src/ARK_STATUSBAR/hooks/` (副作用与组合式响应层)**：封装具有副作用的特定逻辑，如 `useChatMonitor`（观测环境并抛出事件），以及诸如 `useTavernControls` 这种专门对宿主环境原生 DOM 进行视觉层注入的控制端点。
+    *   **红线**：只处理边缘副作用，绝对不允许侵入或代理发包核心业务。
+*   **`src/ARK_STATUSBAR/services/` (核心业务拦截与服务层 / 原 `logic/`)**：引擎跳动的心脏。处理诸如 `send_interceptor` 的强力数据流劫持、执行 AST 解析或 JSON 变异、以及挂载最终的 Zod 防线落盘。它负责执行真正的“黑盒破坏与接管”。
+*   **`src/ARK_STATUSBAR/store/` (全局状态与配置枢纽)**：同时管理前端和后台环境的唯一真相源。
+    *   **UI 共享状态 (`ui_state_store`)**：使用业界标准的 Pinia Store 模式专门给上层的 `views` 与 `components` 供血，保证组件内存同频。
+    *   **后端配置状态 (`config_store`)**：坚持使用 `单例类 (Singleton) + CustomEvent 事件总线` 模式。实现与 Vue 上下文彻底解耦，专供底层纯 TS 脚本（如 `send_interceptor`）高速无感读写。
+*   **`src/ARK_STATUSBAR/types/` (系统契约与防腐层)**：存放全部核心 TypeScript Interface（如 `ArkConfig`, `ArkCommit`）以及 `ark_events.d.ts` 中的全局原生事件强定义，是系统避免类型崩溃的钢筋。
