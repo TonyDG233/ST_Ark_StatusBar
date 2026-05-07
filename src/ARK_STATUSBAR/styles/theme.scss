@@ -1,0 +1,102 @@
+/* 字体导入：采用 Google Fonts 并补充中文字体防线 */
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap');
+/* 中文防线后备字体，确保剧情等长文本显示美观 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;700&display=swap');
+
+:root {
+    /* 全局字体定义 (Token) */
+    --font-display: 'Space Grotesk', 'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --font-body: 'Inter', 'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --font-label: 'Space Grotesk', 'PingFang SC', sans-serif;
+}
+
+/* 终末地亮色主题 (Endfield Tactical Protocol - Light) */
+.light-theme {
+    --color-background: #f5f5f5;
+    --color-surface: #ffffff;
+    --color-surface-dim: #f0f0f0;
+    --color-surface-bright: #ffffff;
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-container-low: #f5f5f5;
+    --color-surface-container: #eeeeee;
+    --color-surface-container-high: #e0e0e0;
+    --color-surface-container-highest: #d4d4d4;
+
+    --color-on-background: #111111;
+    --color-on-surface: #111111;
+    --color-on-surface-variant: #444444;
+    --color-outline: #cccccc;
+    --color-outline-variant: #e0e0e0;
+
+    --color-primary: #ffe600;
+    --color-on-primary: #000000;
+    --color-primary-container: #fff066;
+    --color-on-primary-container: #000000;
+    --color-inverse-primary: #ccb800;
+
+    --color-secondary: #111111;
+    --color-on-secondary: #ffffff;
+    --color-secondary-container: #2a2a2a;
+    --color-on-secondary-container: #ffffff;
+
+    --color-error: #ff3b3b;
+    --color-on-error: #ffffff;
+    --color-error-container: #ffdddd;
+    --color-on-error-container: #cc0000;
+
+    /* 亮色特有口音色 */
+    --color-accent-cyan: #00e5ff;
+    --color-accent-magenta: #e6007e;
+
+    /* 背景水印图 - 浅色等高线 */
+    --bg-watermark: url('../assets/page-bg-light.jpg');
+}
+
+/* 罗德岛暗色主题 (Rhodes Technical Interface - Dark) */
+.dark-theme {
+    --color-background: #121413;
+    --color-surface: #121413;
+    --color-surface-dim: #121413;
+    --color-surface-bright: #383a38;
+    --color-surface-container-lowest: #0d0f0e;
+    --color-surface-container-low: #1a1c1b;
+    --color-surface-container: #1e201f;
+    --color-surface-container-high: #282a29;
+    --color-surface-container-highest: #333534;
+
+    --color-on-background: #e2e3e1;
+    --color-on-surface: #e2e3e1;
+    --color-on-surface-variant: #bbc9cf;
+    --color-inverse-surface: #e2e3e1;
+    --color-inverse-on-surface: #2f3130;
+
+    --color-outline: #869399;
+    --color-outline-variant: #3c494e;
+
+    --color-primary: #a6e6ff;
+    --color-on-primary: #003543;
+    --color-primary-container: #19d1ff;
+    --color-on-primary-container: #00566b;
+    --color-inverse-primary: #006780;
+
+    --color-secondary: #afd439;
+    --color-on-secondary: #283500;
+    --color-secondary-container: #87aa00;
+    --color-on-secondary-container: #2c3a00;
+
+    --color-error: #ffb4ab;
+    --color-on-error: #690005;
+    --color-error-container: #93000a;
+    --color-on-error-container: #ffdad6;
+}
+
+/* Material Icons 基础设置 */
+.material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    /* 确保图标与文本垂直对齐 */
+    vertical-align: middle;
+    display: inline-block;
+    line-height: 1;
+}

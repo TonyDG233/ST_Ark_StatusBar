@@ -1,0 +1,60 @@
+<template>
+  <nav class="ark-bottom-nav flex flex-shrink-0 border-t border-outline-variant bg-surface relative">
+    <!-- 开发时对齐意图用 -->
+    <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-error/90 text-on-error text-[10px] px-1 font-mono z-50 opacity-50 pointer-events-none">
+      [ArkBottomNav]
+    </div>
+
+    <!-- 菜单 1: Dashboard (主页) -->
+    <button
+      class="flex-1 py-3 flex flex-col items-center justify-center gap-1 transition-all group border-t-2 bg-surface-container hover:bg-surface-container-high hover:shadow-[0_-5px_15px_rgba(0,0,0,0.3)]"
+      :class="activeTab === 'dashboard' ? 'border-primary' : 'border-transparent'"
+      @click="emit('change-tab', 'dashboard')"
+    >
+      <span class="material-symbols-outlined transition-colors" :class="activeTab === 'dashboard' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">dashboard</span>
+      <span class="text-xs font-display font-bold tracking-widest transition-colors" :class="activeTab === 'dashboard' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">主页</span>
+    </button>
+
+    <!-- 菜单 2: Worldbook (世界书) -->
+    <button
+      class="flex-1 py-3 flex flex-col items-center justify-center gap-1 transition-all group border-t-2 bg-surface-container hover:bg-surface-container-high hover:shadow-[0_-5px_15px_rgba(0,0,0,0.3)]"
+      :class="activeTab === 'worldbook' ? 'border-primary' : 'border-transparent'"
+      @click="emit('change-tab', 'worldbook')"
+    >
+      <span class="material-symbols-outlined transition-colors" :class="activeTab === 'worldbook' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">menu_book</span>
+      <span class="text-xs font-display font-bold tracking-widest transition-colors" :class="activeTab === 'worldbook' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">世界书</span>
+    </button>
+
+    <!-- 菜单 3: Misc (多功能) -->
+    <button
+      class="flex-1 py-3 flex flex-col items-center justify-center gap-1 transition-all group border-t-2 bg-surface-container hover:bg-surface-container-high hover:shadow-[0_-5px_15px_rgba(0,0,0,0.3)]"
+      :class="activeTab === 'misc' ? 'border-primary' : 'border-transparent'"
+      @click="emit('change-tab', 'misc')"
+    >
+      <span class="material-symbols-outlined transition-colors" :class="activeTab === 'misc' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">hub</span>
+      <span class="text-xs font-display font-bold tracking-widest transition-colors" :class="activeTab === 'misc' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">多功能</span>
+    </button>
+
+    <!-- 菜单 4: Settings (设置) -->
+    <button
+      class="flex-1 py-3 flex flex-col items-center justify-center gap-1 transition-all group border-t-2 bg-surface-container hover:bg-surface-container-high hover:shadow-[0_-5px_15px_rgba(0,0,0,0.3)]"
+      :class="activeTab === 'settings' ? 'border-primary' : 'border-transparent'"
+      @click="emit('change-tab', 'settings')"
+    >
+      <span class="material-symbols-outlined transition-colors" :class="activeTab === 'settings' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">tune</span>
+      <span class="text-xs font-display font-bold tracking-widest transition-colors" :class="activeTab === 'settings' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">设置</span>
+    </button>
+  </nav>
+</template>
+
+<script setup lang="ts">
+// ArkBottomNav: 全局底部导航栏
+// 完全独立的 UI 组件，只负责接收当前 Tab 和发送切换事件
+const props = defineProps<{
+  activeTab: string;
+}>();
+
+const emit = defineEmits<{
+  (e: 'change-tab', tabName: string): void;
+}>();
+</script>

@@ -1,0 +1,84 @@
+/* 
+ * Tailwind v4 定向引入 (剔除 Preflight 防止污染宿主环境)
+ * 参考：https://tailwindcss.com/docs/upgrade-guide#migrating-to-the-new-css-file
+ */
+
+/* 1. 导入核心工具类与主题 */
+@import "tailwindcss/theme";
+@import "tailwindcss/utilities";
+
+/* 2. 挂载我们自定义的设计系统与主题变量 */
+@import "./theme.scss";
+
+/* 
+ * 3. 映射 CSS 变量到 Tailwind v4 的 @theme (用于类名生成) 
+ * 这样就可以在 Vue 组件里直接使用 `bg-background` 或 `text-on-surface` 
+ */
+@theme {
+    --color-background: var(--color-background);
+    --color-surface: var(--color-surface);
+    --color-surface-dim: var(--color-surface-dim);
+    --color-surface-bright: var(--color-surface-bright);
+    --color-surface-container-lowest: var(--color-surface-container-lowest);
+    --color-surface-container-low: var(--color-surface-container-low);
+    --color-surface-container: var(--color-surface-container);
+    --color-surface-container-high: var(--color-surface-container-high);
+    --color-surface-container-highest: var(--color-surface-container-highest);
+
+    --color-on-background: var(--color-on-background);
+    --color-on-surface: var(--color-on-surface);
+    --color-on-surface-variant: var(--color-on-surface-variant);
+    --color-inverse-surface: var(--color-inverse-surface);
+    --color-inverse-on-surface: var(--color-inverse-on-surface);
+
+    --color-outline: var(--color-outline);
+    --color-outline-variant: var(--color-outline-variant);
+
+    --color-primary: var(--color-primary);
+    --color-on-primary: var(--color-on-primary);
+    --color-primary-container: var(--color-primary-container);
+    --color-on-primary-container: var(--color-on-primary-container);
+    --color-inverse-primary: var(--color-inverse-primary);
+
+    --color-secondary: var(--color-secondary);
+    --color-on-secondary: var(--color-on-secondary);
+    --color-secondary-container: var(--color-secondary-container);
+    --color-on-secondary-container: var(--color-on-secondary-container);
+
+    --color-error: var(--color-error);
+    --color-on-error: var(--color-on-error);
+    --color-error-container: var(--color-error-container);
+    --color-on-error-container: var(--color-on-error-container);
+
+    /* 字体映射 */
+    --font-display: var(--font-display);
+    --font-body: var(--font-body);
+    --font-label: var(--font-label);
+
+    /* 背景水印映射 */
+    --bg-watermark: var(--bg-watermark);
+}
+
+/* 4. 提取公用的原子组件类 (从 shared_ui.scss 中逐步迁移) */
+@layer components {
+
+    /* 方舟风格的通用面板容器：支持等高线水印 */
+    .ark-panel-v2 {
+        @apply bg-surface text-on-surface border border-outline-variant relative overflow-hidden;
+
+        /* 注入等高线水印背景 */
+        &::before {
+            content: '';
+            @apply absolute inset-0 opacity-10 pointer-events-none;
+            background-image: var(--bg-watermark);
+            background-size: cover;
+            background-position: center;
+            z-index: 0;
+        }
+    }
+
+    /* "敬请期待"的毛玻璃半透明遮罩 */
+    .ark-wip-mask {
+        @apply absolute inset-0 bg-surface/80 backdrop-blur-sm flex items-center justify-center z-10;
+    }
+}
