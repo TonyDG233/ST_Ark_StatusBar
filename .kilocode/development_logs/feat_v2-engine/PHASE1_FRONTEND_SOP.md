@@ -40,36 +40,46 @@
 
 ### Step 1: 搭建本地测试环境 (UI 练兵场)
 - **目标**：建立一个脱离酒馆的纯白板环境，实现修改代码 0.1 秒极速热更新预览。
-- **操作**：新建 `src/sandbox/sandbox.html` 和入口脚本。在其中挂载一个空白的 Vue 实例。配置 `pnpm run sandbox` 命令启动本地简易服务器（如 Webpack Dev Server 或 Vite）。
+- **操作**：新建 `src/sandbox/sandbox.html` 和入口脚本。在其中挂载一个空白的 Vue 实例。
 
 ### Step 2: 底层基建与样式变量防雷 (Infrastructure & Tokens)
 - **目标**：安全注入双主题颜色，绝不污染全局。
-- **操作**：
-  1. 在 `src/ARK_STATUSBAR/index.ts` 挂载期注入 `Space Grotesk` 与 `Material Symbols` 字体外链。
-  2. 修改 `theme.scss`，严格遵守 `DESIGN.md` 建立 `.dark-theme` (罗德岛) 和 `.light-theme` (终末地) 变量体系。
-  3. 修改 `tailwind.scss`，只引入 `theme` 和 `utilities`，严格剔除 `preflight`。
+- **操作**：修改 `theme.scss`，建立 `.dark-theme` (罗德岛) 和 `.light-theme` (终末地) 变量体系。
 
 ### Step 3: 基础 UI 积木库开发 (Base Components)
 - **目标**：在沙盒中写好未来的通用扩展组件。
-- **操作**：
-  1. 新建 `<ArkPanel>`：带 1px 极细边框与等高线背景的底层容器。
-  2. 新建 `<ArkProgressBar>`：接收 `current` 和 `max` 的纯展示理智条。
-  3. 新建 `<ArkWipMask>`：绝对定位的半透明“敬请期待”遮罩。
-  - *验证点：在沙盒中显示完美，无报错。*
+- **操作**：新建 `<ArkPanel>`, `<ArkProgressBar>`, `<ArkWipMask>`, `<ArkBottomNav>` 等。
 
 ### Step 4: 业务骨架组装 (View Assembly)
 - **目标**：拼装主面板，隔离繁杂的 HTML。
-- **操作**：
-  1. 新建 `src/ARK_STATUSBAR/views/global_tabs/dashboard/DashboardTab.vue`。
-  2. 引入 Step 3 的组件，用假数据画出顶部系统状态、中部日志列表、底部“一大两小”快捷网格。
-  3. 使用 `@container` 容器查询，确保拖拽缩小时排版不崩。
-  - *验证点：在沙盒中拉伸窗口，UI 完美自适应。*
+- **操作**：新建 `DashboardTab.vue`，用假数据画出顶部系统状态、中部日志列表、底部快捷网格。
 
 ### Step 5: 顶层外壳缝合与数据连通 (Top-Level Integration)
 - **目标**：完成 MVP 替换，对接真实物理引擎与数据。
-- **操作**：修改 `src/ARK_STATUSBAR/views/GlobalStatusBar.vue`：
-  1. **绝对保留**：原封不动保留 `useDraggablePhysics.ts` 的 `startDrag`。
-  2. **双击容错**：在气泡把手上追加 `@dblclick` 用于防误触展开。
-  3. **路由替换**：删掉 `<main>` 里冗余的 `v-show` 面条代码，用 `v-if` 安全挂载写好的 `<DashboardTab />`。
-  4. **真数据接入**：将 `DashboardTab` 里的假日志替换为 `uiStore.lastTriggeredEntries` 循环。
-  - *验证点：丢入酒馆真实环境，一切丝滑运转。*
+- **操作**：修改 `GlobalStatusBar.vue`，保留 `useDraggablePhysics.ts`，用 `v-if` 挂载 `<DashboardTab />`。
+
+---
+
+## 三、 任务交接与当前进度 (Task Handover)
+
+**当前进度 (截至 2026-05-07)**：
+我们完成了 **Step 1 到 Step 3** 的基建与原子组件提取，但 **Step 4 (主页拼装与沙盒微调)** 尚未彻底完成！
+
+**已完成的核心成果**：
+1. `src/sandbox/`：本地练兵场已搭建完毕，运行 `npm run build` 后打开 `dist/sandbox/index.html` 即可独立预览组件。
+2. `src/ARK_STATUSBAR/styles/`：`theme.scss` 已提取两套设计稿的颜色；`tailwind.scss` 已安全剥离 preflight。
+3. `src/ARK_STATUSBAR/components/`：成功拆分出基础原子组件，并加上了可视化意图标签。
+
+**尚未解决的遗留问题 (下任 AI 接手后首要任务)**：
+*   **Step 4 的 UI 极限微调仍未达标**：在 `DashboardTab.vue` 中，元素溢出（文字截断挤压）和多余的滚动条嵌套问题**尚未彻底解决**。在极窄宽度下，排版依然会崩坏。必须在沙盒里对着 `DashboardTab.vue` 和 `ArkBottomNav.vue` 进行精准的 CSS 修复，彻底消灭不符合预期的横竖滚动条。
+
+**未触发破坏的防线**：
+绝对没有改动 `GlobalStatusBar.vue` 与入口文件，核心物理拖拽引擎依然完好无损地封存在旧代码中。
+
+**下一任 AI 的执行指令 (Next Steps)**：
+请先完成 **Step 4 的尾巴**，再进入 **Step 5**：
+1. **清理 UI 顽疾**：在本地沙盒环境中，单独查阅并修改 `DashboardTab.vue`、`ArkBottomNav.vue` 以及对应的基础组件。重点修复 280px 宽度下的容器查询排版、清除多余的滚动条，确保 UI 完美自适应。
+2. **切入 Step 5 顶层缝合**：待沙盒 UI 完美后，打开 `GlobalStatusBar.vue`，将原本混杂在 `<main>` 里的各个 Tab 替换为引入 `<DashboardTab />`。
+3. **真实数据连通**：对齐 Pinia Store 数据（如 `uiStore.lastTriggeredEntries`）至 DashboardTab。
+4. **气泡行为增强**：为气泡把手追加 `@dblclick`。
+5. **真机演练**：将代码打包丢入 SillyTavern 真实环境，进行最终的物理挂载与真数据测试。
