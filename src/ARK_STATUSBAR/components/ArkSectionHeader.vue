@@ -6,13 +6,13 @@
     </div>
 
     <!-- 主标题栏 -->
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 min-w-0">
       <!-- 装饰方块 -->
-      <div v-if="showDecoration" class="w-1.5 h-4 bg-primary"></div>
+      <div v-if="showDecoration" class="w-1.5 h-4 bg-primary flex-shrink-0"></div>
       
-      <div class="flex flex-col">
-        <span class="font-display text-label-caps text-on-surface-variant tracking-widest uppercase">{{ subtitle }}</span>
-        <h3 class="font-display text-lg font-bold text-on-surface tracking-wide">{{ title }}</h3>
+      <div class="flex flex-col min-w-0">
+        <span class="font-display text-label-caps text-on-surface-variant tracking-widest uppercase truncate">{{ subtitle }}</span>
+        <h3 class="font-display text-lg font-bold text-on-surface tracking-wide truncate">{{ title }}</h3>
       </div>
     </div>
   </div>

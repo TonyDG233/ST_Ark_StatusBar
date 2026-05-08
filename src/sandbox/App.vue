@@ -79,13 +79,30 @@
 
         <!-- 页面骨架拼装预览 -->
         <section>
-          <h2 class="text-2xl text-on-surface font-display mb-6 border-l-4 border-primary pl-3">3. View Assembly (DashboardTab)</h2>
-          <div class="w-full max-w-[400px] mx-auto h-[700px] border-4 border-outline-variant rounded-xl overflow-hidden shadow-2xl relative bg-surface flex flex-col">
-            <!-- 模拟手机壳/悬浮窗壳 -->
-            <div class="flex-1 overflow-y-auto">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
+            <h2 class="text-2xl text-on-surface font-display border-l-4 border-primary pl-3">3. View Assembly (DashboardTab)</h2>
+            <!-- 宽度和高度控制器 -->
+            <div class="flex gap-6 items-center bg-surface-container p-4 border border-outline-variant shadow-sm w-full md:w-auto">
+              <div class="flex flex-col gap-1 w-full md:w-auto">
+                <label class="text-on-surface-variant text-label-caps flex justify-between"><span>宽 (WIDTH):</span> <span>{{ previewWidth }}px</span></label>
+                <input type="range" min="200" max="800" v-model="previewWidth" class="w-full md:w-32 accent-primary" />
+              </div>
+              <div class="flex flex-col gap-1 w-full md:w-auto">
+                <label class="text-on-surface-variant text-label-caps flex justify-between"><span>高 (HEIGHT):</span> <span>{{ previewHeight }}px</span></label>
+                <input type="range" min="300" max="1000" v-model="previewHeight" class="w-full md:w-32 accent-primary" />
+              </div>
+            </div>
+          </div>
+          
+          <div
+            class="mx-auto border-4 border-outline-variant rounded-xl overflow-hidden shadow-2xl relative bg-surface flex flex-col transition-all duration-75"
+            :style="{ width: previewWidth + 'px', height: previewHeight + 'px', maxWidth: '100%' }"
+          >
+            <!-- 模拟手机壳/悬浮窗壳: 整个页面滚动但是没有滚动条 -->
+            <div class="flex-1 overflow-y-auto scrollbar-none">
               <DashboardTab />
             </div>
-            <ArkBottomNav activeTab="dashboard" />
+            <ArkBottomNav activeTab="dashboard" class="flex-shrink-0" />
           </div>
         </section>
 
@@ -105,6 +122,8 @@ import ArkWipMask from '../ARK_STATUSBAR/components/ArkWipMask.vue';
 import DashboardTab from '../ARK_STATUSBAR/views/global_tabs/dashboard/DashboardTab.vue';
 
 const isDark = ref(true);
+const previewWidth = ref(400);
+const previewHeight = ref(700);
 </script>
 
 <style scoped>

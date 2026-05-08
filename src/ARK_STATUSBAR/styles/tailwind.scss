@@ -82,3 +82,40 @@
         @apply absolute inset-0 bg-surface/80 backdrop-blur-sm flex items-center justify-center z-10;
     }
 }
+
+@layer utilities {
+
+    /* 隐藏滚动条但保留滚动功能 (Firefox) */
+    .scrollbar-none {
+        scrollbar-width: none;
+    }
+
+    /* 隐藏滚动条但保留滚动功能 (Chrome/Safari) */
+    .scrollbar-none::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* 方舟风格细滚动条 */
+    .ark-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-outline-variant) transparent;
+    }
+
+    .ark-scrollbar::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    .ark-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .ark-scrollbar::-webkit-scrollbar-thumb {
+        background-color: var(--color-outline-variant);
+        border-radius: 3px;
+    }
+
+    .ark-scrollbar::-webkit-scrollbar-thumb:hover {
+        background-color: var(--color-primary);
+    }
+}
