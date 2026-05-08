@@ -74,15 +74,53 @@
               </div>
             </div>
 
+            <div>
+              <h3 class="text-on-surface mb-2 font-display">ArkTopBar</h3>
+              <div class="w-full max-w-sm border border-outline-variant">
+                <ArkTopBar />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <h3 class="text-on-surface mb-2 font-display">ArkMiniWindow</h3>
+                <div class="w-full max-w-[200px] border-4 border-outline-variant rounded-xl overflow-hidden bg-surface">
+                  <ArkTopBar title="拦截预警: 3" icon="warning" :isMini="true" class="!h-8" />
+                  <ArkMiniWindow :entries="mockEntries" />
+                </div>
+              </div>
+
+              <div>
+                <h3 class="text-on-surface mb-2 font-display">ArkBubbleWindow</h3>
+                <div class="w-full max-w-[200px] h-[200px] bg-background relative border border-outline-variant flex items-center">
+                  <ArkBubbleWindow
+                    position="left"
+                    :width="32"
+                    :triggerCount="3"
+                    :showPopover="true"
+                    :entries="mockEntries"
+                  />
+                </div>
+              </div>
+            </div>
+
           </div>
         </section>
 
         <!-- 页面骨架拼装预览 -->
         <section>
           <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
-            <h2 class="text-2xl text-on-surface font-display border-l-4 border-primary pl-3">3. View Assembly (DashboardTab)</h2>
+            <h2 class="text-2xl text-on-surface font-display border-l-4 border-primary pl-3">3. View Assembly (Multi-State Integration)</h2>
+            
+            <!-- 状态切换控制器 -->
+            <div class="flex gap-2 bg-surface-container p-2 border border-outline-variant">
+               <button class="px-3 py-1 font-label-caps text-xs border" :class="uiMode === 'FULL' ? 'bg-primary text-on-primary border-primary' : 'text-on-surface border-outline-variant hover:border-primary'" @click="toggleMode('FULL')">FULL (展开)</button>
+               <button class="px-3 py-1 font-label-caps text-xs border" :class="uiMode === 'MINI' ? 'bg-primary text-on-primary border-primary' : 'text-on-surface border-outline-variant hover:border-primary'" @click="toggleMode('MINI')">MINI (悬浮窗)</button>
+               <button class="px-3 py-1 font-label-caps text-xs border" :class="uiMode === 'BUBBLE' ? 'bg-primary text-on-primary border-primary' : 'text-on-surface border-outline-variant hover:border-primary'" @click="toggleMode('BUBBLE')">BUBBLE (气泡)</button>
+            </div>
+
             <!-- 宽度和高度控制器 -->
-            <div class="flex gap-6 items-center bg-surface-container p-4 border border-outline-variant shadow-sm w-full md:w-auto">
+            <div class="flex gap-6 items-center bg-surface-container p-4 border border-outline-variant shadow-sm w-full md:w-auto" v-show="uiMode === 'FULL'">
               <div class="flex flex-col gap-1 w-full md:w-auto">
                 <label class="text-on-surface-variant text-label-caps flex justify-between"><span>宽 (WIDTH):</span> <span>{{ previewWidth }}px</span></label>
                 <input type="range" min="200" max="800" v-model="previewWidth" class="w-full md:w-32 accent-primary" />
@@ -95,14 +133,40 @@
           </div>
           
           <div
-            class="mx-auto border-4 border-outline-variant rounded-xl overflow-hidden shadow-2xl relative bg-surface flex flex-col transition-all duration-75"
+            class="mx-auto border-4 border-outline-variant rounded-xl shadow-2xl relative bg-surface flex flex-col transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
             :style="{ width: previewWidth + 'px', height: previewHeight + 'px', maxWidth: '100%' }"
+            :class="{
+               'overflow-hidden': uiMode !== 'BUBBLE',
+               'overflow-visible !border-none !bg-transparent !shadow-none items-end': uiMode === 'BUBBLE'
+            }"
           >
-            <!-- 模拟手机壳/悬浮窗壳: 整个页面滚动但是没有滚动条 -->
-            <div class="flex-1 overflow-y-auto scrollbar-none">
-              <DashboardTab />
-            </div>
-            <ArkBottomNav activeTab="dashboard" class="flex-shrink-0" />
+            <template v-if="uiMode === 'FULL'">
+              <ArkTopBar title="方舟世界书控制台" icon="menu_book" @toggle-minimize="toggleMode('MINI')" />
+              <div class="flex-1 overflow-y-auto scrollbar-none flex flex-col">
+                <DashboardTab />
+              </div>
+              <ArkBottomNav activeTab="dashboard" class="flex-shrink-0" />
+            </template>
+
+            <template v-else-if="uiMode === 'MINI'">
+              <!-- 点击顶部假装触发拦截 -> 回到 FULL -->
+              <ArkTopBar title="拦截预警: 3" icon="warning" :isMini="true" @toggle-minimize="toggleMode('FULL')" @click="toggleMode('FULL')" class="cursor-pointer !h-8" />
+              <ArkMiniWindow :entries="mockEntries" />
+            </template>
+
+            <template v-else-if="uiMode === 'BUBBLE'">
+              <!-- Bubble has overflow visible so popover can show -->
+              <ArkBubbleWindow
+                position="right"
+                :width="previewWidth"
+                :triggerCount="3"
+                :showPopover="showPopover"
+                :entries="mockEntries"
+                @click-bubble="showPopover = !showPopover"
+                @close-popover="showPopover = false"
+                @action="showPopover = false"
+              />
+            </template>
           </div>
         </section>
 
@@ -121,9 +185,38 @@ import ArkSectionHeader from '../ARK_STATUSBAR/components/ArkSectionHeader.vue';
 import ArkWipMask from '../ARK_STATUSBAR/components/ArkWipMask.vue';
 import DashboardTab from '../ARK_STATUSBAR/views/global_tabs/dashboard/DashboardTab.vue';
 
+// New Components
+import ArkBubbleWindow from '../ARK_STATUSBAR/components/ArkBubbleWindow.vue';
+import ArkMiniWindow from '../ARK_STATUSBAR/components/ArkMiniWindow.vue';
+import ArkTopBar from '../ARK_STATUSBAR/components/ArkTopBar.vue';
+
 const isDark = ref(true);
 const previewWidth = ref(400);
 const previewHeight = ref(700);
+
+const uiMode = ref<'FULL' | 'MINI' | 'BUBBLE'>('FULL');
+const showPopover = ref(false);
+
+const mockEntries = ref([
+  { name: 'Entry [Amiya] triggered', blocked: false },
+  { name: 'System Snapshot created', blocked: true },
+  { name: 'Data sync pending...', blocked: false }
+]);
+
+const toggleMode = (mode: 'FULL' | 'MINI' | 'BUBBLE') => {
+  uiMode.value = mode;
+  showPopover.value = false;
+  if (mode === 'MINI') {
+    previewWidth.value = 240;
+    previewHeight.value = 182; // 32(topbar) + 150(miniwindow)
+  } else if (mode === 'BUBBLE') {
+    previewWidth.value = 32;
+    previewHeight.value = 60;
+  } else {
+    previewWidth.value = 400;
+    previewHeight.value = 700;
+  }
+};
 </script>
 
 <style scoped>
