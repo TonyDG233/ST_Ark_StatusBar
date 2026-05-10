@@ -30,7 +30,7 @@
 
 <script setup lang="ts">
 /**
- * ArkActionToggle: Unified intercept action toggle button (Single, Permanent, Resume)
+ * ActionToggle: Unified intercept action toggle button (Single, Permanent, Resume)
  * Designed to prevent host CSS pollution via strict scoped resets.
  */
 withDefaults(defineProps<{

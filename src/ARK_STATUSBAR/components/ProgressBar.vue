@@ -2,7 +2,7 @@
   <div class="ark-progress flex flex-col gap-1 w-full relative">
     <!-- 意图标签 -->
     <div class="absolute -top-4 right-0 bg-error/90 text-on-error text-[8px] px-1 font-mono z-50 opacity-0 hover:opacity-50 pointer-events-none transition-opacity">
-      [ArkProgressBar]
+      [ProgressBar]
     </div>
 
     <!-- 顶部标签与数值 -->
@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-// ArkProgressBar: 数据驱动的工业风进度条
+// ProgressBar: 数据驱动的工业风进度条
 const props = withDefaults(defineProps<{
   label: string;
   current: number;

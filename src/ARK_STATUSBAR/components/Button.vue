@@ -11,7 +11,7 @@
   >
     <!-- 可视化意图标签 -->
     <div class="absolute top-0 right-0 bg-error/90 text-on-error text-[8px] px-1 font-mono z-50 opacity-0 group-hover:opacity-50 pointer-events-none transition-opacity">
-      [ArkButton]
+      [Button]
     </div>
 
     <!-- 图标区 -->
@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-// ArkButton: 方舟风格交互按钮
+// Button: 方舟风格交互按钮
 withDefaults(defineProps<{
   variant?: 'primary' | 'outline' | 'ghost';
   icon?: string;

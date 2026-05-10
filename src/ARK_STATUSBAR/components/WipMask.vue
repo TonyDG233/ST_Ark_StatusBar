@@ -2,7 +2,7 @@
   <div class="ark-wip-mask absolute inset-0 bg-surface/80 backdrop-blur-[2px] flex items-center justify-center z-10 select-none overflow-hidden">
     <!-- 开发意图标签 -->
     <div class="absolute top-0 right-0 bg-error/90 text-on-error text-[10px] px-1 font-mono z-50 pointer-events-none opacity-50">
-      [ArkWipMask]
+      [WipMask]
     </div>
 
     <!-- 警示条纹装饰 -->
@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-// ArkWipMask: 绝对定位的遮罩，用于覆盖在开发中的功能块上方
+// WipMask: 绝对定位的遮罩，用于覆盖在开发中的功能块上方
 withDefaults(defineProps<{
   text?: string;
 }>(), {

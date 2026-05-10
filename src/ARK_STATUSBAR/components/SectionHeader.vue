@@ -2,7 +2,7 @@
   <div class="ark-section-header flex flex-col relative">
     <!-- 意图标签 -->
     <div class="absolute top-0 right-0 bg-error/90 text-on-error text-[8px] px-1 font-mono z-50 opacity-0 hover:opacity-50 pointer-events-none transition-opacity">
-      [ArkSectionHeader]
+      [SectionHeader]
     </div>
 
     <!-- 主标题栏 -->
@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-// ArkSectionHeader: 带有工业风排版的区块头部
+// SectionHeader: 带有工业风排版的区块头部
 withDefaults(defineProps<{
   title: string;
   subtitle?: string;

@@ -3,7 +3,7 @@
           :class="isMini ? 'h-8' : 'h-12'">
     <!-- 开发标签 -->
     <div class="absolute top-0 right-10 bg-error/90 text-on-error text-[8px] px-1 font-mono z-50 pointer-events-none opacity-50">
-      [ArkTopBar]
+      [TopBar]
     </div>
 
     <!-- 左侧标题与图标 -->
@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-// ArkTopBar: 全局顶部标题与拖拽控制栏
+// TopBar: 全局顶部标题与拖拽控制栏
 withDefaults(defineProps<{
   title?: string;
   icon?: string;

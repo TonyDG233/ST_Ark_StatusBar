@@ -2,7 +2,7 @@
   <nav class="ark-bottom-nav w-full max-w-full min-w-0 overflow-hidden flex flex-shrink-0 border-t border-outline-variant bg-surface relative">
     <!-- 开发时对齐意图用 -->
     <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-error/90 text-on-error text-[10px] px-1 font-mono z-50 opacity-50 pointer-events-none">
-      [ArkBottomNav]
+      [BottomNav]
     </div>
 
     <!-- 菜单 1: Dashboard (主页) -->
@@ -48,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-// ArkBottomNav: 全局底部导航栏
+// BottomNav: 全局底部导航栏
 // 完全独立的 UI 组件，只负责接收当前 Tab 和发送切换事件
 const props = defineProps<{
   activeTab: string;

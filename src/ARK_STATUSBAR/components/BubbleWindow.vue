@@ -49,7 +49,7 @@
           </div>
           <div class="flex justify-end gap-1">
             <!-- 已彻底阻断，仅提供恢复 -->
-            <ArkActionToggle
+            <ActionToggle
               v-if="entry.enabled === false && !entry.tempDisabled"
               type="enable"
               size="sm"
@@ -57,21 +57,21 @@
             />
             <template v-else>
               <!-- 临时阻断恢复 -->
-              <ArkActionToggle
+              <ActionToggle
                 v-if="entry.tempDisabled"
                 type="resume"
                 size="sm"
                 @click="emit('toggle-entry', entry, 'resume')"
               />
               <!-- 单次临时阻断 -->
-              <ArkActionToggle
+              <ActionToggle
                 v-else
                 type="temp"
                 size="sm"
                 @click="emit('toggle-entry', entry, 'temp')"
               />
               <!-- 彻底禁用 -->
-              <ArkActionToggle
+              <ActionToggle
                 type="disable"
                 size="sm"
                 @click="emit('toggle-entry', entry, 'disable')"
@@ -92,9 +92,9 @@
 </template>
 
 <script setup lang="ts">
-import ArkActionToggle from './ArkActionToggle.vue';
+import ActionToggle from './ActionToggle.vue';
 
-// ArkBubbleWindow: 贴边气泡态及战术副屏
+// BubbleWindow: 贴边气泡态及战术副屏
 withDefaults(defineProps<{
   position?: 'left' | 'right';
   width?: number;

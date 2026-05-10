@@ -6,16 +6,16 @@
     </div>
 
     <!-- 顶部状态面板 (Top Status) -->
-    <ArkPanel class="p-4 @[300px]:p-6 gap-4 flex-shrink-0">
+    <Panel class="p-4 @[300px]:p-6 gap-4 flex-shrink-0">
       <div class="flex flex-col @[300px]:flex-row justify-between items-start gap-4">
-        <ArkSectionHeader title="12-1" subtitle="当前剧情节点" showDecoration class="w-full @[300px]:w-auto" />
-        <ArkSectionHeader title="14:00" subtitle="游戏内时间" class="w-full @[300px]:w-auto @[300px]:text-right" />
+        <SectionHeader title="12-1" subtitle="当前剧情节点" showDecoration class="w-full @[300px]:w-auto" />
+        <SectionHeader title="14:00" subtitle="游戏内时间" class="w-full @[300px]:w-auto @[300px]:text-right" />
       </div>
-      <ArkProgressBar label="理智 / HP" :current="120" :max="135" class="mt-2" />
-    </ArkPanel>
+      <ProgressBar label="理智 / HP" :current="120" :max="135" class="mt-2" />
+    </Panel>
 
     <!-- 中部活动日志 (Recent Activity) -->
-    <ArkPanel class="flex-col">
+    <Panel class="flex-col">
       <div class="p-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-low flex-shrink-0">
         <span class="font-display font-bold tracking-widest text-on-surface">近期触发记录</span>
         <div class="w-2 h-2 bg-secondary"></div>
@@ -33,35 +33,35 @@
           <span class="text-on-surface-variant text-xs mt-0.5 flex-shrink-0">13:58</span>
         </div>
       </div>
-    </ArkPanel>
+    </Panel>
 
     <!-- 底部快捷操作网格 (Quick Access) -->
     <div class="grid grid-cols-1 @[400px]:grid-cols-2 gap-4 flex-shrink-0">
       <!-- 大按键跨列 -->
-      <ArkButton variant="primary" icon="menu_book" class="h-24 @[400px]:col-span-2 text-lg">
+      <Button variant="primary" icon="menu_book" class="h-24 @[400px]:col-span-2 text-lg">
         世界书管理器
-      </ArkButton>
+      </Button>
       
       <!-- 小按键加遮罩 -->
       <div class="relative h-12">
-        <ArkButton class="w-full h-full" icon="group">干员列表</ArkButton>
-        <ArkWipMask text="开发中" />
+        <Button class="w-full h-full" icon="group">干员列表</Button>
+        <WipMask text="开发中" />
       </div>
       
       <div class="relative h-12">
-        <ArkButton class="w-full h-full" icon="map">部署视图</ArkButton>
-        <ArkWipMask text="开发中" />
+        <Button class="w-full h-full" icon="map">部署视图</Button>
+        <WipMask text="开发中" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import ArkButton from '../../../components/ArkButton.vue';
-import ArkPanel from '../../../components/ArkPanel.vue';
-import ArkProgressBar from '../../../components/ArkProgressBar.vue';
-import ArkSectionHeader from '../../../components/ArkSectionHeader.vue';
-import ArkWipMask from '../../../components/ArkWipMask.vue';
+import Button from '../../../components/Button.vue';
+import Panel from '../../../components/Panel.vue';
+import ProgressBar from '../../../components/ProgressBar.vue';
+import SectionHeader from '../../../components/SectionHeader.vue';
+import WipMask from '../../../components/WipMask.vue';
 
 // 页面级组件：DashboardTab 主页
 </script>

@@ -39,61 +39,68 @@
           <div class="p-8 border border-outline-variant bg-surface-container flex flex-col gap-8">
             
             <div>
-              <h3 class="text-on-surface mb-2 font-display">ArkButton</h3>
+              <h3 class="text-on-surface mb-2 font-display">Button</h3>
               <div class="flex gap-4">
-                <ArkButton variant="primary" icon="check">Primary</ArkButton>
-                <ArkButton variant="outline" icon="science">Outline</ArkButton>
-                <ArkButton variant="ghost">Ghost Button</ArkButton>
-                <ArkButton disabled>Disabled</ArkButton>
+                <Button variant="primary" icon="check">Primary</Button>
+                <Button variant="outline" icon="science">Outline</Button>
+                <Button variant="ghost">Ghost Button</Button>
+                <Button disabled>Disabled</Button>
               </div>
             </div>
 
             <div>
-              <h3 class="text-on-surface mb-2 font-display">ArkSectionHeader & ArkProgressBar</h3>
-              <ArkPanel class="p-6 gap-4">
+              <h3 class="text-on-surface mb-2 font-display">SectionHeader & ProgressBar</h3>
+              <Panel class="p-6 gap-4">
                 <div class="flex justify-between items-center">
-                  <ArkSectionHeader title="当前剧情节点: 12-1" subtitle="SYS_LOC" showDecoration />
-                  <ArkSectionHeader title="In-Game Time: 14:00" subtitle="SYS_TIME" class="text-right" />
+                  <SectionHeader title="当前剧情节点: 12-1" subtitle="SYS_LOC" showDecoration />
+                  <SectionHeader title="In-Game Time: 14:00" subtitle="SYS_TIME" class="text-right" />
                 </div>
-                <ArkProgressBar label="SANITY / HP" :current="120" :max="135" />
-              </ArkPanel>
+                <ProgressBar label="SANITY / HP" :current="120" :max="135" />
+              </Panel>
             </div>
 
             <div>
-              <h3 class="text-on-surface mb-2 font-display">ArkWipMask (Hover on Panel)</h3>
-              <ArkPanel class="p-6 h-32 flex items-center justify-center relative">
+              <h3 class="text-on-surface mb-2 font-display">WipMask (Hover on Panel)</h3>
+              <Panel class="p-6 h-32 flex items-center justify-center relative">
                 <span class="text-on-surface">Behind the mask</span>
-                <ArkWipMask text="功能开发中" />
-              </ArkPanel>
+                <WipMask text="功能开发中" />
+              </Panel>
             </div>
 
             <div>
-              <h3 class="text-on-surface mb-2 font-display">ArkBottomNav</h3>
+              <h3 class="text-on-surface mb-2 font-display">BottomNav</h3>
               <div class="w-full max-w-sm">
-                <ArkBottomNav activeTab="lore" />
+                <BottomNav activeTab="lore" />
               </div>
             </div>
 
             <div>
-              <h3 class="text-on-surface mb-2 font-display">ArkTopBar</h3>
+              <h3 class="text-on-surface mb-2 font-display">SubNav (Floating Pill)</h3>
+              <div class="w-full max-w-sm p-4 bg-surface-container border border-outline-variant flex justify-center">
+                <SubNav activeSubTab="lore" :tabs="worldbookSubTabs" />
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-on-surface mb-2 font-display">TopBar</h3>
               <div class="w-full max-w-sm border border-outline-variant">
-                <ArkTopBar />
+                <TopBar />
               </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <h3 class="text-on-surface mb-2 font-display">ArkMiniWindow</h3>
+                <h3 class="text-on-surface mb-2 font-display">MiniWindow</h3>
                 <div class="w-full max-w-[200px] border-4 border-outline-variant rounded-xl overflow-hidden bg-surface">
-                  <ArkTopBar title="拦截预警: 3" icon="warning" :isMini="true" class="!h-8" />
-                  <ArkMiniWindow :entries="mockEntries" />
+                  <TopBar title="拦截预警: 3" icon="warning" :isMini="true" class="!h-8" />
+                  <MiniWindow :entries="mockEntries" />
                 </div>
               </div>
 
               <div>
-                <h3 class="text-on-surface mb-2 font-display">ArkBubbleWindow</h3>
+                <h3 class="text-on-surface mb-2 font-display">BubbleWindow</h3>
                 <div class="w-full max-w-[200px] h-[200px] bg-background relative border border-outline-variant flex items-center">
-                  <ArkBubbleWindow
+                  <BubbleWindow
                     position="left"
                     :width="32"
                     :triggerCount="3"
@@ -141,22 +148,45 @@
             }"
           >
             <template v-if="uiMode === 'FULL'">
-              <ArkTopBar title="方舟世界书控制台" icon="menu_book" @toggle-minimize="toggleMode('MINI')" />
-              <div class="flex-1 overflow-y-auto scrollbar-none flex flex-col">
-                <DashboardTab />
+              <TopBar title="方舟世界书控制台" icon="menu_book" @toggle-minimize="toggleMode('MINI')" />
+              
+              <div class="flex-1 overflow-y-auto scrollbar-none flex flex-col relative">
+                <DashboardTab v-if="activeTab === 'dashboard'" />
+                
+                <div v-if="activeTab === 'worldbook' && activeSubTab === 'interceptor'" class="flex-1 flex items-center justify-center text-on-surface-variant font-display opacity-50 p-6 text-center border-4 border-dashed border-outline-variant m-4">
+                  [InterceptorTab Placeholder]<br>Waiting for refactor...
+                </div>
+                
+                <WorldbookTab v-if="activeTab === 'worldbook' && activeSubTab === 'lore'" />
+                
+                <div v-if="activeTab === 'worldbook' && activeSubTab === 'history'" class="flex-1 flex items-center justify-center text-on-surface-variant font-display opacity-50 p-6 text-center border-4 border-dashed border-outline-variant m-4">
+                  [HistoryTab Placeholder]<br>Waiting for refactor...
+                </div>
               </div>
-              <ArkBottomNav activeTab="dashboard" class="flex-shrink-0" />
+
+              <!-- 将 BottomNav 与 SubNav 封装在一个独立的定位底座中 -->
+              <div class="relative flex-shrink-0 z-50">
+                <!-- Secondary Navigation for Worldbook (紧贴 BottomNav 顶部浮动) -->
+                <SubNav
+                  v-if="activeTab === 'worldbook'"
+                  :activeSubTab="activeSubTab"
+                  :tabs="worldbookSubTabs"
+                  @change-sub-tab="(val: string) => activeSubTab = val"
+                  class="absolute bottom-full left-0 right-0 mb-2 z-40"
+                />
+                <BottomNav :activeTab="activeTab" @change-tab="(val: string) => activeTab = val" />
+              </div>
             </template>
 
             <template v-else-if="uiMode === 'MINI'">
               <!-- 点击顶部假装触发拦截 -> 回到 FULL -->
-              <ArkTopBar title="拦截预警: 3" icon="warning" :isMini="true" @toggle-minimize="toggleMode('FULL')" @click="toggleMode('FULL')" class="cursor-pointer !h-8" />
-              <ArkMiniWindow :entries="mockEntries" />
+              <TopBar title="拦截预警: 3" icon="warning" :isMini="true" @toggle-minimize="toggleMode('FULL')" @click="toggleMode('FULL')" class="cursor-pointer !h-8" />
+              <MiniWindow :entries="mockEntries" />
             </template>
 
             <template v-else-if="uiMode === 'BUBBLE'">
               <!-- Bubble has overflow visible so popover can show -->
-              <ArkBubbleWindow
+              <BubbleWindow
                 position="right"
                 :width="previewWidth"
                 :triggerCount="3"
@@ -177,18 +207,19 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import ArkBottomNav from '../ARK_STATUSBAR/components/ArkBottomNav.vue';
-import ArkButton from '../ARK_STATUSBAR/components/ArkButton.vue';
-import ArkPanel from '../ARK_STATUSBAR/components/ArkPanel.vue';
-import ArkProgressBar from '../ARK_STATUSBAR/components/ArkProgressBar.vue';
-import ArkSectionHeader from '../ARK_STATUSBAR/components/ArkSectionHeader.vue';
-import ArkWipMask from '../ARK_STATUSBAR/components/ArkWipMask.vue';
+import BottomNav from '../ARK_STATUSBAR/components/BottomNav.vue';
+import Button from '../ARK_STATUSBAR/components/Button.vue';
+import Panel from '../ARK_STATUSBAR/components/Panel.vue';
+import ProgressBar from '../ARK_STATUSBAR/components/ProgressBar.vue';
+import SectionHeader from '../ARK_STATUSBAR/components/SectionHeader.vue';
+import WipMask from '../ARK_STATUSBAR/components/WipMask.vue';
 import DashboardTab from '../ARK_STATUSBAR/views/global_tabs/dashboard/DashboardTab.vue';
 
-// New Components
-import ArkBubbleWindow from '../ARK_STATUSBAR/components/ArkBubbleWindow.vue';
-import ArkMiniWindow from '../ARK_STATUSBAR/components/ArkMiniWindow.vue';
-import ArkTopBar from '../ARK_STATUSBAR/components/ArkTopBar.vue';
+// New Components 
+import BubbleWindow from '../ARK_STATUSBAR/components/BubbleWindow.vue';
+import MiniWindow from '../ARK_STATUSBAR/components/MiniWindow.vue';
+import SubNav from '../ARK_STATUSBAR/components/SubNav.vue';
+import TopBar from '../ARK_STATUSBAR/components/TopBar.vue';
 
 const isDark = ref(true);
 const previewWidth = ref(400);
@@ -196,6 +227,15 @@ const previewHeight = ref(700);
 
 const uiMode = ref<'FULL' | 'MINI' | 'BUBBLE'>('FULL');
 const showPopover = ref(false);
+
+const activeTab = ref('worldbook');
+const activeSubTab = ref('lore');
+
+const worldbookSubTabs = [
+  { id: 'interceptor', label: '预警', icon: 'security' },
+  { id: 'lore', label: '条目', icon: 'menu_book' },
+  { id: 'history', label: '历史', icon: 'history' }
+];
 
 const mockEntries = ref([
   { name: 'Entry [Amiya] triggered', enabled: true, tempDisabled: false },
