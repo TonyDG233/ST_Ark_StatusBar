@@ -1,9 +1,10 @@
-/* 
- * Tailwind v4 定向引入 (剔除 Preflight 防止污染宿主环境)
- * 参考：https://tailwindcss.com/docs/upgrade-guide#migrating-to-the-new-css-file
+/*
+ * Tailwind v4 引入 (已恢复 Preflight)
+ * 在重构全部完成前，通过渐进式替换视图保留旧版 view/styles 的作用域。
  */
 
-/* 1. 导入核心工具类与主题 */
+/* 1. 导入核心工具类与主题 (包含 Preflight 统一盒模型) */
+@import "tailwindcss/preflight";
 @import "tailwindcss/theme";
 @import "tailwindcss/utilities";
 

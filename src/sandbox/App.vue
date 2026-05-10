@@ -125,7 +125,7 @@
                 <label class="text-on-surface-variant text-label-caps flex justify-between"><span>宽 (WIDTH):</span> <span>{{ previewWidth }}px</span></label>
                 <input type="range" min="200" max="800" v-model="previewWidth" class="w-full md:w-32 accent-primary" />
               </div>
-              <div class="flex flex-col gap-1 w-full md:w-auto">
+              <div class="flex flex-col gap-1 w-full md:w-auto" v-if="uiMode === 'FULL'">
                 <label class="text-on-surface-variant text-label-caps flex justify-between"><span>高 (HEIGHT):</span> <span>{{ previewHeight }}px</span></label>
                 <input type="range" min="300" max="1000" v-model="previewHeight" class="w-full md:w-32 accent-primary" />
               </div>
@@ -134,7 +134,7 @@
           
           <div
             class="mx-auto border-4 border-outline-variant rounded-xl shadow-2xl relative bg-surface flex flex-col transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
-            :style="{ width: previewWidth + 'px', height: previewHeight + 'px', maxWidth: '100%' }"
+            :style="{ width: previewWidth + 'px', height: uiMode === 'FULL' ? previewHeight + 'px' : 'auto', maxWidth: '100%' }"
             :class="{
                'overflow-hidden': uiMode !== 'BUBBLE',
                'overflow-visible !border-none !bg-transparent !shadow-none items-end': uiMode === 'BUBBLE'
@@ -198,9 +198,9 @@ const uiMode = ref<'FULL' | 'MINI' | 'BUBBLE'>('FULL');
 const showPopover = ref(false);
 
 const mockEntries = ref([
-  { name: 'Entry [Amiya] triggered', blocked: false },
-  { name: 'System Snapshot created', blocked: true },
-  { name: 'Data sync pending...', blocked: false }
+  { name: 'Entry [Amiya] triggered', enabled: true, tempDisabled: false },
+  { name: 'System Snapshot created', enabled: false, tempDisabled: false },
+  { name: 'Data sync pending...', enabled: true, tempDisabled: true }
 ]);
 
 const toggleMode = (mode: 'FULL' | 'MINI' | 'BUBBLE') => {

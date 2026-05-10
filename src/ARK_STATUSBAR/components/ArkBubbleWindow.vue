@@ -16,8 +16,8 @@
           拦截: {{ triggerCount }}
         </span>
         <!-- 如果宽度窄，用红点/徽章代替文本 -->
-        <div v-else-if="triggerCount > 0" class="absolute top-2 bg-primary rounded-full w-2.5 h-2.5 flex items-center justify-center border border-surface shadow-sm" :class="position === 'left' ? 'right-2' : 'left-2'">
-          <span class="text-[6px] text-on-primary font-bold">{{ triggerCount }}</span>
+        <div v-else-if="triggerCount > 0" class="absolute top-2 bg-primary rounded-full min-w-[14px] h-[14px] px-[3px] flex items-center justify-center border border-surface shadow-sm" :class="position === 'left' ? 'right-1' : 'left-1'">
+          <span class="text-[8px] text-on-primary font-bold leading-none translate-y-[0.5px]">{{ triggerCount > 99 ? '99+' : triggerCount }}</span>
         </div>
       </div>
     </div>
@@ -34,13 +34,13 @@
     >
       <div class="flex justify-between items-center border-b border-outline-variant/50 pb-1 px-1">
         <span class="text-[10px] font-display text-primary tracking-widest uppercase">战术拦截面板</span>
-        <button class="text-on-surface-variant hover:text-on-surface" @click="emit('close-popover')">
+        <button class="reset-btn text-on-surface-variant hover:text-on-surface flex items-center justify-center p-0" @click="emit('close-popover')">
           <span class="material-symbols-outlined text-[12px]">close</span>
         </button>
       </div>
 
       <!-- 最简拦截列表 (集成单次/彻底逻辑) -->
-      <ul class="flex flex-col gap-1 max-h-[140px] overflow-y-auto scrollbar-none">
+      <ul class="flex flex-col gap-1 max-h-[140px] overflow-y-auto scrollbar-none pl-0 m-0 list-none">
         <li v-for="(entry, idx) in entries" :key="idx" class="flex flex-col gap-1 p-1 bg-surface-container-low rounded-sm">
           <div class="flex justify-between items-center">
             <span class="text-[11px] font-body text-on-surface truncate" :class="{ 'line-through opacity-50': entry.enabled === false && !entry.tempDisabled }">
@@ -49,37 +49,33 @@
           </div>
           <div class="flex justify-end gap-1">
             <!-- 已彻底阻断，仅提供恢复 -->
-            <button 
+            <ArkActionToggle
               v-if="entry.enabled === false && !entry.tempDisabled"
+              type="enable"
+              size="sm"
               @click="emit('toggle-entry', entry, 'enable')"
-              class="text-[9px] px-1.5 py-0.5 border border-[#28a745]/40 text-[#28a745] hover:bg-[#28a745]/10 rounded-sm font-display transition-colors"
-            >
-              ✅ 开启
-            </button>
+            />
             <template v-else>
               <!-- 临时阻断恢复 -->
-              <button 
+              <ArkActionToggle
                 v-if="entry.tempDisabled"
+                type="resume"
+                size="sm"
                 @click="emit('toggle-entry', entry, 'resume')"
-                class="text-[9px] px-1.5 py-0.5 border border-[#28a745]/40 text-[#28a745] hover:bg-[#28a745]/10 rounded-sm font-display transition-colors"
-              >
-                ✅ 恢复
-              </button>
+              />
               <!-- 单次临时阻断 -->
-              <button 
+              <ArkActionToggle
                 v-else
+                type="temp"
+                size="sm"
                 @click="emit('toggle-entry', entry, 'temp')"
-                class="text-[9px] px-1.5 py-0.5 border border-[#ff9800]/40 text-[#ff9800] hover:bg-[#ff9800]/10 rounded-sm font-display transition-colors"
-              >
-                ⏳ 单次
-              </button>
+              />
               <!-- 彻底禁用 -->
-              <button 
+              <ArkActionToggle
+                type="disable"
+                size="sm"
                 @click="emit('toggle-entry', entry, 'disable')"
-                class="text-[9px] px-1.5 py-0.5 border border-[#dc3545]/40 text-[#dc3545] hover:bg-[#dc3545]/10 rounded-sm font-display transition-colors"
-              >
-                ❎ 彻底
-              </button>
+              />
             </template>
           </div>
         </li>
@@ -87,8 +83,8 @@
 
       <!-- 发送/取消 动作区 -->
       <div class="flex gap-1.5 pt-1.5 border-t border-outline-variant/50">
-        <button class="flex-1 py-1 bg-surface-container hover:bg-surface-variant text-on-surface text-[11px] font-display border border-outline-variant transition-colors" @click="emit('action', 'cancel')">取消</button>
-        <button class="flex-1 py-1 bg-primary hover:bg-primary-container text-on-primary text-[11px] font-display border border-primary transition-colors font-bold" @click="emit('action', 'send')">发送</button>
+        <button class="reset-btn flex-1 py-1 hover:bg-surface-variant text-on-surface-variant hover:text-on-surface text-[11px] font-display border border-outline-variant transition-colors rounded-sm" @click="emit('action', 'cancel')">取消</button>
+        <button class="reset-btn flex-1 py-1 hover:bg-primary/20 text-primary text-[11px] font-display border border-primary/50 transition-colors font-bold rounded-sm bg-primary/10" style="background-color: rgb(var(--color-primary-rgb) / 0.1);" @click="emit('action', 'send')">发送</button>
       </div>
     </div>
 
@@ -96,6 +92,8 @@
 </template>
 
 <script setup lang="ts">
+import ArkActionToggle from './ArkActionToggle.vue';
+
 // ArkBubbleWindow: 贴边气泡态及战术副屏
 withDefaults(defineProps<{
   position?: 'left' | 'right';

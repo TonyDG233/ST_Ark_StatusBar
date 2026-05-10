@@ -1,5 +1,5 @@
 <template>
-  <header class="ark-top-bar w-full flex justify-between items-center px-4 bg-surface border-b border-outline-variant flex-shrink-0 select-none cursor-grab active:cursor-grabbing transition-all duration-300"
+  <header class="ark-top-bar w-full max-w-full min-w-0 flex justify-between items-center px-4 bg-surface border-b border-outline-variant flex-shrink-0 select-none cursor-grab active:cursor-grabbing transition-all duration-300 overflow-hidden"
           :class="isMini ? 'h-8' : 'h-12'">
     <!-- 开发标签 -->
     <div class="absolute top-0 right-10 bg-error/90 text-on-error text-[8px] px-1 font-mono z-50 pointer-events-none opacity-50">
@@ -7,10 +7,10 @@
     </div>
 
     <!-- 左侧标题与图标 -->
-    <div class="flex items-center gap-2 text-primary font-display font-bold tracking-widest uppercase truncate min-w-0">
+    <div class="flex items-center gap-2 text-primary font-display font-bold tracking-widest uppercase truncate min-w-0 flex-1">
       <span v-if="icon" class="material-symbols-outlined flex-shrink-0 transition-all duration-300" :class="isMini ? 'text-[14px]' : 'text-[20px]'">{{ icon }}</span>
       <!-- 动态标题样式转换 -->
-      <span class="truncate transition-all duration-300" 
+      <span class="truncate transition-all duration-300 min-w-0"
             :class="isMini ? 'text-[10px] font-code-data text-on-surface-variant tracking-widest' : 'text-sm'">
         {{ title }}
       </span>
@@ -57,12 +57,16 @@ const emit = defineEmits<{
 /* --- 伸缩按钮样式 (The 4-corner Box) --- */
 .toggle-btn {
   position: relative;
-  width: 20px;
-  height: 20px;
-  background: transparent;
-  border: none;
+  width: 20px !important;
+  height: 20px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  background: transparent !important;
+  border: none !important;
   color: inherit;
   cursor: pointer;
+  appearance: none;
 }
 
 .toggle-btn:hover {
