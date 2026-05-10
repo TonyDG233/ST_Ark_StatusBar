@@ -110,6 +110,14 @@
                 </div>
               </div>
             </div>
+            
+            <div>
+              <h3 class="text-on-surface mb-2 font-display">Worldbook Components (LoreDataCard & Folder)</h3>
+              <div class="flex flex-col gap-4 border border-outline-variant p-2 bg-background">
+                <LoreFolderItem title="组件独立测试文件夹" :count="99" :expanded="false" bindType="global" :isPinned="false" />
+                <LoreDataCard :entry="{ uid: 'TEST-001', name: '独立卡片测试：一段非常非常长的标题用来测试 Flex 撑爆问题会不会重演', enabled: true, isPinned: false, type: 'constant', keys: ['超长关键词测试一', '超长关键词测试二'] }" :selected="true" :batchMode="true" />
+              </div>
+            </div>
 
           </div>
         </section>
@@ -157,7 +165,7 @@
                   [InterceptorTab Placeholder]<br>Waiting for refactor...
                 </div>
                 
-                <WorldbookTab v-if="activeTab === 'worldbook' && activeSubTab === 'lore'" />
+                <LoreEntriesTabDesign v-if="activeTab === 'worldbook' && activeSubTab === 'lore'" />
                 
                 <div v-if="activeTab === 'worldbook' && activeSubTab === 'history'" class="flex-1 flex items-center justify-center text-on-surface-variant font-display opacity-50 p-6 text-center border-4 border-dashed border-outline-variant m-4">
                   [HistoryTab Placeholder]<br>Waiting for refactor...
@@ -213,13 +221,20 @@ import Panel from '../ARK_STATUSBAR/components/Panel.vue';
 import ProgressBar from '../ARK_STATUSBAR/components/ProgressBar.vue';
 import SectionHeader from '../ARK_STATUSBAR/components/SectionHeader.vue';
 import WipMask from '../ARK_STATUSBAR/components/WipMask.vue';
-import DashboardTab from '../ARK_STATUSBAR/views/global_tabs/dashboard/DashboardTab.vue';
 
-// New Components 
+// New views
+import DashboardTab from '../ARK_STATUSBAR/views/global_tabs/dashboard/DashboardTab.vue';
+import LoreEntriesTabDesign from './design_mocks/worldbook/LoreEntriesTab_Design.vue';
+
+// New Components
 import BubbleWindow from '../ARK_STATUSBAR/components/BubbleWindow.vue';
 import MiniWindow from '../ARK_STATUSBAR/components/MiniWindow.vue';
 import SubNav from '../ARK_STATUSBAR/components/SubNav.vue';
 import TopBar from '../ARK_STATUSBAR/components/TopBar.vue';
+
+import LoreDataCard from '../ARK_STATUSBAR/components/worldbook/LoreDataCard.vue';
+import LoreFolderItem from '../ARK_STATUSBAR/components/worldbook/LoreFolderItem.vue';
+
 
 const isDark = ref(true);
 const previewWidth = ref(400);

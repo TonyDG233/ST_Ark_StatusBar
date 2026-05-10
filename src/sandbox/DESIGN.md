@@ -66,10 +66,14 @@
 
 ## 3. 防崩坏细节速查表 (Checklist)
 
-*   [ ] **盒子模型污染预警 (Box-Sizing)**：由于我们在项目中选择性地移除了 Tailwind 的 Preflight 以防止污染宿主（SillyTavern）环境，组件默认会退化为 `box-sizing: content-box`。这会导致 `w-full px-4` 的实际宽度变成 `100% + 32px`，从而撑破外层 `overflow-hidden`。**在独立开发组件时，一定要意识到脱离了 Preflight 的危险，必要时需要在顶层恢复 `@import "tailwindcss/preflight"`，或者在组件根节点强制 `box-border`。**
+*   [ ] **盒子模型污染预警 (Box-Sizing)**：由于我们在项目中选择性地移除了 Tailwind 的 Preflight 以防止污染宿主（SillyTavern）环境，组件默认会退化为 `box-sizing: content-box`。这会导致 `w-full px-4` 的实际宽度变成 `100% + 32px`，从而撑破外层 `overflow-hidden`。**在独立开发组件时，一定要意识到脱离了 Preflight 的危险，必要时需要在顶层恢复 `@import "tailwindcss/preflight"`，或者在组件根节点强制 `box-border w-full`。**
 *   [ ] **文本与容器双重防撑爆 (Flex Blowout)**：在极窄屏幕下（如 200px），长英文或长标题会撑破 Flex 布局。**仅仅在文本上加 `truncate` 是不够的**！你必须在文本父级 Flex 容器上也加上 `min-w-0`，否则 Flex 的 `min-width: auto` 机制会强制容器保持文本原本的巨大宽度，从而把相邻的按钮挤出屏幕。
+*   [ ] **警惕视口媒体查询的陷阱 (Viewport Media Query Trap)**：在侧边栏或沙盒挂载的组件中，**绝对禁止使用 `sm:flex-nowrap` 等基于视口宽度的响应式断点控制内部排列**！哪怕侧边栏被挤压到 200px，只要用户浏览器视口大于 640px，`sm:` 就会强制生效并阻止换行，从而产生毁灭性的撑爆。请依靠物理 `flex-wrap` 搭配元素的 `min-w-[xxx]` 来实现纯粹的容器自适应换行。
+*   [ ] **警惕“边距黑洞” (Padding Blackhole)**：在嵌套层级极深的列表（Tab -> List -> Card -> Editor）中，如果在每一层都加上标准的 `p-4`，会在窄屏幕下吃掉超过 50px 的横向空间，导致最内层编辑区变成一条缝。**仅在最外层 Tab 保留与主页对齐的全局边距（如 `p-2`），内部组件应极限压缩 Padding (`px-1`, `p-2`) 并依靠背景色阶 (Elevation) 区分层级。**
+*   [ ] **拒绝粗暴截断，拥抱自然换行**：对于涉及业务核心信息（如世界书的标题、触发词 KEYS），禁止为了“排版好看”而滥用 `truncate` 导致信息丢失。必须使用 `min-w-0 break-words whitespace-normal leading-tight` 让长文本在极窄容器下自然向下折行。
 *   [ ] **微小尺寸的光学校正 (Optical Alignment)**：在极小尺寸（如 10px-14px）下，图标（`material-symbols-outlined`）和文本（汉字/数字）的基线往往不同。单独依赖 `items-center` 会导致上下不对齐。必须辅以 `leading-none` 并且手动加入视觉位移（如 `-translate-y-[0.5px]` 或 `translate-y-[0.5px]`）才能做到像素级居中完美。
-*   [ ] **悬浮导航的安全避让 (Safe Area Insets)**：在设计绝对定位的悬浮底栏（如 SubNav）时，**绝对禁止在外层内容容器上使用 padding 粗暴地“割裂”空间**。正确的工程解法是：让滚动容器 100% 贴合物理底部以保证背景通透，而是在页面内部数据列表的最末端（或滚动视图的末尾），插入一个高度等同于悬浮导航栏的空 `<div class="h-16 flex-shrink-0"></div>` 作为占位符，从而让内容既能滚入悬浮窗背后，又保证末尾数据不被遮盖。
+*   [ ] **悬浮导航的安全避让 (Safe Area Insets)**：在设计绝对定位的悬浮底栏（如 SubNav）时，**绝对禁止在外层内容容器上使用 padding 粗暴地“割裂”空间**。正确的工程解法是：让滚动容器 100% 贴合物理底部以保证背景通透，而是在页面内部数据列表的最末端（或滚动视图的末尾），插入一个高度等同于悬浮导航栏的空 `<div class="h-16 flex-shrink-0 w-full pointer-events-none"></div>` 作为占位符，从而让内容既能滚入悬浮窗背后，又保证末尾数据不被遮盖。
+*   [ ] **极细滚动条空间释放**：当容器空间极其宝贵时，为滚动容器加上专属 class（如 `.slim-scroll-container`），并通过 `:deep(.ark-scrollbar::-webkit-scrollbar) { width: 4px; }` 强行将滚动条瘦身，避免标准滚动条（8px+）过度侵占横向空间。
 *   [ ] **悬浮窗的自适应魔法单位 (`em`)**：对于 MINI 等悬浮状态，不要写死 `width: 200px`。最优雅的做法是使用相对单位（例如原版的 `width: 13em`）。这样当用户改变整体界面的字号时，悬浮窗的物理宽度和内部间距都会等比例完美缩放。
 *   [ ] **避免绝对宽度**：永远不要使用固定的 `w-[200px]`。使用 `w-full` 或 `flex-1` 让其自适应。
 *   [ ] **不要使用 `md:` 做内容断点**：除非是全局级别的边距切换（如 `p-4 md:p-6`）。如果是组件内部的左右排列切换，请使用 `@container` 搭配 `@[300px]:` 以响应组件自身的物理宽度，而非屏幕宽度。
@@ -82,7 +86,7 @@
 我们将在 `src/sandbox/App.vue` 中依次挂载并完善以下页面。在所有页面都在沙盒中通过极端宽高拉伸测试后，再统一并入真实环境：
 
 1.  [x] 主页仪表面板 (`DashboardTab`)
-2.  [ ] 世界书管理器 (`WorldbookTab` - 原有的三个复杂列表需重构为 App 滚动形式)
+2.  [x] 世界书管理器 (`WorldbookTab` - 原有的三个复杂列表需重构为 App 滚动形式，已拆分为 LoreEntriesTab 且解决撑爆边距等缺陷)
 3.  [ ] 拦截预警弹窗 (`InterceptorTab` - 需强化警告样式与放行操作区)
 4.  [ ] Git式历史记录 (`HistoryTab` - 需缝合垂直时间线与快照详情)
 5.  [ ] 系统设置 (`SettingsTab` - 需应用方舟风格的 Toggle 开关和滑块)
