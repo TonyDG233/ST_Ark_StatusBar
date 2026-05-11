@@ -161,9 +161,7 @@
               <div class="flex-1 overflow-y-auto scrollbar-none flex flex-col relative">
                 <DashboardTab v-if="activeTab === 'dashboard'" />
                 
-                <div v-if="activeTab === 'worldbook' && activeSubTab === 'interceptor'" class="flex-1 flex items-center justify-center text-on-surface-variant font-display opacity-50 p-6 text-center border-4 border-dashed border-outline-variant m-4">
-                  [InterceptorTab Placeholder]<br>Waiting for refactor...
-                </div>
+                <InterceptorTabDesign v-if="activeTab === 'worldbook' && activeSubTab === 'interceptor'" />
                 
                 <LoreEntriesTabDesign v-if="activeTab === 'worldbook' && activeSubTab === 'lore'" />
                 
@@ -224,6 +222,7 @@ import WipMask from '../ARK_STATUSBAR/components/WipMask.vue';
 
 // New views
 import DashboardTab from '../ARK_STATUSBAR/views/global_tabs/dashboard/DashboardTab.vue';
+import InterceptorTabDesign from './design_mocks/interceptor/InterceptorTab_Design.vue';
 import LoreEntriesTabDesign from './design_mocks/worldbook/LoreEntriesTab_Design.vue';
 
 // New Components
