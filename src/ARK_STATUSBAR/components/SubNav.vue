@@ -1,5 +1,5 @@
 <template>
-  <nav class="sub-nav z-50 flex items-center p-1 bg-surface-container-highest/90 backdrop-blur-md border border-outline-variant shadow-lg rounded-xl w-max mx-auto">
+  <nav class="sub-nav z-50 flex items-center p-1 bg-surface-container-highest/90 backdrop-blur-md border border-outline-variant shadow-lg rounded-xl max-w-full overflow-x-auto scrollbar-none mx-auto box-border">
     <!-- 开发时对齐意图用 -->
     <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-error/90 text-on-error text-[8px] px-1 font-mono opacity-50 pointer-events-none rounded whitespace-nowrap">
       [SubNav]
@@ -9,7 +9,7 @@
     <button
       v-for="tab in tabs"
       :key="tab.id"
-      class="px-3 py-1 flex items-center justify-center gap-1 transition-all uppercase tracking-widest cursor-pointer appearance-none outline-none m-0 rounded-lg border-none"
+      class="flex-shrink-0 px-3 py-1 flex items-center justify-center gap-1 transition-all uppercase tracking-widest cursor-pointer appearance-none outline-none m-0 rounded-lg border-none"
       :class="activeSubTab === tab.id ? 'text-on-primary bg-primary shadow-sm font-bold' : 'bg-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-variant'"
       @click="emit('change-sub-tab', tab.id)"
     >

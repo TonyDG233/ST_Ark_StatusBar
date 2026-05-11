@@ -73,11 +73,14 @@
 *   [ ] **拒绝粗暴截断，拥抱自然换行**：对于涉及业务核心信息（如世界书的标题、触发词 KEYS），禁止为了“排版好看”而滥用 `truncate` 导致信息丢失。必须使用 `min-w-0 break-words whitespace-normal leading-tight` 让长文本在极窄容器下自然向下折行。
 *   [ ] **微小尺寸的光学校正 (Optical Alignment)**：在极小尺寸（如 10px-14px）下，图标（`material-symbols-outlined`）和文本（汉字/数字）的基线往往不同。单独依赖 `items-center` 会导致上下不对齐。必须辅以 `leading-none` 并且手动加入视觉位移（如 `-translate-y-[0.5px]` 或 `translate-y-[0.5px]`）才能做到像素级居中完美。
 *   [ ] **悬浮导航的安全避让 (Safe Area Insets)**：在设计绝对定位的悬浮底栏（如 SubNav）时，**绝对禁止在外层内容容器上使用 padding 粗暴地“割裂”空间**。正确的工程解法是：让滚动容器 100% 贴合物理底部以保证背景通透，而是在页面内部数据列表的最末端（或滚动视图的末尾），插入一个高度等同于悬浮导航栏的空 `<div class="h-16 flex-shrink-0 w-full pointer-events-none"></div>` 作为占位符，从而让内容既能滚入悬浮窗背后，又保证末尾数据不被遮盖。
-*   [ ] **极细滚动条空间释放**：当容器空间极其宝贵时，为滚动容器加上专属 class（如 `.slim-scroll-container`），并通过 `:deep(.ark-scrollbar::-webkit-scrollbar) { width: 4px; }` 强行将滚动条瘦身，避免标准滚动条（8px+）过度侵占横向空间。
+*   [ ] **极细滚动条空间释放**：所有方舟组件应当且仅当使用统一的 `.ark-scrollbar` 全局样式。请避免在局部组件内反复编写 `::-webkit-scrollbar` 私有伪类。全局配置已存放在 `src/ARK_STATUSBAR/styles/tailwind.scss`。对于完全不需要显示轨迹的暗盒滚动区，可配合 `.scrollbar-none` 使用。
 *   [ ] **悬浮窗的自适应魔法单位 (`em`)**：对于 MINI 等悬浮状态，不要写死 `width: 200px`。最优雅的做法是使用相对单位（例如原版的 `width: 13em`）。这样当用户改变整体界面的字号时，悬浮窗的物理宽度和内部间距都会等比例完美缩放。
 *   [ ] **避免绝对宽度**：永远不要使用固定的 `w-[200px]`。使用 `w-full` 或 `flex-1` 让其自适应。
 *   [ ] **不要使用 `md:` 做内容断点**：除非是全局级别的边距切换（如 `p-4 md:p-6`）。如果是组件内部的左右排列切换，请使用 `@container` 搭配 `@[300px]:` 以响应组件自身的物理宽度，而非屏幕宽度。
 *   [ ] **背景与色彩依赖**：禁止在 Vue 文件中写死任何十六进制颜色（如 `#121212`），必须且只能使用 `var(--color-surface)` 或 Tailwind 类名（如 `bg-surface-container-low`）。
+*   [ ] **全局组件边框与色彩统一规范**：全站所有页面的容器/卡片统一使用 `border-outline-variant` 描边配合 `bg-surface` 底色。**严禁**为了视觉冲击力滥用 `border-white` 加粗或直接使用非法且未经配置注册的 Tailwind 伪类色（如 `rhodes-red` 等未在 `theme.scss` 映射的色号）。需高亮之处统一使用 `border-t-[2px] bg-primary/error` 顶线实现。
+*   [ ] **避免嵌套滚动陷阱 (Nested Scroll Trap)**：对于基于 Tab 标签页的大视窗结构，应确保所有内容（包含 Header 标头、警告横幅、列表内容和底部按钮）处于最外层的**唯一滚动文档流**中（由外壳提供 `overflow-y-auto min-h-0`）。绝不可在子组件内使用 `max-h-xxx overflow-y-auto` 或 `sticky bottom-0` 从而剥夺用户的全局拖动体验与挤压容器的高度自适应。
+*   [ ] **警惕 Flex 的 `min-h-0` 物理蒸发 Bug**：当在 App 外壳或大布局中使用 `flex flex-col` 让中间的 `flex-1` 占据剩余空间并滚动时，**必须且一定**要在该 `flex-1` 节点挂上 `min-h-0`（允许高度被挤压到底）。如果不加，当整个 App 高度被压缩到极端（如 < 300px）时，`flex-1` 会拒绝收缩，直接导致其下方的所有 BottomNav、SubNav 被顶出视口外“物理消失”。
 
 ---
 
@@ -85,8 +88,8 @@
 
 我们将在 `src/sandbox/App.vue` 中依次挂载并完善以下页面。在所有页面都在沙盒中通过极端宽高拉伸测试后，再统一并入真实环境：
 
-1.  [x] 主页仪表面板 (`DashboardTab`)
+1.  [x] 主页仪表面板 (`DashboardTab` - 统一全局细线框及字体规范，单向滚动)
 2.  [x] 世界书管理器 (`WorldbookTab` - 原有的三个复杂列表需重构为 App 滚动形式，已拆分为 LoreEntriesTab 且解决撑爆边距等缺陷)
-3.  [ ] 拦截预警弹窗 (`InterceptorTab` - 需强化警告样式与放行操作区)
+3.  [x] 拦截预警弹窗 (`InterceptorTab` - 强化警告样式与放行操作区，已抽离 Alert 和 QueueItem 积木)
 4.  [ ] Git式历史记录 (`HistoryTab` - 需缝合垂直时间线与快照详情)
 5.  [ ] 系统设置 (`SettingsTab` - 需应用方舟风格的 Toggle 开关和滑块)
