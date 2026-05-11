@@ -91,5 +91,5 @@
 1.  [x] 主页仪表面板 (`DashboardTab` - 统一全局细线框及字体规范，单向滚动)
 2.  [x] 世界书管理器 (`WorldbookTab` - 原有的三个复杂列表需重构为 App 滚动形式，已拆分为 LoreEntriesTab 且解决撑爆边距等缺陷)
 3.  [x] 拦截预警弹窗 (`InterceptorTab` - 强化警告样式与放行操作区，已抽离 Alert 和 QueueItem 积木)
-4.  [ ] Git式历史记录 (`HistoryTab` - 需缝合垂直时间线与快照详情)
+4.  [x] Git式历史记录 (`HistoryTab` - 需缝合垂直时间线与快照详情)
 5.  [ ] 系统设置 (`SettingsTab` - 需应用方舟风格的 Toggle 开关和滑块)

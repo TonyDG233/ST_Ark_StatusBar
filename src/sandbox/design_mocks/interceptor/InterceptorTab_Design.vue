@@ -81,6 +81,9 @@
         </button>
       </div>
 
+      <!-- Safe Area Spacer for BottomNav/SubNav -->
+      <div class="h-14 w-full shrink-0 pointer-events-none"></div>
+
     </div>
   </div>
 </template>

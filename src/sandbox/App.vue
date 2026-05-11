@@ -166,21 +166,21 @@
                 
                 <LoreEntriesTabDesign v-if="activeTab === 'worldbook' && activeSubTab === 'lore'" />
                 
-                <div v-if="activeTab === 'worldbook' && activeSubTab === 'history'" class="flex-1 flex items-center justify-center text-on-surface-variant font-display opacity-50 p-6 text-center border-4 border-dashed border-outline-variant m-4">
-                  [HistoryTab Placeholder]<br>Waiting for refactor...
-                </div>
+                <HistoryTabDesign v-if="activeTab === 'worldbook' && activeSubTab === 'history'" />
               </div>
 
               <!-- 将 BottomNav 与 SubNav 封装在一个独立的定位底座中 -->
               <div class="relative flex-shrink-0 z-50 flex flex-col">
-                <!-- Secondary Navigation for Worldbook (作为正常文档流存在，不再覆盖内容) -->
-                <SubNav
-                  v-if="activeTab === 'worldbook'"
-                  :activeSubTab="activeSubTab"
-                  :tabs="worldbookSubTabs"
-                  @change-sub-tab="(val: string) => activeSubTab = val"
-                  class="mb-2 z-40"
-                />
+                <!-- Secondary Navigation for Worldbook (恢复绝对悬浮状态，浮在内容上方，以防物理打断背景连续性) -->
+                <div class="absolute bottom-full left-0 right-0 z-40 flex justify-center mb-2 pointer-events-none px-2 box-border">
+                  <SubNav
+                    class="pointer-events-auto"
+                    v-if="activeTab === 'worldbook'"
+                    :activeSubTab="activeSubTab"
+                    :tabs="worldbookSubTabs"
+                    @change-sub-tab="(val: string) => activeSubTab = val"
+                  />
+                </div>
                 <BottomNav :activeTab="activeTab" @change-tab="(val: string) => activeTab = val" />
               </div>
             </template>
@@ -223,6 +223,7 @@ import WipMask from '../ARK_STATUSBAR/components/WipMask.vue';
 
 // New views
 import DashboardTab from '../ARK_STATUSBAR/views/global_tabs/dashboard/DashboardTab.vue';
+import HistoryTabDesign from './design_mocks/history/HistoryTab_Design.vue';
 import InterceptorTabDesign from './design_mocks/interceptor/InterceptorTab_Design.vue';
 import LoreEntriesTabDesign from './design_mocks/worldbook/LoreEntriesTab_Design.vue';
 

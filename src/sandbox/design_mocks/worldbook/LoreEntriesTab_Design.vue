@@ -86,7 +86,7 @@
       />
 
       <!-- Bottom Spacer to avoid SubNav overlap -->
-      <div class="h-4 flex-shrink-0 w-full pointer-events-none"></div>
+      <div class="h-14 flex-shrink-0 w-full pointer-events-none"></div>
     </div>
   </div>
 </template>
