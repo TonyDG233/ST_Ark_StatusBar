@@ -96,27 +96,32 @@
         display: none;
     }
 
-    /* 方舟风格细滚动条 */
-    .ark-scrollbar {
+    /* 统一极简滚动条 */
+    .ark-scrollbar,
+    .slim-scroll-container {
         scrollbar-width: thin;
         scrollbar-color: var(--color-outline-variant) transparent;
     }
 
-    .ark-scrollbar::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
+    .ark-scrollbar::-webkit-scrollbar,
+    .slim-scroll-container::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
     }
 
-    .ark-scrollbar::-webkit-scrollbar-track {
+    .ark-scrollbar::-webkit-scrollbar-track,
+    .slim-scroll-container::-webkit-scrollbar-track {
         background: transparent;
     }
 
-    .ark-scrollbar::-webkit-scrollbar-thumb {
+    .ark-scrollbar::-webkit-scrollbar-thumb,
+    .slim-scroll-container::-webkit-scrollbar-thumb {
         background-color: var(--color-outline-variant);
-        border-radius: 3px;
+        border-radius: 2px;
     }
 
-    .ark-scrollbar::-webkit-scrollbar-thumb:hover {
+    .ark-scrollbar::-webkit-scrollbar-thumb:hover,
+    .slim-scroll-container::-webkit-scrollbar-thumb:hover {
         background-color: var(--color-primary);
     }
 }

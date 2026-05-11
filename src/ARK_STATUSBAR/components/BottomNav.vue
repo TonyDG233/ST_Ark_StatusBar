@@ -7,42 +7,42 @@
 
     <!-- 菜单 1: Dashboard (主页) -->
     <button
-      class="flex-1 py-3 flex flex-col items-center justify-center gap-1 transition-all group border-t-2 bg-surface-container hover:bg-surface-container-high hover:shadow-[0_-5px_15px_rgba(0,0,0,0.3)]"
+      class="flex-1 py-2 flex flex-col items-center justify-center transition-all group border-t-2 bg-surface-container hover:bg-surface-container-high hover:shadow-[0_-5px_15px_rgba(0,0,0,0.3)]"
       :class="activeTab === 'dashboard' ? 'border-primary' : 'border-transparent'"
       @click="emit('change-tab', 'dashboard')"
     >
-      <span class="material-symbols-outlined transition-colors" :class="activeTab === 'dashboard' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">dashboard</span>
-      <span class="text-xs font-display font-bold tracking-widest transition-colors" :class="activeTab === 'dashboard' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">主页</span>
+      <span class="material-symbols-outlined transition-colors text-[20px]" :class="activeTab === 'dashboard' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">dashboard</span>
+      <span class="text-[10px] mt-0.5 font-bold tracking-widest transition-colors" :class="activeTab === 'dashboard' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">主页</span>
     </button>
 
     <!-- 菜单 2: Worldbook (世界书) -->
     <button
-      class="flex-1 py-3 flex flex-col items-center justify-center gap-1 transition-all group border-t-2 bg-surface-container hover:bg-surface-container-high hover:shadow-[0_-5px_15px_rgba(0,0,0,0.3)]"
+      class="flex-1 py-2 flex flex-col items-center justify-center transition-all group border-t-2 bg-surface-container hover:bg-surface-container-high hover:shadow-[0_-5px_15px_rgba(0,0,0,0.3)]"
       :class="activeTab === 'worldbook' ? 'border-primary' : 'border-transparent'"
       @click="emit('change-tab', 'worldbook')"
     >
-      <span class="material-symbols-outlined transition-colors" :class="activeTab === 'worldbook' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">menu_book</span>
-      <span class="text-xs font-display font-bold tracking-widest transition-colors" :class="activeTab === 'worldbook' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">世界书</span>
+      <span class="material-symbols-outlined transition-colors text-[20px]" :class="activeTab === 'worldbook' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">menu_book</span>
+      <span class="text-[10px] mt-0.5 font-bold tracking-widest transition-colors" :class="activeTab === 'worldbook' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">世界书</span>
     </button>
 
     <!-- 菜单 3: Misc (多功能) -->
     <button
-      class="flex-1 py-3 flex flex-col items-center justify-center gap-1 transition-all group border-t-2 bg-surface-container hover:bg-surface-container-high hover:shadow-[0_-5px_15px_rgba(0,0,0,0.3)]"
+      class="flex-1 py-2 flex flex-col items-center justify-center transition-all group border-t-2 bg-surface-container hover:bg-surface-container-high hover:shadow-[0_-5px_15px_rgba(0,0,0,0.3)]"
       :class="activeTab === 'misc' ? 'border-primary' : 'border-transparent'"
       @click="emit('change-tab', 'misc')"
     >
-      <span class="material-symbols-outlined transition-colors" :class="activeTab === 'misc' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">hub</span>
-      <span class="text-xs font-display font-bold tracking-widest transition-colors" :class="activeTab === 'misc' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">多功能</span>
+      <span class="material-symbols-outlined transition-colors text-[20px]" :class="activeTab === 'misc' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">hub</span>
+      <span class="text-[10px] mt-0.5 font-bold tracking-widest transition-colors" :class="activeTab === 'misc' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">多功能</span>
     </button>
 
     <!-- 菜单 4: Settings (设置) -->
     <button
-      class="flex-1 py-3 flex flex-col items-center justify-center gap-1 transition-all group border-t-2 bg-surface-container hover:bg-surface-container-high hover:shadow-[0_-5px_15px_rgba(0,0,0,0.3)]"
+      class="flex-1 py-2 flex flex-col items-center justify-center transition-all group border-t-2 bg-surface-container hover:bg-surface-container-high hover:shadow-[0_-5px_15px_rgba(0,0,0,0.3)]"
       :class="activeTab === 'settings' ? 'border-primary' : 'border-transparent'"
       @click="emit('change-tab', 'settings')"
     >
-      <span class="material-symbols-outlined transition-colors" :class="activeTab === 'settings' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">tune</span>
-      <span class="text-xs font-display font-bold tracking-widest transition-colors" :class="activeTab === 'settings' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">设置</span>
+      <span class="material-symbols-outlined transition-colors text-[20px]" :class="activeTab === 'settings' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">tune</span>
+      <span class="text-[10px] mt-0.5 font-bold tracking-widest transition-colors" :class="activeTab === 'settings' ? 'text-primary' : 'text-on-surface-variant group-hover:text-on-surface'">设置</span>
     </button>
   </nav>
 </template>

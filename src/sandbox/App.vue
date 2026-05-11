@@ -158,7 +158,8 @@
             <template v-if="uiMode === 'FULL'">
               <TopBar title="方舟世界书控制台" icon="menu_book" @toggle-minimize="toggleMode('MINI')" />
               
-              <div class="flex-1 overflow-y-auto scrollbar-none flex flex-col relative">
+              <!-- 修复 UI 消失 bug：必须添加 min-h-0，否则 flex 子元素无法被压缩，会导致底部导航被挤出屏幕 -->
+              <div class="flex-1 overflow-y-auto scrollbar-none flex flex-col relative min-h-0">
                 <DashboardTab v-if="activeTab === 'dashboard'" />
                 
                 <InterceptorTabDesign v-if="activeTab === 'worldbook' && activeSubTab === 'interceptor'" />
@@ -171,14 +172,14 @@
               </div>
 
               <!-- 将 BottomNav 与 SubNav 封装在一个独立的定位底座中 -->
-              <div class="relative flex-shrink-0 z-50">
-                <!-- Secondary Navigation for Worldbook (紧贴 BottomNav 顶部浮动) -->
+              <div class="relative flex-shrink-0 z-50 flex flex-col">
+                <!-- Secondary Navigation for Worldbook (作为正常文档流存在，不再覆盖内容) -->
                 <SubNav
                   v-if="activeTab === 'worldbook'"
                   :activeSubTab="activeSubTab"
                   :tabs="worldbookSubTabs"
                   @change-sub-tab="(val: string) => activeSubTab = val"
-                  class="absolute bottom-full left-0 right-0 mb-2 z-40"
+                  class="mb-2 z-40"
                 />
                 <BottomNav :activeTab="activeTab" @change-tab="(val: string) => activeTab = val" />
               </div>

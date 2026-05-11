@@ -9,12 +9,12 @@
     <button
       v-for="tab in tabs"
       :key="tab.id"
-      class="px-3 py-1.5 flex items-center justify-center gap-1.5 transition-all font-label-caps uppercase tracking-widest cursor-pointer appearance-none outline-none m-0 rounded-lg border-none"
+      class="px-3 py-1 flex items-center justify-center gap-1 transition-all uppercase tracking-widest cursor-pointer appearance-none outline-none m-0 rounded-lg border-none"
       :class="activeSubTab === tab.id ? 'text-on-primary bg-primary shadow-sm font-bold' : 'bg-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-variant'"
       @click="emit('change-sub-tab', tab.id)"
     >
       <span v-if="tab.icon" class="material-symbols-outlined text-[12px] leading-none -translate-y-[0.5px]">{{ tab.icon }}</span>
-      <span class="text-[10px]">{{ tab.label }}</span>
+      <span class="text-[11px] font-bold">{{ tab.label }}</span>
     </button>
   </nav>
 </template>

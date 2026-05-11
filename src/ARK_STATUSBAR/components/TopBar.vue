@@ -1,6 +1,6 @@
 <template>
-  <header class="ark-top-bar w-full max-w-full min-w-0 flex justify-between items-center px-4 bg-surface border-b border-outline-variant flex-shrink-0 select-none cursor-grab active:cursor-grabbing transition-all duration-300 overflow-hidden"
-          :class="isMini ? 'h-8' : 'h-12'">
+  <header class="ark-top-bar w-full max-w-full min-w-0 flex justify-between items-center px-3 bg-surface border-b border-outline-variant flex-shrink-0 select-none cursor-grab active:cursor-grabbing transition-all duration-300 overflow-hidden"
+          :class="isMini ? 'h-8' : 'h-10'">
     <!-- 开发标签 -->
     <div class="absolute top-0 right-10 bg-error/90 text-on-error text-[8px] px-1 font-mono z-50 pointer-events-none opacity-50">
       [TopBar]
