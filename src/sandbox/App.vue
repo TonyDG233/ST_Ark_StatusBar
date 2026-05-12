@@ -167,6 +167,8 @@
                 <LoreEntriesTabDesign v-if="activeTab === 'worldbook' && activeSubTab === 'lore'" />
                 
                 <HistoryTabDesign v-if="activeTab === 'worldbook' && activeSubTab === 'history'" />
+                
+                <SettingsTabDesign v-if="activeTab === 'settings'" />
               </div>
 
               <!-- 将 BottomNav 与 SubNav 封装在一个独立的定位底座中 -->
@@ -225,6 +227,7 @@ import WipMask from '../ARK_STATUSBAR/components/WipMask.vue';
 import DashboardTab from '../ARK_STATUSBAR/views/global_tabs/dashboard/DashboardTab.vue';
 import HistoryTabDesign from './design_mocks/history/HistoryTab_Design.vue';
 import InterceptorTabDesign from './design_mocks/interceptor/InterceptorTab_Design.vue';
+import SettingsTabDesign from './design_mocks/settings/SettingsTab_Design.vue';
 import LoreEntriesTabDesign from './design_mocks/worldbook/LoreEntriesTab_Design.vue';
 
 // New Components
