@@ -16,7 +16,7 @@ import {
 import { setupTavernControls } from './hooks/useTavernControls';
 
 // 导入全局样式
-import './views/StartupNavigator.vue';
+import './styles/tailwind.scss';
 
 const GLOBAL_STATUSBAR_CONTAINER_CLASS = 'ark-global-statusbar-mount-point';
 

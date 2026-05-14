@@ -399,7 +399,15 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
           configFile: path.join(import.meta.dirname, 'tsconfig.json'),
         }),
       ],
-      alias: {},
+      alias: {
+        '@': path.resolve(__dirname, './'),
+        '@components': path.resolve(__dirname, 'src/ARK_STATUSBAR/components/'),
+        '@views': path.resolve(__dirname, 'src/ARK_STATUSBAR/views/'),
+        '@services': path.resolve(__dirname, 'src/ARK_STATUSBAR/services/'),
+        '@store': path.resolve(__dirname, 'src/ARK_STATUSBAR/store/'),
+        '@hooks': path.resolve(__dirname, 'src/ARK_STATUSBAR/hooks/'),
+        '@utils': path.resolve(__dirname, 'src/ARK_STATUSBAR/utils/'),
+      },
     },
     plugins: (entry.html === undefined
       ? [new MiniCssExtractPlugin()]
