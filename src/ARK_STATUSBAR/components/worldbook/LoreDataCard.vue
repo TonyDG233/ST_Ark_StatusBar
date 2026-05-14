@@ -26,7 +26,7 @@
       
       <!-- Keys (触发词) with wrapping -->
       <div class="font-mono text-on-surface-variant text-[10px] min-w-0 break-words whitespace-normal leading-tight w-full" v-if="entry.keys && entry.keys.length">
-        <span class="text-primary/70 mr-1 font-bold">触发词:</span>{{ entry.keys.join(', ') }}
+        <span class="text-primary-text/70 mr-1 font-bold">触发词:</span>{{ entry.keys.join(', ') }}
       </div>
       <div class="font-mono text-on-surface-variant text-[10px] min-w-0 break-words whitespace-normal w-full opacity-50" v-else>
         <span class="mr-1">触发词:</span>[无]
@@ -66,11 +66,11 @@
         <div class="h-4 w-px bg-outline-variant mx-0.5 flex-shrink-0"></div>
         
         <!-- Action Buttons -->
-        <button class="text-on-surface-variant hover:text-primary transition-colors flex-shrink-0 outline-none flex items-center justify-center w-6 h-6 rounded hover:bg-surface-variant cursor-pointer" title="编辑" @click.stop="$emit('edit')">
+        <button class="text-on-surface-variant hover:text-primary-text transition-colors flex-shrink-0 outline-none flex items-center justify-center w-6 h-6 rounded hover:bg-surface-variant cursor-pointer" title="编辑" @click.stop="$emit('edit')">
           <span class="material-symbols-outlined text-[15px]">edit</span>
         </button>
         <button class="transition-colors flex-shrink-0 outline-none flex items-center justify-center w-6 h-6 rounded hover:bg-surface-variant cursor-pointer" 
-                :class="entry.isPinned ? 'text-primary' : 'text-on-surface-variant hover:text-primary'"
+                :class="entry.isPinned ? 'text-primary-text' : 'text-on-surface-variant hover:text-primary-text'"
                 :title="entry.isPinned ? '取消置顶' : '置顶'" 
                 @click.stop="$emit('toggle-pin')">
           <span class="material-symbols-outlined text-[15px]" :style="entry.isPinned ? `font-variation-settings: 'FILL' 1;` : ''">push_pin</span>

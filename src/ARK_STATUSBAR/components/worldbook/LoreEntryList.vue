@@ -15,7 +15,7 @@
       
       <!-- New Entry & Batch Toggle -->
       <div class="flex gap-1 flex-shrink-0">
-        <button class="px-2 py-1 bg-surface border border-outline hover:border-primary text-primary transition-colors flex items-center justify-center outline-none cursor-pointer" title="新建条目">
+        <button class="px-2 py-1 bg-surface border border-outline hover:border-primary text-primary-text transition-colors flex items-center justify-center outline-none cursor-pointer" title="新建条目">
           <span class="material-symbols-outlined text-[14px]">add</span>
         </button>
         <button 
@@ -42,7 +42,7 @@
     <!-- Local Batch Management Toolbar (Below filters, statically rendered when active to prevent overlap) -->
     <div v-if="isBatchMode" class="bg-surface-container-highest border-b border-outline-variant py-1.5 px-2 flex flex-col sm:flex-row flex-wrap sm:items-center justify-between gap-2 shadow-sm">
       <div class="flex items-center gap-2">
-        <label class="flex items-center gap-1 cursor-pointer font-display text-[10px] text-on-surface hover:text-primary transition-colors">
+        <label class="flex items-center gap-1 cursor-pointer font-display text-[10px] text-on-surface hover:text-primary-text transition-colors">
           <input type="checkbox" class="accent-primary" /> 全选
         </label>
       </div>
@@ -50,7 +50,7 @@
       <div class="flex flex-wrap items-center gap-1.5">
         <!-- Pin/Unpin -->
         <button class="px-1.5 py-0.5 border border-outline bg-surface hover:bg-surface-variant text-on-surface text-[10px] flex items-center gap-0.5 transition-colors outline-none cursor-pointer">
-          <span class="material-symbols-outlined text-[12px] text-primary">push_pin</span> 置顶
+          <span class="material-symbols-outlined text-[12px] text-primary-text">push_pin</span> 置顶
         </button>
         <button class="px-1.5 py-0.5 border border-outline bg-surface hover:bg-surface-variant text-on-surface text-[10px] flex items-center gap-0.5 transition-colors outline-none cursor-pointer">
           <span class="material-symbols-outlined text-[12px] text-on-surface-variant">push_pin</span> 消顶

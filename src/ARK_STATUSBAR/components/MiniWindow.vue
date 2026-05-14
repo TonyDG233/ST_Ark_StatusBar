@@ -12,6 +12,7 @@
     </div>
 
     <!-- 内部列表：隐藏滚动条但保留滚动能力 -->
+    <!-- TODO: [Phase 2] 平常状态下此处应展示基于 DashboardTab 2.3 的“触发记录概览”，而不是目前这样特定条目细节的堆砌 -->
     <ul v-else class="flex-1 overflow-y-auto scrollbar-none flex flex-col gap-1 min-h-0 px-3 py-2">
       <li v-for="(entry, index) in entries" :key="index" class="flex items-center gap-2 py-1 border-b border-outline-variant/30 last:border-0">
         <div class="w-1.5 h-1.5 flex-shrink-0 bg-primary" :class="{ '!bg-error': entry.enabled === false && !entry.tempDisabled }"></div>

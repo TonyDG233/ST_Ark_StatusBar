@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="flex justify-between items-center border-b border-outline-variant/50 pb-1.5 min-w-0 w-full gap-2">
       <h4 class="font-display font-bold text-on-surface text-[11px] uppercase flex items-center gap-1.5 min-w-0 flex-1">
-        <span class="material-symbols-outlined text-primary text-[14px] flex-shrink-0">edit_document</span>
+        <span class="material-symbols-outlined text-primary-text text-[14px] flex-shrink-0">edit_document</span>
         <span class="min-w-0 break-words whitespace-normal leading-tight">编辑: {{ entry.name }}</span>
       </h4>
       <button class="text-on-surface-variant hover:text-error transition-colors flex-shrink-0 cursor-pointer outline-none w-6 h-6 flex items-center justify-center rounded hover:bg-error-container/20" title="取消编辑" @click="$emit('cancel')">
@@ -101,9 +101,10 @@
 
       <!-- Content -->
       <div class="flex flex-col gap-0.5 mt-1 min-w-0 w-full">
-        <label class="font-mono text-[9px] text-primary uppercase flex justify-between min-w-0">
+        <label class="font-mono text-[9px] text-primary-text uppercase flex justify-between min-w-0">
           <span class="truncate">正文 (CONTENT)</span>
-          <span class="text-on-surface-variant flex-shrink-0 ml-2">25 / 2000 TOKENS</span>
+          <!-- TODO: [Phase 2] 探索 SillyTavern 实时文本 Token 估算 API，若无则整块移除 -->
+          <span class="text-on-surface-variant flex-shrink-0 ml-2">~25 TOKENS</span>
         </label>
         <textarea class="bg-surface border border-outline-variant hover:border-outline px-2 py-1.5 text-xs text-on-surface focus:outline-none focus:border-primary transition-colors font-mono resize-y min-h-[60px] w-full min-w-0 box-border" placeholder="输入世界书正文..."></textarea>
       </div>

@@ -9,7 +9,7 @@
     <!-- Top Area (Always visible) -->
     <div class="flex flex-col relative group">
       <div class="text-[10px] font-display font-bold tracking-wider uppercase mb-1"
-           :class="type === 'danger' ? 'text-error' : (type === 'primary' ? 'text-primary' : 'text-secondary')">
+           :class="type === 'danger' ? 'text-error' : (type === 'primary' ? 'text-primary-text' : 'text-secondary')">
         {{ label }}
       </div>
       <div class="text-sm font-display font-bold text-on-surface tracking-wide"
@@ -22,7 +22,7 @@
       </div>
       
       <span class="material-symbols-outlined absolute top-0 right-0 text-lg opacity-80 group-hover:opacity-100 transition-opacity"
-            :class="type === 'danger' ? 'text-error' : (type === 'primary' ? 'text-primary' : 'text-secondary')">
+            :class="type === 'danger' ? 'text-error' : (type === 'primary' ? 'text-primary-text' : 'text-secondary')">
         {{ icon }}
       </span>
 

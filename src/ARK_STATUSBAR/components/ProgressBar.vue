@@ -8,7 +8,7 @@
     <!-- 顶部标签与数值 -->
     <div class="flex justify-between items-end">
       <span class="font-display text-label-caps text-on-surface tracking-widest uppercase">{{ label }}</span>
-      <span class="font-code-data text-primary">{{ current }} / {{ max }}</span>
+      <span class="font-code-data text-primary-text">{{ current }} / {{ max }}</span>
     </div>
 
     <!-- 进度条本体 -->

@@ -3,7 +3,7 @@
     class="ark-button relative flex items-center justify-center gap-2 px-4 py-2 font-display font-bold text-sm tracking-widest transition-all overflow-hidden group border"
     :class="[
       variant === 'primary' ? 'bg-primary text-on-primary border-primary hover:bg-primary-container' : '',
-      variant === 'outline' ? 'bg-transparent text-primary border-outline hover:border-primary hover:bg-primary/10' : '',
+      variant === 'outline' ? 'bg-transparent text-primary-text border-outline hover:border-primary hover:bg-primary/10' : '',
       variant === 'ghost' ? 'bg-transparent text-on-surface-variant border-transparent hover:text-on-surface hover:bg-surface-variant' : '',
       disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
     ]"

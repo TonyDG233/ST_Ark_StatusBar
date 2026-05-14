@@ -5,11 +5,11 @@
       // Size variants
       size === 'sm' ? 'text-[9px] px-1 py-0.5 gap-0.5 rounded-sm' : 'text-xs px-2 py-1 gap-1 rounded',
       // Type/Color variants (Removed borders for cleaner look)
-      type === 'temp' ? 'text-primary bg-transparent hover:bg-primary/10' : '',
+      type === 'temp' ? 'text-primary-text bg-transparent hover:bg-primary/10' : '',
       type === 'disable' ? 'text-error bg-transparent hover:bg-error/10' : '',
       type === 'enable' || type === 'resume' ? 'text-[#28a745] bg-transparent hover:bg-[#28a745]/10' : '',
       type === 'delete' ? 'text-error bg-transparent hover:bg-error/10' : '',
-      type === 'restore' ? 'text-primary bg-transparent hover:bg-primary/10' : ''
+      type === 'restore' ? 'text-primary-text bg-transparent hover:bg-primary/10' : ''
     ]"
     @click.stop="emit('click')"
   >

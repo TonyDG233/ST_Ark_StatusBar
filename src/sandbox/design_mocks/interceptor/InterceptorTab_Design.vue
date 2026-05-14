@@ -1,12 +1,12 @@
 <template>
-  <div class="relative w-full h-full bg-background slim-scroll-container overflow-y-auto flex flex-col box-border">
+  <div class="relative w-full h-full slim-scroll-container overflow-y-auto flex flex-col box-border">
     <!-- Inner content wrapper with padding -->
     <div class="p-2 flex flex-col gap-2 min-h-max box-border">
       
       <!-- Header Area (Now scrollable) -->
       <div class="tab-header flex flex-col gap-2 border-b border-outline pb-2 px-1 pt-1 flex-shrink-0 bg-transparent transition-all">
         <!-- SYS_MODULE Label -->
-        <div class="font-mono text-primary mb-0.5 uppercase opacity-80 flex items-center gap-1.5 text-xs tracking-wider">
+        <div class="font-mono text-primary-text mb-0.5 uppercase opacity-80 flex items-center gap-1.5 text-xs tracking-wider">
           <span class="w-1.5 h-1.5 bg-primary"></span>
           SYS_MODULE // SEC_INT
         </div>

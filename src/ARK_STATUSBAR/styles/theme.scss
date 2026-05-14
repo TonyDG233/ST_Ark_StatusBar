@@ -30,6 +30,7 @@
     --color-outline-variant: #e0e0e0;
 
     --color-primary: #ffe600;
+    --color-primary-text: #111111;
     --color-on-primary: #000000;
     --color-primary-container: #fff066;
     --color-on-primary-container: #000000;
@@ -48,9 +49,6 @@
     /* 亮色特有口音色 */
     --color-accent-cyan: #00e5ff;
     --color-accent-magenta: #e6007e;
-
-    /* 背景水印图 - 浅色等高线 */
-    --bg-watermark: url('../assets/page-bg-light.jpg');
 }
 
 /* 罗德岛暗色主题 (Rhodes Technical Interface - Dark) */
@@ -75,6 +73,7 @@
     --color-outline-variant: #3c494e;
 
     --color-primary: #a6e6ff;
+    --color-primary-text: #a6e6ff;
     --color-on-primary: #003543;
     --color-primary-container: #19d1ff;
     --color-on-primary-container: #00566b;

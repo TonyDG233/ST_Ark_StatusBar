@@ -1,12 +1,12 @@
 <template>
-  <div class="relative w-full h-full bg-background slim-scroll-container overflow-y-auto flex flex-col box-border">
+  <div class="relative w-full h-full slim-scroll-container overflow-y-auto flex flex-col box-border">
     <!-- Inner content wrapper with padding -->
     <div class="p-2 flex flex-col gap-2 min-h-max box-border">
       
       <!-- Header Area (Now scrollable) -->
       <div class="tab-header flex flex-col gap-2 border-b border-outline pb-2 px-1 pt-1 flex-shrink-0 bg-transparent transition-all">
         <!-- SYS_MODULE Label -->
-        <div class="font-mono text-primary mb-0.5 uppercase opacity-80 flex items-center gap-1.5 text-xs tracking-wider">
+        <div class="font-mono text-primary-text mb-0.5 uppercase opacity-80 flex items-center gap-1.5 text-xs tracking-wider">
           <span class="w-1.5 h-1.5 bg-primary"></span>
           SYS_MODULE // WBOOK_MGR
         </div>
@@ -24,7 +24,7 @@
         <!-- Global Actions -->
         <div class="flex flex-wrap justify-between items-center gap-2 mt-1 w-full">
           <div class="flex flex-wrap items-center gap-2">
-            <button class="px-2 py-1 bg-surface-container-highest border border-outline-variant hover:border-primary text-xs font-bold text-primary flex items-center gap-1 transition-colors outline-none cursor-pointer font-display">
+            <button class="px-2 py-1 bg-surface-container-highest border border-outline-variant hover:border-primary text-xs font-bold text-primary-text flex items-center gap-1 transition-colors outline-none cursor-pointer font-display">
               <span class="material-symbols-outlined text-sm">create_new_folder</span>
               新建书本
             </button>
@@ -52,13 +52,13 @@
 
       <!-- Global Batch Toolbar (Slides down when active) -->
       <div v-if="isGlobalBatchMode" class="flex flex-wrap items-center gap-2 mt-1 pt-2 border-t border-outline-variant/50 w-full">
-        <label class="flex items-center gap-1 cursor-pointer font-display text-[10px] text-on-surface hover:text-primary transition-colors mr-2 flex-shrink-0">
+        <label class="flex items-center gap-1 cursor-pointer font-display text-[10px] text-on-surface hover:text-primary-text transition-colors mr-2 flex-shrink-0">
           <input type="checkbox" class="accent-primary" /> 全选
         </label>
         
         <div class="flex flex-wrap items-center gap-1.5 flex-1 min-w-0">
           <button class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface text-[10px] flex items-center gap-0.5 transition-colors cursor-pointer outline-none">
-            <span class="material-symbols-outlined text-[12px] text-primary">push_pin</span> 置顶
+            <span class="material-symbols-outlined text-[12px] text-primary-text">push_pin</span> 置顶
           </button>
           <button class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface text-[10px] flex items-center gap-0.5 transition-colors cursor-pointer outline-none">
             <span class="material-symbols-outlined text-[12px] text-on-surface-variant">push_pin</span> 消顶

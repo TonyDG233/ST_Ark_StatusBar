@@ -1,11 +1,11 @@
 <template>
-  <div class="relative flex flex-col overflow-hidden h-full box-border bg-background">
+  <div class="relative flex flex-col overflow-hidden h-full box-border">
     
     <div class="flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto ark-scrollbar p-2">
       
       <!-- Header Area -->
       <div class="tab-header flex flex-col gap-2 border-b border-outline pb-2 px-1 pt-1 flex-shrink-0 bg-transparent transition-all">
-        <div class="font-mono text-primary mb-0.5 uppercase opacity-80 flex items-center gap-1.5 text-xs tracking-wider">
+        <div class="font-mono text-primary-text mb-0.5 uppercase opacity-80 flex items-center gap-1.5 text-xs tracking-wider">
           <span class="w-1.5 h-1.5 bg-primary"></span>
           SYS_MODULE // HISTORY
         </div>
@@ -48,7 +48,7 @@
                    <div class="text-[11px] font-bold text-on-surface break-all min-w-0">Snapshot_v1.0</div>
                    <div class="text-[9px] text-on-surface-variant font-mono whitespace-nowrap">2023-10-27 10:00</div>
                  </div>
-                 <div class="text-[10px] text-primary/80 mb-2 truncate max-w-full">📁 来源: Rhodes_Island_Core</div>
+                 <div class="text-[10px] text-primary-text/80 mb-2 truncate max-w-full">📁 来源: Rhodes_Island_Core</div>
                  <div class="flex flex-wrap gap-2 justify-end">
                    <ActionToggle type="restore">恢复状态</ActionToggle>
                    <ActionToggle type="delete">删除</ActionToggle>

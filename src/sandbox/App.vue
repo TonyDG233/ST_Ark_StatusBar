@@ -3,8 +3,8 @@
     <!-- 顶部控制栏 -->
     <header class="p-4 border-b border-outline-variant bg-surface flex justify-between items-center z-50 shadow-md">
       <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-primary text-2xl">science</span>
-        <h1 class="text-xl text-primary font-display font-bold tracking-widest uppercase">ARK UI Sandbox</h1>
+        <span class="material-symbols-outlined text-primary-text text-2xl">science</span>
+        <h1 class="text-xl text-primary-text font-display font-bold tracking-widest uppercase">ARK UI Sandbox</h1>
       </div>
       
       <button 
@@ -159,7 +159,8 @@
               <TopBar title="方舟世界书控制台" icon="menu_book" @toggle-minimize="toggleMode('MINI')" />
               
               <!-- 修复 UI 消失 bug：必须添加 min-h-0，否则 flex 子元素无法被压缩，会导致底部导航被挤出屏幕 -->
-              <div class="flex-1 overflow-y-auto scrollbar-none flex flex-col relative min-h-0">
+              <!-- 增加 global-watermark 和 bg-background，移除子 tab 的硬编码背景，使水印全局连贯透出 -->
+              <div class="flex-1 overflow-y-auto scrollbar-none flex flex-col relative min-h-0 bg-background global-watermark">
                 <DashboardTab v-if="activeTab === 'dashboard'" />
                 
                 <InterceptorTabDesign v-if="activeTab === 'worldbook' && activeSubTab === 'interceptor'" />
@@ -168,6 +169,8 @@
                 
                 <HistoryTabDesign v-if="activeTab === 'worldbook' && activeSubTab === 'history'" />
                 
+                <ToolsTabDesign v-if="activeTab === 'misc'" />
+
                 <SettingsTabDesign v-if="activeTab === 'settings'" />
               </div>
 
@@ -228,6 +231,7 @@ import DashboardTab from '../ARK_STATUSBAR/views/global_tabs/dashboard/Dashboard
 import HistoryTabDesign from './design_mocks/history/HistoryTab_Design.vue';
 import InterceptorTabDesign from './design_mocks/interceptor/InterceptorTab_Design.vue';
 import SettingsTabDesign from './design_mocks/settings/SettingsTab_Design.vue';
+import ToolsTabDesign from './design_mocks/tools/ToolsTab_Design.vue';
 import LoreEntriesTabDesign from './design_mocks/worldbook/LoreEntriesTab_Design.vue';
 
 // New Components

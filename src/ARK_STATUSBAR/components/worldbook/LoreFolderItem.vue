@@ -1,7 +1,10 @@
 <template>
-  <div class="p-2 flex flex-wrap justify-between items-center bg-surface hover:bg-surface-container-highest transition-colors cursor-pointer border-b border-outline-variant group w-full box-border gap-2"
+  <div class="p-2 flex flex-wrap justify-between items-center bg-surface hover:bg-surface-container-highest transition-colors cursor-pointer border-b border-outline-variant group w-full box-border gap-2 relative"
        @click="$emit('toggle')">
     
+    <!-- 主题色高亮顶条 -->
+    <div class="absolute top-0 left-0 w-full h-[2px] transition-colors" :class="bindType === 'char' ? 'bg-primary' : bindType === 'global' ? 'bg-secondary' : 'bg-outline-variant/50'"></div>
+
     <!-- Left: Folder Info (Wrappable) -->
     <div class="flex flex-wrap items-center gap-2 min-w-[120px] flex-1">
       <!-- Select Checkbox (only in global batch mode) -->
@@ -32,8 +35,8 @@
     <!-- Right: Actions & Expand -->
     <div class="flex items-center gap-2 flex-shrink-0">
       <!-- Pin Button -->
-      <button class="text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center outline-none w-6 h-6 rounded hover:bg-surface-variant cursor-pointer" title="置顶" @click.stop="$emit('toggle-pin')">
-        <span class="material-symbols-outlined text-[16px]" :class="{ 'text-primary': isPinned }" :style="isPinned ? `font-variation-settings: 'FILL' 1;` : ''">push_pin</span>
+      <button class="text-on-surface-variant hover:text-primary-text transition-colors flex items-center justify-center outline-none w-6 h-6 rounded hover:bg-surface-variant cursor-pointer" title="置顶" @click.stop="$emit('toggle-pin')">
+        <span class="material-symbols-outlined text-[16px]" :class="{ 'text-primary-text': isPinned }" :style="isPinned ? `font-variation-settings: 'FILL' 1;` : ''">push_pin</span>
       </button>
       
       <!-- Mount/Unmount Button (Not applicable for char bound) -->

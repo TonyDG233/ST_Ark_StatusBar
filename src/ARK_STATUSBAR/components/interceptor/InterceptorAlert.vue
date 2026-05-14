@@ -7,8 +7,8 @@
     </div>
     <!-- Alert Content -->
     <div class="p-2 flex-1 min-w-0 relative z-20 flex flex-col justify-center">
-      <h2 class="font-display text-error uppercase text-sm font-bold mb-1 tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">拦截已触发</h2>
-      <p class="font-body text-on-surface-variant text-xs leading-snug mb-2 whitespace-normal drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
+      <h2 class="font-display text-error uppercase text-sm font-bold mb-1 tracking-wider">拦截已触发</h2>
+      <p class="font-body text-on-surface-variant text-xs leading-snug mb-2 whitespace-normal">
         系统已阻断新上下文数据的注入。以下挂载条目被当前对话内容触发，需进行确认与过滤。
       </p>
       <div class="font-mono text-error flex flex-wrap gap-x-4 gap-y-1 text-[10px] border-t border-error/30 pt-1.5 mt-auto">
@@ -29,11 +29,11 @@
     </div>
     <!-- Alert Content -->
     <div class="p-2 flex-1 min-w-0 relative z-20 flex flex-col justify-center">
-      <h2 class="font-display text-primary uppercase text-sm font-bold mb-1 tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">主动检测结果</h2>
-      <p class="font-body text-on-surface-variant text-xs leading-snug mb-2 whitespace-normal drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
+      <h2 class="font-display text-primary-text uppercase text-sm font-bold mb-1 tracking-wider">主动检测结果</h2>
+      <p class="font-body text-on-surface-variant text-xs leading-snug mb-2 whitespace-normal">
         根据当前上下文，模拟检测触发了以下条目：
       </p>
-      <div class="font-mono text-primary flex flex-wrap gap-x-4 gap-y-1 text-[10px] border-t border-primary/30 pt-1.5 mt-auto">
+      <div class="font-mono text-primary-text flex flex-wrap gap-x-4 gap-y-1 text-[10px] border-t border-primary/30 pt-1.5 mt-auto">
         <div><span class="opacity-50">预测触发:</span> {{ count }}</div>
         <div><span class="opacity-50">预计 Token:</span> ~{{ tokenCount }} tok</div>
       </div>

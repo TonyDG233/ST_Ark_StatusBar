@@ -21,9 +21,14 @@
         <div class="w-1.5 h-1.5 bg-secondary"></div>
       </div>
       
-      <!-- 移除内部滚动，随整体页面一起滚动 -->
+      <!--
+        TODO: [Phase 2] 持久化缓存近20次触发记录
+        - 需引入浏览器持久化缓存（如 localStorage 或酒馆的自定义变量）来记录最近触发的 20 条记录。
+        - 主页面板应只展示“总记录概览”，点击后才展开完整的 20 次触发详细列表（包含条目内容与 Token 数）。
+        - 当前阶段仅作 UI 占位，需在实际应用至工程项目中做出对应功能。
+      -->
       <div class="p-3 flex flex-col gap-3">
-        <div v-for="i in 3" :key="i" class="flex gap-2 items-start border-b border-outline-variant/50 pb-3 last:border-0 last:pb-0">
+        <div v-for="i in 3" :key="i" class="flex gap-2 items-start border-b border-outline-variant/50 pb-3 last:border-0 last:pb-0 cursor-pointer hover:bg-surface-variant/30 transition-colors -mx-3 px-3">
           <span class="material-symbols-outlined text-on-surface-variant mt-0.5 flex-shrink-0 text-[14px]">memory</span>
           <div class="flex-1 min-w-0 flex flex-col">
             <span class="text-on-surface text-[12px] font-bold tracking-wide truncate">Entry [Amiya] triggered</span>

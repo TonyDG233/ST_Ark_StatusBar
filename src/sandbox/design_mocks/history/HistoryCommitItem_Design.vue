@@ -17,7 +17,7 @@
 
         <div class="flex flex-col min-w-0 flex-1">
           <div class="text-[10px] font-mono text-on-surface-variant opacity-80 flex items-center gap-2 flex-wrap">
-            <span class="font-bold" :class="isSnapshot ? 'text-secondary' : 'text-primary'">#{{ commitId }}</span>
+            <span class="font-bold" :class="isSnapshot ? 'text-secondary' : 'text-primary-text'">#{{ commitId }}</span>
             <span>{{ time }}</span>
           </div>
           <!-- Title -->
@@ -37,7 +37,7 @@
       </div>
       
       <!-- Source -->
-      <div v-if="source" class="text-[10px] text-primary/80 mb-2 truncate max-w-full">
+      <div v-if="source" class="text-[10px] text-primary-text/80 mb-2 truncate max-w-full">
         📁 来源: {{ source }}
         <span v-if="isHeavy" class="text-[#ffc107] ml-1">(重度修改)</span>
       </div>
@@ -50,7 +50,7 @@
       <div v-if="changes && changes.length" class="flex flex-col gap-1.5 bg-surface-variant/20 p-2 border border-outline-variant/30 mb-3 rounded-sm min-w-0">
         <div v-for="(change, idx) in changes" :key="idx" class="text-[10px] text-on-surface flex flex-wrap gap-x-1 gap-y-0.5 items-center break-all">
           <span class="text-on-surface-variant shrink-0">{{ change.label }}</span>
-          <span class="text-primary shrink-0" v-if="change.path">[{{ change.path }}]</span>
+          <span class="text-primary-text shrink-0" v-if="change.path">[{{ change.path }}]</span>
           <span v-if="change.path">:</span>
           <span class="text-error line-through shrink-0">{{ change.from }}</span>
           <span class="text-on-surface-variant shrink-0">-></span>

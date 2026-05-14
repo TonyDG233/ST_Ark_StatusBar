@@ -1,5 +1,5 @@
 <template>
-  <div class="settings-tab relative flex flex-col p-4 gap-4 @container overflow-y-auto scrollbar-none min-h-0 bg-background w-full h-full text-on-surface">
+  <div class="settings-tab relative flex flex-col p-4 gap-4 @container overflow-y-auto scrollbar-none min-h-0 w-full h-full text-on-surface">
     <!-- 开发意图标签 -->
     <div class="absolute top-0 right-0 bg-error/90 text-on-error text-[10px] px-1 font-mono z-50 pointer-events-none opacity-50">
       [SettingsTab_Design]
@@ -7,11 +7,11 @@
 
     <!-- 顶部状态面板复用 HistoryTab 风格 -->
     <div class="tab-header flex flex-col gap-2 border-b border-outline-variant pb-3 px-1 pt-1 flex-shrink-0 bg-transparent transition-all mb-2">
-      <div class="font-mono text-primary mb-0.5 uppercase opacity-80 flex items-center gap-1.5 text-xs tracking-wider">
+      <div class="font-mono text-primary-text mb-0.5 uppercase opacity-80 flex items-center gap-1.5 text-xs tracking-wider">
         <span class="w-1.5 h-1.5 bg-primary"></span>
         SYS_MODULE // SETTINGS
       </div>
-      <div class="flex items-center gap-2 text-primary">
+      <div class="flex items-center gap-2 text-primary-text">
         <div class="w-1.5 h-6 bg-primary flex-shrink-0"></div>
         <h1 class="font-display text-xl md:text-2xl font-bold text-on-surface tracking-widest uppercase">系统配置</h1>
       </div>
@@ -21,7 +21,7 @@
         <div class="flex justify-between items-center border-b border-outline-variant/50 pb-0.5">
           <span class="text-on-surface-variant">Kernel_Ver</span>
           <!-- TODO: 后续正式整合时可替换为读取 package.json 的真实版本号 -->
-          <span class="text-primary font-bold">v2.0.0-beta</span>
+          <span class="text-primary-text font-bold">v2.0.0-beta</span>
         </div>
         <div class="flex justify-between items-center border-b border-outline-variant/50 pb-0.5">
           <span class="text-on-surface-variant">Mem_Alloc</span>
@@ -42,7 +42,7 @@
 
     <!-- 界面布局 (UI_LAYOUT) -->
     <Panel class="p-4 gap-4 flex-shrink-0">
-      <div class="font-bold text-primary text-[12px] uppercase border-b border-outline-variant pb-2 flex items-center gap-2">
+      <div class="font-bold text-primary-text text-[12px] uppercase border-b border-outline-variant pb-2 flex items-center gap-2">
         <span class="material-symbols-outlined text-[16px]">aspect_ratio</span>
         界面布局
       </div>
@@ -73,7 +73,7 @@
 
     <!-- 视觉表现 (APPEARANCE) -->
     <Panel class="p-4 gap-4 flex-shrink-0">
-      <div class="font-bold text-primary text-[12px] uppercase border-b border-outline-variant pb-2 flex items-center gap-2">
+      <div class="font-bold text-primary-text text-[12px] uppercase border-b border-outline-variant pb-2 flex items-center gap-2">
         <span class="material-symbols-outlined text-[16px]">palette</span>
         视觉表现
       </div>
@@ -88,7 +88,7 @@
 
     <!-- 核心预警系统 (CORE_SYSTEM) -->
     <Panel class="p-4 gap-4 flex-shrink-0">
-      <div class="font-bold text-primary text-[12px] uppercase border-b border-outline-variant pb-2 flex items-center gap-2">
+      <div class="font-bold text-primary-text text-[12px] uppercase border-b border-outline-variant pb-2 flex items-center gap-2">
         <span class="material-symbols-outlined text-[16px]">memory</span>
         核心系统
       </div>

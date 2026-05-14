@@ -7,7 +7,7 @@
     </div>
 
     <!-- 左侧标题与图标 -->
-    <div class="flex items-center gap-2 text-primary font-display font-bold tracking-widest uppercase truncate min-w-0 flex-1">
+    <div class="flex items-center gap-2 text-primary-text font-display font-bold tracking-widest uppercase truncate min-w-0 flex-1">
       <span v-if="icon" class="material-symbols-outlined flex-shrink-0 transition-all duration-300" :class="isMini ? 'text-[14px]' : 'text-[20px]'">{{ icon }}</span>
       <!-- 动态标题样式转换 -->
       <span class="truncate transition-all duration-300 min-w-0"
