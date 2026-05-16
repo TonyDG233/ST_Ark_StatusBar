@@ -37,12 +37,12 @@
         </div>
       </div>
 
-      <div v-if="!isTestMode && lastTriggeredEntries.length > 0" class="last-record-box">
+      <div v-if="!isTestMode && (recentTriggerLogs[0]?.entries || []).length > 0" class="last-record-box">
         <hr class="record-divider" />
         <strong>上一轮触发记录</strong>
         <ul class="entry-list read-only">
           <li
-            v-for="entry in sortedLastTriggeredEntries"
+            v-for="entry in recentTriggerLogs[0].entries"
             :key="entry.uid || Math.random()"
             :class="{ 'disabled-entry': !entry.enabled }"
           >
@@ -87,7 +87,7 @@
       </div>
       <ul class="entry-list stacked">
         <li
-          v-for="entry in sortedPendingEntries"
+          v-for="entry in pendingEntries"
           :key="entry.uid || Math.random()"
           :class="{ 'disabled-entry': entry.enabled === false && !entry.tempDisabled }"
         >
@@ -182,10 +182,8 @@ const {
   currentTokenCount,
   entryTokenCountCache,
   isTestMode,
-  lastTriggeredEntries,
+  recentTriggerLogs,
   pendingEntries,
-  sortedLastTriggeredEntries,
-  sortedPendingEntries,
 } = storeToRefs(uiStore);
 // 3. 解构方法（不需要 storeToRefs，直接解构即可）
 const { 
@@ -201,17 +199,21 @@ const manager = StatusBarManager.getInstance();
 // Token 异步计算自动触发
 // ----------------------------------------------------------------------------
 watch(
-  sortedPendingEntries,
+  pendingEntries,
   newEntries => {
-    newEntries.forEach(entry => calculateTokenForEntry(entry));
+    if (newEntries) {
+      newEntries.forEach((entry: UIWorldbookEntry) => calculateTokenForEntry(entry));
+    }
   },
   { immediate: true },
 );
 
 watch(
-  sortedLastTriggeredEntries,
-  newEntries => {
-    newEntries.forEach(entry => calculateTokenForEntry(entry));
+  recentTriggerLogs,
+  newLogs => {
+    if (newLogs && newLogs.length > 0) {
+      newLogs[0].entries.forEach((entry: UIWorldbookEntry) => calculateTokenForEntry(entry));
+    }
   },
   { immediate: true },
 );
@@ -258,9 +260,9 @@ const getEntryType = (entry: UIWorldbookEntry) => {
  * 确认发送：将当前列表存入快照记录，并通知管理器释放拦截
  */
 const confirmSend = () => {
-  lastTriggeredEntries.value = [...pendingEntries.value];
+  const currentEntries = [...pendingEntries.value];
   pendingEntries.value = [];
-  manager.releaseInterceptAndSend();
+  manager.releaseInterceptAndSend(currentEntries, currentTokenCount.value);
   emit('close-panel');
 };
 
@@ -308,8 +310,6 @@ const toggleTempDisable = (entry: UIWorldbookEntry) => {
  * 取消发送：不释放拦截，清空当前列表并收起面板。恢复临时阻断。
  */
 const cancelSend = () => {
-  lastTriggeredEntries.value = [...pendingEntries.value];
-
   if (manager.tempDisabledEntries.length > 0) {
     pendingEntries.value.forEach(e => {
       if (e.tempDisabled) {

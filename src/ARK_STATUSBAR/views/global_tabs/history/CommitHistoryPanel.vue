@@ -182,8 +182,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { configStore, useArkConfig } from '../../../store/config_store';
-import { UIWorldbookEntry } from '../../../store/ui_state_store';
+import { useArkConfig } from '../../../store/config_store';
 import { ArkCommit } from '../../../types/system_config';
 
 // Pinia化前端数据中心改造
@@ -305,12 +304,7 @@ const toggleSelection = (id: string) => {
 };
 
 const togglePinCommit = (commit: ArkCommit) => {
-  const commits = [...(currentConfig.value?.commits || [])];
-  const target = commits.find(c => c.id === commit.id);
-  if (target) {
-    target.isPinned = !target.isPinned;
-    configStore.updateConfig({ commits });
-  }
+  manager.history.togglePinCommit(commit.id);
 };
 
 const getChangeText = (commit: unknown, value: any) => {
@@ -326,114 +320,11 @@ const getChangeText = (commit: unknown, value: any) => {
   return str.length > 15 ? str.substring(0, 15) + '...' : str;
 };
 
-/**
- * 执行底层世界书状态还原的核心函数
- * 因为可能包含多个 commits 或单条 commit，所以抽离出来复用
- */
-const applyInverseChanges = async (commitList: ArkCommit[]) => {
-  // 根据目标世界书对 commit 进行分组
-  const worldbookGroups = commitList.reduce(
-    (acc, curr) => {
-      const target = curr.worldbook || currentPrimaryWorldbook.value;
-      if (target) {
-        if (!acc[target]) acc[target] = [];
-        acc[target].push(curr);
-      }
-      return acc;
-    },
-    {} as Record<string, ArkCommit[]>,
-  );
+import { StatusBarManager } from '../../../services/statusbar_manager';
 
-  for (const [worldName, commits] of Object.entries(worldbookGroups)) {
-    // 必须按照提交时间的反序 (从新到老) 来还原
-    const sortedCommits = [...commits].sort((a, b) => b.timestamp - a.timestamp);
+// ... 之前的 import 保持不变 ...
 
-    // 首先按类型分离：特殊操作（新建/删除世界书或条目）和属性修改
-    // 为了保证时序，我们按 commit 依次处理
-    for (const commit of sortedCommits) {
-      // 检查是否有特殊操作
-      const hasSpecialOp = commit.changes.some(c =>
-        ['create_worldbook', 'delete_worldbook', 'create_entry', 'delete_entry'].includes(c.path as string),
-      );
-
-      if (hasSpecialOp) {
-        for (const change of commit.changes) {
-          if (change.path === 'create_worldbook') {
-            try {
-              await deleteWorldbook(worldName);
-            } catch (e) {
-              console.error('Failed to delete worldbook', e);
-            }
-          } else if (change.path === 'delete_worldbook') {
-            try {
-              await createWorldbook(worldName, change.from);
-            } catch (e) {
-              console.error('Failed to restore worldbook', e);
-            }
-          } else if (change.path === 'create_entry') {
-            try {
-              await deleteWorldbookEntries(worldName, entry => entry.uid === change.uid);
-            } catch (e) {
-              console.error('Failed to delete entry', e);
-            }
-          } else if (change.path === 'delete_entry') {
-            try {
-              await createWorldbookEntries(worldName, [change.from]);
-            } catch (e) {
-              console.error('Failed to restore entry', e);
-            }
-          }
-        }
-      }
-
-      // 处理普通属性修改
-      const propChanges = commit.changes.filter(
-        c => !['create_worldbook', 'delete_worldbook', 'create_entry', 'delete_entry'].includes(c.path as string),
-      );
-
-      if (propChanges.length > 0) {
-        await updateWorldbookWith(worldName, (wbEntries: UIWorldbookEntry[]) => {
-          for (const change of propChanges) {
-            const e = wbEntries.find(x => x.uid === change.uid);
-            if (e) {
-              // 对类型的逆向恢复
-              if (commit.description.includes('changed type') || commit.description.includes('修改触发类型')) {
-                if (!e.strategy)
-                  e.strategy = {
-                    type: 'selective',
-                    keys: [],
-                    keys_secondary: { logic: 'and_any', keys: [] },
-                    scan_depth: 'same_as_global',
-                  };
-                e.strategy.type = change.from ? 'constant' : 'selective';
-              } else {
-                // 对于开关的恢复
-                if (e && change.path === undefined) {
-                  e.enabled = !!change.from;
-                } else if (e && change.path) {
-                  // 处理基于路径的属性恢复
-                  const pathParts = change.path.split('.');
-                  let currentObj: any = e;
-                  for (let i = 0; i < pathParts.length - 1; i++) {
-                    currentObj = currentObj[pathParts[i]];
-                    if (!currentObj) break;
-                  }
-                  if (currentObj) {
-                    currentObj[pathParts[pathParts.length - 1]] = change.from;
-                  }
-                }
-              }
-            }
-          }
-          return wbEntries;
-        });
-      }
-    }
-
-    // 主动通知底层修改
-    document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: worldName } }));
-  }
-};
+const manager = StatusBarManager.getInstance();
 
 /**
  * 恢复某一次特定的历史修改操作 (原撤销操作，删除且还原)
@@ -442,12 +333,7 @@ const revertCommit = async (commit: ArkCommit) => {
   if (!confirm(`确定要恢复操作: ${commit.description} 吗？`)) return;
 
   try {
-    await applyInverseChanges([commit]);
-
-    // 从记录历史中删除该次提交
-    const commits = (currentConfig.value?.commits || []).filter((c: ArkCommit) => c.id !== commit.id);
-    configStore.updateConfig({ commits });
-
+    await manager.history.revertCommit(commit, currentPrimaryWorldbook.value);
     if (typeof toastr !== 'undefined') toastr.success('恢复成功并已从记录中移除。');
   } catch (e) {
     console.error('Failed to revert commit', e);
@@ -460,8 +346,7 @@ const revertCommit = async (commit: ArkCommit) => {
  */
 const deleteCommit = async (commit: ArkCommit) => {
   if (!confirm(`确定要仅删除该记录: ${commit.description} 吗？(当前世界书状态不变)`)) return;
-  const commits = (currentConfig.value?.commits || []).filter((c: ArkCommit) => c.id !== commit.id);
-  configStore.updateConfig({ commits });
+  manager.history.deleteCommit(commit.id);
 };
 
 /**
@@ -476,12 +361,8 @@ const batchRevertCommits = async () => {
   if (!confirm(`确定要恢复这 ${commitsToRevert.length} 条选中的记录吗？(状态将被还原)`)) return;
 
   try {
-    await applyInverseChanges(commitsToRevert);
-
-    const commits = (currentConfig.value?.commits || []).filter(
-      (c: ArkCommit) => !selectedCommits.value.includes(c.id),
-    );
-    configStore.updateConfig({ commits });
+    await manager.history.batchRevertCommits(selectedCommits.value, currentPrimaryWorldbook.value);
+    
     selectedCommits.value = []; // 操作完清空选中
     isBatchMode.value = false;
 
@@ -500,8 +381,7 @@ const batchDeleteCommits = async () => {
   if (!count) return;
   if (!confirm(`确定要删除这 ${count} 条选中的记录吗？(世界书底层状态保持不变)`)) return;
 
-  const commits = (currentConfig.value?.commits || []).filter((c: ArkCommit) => !selectedCommits.value.includes(c.id));
-  configStore.updateConfig({ commits });
+  manager.history.batchDeleteCommits(selectedCommits.value);
   selectedCommits.value = [];
   isBatchMode.value = false;
 };

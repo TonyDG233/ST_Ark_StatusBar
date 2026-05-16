@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 
 import type { WorldbookEntry } from '../types/st_worldbook_types';
 
@@ -22,13 +22,20 @@ export type UIWorldbookEntry = WorldbookEntry & {
   _computedType?: string;
 };
 
+export interface TriggerLog {
+  timestamp: number;
+  entries: UIWorldbookEntry[];
+  tokenCount: number | string;
+}
+
 export const useUIStateStore = defineStore('ark_ui_state', () => {
   // ----------------------------------------------------------------------------
   // 1. 全局与拦截器共享状态 (Global & Interceptor Shared State)
   // ----------------------------------------------------------------------------
   // 这些状态用于在父组件的迷你窗徽章和拦截器 Tab 详情列表之间实现 100% 内存同频
   const pendingEntries = ref<UIWorldbookEntry[]>([]);
-  const lastTriggeredEntries = ref<UIWorldbookEntry[]>([]);
+  // 修改：将原来的 lastTriggeredEntries（只能存一轮）扩展为内存队列
+  const recentTriggerLogs = ref<TriggerLog[]>([]);
   const isTestMode = ref(false);
   const currentTokenCount = ref<number | string>(0);
 
@@ -62,17 +69,24 @@ export const useUIStateStore = defineStore('ark_ui_state', () => {
     }
   };
 
+  /*
+   * [FUTURE TODO]: 为了保证后续可以实现诸如 token 计数，isPinned 方法等的sort，以及开启蓝灯条目时归类蓝灯/绿灯排列的 sort 等功能，
+   * 必须在以下计算属性中进行拦截列表的排序。
+   * 当前情况：由于 Vue 的 [...array] 解构计算在与 GlobalStatusBar 的强赋值 (pendingEntries.value = ...) 
+   * 配合时会导致响应式深层断裂，导致 UI 列表消失，且原有代码并未实际包含 .sort() 逻辑。
+   * 因此，暂时注释整个 sort 逻辑，让前端直接绑定原始的 pendingEntries 数组以保证顺利渲染。
+   * 未来修复时，请实现真正的基于 token/type 的排序逻辑并确保使用原数组的深层代理或事件抛出重渲染机制。
+   *
   // 计算属性：对即将触发的条目进行排序（置顶优先）
   const sortedPendingEntries = computed(() => {
-    // 注意：在实际使用时，isPinned 方法可能需要组件引入 configStore，
-    // 为了保持 ui_state 纯净，我们可以在这里做简单的结构准备，具体排序可在使用时或传入 isPinned 判断逻辑
     return [...pendingEntries.value];
   });
 
   // 计算属性：对快照条目进行排序（置顶优先）
-  const sortedLastTriggeredEntries = computed(() => {
-    return [...lastTriggeredEntries.value];
+  const sortedRecentTriggerLogs = computed(() => {
+    return [...recentTriggerLogs.value];
   });
+  */
 
   // ----------------------------------------------------------------------------
   // 2. 世界书与手风琴共享状态 (Worldbook & Accordion Shared State)
@@ -217,12 +231,10 @@ export const useUIStateStore = defineStore('ark_ui_state', () => {
     // === 响应式变量 / 计算属性 (States & Getters) ===
     // 注：在其他组件中解构这些变量时，必须使用 storeToRefs(useUIStateStore())，否则会丢失响应式。
     pendingEntries,
-    lastTriggeredEntries,
+    recentTriggerLogs,
     isTestMode,
     currentTokenCount,
     entryTokenCountCache,
-    sortedPendingEntries,
-    sortedLastTriggeredEntries,
     allAvailableWorldbooks,
     globalMountedWorldbooks,
     charBoundWorldbooks,

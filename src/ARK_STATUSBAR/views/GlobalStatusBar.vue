@@ -93,14 +93,14 @@
         <!-- [FEATURE: MINI_SNAPSHOT] -> Compact list shown ONLY in mini mode -->
         <div class="statusbar-mini-content" v-show="currentUiMode === UiMode.MINI">
           <div
-            v-if="(pendingEntries.length > 0 ? pendingEntries : lastTriggeredEntries).length === 0"
+            v-if="(pendingEntries.length > 0 ? pendingEntries : (recentTriggerLogs[0]?.entries || [])).length === 0"
             class="mini-empty"
           >
             无近期触发记录
           </div>
           <ul v-else class="mini-entry-list">
             <li
-              v-for="entry in pendingEntries.length > 0 ? pendingEntries : lastTriggeredEntries"
+              v-for="entry in pendingEntries.length > 0 ? pendingEntries : (recentTriggerLogs[0]?.entries || [])"
               :key="entry.uid || Math.random()"
             >
               <span class="indicator" :class="{ blocked: entry.enabled === false }"></span>
@@ -140,7 +140,7 @@ const {
     currentTokenCount,
     isArknightsCard,
     isTestMode,
-    lastTriggeredEntries,
+    recentTriggerLogs,
     pendingEntries,
     previewUiFontSize,
     previewUiWidth,

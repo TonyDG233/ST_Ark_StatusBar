@@ -2,7 +2,9 @@ import { unref } from 'vue';
 import { configStore } from '../store/config_store';
 import { backupService } from './worldbook/backup_service';
 import { entryService } from './worldbook/entry_service';
+import { historyService } from './worldbook/history_service';
 import { snapshotService } from './worldbook/snapshot_service';
+import { worldbookEditorService } from './worldbook/worldbook_editor_service';
 
 /**
  * Worldbook 的局部外观 (Facade)
@@ -104,6 +106,8 @@ export class StatusBarManager {
 
   public tempDisabledEntries: { uid: number; world: string }[] = []; // 单次临时阻断的条目 UID 及世界书名称列表
   public readonly worldbook: WorldbookFacade;
+  public readonly editor = worldbookEditorService;
+  public readonly history = historyService;
 
   private constructor() {
     this.worldbook = new WorldbookFacade(() => this.targetWorldbook);
@@ -202,9 +206,9 @@ export class StatusBarManager {
     await sendInterceptor.runManualTest();
   }
 
-  public releaseInterceptAndSend() {
+  public releaseInterceptAndSend(entriesToLog?: any[], tokenCount?: number | string) {
     import('./worldbook/send_interceptor').then(({ sendInterceptor }) => {
-      sendInterceptor.releaseInterceptAndSend();
+      sendInterceptor.releaseInterceptAndSend(entriesToLog, tokenCount);
     });
   }
 

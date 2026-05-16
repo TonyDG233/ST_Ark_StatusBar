@@ -1,5 +1,6 @@
 import { unref } from 'vue';
 import { useArkConfig } from '../../store/config_store';
+import { UIWorldbookEntry, useUIStateStore } from '../../store/ui_state_store';
 import { WorldbookMapper } from './worldbook_mapper';
 
 /**
@@ -30,6 +31,27 @@ class SendInterceptor {
   }
 
   /**
+   * 记录拦截历史（暴露为单独方法以方便未来改写为 IndexedDB 等落盘机制）
+   * @param entriesToLog 触发的世界书条目
+   * @param tokenCount 对应的 Token 开销
+   */
+  public recordInterceptHistory(entriesToLog: UIWorldbookEntry[], tokenCount: number | string = 0) {
+    if (!entriesToLog || entriesToLog.length === 0) return;
+    
+    const uiStore = useUIStateStore();
+    const newLog = {
+      timestamp: Date.now(),
+      entries: entriesToLog,
+      tokenCount: tokenCount
+    };
+    
+    uiStore.recentTriggerLogs.unshift(newLog);
+    if (uiStore.recentTriggerLogs.length > 20) {
+      uiStore.recentTriggerLogs.pop();
+    }
+  }
+
+  /**
    * 运行“主动检测”流程 (Manual Test)。
    */
   public async runManualTest() {
@@ -45,7 +67,12 @@ class SendInterceptor {
    * 取消拦截并强制发送。
    * （先解绑拦截器 -> 主动触发原生按钮 -> 延迟半秒后再重新绑定拦截器）
    */
-  public releaseInterceptAndSend() {
+  public releaseInterceptAndSend(entriesToLog?: UIWorldbookEntry[], tokenCount?: number | string) {
+    // 调用统一入口写入历史记录
+    if (entriesToLog && entriesToLog.length > 0) {
+      this.recordInterceptHistory(entriesToLog, tokenCount);
+    }
+
     this.unbindInterceptor();
     const ST_DOC = window.parent?.document || document;
     const sendBtn = ST_DOC.querySelector('#send_but') as HTMLElement;
@@ -495,7 +522,7 @@ class SendInterceptor {
               detail: { message: 'executeDualTrackDryRun_SILENT_PASS', isDryRun: false },
             }),
           );
-          this.releaseInterceptAndSend();
+          this.releaseInterceptAndSend(matchedEntries, tokenCount);
         }
       }
     } finally {
