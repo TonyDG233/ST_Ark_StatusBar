@@ -309,15 +309,29 @@ const toggleTempDisable = (entry: UIWorldbookEntry) => {
 /**
  * 取消发送：不释放拦截，清空当前列表并收起面板。恢复临时阻断。
  */
-const cancelSend = () => {
+const cancelSend = async () => {
   if (manager.tempDisabledEntries.length > 0) {
-    pendingEntries.value.forEach(e => {
-      if (e.tempDisabled) {
-        e.tempDisabled = false;
-        e.enabled = true;
-        toggleEntrySilent(e);
+    // 遍历所有被记录下来的临时阻断对象
+    for (const tempInfo of manager.tempDisabledEntries) {
+      if (tempInfo.world) {
+        try {
+          await updateWorldbookWith(tempInfo.world, (wbEntries: UIWorldbookEntry[]) => {
+            const targetEntry = wbEntries.find(x => x.uid === tempInfo.uid);
+            if (targetEntry) {
+              targetEntry.enabled = true;
+            }
+            return wbEntries;
+          });
+          // 逐个触发数据变化事件通知全局刷新
+          document.dispatchEvent(
+            new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: tempInfo.world } })
+          );
+        } catch (e) {
+          console.error('[ARK_Interceptor] Failed to restore temp disabled entry on cancel:', e);
+        }
       }
-    });
+    }
+    // 恢复完毕后清空管理器里的记录
     manager.tempDisabledEntries = [];
   }
   pendingEntries.value = [];
