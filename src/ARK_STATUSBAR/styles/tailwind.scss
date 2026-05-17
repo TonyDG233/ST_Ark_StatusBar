@@ -1,11 +1,15 @@
 /*
- * Tailwind v4 引入 (已恢复 Preflight)
- * 在重构全部完成前，通过渐进式替换视图保留旧版 view/styles 的作用域。
+ * Tailwind v4 引入
  */
 
-/* 1. 导入核心工具类与主题 (去除无差别的 Preflight 以防止摧毁酒馆原生样式，改为我们在 theme 中书写 Scoped Reset) */
+/* 1. 采用限定作用域引入 Tailwind 的 Preflight 和工具类，防止污染宿主 */
+.ark-global-statusbar-mount-point {
+    @import "tailwindcss/preflight";
+    @import "tailwindcss/utilities";
+}
+
+/* 引入基础主题，以便提供 Tailwind 所需的底层变量定义 */
 @import "tailwindcss/theme";
-@import "tailwindcss/utilities";
 
 /* 2. 挂载我们自定义的设计系统与主题变量 */
 @import "./theme.scss";

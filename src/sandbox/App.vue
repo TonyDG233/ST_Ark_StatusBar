@@ -1,5 +1,5 @@
 <template>
-  <div class="sandbox-container min-h-screen w-full flex flex-col" :class="isDark ? 'dark-theme' : 'light-theme'">
+  <div class="ark-global-statusbar-mount-point sandbox-container min-h-screen w-full flex flex-col" :class="isDark ? 'dark-theme' : 'light-theme'">
     <!-- 顶部控制栏 -->
     <header class="p-4 border-b border-outline-variant bg-surface flex justify-between items-center z-50 shadow-md">
       <div class="flex items-center gap-2">
