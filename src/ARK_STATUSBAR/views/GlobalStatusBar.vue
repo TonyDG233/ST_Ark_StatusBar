@@ -1,11 +1,12 @@
 <template>
-  <!-- [物理外壳层] 完全负责承载物理位移，不参与任何样式形变或渐变过渡 -->
+  <!-- [物理外壳层] 完全负责承载物理位移，禁止添加任何影响宽高的业务 class -->
   <div
     v-if="isSystemEnabled"
     v-show="isVisible"
-    class="ark-global-statusbar-shell"
-    :class="{ 'is-snapping': isSnapping }"
-    style="position: fixed; top: 0; z-index: 9999"
+    class="ark-global-statusbar-mount-point fixed top-0 z-[9999]"
+    :class="{ 
+      'transition-[left,right,transform] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]': isSnapping 
+    }"
     :style="{
       left: currentAnchor === 'left' ? `${transformLeft}px` : 'auto',
       right: currentAnchor === 'right' ? `${transformRight}px` : 'auto',
@@ -13,146 +14,201 @@
     }"
     ref="statusBarEl"
   >
-    <!-- [视觉 UI 容器层] 负责所有颜色、尺寸、伸缩渐变。
-         根据外壳给定的 currentAnchor 动态调整自己的 transform-origin 
-         使得向外展开的动画总是完美的！ -->
+    <!-- [视觉 UI 容器层] 
+         负责：圆角、背景材质、主题色、弹性过渡、响应式宽度控制 
+    -->
     <div
-      class="ark-global-statusbar"
-      :class="{
-        'light-theme': currentConfig?.theme === 'light',
-        'dark-theme': currentConfig?.theme === 'dark',
-        'transparent-theme': currentConfig?.theme === 'transparent',
-        'mini-mode': currentUiMode === UiMode.MINI,
-        'edge-snapped': currentUiMode === UiMode.BUBBLE,
-        'edge-snapped-left': isSnappedToEdge === 'left',
-        'edge-snapped-right': isSnappedToEdge === 'right',
-        'is-dragging': isDraggingState,
-      }"
+      class="ark-transition-shell flex flex-col shadow-[0_4px_12px_rgba(0,0,0,0.5)] transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+      :class="[
+        /* --- 主题映射防线 (必须注入主题类名，以激活 CSS 变量) --- */
+        currentConfig?.theme === 'light' ? 'light-theme border-outline-variant bg-surface' : '',
+        currentConfig?.theme === 'dark' ? 'dark-theme border-outline-variant bg-surface' : '',
+        currentConfig?.theme === 'transparent' ? 'dark-theme bg-surface/40 backdrop-blur-md border-white/10' : '',
+        
+        /* --- 模式边界与溢出控制 --- */
+        currentUiMode === UiMode.BUBBLE
+          ? 'overflow-visible !border-none !bg-transparent !shadow-none items-end'
+          : 'overflow-hidden border',
+
+        /* --- BUBBLE 物理形态补偿 (向左向右吸附切角) --- */
+        currentUiMode === UiMode.BUBBLE
+          ? `!flex-row items-center justify-center !w-[var(--snapped-width)] !h-[60px] !min-w-[32px] opacity-80 cursor-grab hover:opacity-100 hover:bg-[#007bff33] border-white/20 bg-[#282828d9] backdrop-blur-md ${isSnappedToEdge === 'left' ? '!rounded-r-[30px] !border-l-0' : '!rounded-l-[30px] !border-r-0'}`
+        /* --- MINI 物理形态补偿 --- */
+        : currentUiMode === UiMode.MINI
+          ? 'w-[13em] max-w-[13em] rounded-2xl opacity-80 hover:opacity-100'
+        /* --- FULL 物理形态补偿 --- */
+        : 'w-[var(--ui-width)] min-w-[var(--ui-width)] max-w-[90vw] max-h-[calc(100dvh-80px)] rounded-lg',
+
+        /* --- 拖拽帧率保护 --- */
+        isDraggingState ? '!transition-none' : ''
+      ]"
       :style="{
         'transform-origin': currentAnchor === 'left' ? 'left top' : 'right top',
-        '--ui-width':
-          currentUiMode === UiMode.MINI ? '180px' : (previewUiWidth ?? currentConfig?.uiWidth ?? 400) + 'px',
+        '--ui-width': (previewUiWidth ?? currentConfig?.uiWidth ?? 400) + 'px',
         '--ui-font-size': (previewUiFontSize ?? currentConfig?.uiFontSize ?? 14) + 'px',
         '--snapped-width': isSnappedToEdge ? `${snappedStretchWidth}px` : '32px',
-        '--ui-height-content': currentConfig?.uiHeight ? currentConfig.uiHeight + 'px' : '400px',
       }"
     >
-      <!-- 气泡窗变身把手，利用原 UI 的极限压缩产生无缝融合效果 -->
-      <div
-        v-show="currentUiMode === UiMode.BUBBLE"
-        class="edge-snap-indicator"
-        @mousedown="startDrag"
-        @touchstart="startDrag"
-        title="向屏幕内侧拖动以展开窗口"
-      >
-        <span class="icon">📖</span>
-      </div>
-
-      <!-- 常规完整面板内容 (包含 FULL 和 MINI 模式) -->
-      <template v-if="currentUiMode !== UiMode.BUBBLE">
-        <div class="statusbar-header" @mousedown="startDrag" @touchstart="startDrag" title="拖拽移动">
-          <div class="title" v-if="currentUiMode === UiMode.FULL"><span class="icon">📖</span> 方舟世界书控制台</div>
-          <div class="title mini" v-else><span class="icon">📖</span> 世界书 (预警: {{ pendingEntries.length }})</div>
-          <div class="controls">
-            <!-- 引入了沙盒版的四角翻转按钮 -->
-            <button
-              class="icon-btn toggle-btn"
-              @click="toggleMinimize"
-              title="折叠/展开"
-              :class="{ 'is-mini': currentUiMode === UiMode.MINI }"
-            >
-              <div class="corner top-left"></div>
-              <div class="corner top-right"></div>
-              <div class="corner bottom-left"></div>
-              <div class="corner bottom-right"></div>
-            </button>
-          </div>
-        </div>
-
-        <!-- 高跷防护：使用 Grid 0fr 方案包裹内容 -->
-        <div class="statusbar-content-wrapper" :class="{ 'is-full-expanded': currentUiMode === UiMode.FULL }">
-          <div class="statusbar-content-inner">
-            <div class="statusbar-tabs" v-show="currentUiMode === UiMode.FULL">
-              <button :class="{ active: currentTab === 'interceptor' }" @click="currentTab = 'interceptor'">
-                拦截预警
-              </button>
-              <button :class="{ active: currentTab === 'all' }" @click="currentTab = 'all'">全部条目</button>
-              <button :class="{ active: currentTab === 'history' }" @click="currentTab = 'history'">记录(Git)</button>
-              <button :class="{ active: currentTab === 'settings' }" @click="currentTab = 'settings'">设置</button>
-            </div>
-
-            <div class="statusbar-content" v-show="currentUiMode === UiMode.FULL">
-              <InterceptorTab v-show="currentTab === 'interceptor'" @close-panel="currentUiMode = UiMode.MINI" />
-              <WorldbookTab v-show="currentTab === 'all'" />
-              <HistoryTab v-show="currentTab === 'history'" />
-              <SettingsTab v-show="currentTab === 'settings'" />
-            </div>
-          </div>
-        </div>
-
-        <!-- [FEATURE: MINI_SNAPSHOT] -> Compact list shown ONLY in mini mode -->
-        <div class="statusbar-mini-content" v-show="currentUiMode === UiMode.MINI">
-          <div
-            v-if="(pendingEntries.length > 0 ? pendingEntries : (recentTriggerLogs[0]?.entries || [])).length === 0"
-            class="mini-empty"
-          >
-            无近期触发记录
-          </div>
-          <ul v-else class="mini-entry-list">
-            <li
-              v-for="entry in pendingEntries.length > 0 ? pendingEntries : (recentTriggerLogs[0]?.entries || [])"
-              :key="entry.uid || Math.random()"
-            >
-              <span class="indicator" :class="{ blocked: entry.enabled === false }"></span>
-              <span class="text">{{
-                entry.name || (entry.strategy?.keys && entry.strategy.keys.length ? entry.strategy.keys[0] : '未知')
-              }}</span>
-            </li>
-          </ul>
-        </div>
-        <!-- [FEATURE: MINI_SNAPSHOT] END -->
+      
+      <!-- BUBBLE 气泡态：极度压缩态，由于视觉完全不同，采用独立的渲染树 -->
+      <template v-if="currentUiMode === UiMode.BUBBLE">
+        <BubbleModeView
+          :position="isSnappedToEdge === 'left' ? 'left' : 'right'"
+          :width="snappedStretchWidth"
+          @drag-start="startDrag"
+          @open-full="handleOpenFull"
+        />
       </template>
+
+      <!-- FULL 和 MINI 态：它们必须共享同一个外层结构 (TopBar)，以保障四角按钮的动画和宽度变化能够连贯 -->
+      <template v-else>
+        <!-- 共享的 TopBar，保证四角按钮的过渡动画不会因为组件销毁而中断 -->
+        <TopBar
+          :title="currentUiMode === UiMode.FULL ? '方舟世界书控制台' : `拦截记录: ${pendingEntries.length}`"
+          :icon="currentUiMode === UiMode.FULL ? 'menu_book' : 'warning'"
+          :isMini="currentUiMode === UiMode.MINI"
+          @toggle-minimize="toggleMinimize"
+          @mousedown="startDrag"
+          @touchstart="startDrag"
+          class="flex-shrink-0 z-50 cursor-grab active:cursor-grabbing"
+          :class="currentUiMode === UiMode.MINI ? '!border-b-0 rounded-t-2xl ' + (currentConfig?.theme === 'transparent' ? '!bg-black/20' : '!bg-surface-container-high') : ''"
+        />
+
+        <!-- 内容区域容器：采用绝对定位交叉淡入淡出，摆脱高度互相挤压的问题 -->
+        <!-- 1. FULL 常规全展态的内容区 -->
+        <!-- 三层嵌套脱壳法：第一层 Grid 0fr 负责提供平滑折叠空间 -->
+        <div
+          class="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden w-full min-h-0"
+          :style="{ gridTemplateRows: currentUiMode === UiMode.FULL ? '1fr' : '0fr' }"
+        >
+          <!-- 第二层：物理挤压垫片。必须仅有 min-h-0 且不能有固定 height，这样在 0fr 时它才会完全被压扁到 0px -->
+          <div class="min-h-0 min-w-0 overflow-hidden w-full transition-opacity duration-300"
+               :class="currentUiMode === UiMode.FULL ? 'opacity-100' : 'opacity-0'">
+               
+            <!-- 第三层：业务定高防线。写死 400px，确保 FULL 态下绝不塌陷。无论内部有多少内容，它总是 uiHeight。 -->
+            <div class="flex flex-col w-full"
+                 :style="{ height: currentConfig?.uiHeight ? currentConfig.uiHeight + 'px' : '400px' }">
+            
+              <div class="flex-1 overflow-y-auto scrollbar-none flex flex-col relative min-h-0 bg-background global-watermark">
+                <DashboardTab v-if="currentTab === 'dashboard'" />
+                
+                <InterceptorTab v-if="currentTab === 'worldbook' && currentSubTab === 'interceptor'" @close-panel="currentUiMode = UiMode.MINI" />
+                
+                <WorldbookTab v-if="currentTab === 'worldbook' && currentSubTab === 'lore'" />
+                
+                <HistoryTab v-if="currentTab === 'worldbook' && currentSubTab === 'history'" />
+                
+                <SettingsTab v-if="currentTab === 'settings'" />
+
+                <!-- 【安全避让防线】：垫高列表尾部，避免被悬浮 SubNav 遮挡 -->
+                <div v-if="currentTab === 'worldbook'" class="h-16 flex-shrink-0 w-full pointer-events-none"></div>
+              </div>
+
+              <!-- 底部导航区 (SubNav + BottomNav) -->
+              <div class="relative flex-shrink-0 z-50 flex flex-col w-full text-[var(--color-on-surface)]">
+                <!-- 二级悬浮导航 (SubNav) 绝对定位于底部 -->
+                <div class="absolute bottom-full left-0 right-0 z-40 flex justify-center mb-2 pointer-events-none px-2 box-border">
+                  <SubNav
+                    class="pointer-events-auto"
+                    v-if="currentTab === 'worldbook'"
+                    :activeSubTab="currentSubTab"
+                    :tabs="worldbookSubTabs"
+                    @change-sub-tab="(val: string) => currentSubTab = val"
+                  />
+                </div>
+                <BottomNav :activeTab="currentTab" @change-tab="(val: string) => currentTab = val" />
+              </div>
+              
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. MINI 悬浮窗态的内容区 (仅包含列表本身) -->
+        <div class="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden w-full min-h-0"
+             :style="{ gridTemplateRows: currentUiMode === UiMode.MINI ? '1fr' : '0fr' }">
+          <div class="min-h-0 min-w-0 overflow-hidden w-full transition-opacity duration-300"
+               :class="currentUiMode === UiMode.MINI ? 'opacity-100' : 'opacity-0'">
+            <div class="w-full flex flex-col">
+              <!-- TODO: [Phase 2] 平常状态下此处应展示基于 DashboardTab 2.3 的“触发记录概览”，而不是目前这样特定条目细节的堆砌 -->
+              <MiniWindow
+                :entries="displayEntries"
+                class="rounded-b-2xl shadow-sm !border-t-0"
+              />
+            </div>
+          </div>
+        </div>
+
+      </template>
+
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { UiMode, useDraggablePhysics } from '../hooks/useDraggablePhysics';
 import { configStore, useArkConfig } from '../store/config_store';
 
-// 引入彻底解耦的微型 Domain Tab 组件
+// 手动导入组件防 Webpack 幽灵丢件
+import BottomNav from '../components/BottomNav.vue';
+import MiniWindow from '../components/MiniWindow.vue';
+import SubNav from '../components/SubNav.vue';
+import TopBar from '../components/TopBar.vue';
+
+// 引入解耦后的独立 View
+import BubbleModeView from './global_tabs/BubbleModeView.vue';
+
+// 业务 Tabs
+import DashboardTab from './global_tabs/dashboard/DashboardTab.vue';
 import HistoryTab from './global_tabs/history/HistoryTab.vue';
 import InterceptorTab from './global_tabs/interceptor/InterceptorTab.vue';
 import SettingsTab from './global_tabs/settings/SettingsTab.vue';
 import WorldbookTab from './global_tabs/worldbook/WorldbookTab.vue';
 
-// --- 全局单一状态机 & 独立物理引擎钩子 ---
-import { UiMode, useDraggablePhysics } from '../hooks/useDraggablePhysics';
-
-// Pinia化前端数据中心改造
+// Pinia化前端数据中心
 import { storeToRefs } from 'pinia';
 import { useUIStateStore } from '../store/ui_state_store';
-// 1. 实例化 Store
-const uiStore = useUIStateStore();
 
-// 2. 解构状态变量（必须用 storeToRefs 保持响应式）
-const { 
+const uiStore = useUIStateStore();
+const {
     currentTokenCount,
     isArknightsCard,
     isTestMode,
-    recentTriggerLogs,
     pendingEntries,
+    recentTriggerLogs,
     previewUiFontSize,
     previewUiWidth,
 } = storeToRefs(uiStore);
 
+const displayEntries = computed(() => {
+  return pendingEntries.value.length > 0 ? pendingEntries.value : (recentTriggerLogs.value[0]?.entries || []);
+});
+
 const isVisible = ref(true);
 const currentUiMode = ref<UiMode>(UiMode.MINI);
-const currentTab = ref('interceptor');
+
+// 双层路由状态
+const currentTab = ref('worldbook');
+const currentSubTab = ref('interceptor');
+
+// 定义世界书模式下的二级导航栏
+const worldbookSubTabs = [
+  { id: 'interceptor', label: '预警', icon: 'security' },
+  { id: 'lore', label: '条目', icon: 'menu_book' },
+  { id: 'history', label: '历史', icon: 'history' }
+];
+
 const currentConfig = useArkConfig();
 const isSystemEnabled = computed(() => currentConfig.value?.isSystemEnabled ?? true);
 
 const statusBarEl = ref<HTMLElement | null>(null);
+
+const handleOpenFull = () => {
+  currentUiMode.value = UiMode.FULL;
+  currentTab.value = 'worldbook';
+  currentSubTab.value = 'interceptor';
+  setTimeout(() => checkBounds(), 350);
+};
 
 // ==========================================
 // 业务视图层 与 纯物理引擎层的切割交接点
@@ -175,21 +231,17 @@ const toggleMinimize = () => {
     currentUiMode.value = UiMode.MINI;
   } else if (currentUiMode.value === UiMode.MINI) {
     currentUiMode.value = UiMode.FULL;
-    currentTab.value = 'interceptor';
+    // 强制跳转到拦截界面
+    currentTab.value = 'worldbook';
+    currentSubTab.value = 'interceptor';
   }
-
-  // 给 CSS 的 transition (0.3s) 留出时间后，执行最后一次物理兜底碰撞收口
+  // 给 CSS 的 transition 留出时间后，执行最后一次物理兜底碰撞收口
   setTimeout(() => checkBounds(), 350);
 };
 
-// --- 环境联动与事件总线挂载 ---
-const { 
-  setupGlobalListeners
-} = uiStore;
-
-// 保存对事件处理函数的引用以便在 onUnmounted 中移除
+// --- 环境联动与事件总线挂载 (精简版) ---
+const { setupGlobalListeners } = uiStore;
 let interceptorTriggeredListener: (e: CustomEvent) => void;
-let baselineDiffListener: (e: Event) => void;
 let systemToggleListener: (e: Event) => void;
 
 onMounted(() => {
@@ -198,22 +250,27 @@ onMounted(() => {
   interceptorTriggeredListener = (e: CustomEvent) => {
     const triggered = e.detail.entries || [];
     const isManualTest = !!e.detail.isManualTest;
+    
     isTestMode.value = isManualTest;
     currentTokenCount.value = e.detail.tokenCount ?? 0;
 
     pendingEntries.value = triggered;
-    currentTab.value = 'interceptor';
+    
+    currentTab.value = 'worldbook';
+    currentSubTab.value = 'interceptor';
     currentUiMode.value = UiMode.FULL;
 
     if (!isSystemEnabled.value) {
       configStore.updateConfig({ isSystemEnabled: true });
     }
+    
     if (isManualTest && typeof toastr !== 'undefined') toastr.success('检测完成。', 'ARK_STATUSBAR');
   };
   document.addEventListener('ark-interceptor-triggered', interceptorTriggeredListener);
 
+  let baselineDiffListener: (e: Event) => void;
   baselineDiffListener = () => {
-    if (!isArknightsCard.value) return; // 非方舟专属角色卡，忽略基准线检查警告
+    if (!isArknightsCard.value) return; 
     if (typeof toastr !== 'undefined') {
       toastr.warning(
         '检测到当前世界书带有开局剧情或手动修改的残余状态。为防止剧情串台，建议在侧边栏或历史记录处重置。',
@@ -227,20 +284,14 @@ onMounted(() => {
   systemToggleListener = () => {
     const newState = !(currentConfig.value?.isSystemEnabled ?? true);
     configStore.updateConfig({ isSystemEnabled: newState });
-
-    if (newState) {
-      checkBounds(); // 原 requestAnimationFrame
-    }
+    if (newState) checkBounds();
   };
   document.addEventListener('ark:system-toggle', systemToggleListener);
-
+  
   const ST_WIN = window.parent || window;
-  // 尺寸变化的重新测算工作已交由 useDraggablePhysics 内的 ResizeObserver 接管
-  // 这里只保留一个最粗糙的外部兜底触发即可
   const handleWindowResize = () => checkBounds();
   ST_WIN.addEventListener('resize', handleWindowResize);
 
-  // 组件卸载时解绑
   onUnmounted(() => {
     document.removeEventListener('ark-interceptor-triggered', interceptorTriggeredListener);
     document.removeEventListener('ark:worldbook-baseline-diff-detected', baselineDiffListener);
@@ -251,323 +302,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
-@import './styles/theme.scss';
-@import './styles/shared_ui.scss';
+/* 引入全局最新的主题 Token 与 Scoped Preflight */
+@import '../styles/theme.scss';
 
-/* =========================================================================
-   🚨 绝对警报 🚨
-   不要在这里手动修改、推翻任何关于 `ark-global-statusbar` 本身的 CSS！
-   这是遗留下来的原版单壳样式，它保证了你看到的圆角、背景、列表样式原汁原味。
-   
-   我们要做的仅仅是把外层物理防线与这套样式通过 Vue <template> 层隔开。
-   ========================================================================= */
-
-.ark-global-statusbar {
-  /* position: fixed; 和 transform 被抽离到了外层物理壳 (shell) 中。
-     这里改成了 absolute; right: 0;，为了配合物理壳的右上角锚点。 */
-  /* bottom: 60px; (由 transformY 控制) */
-  /* right: 20px; (由 transformX 控制) */
-  width: var(--ui-width, 400px);
-  max-width: 90vw;
-  max-height: calc(100dvh - 80px);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden; /* <--- 修复：强制截断流出的子元素，以配合内部滚动条 */
-  /* 
-    【重点解耦】：因为不再和物理坐标纠缠，这里的 transition 可以放心大胆地加上宽度变化。
-    且它不会像以前那样导致由于右边缘抽搐而被撕裂。
-  */
-  transition:
-    background-color 0.3s ease,
-    border-color 0.3s ease,
-    color 0.3s ease,
-    opacity 0.3s ease,
-    width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ark-global-statusbar.light-theme {
-  background: #fdfdfd;
-  border: 1px solid #ccc;
-  color: #333;
-}
-
-.ark-global-statusbar.dark-theme {
-  background: #1a1a1a;
-  border: 1px solid #333;
-  color: #ccc;
-}
-
-.ark-global-statusbar.transparent-theme {
-  background: rgba(44, 47, 51, 0.4);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #eee;
-}
-
-.ark-global-statusbar.mini-mode {
-  width: 13em; /* <--- 修复点：抛弃死板的 px 避免移动端过宽，随 font-size (14px-2px) 等比缩小 */
-  max-width: 13em;
-  border-radius: 20px;
-  opacity: 0.8;
-}
-
-.statusbar-mini-content {
-  padding: 0 10px 10px 10px;
-  max-height: 90px;
-  overflow-y: auto;
-  font-size: 0.9em;
-}
-
-.mini-empty {
-  text-align: center;
-  opacity: 0.5;
-  padding: 5px;
-  font-size: 0.9em;
-}
-
-.mini-entry-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.mini-entry-list li {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 2px 0;
-  border-bottom: 1px dashed rgba(128, 128, 128, 0.3);
-}
-
-.mini-entry-list li:last-child {
-  border-bottom: none;
-}
-
-.mini-entry-list .indicator {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: #007bff;
-  flex-shrink: 0;
-}
-
-.mini-entry-list .indicator.blocked {
-  background-color: #dc3545;
-}
-
-.mini-entry-list .text {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex: 1;
-}
-
-.ark-global-statusbar.mini-mode .tab-header {
-  display: none;
-}
-
-.ark-global-statusbar.mini-mode .interceptor-actions {
-  flex-direction: column;
-  gap: 5px;
-}
-
-.ark-global-statusbar.mini-mode:hover {
-  opacity: 1;
-}
-
-.statusbar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 15px;
-  background: rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid var(--SmartThemeBorderColor, #444);
-  font-weight: bold;
-  cursor: grab;
-}
-
-.statusbar-header:active {
-  cursor: grabbing;
-}
-
-.ark-global-statusbar.mini-mode .statusbar-header {
-  border-bottom: none;
-  padding: 5px 15px;
-  border-radius: 20px;
-}
-
-.title.mini {
-  font-size: 0.85em;
-  margin-right: 10px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.statusbar-header .icon-btn {
-  background: transparent;
-  border: none;
-  color: inherit;
-  font-size: 1.1em;
-  cursor: pointer;
-  padding: 0 5px;
-}
-
-.statusbar-tabs {
-  display: flex;
-  background: rgba(0, 0, 0, 0.1);
-  border-bottom: 1px solid var(--SmartThemeBorderColor, #444);
-}
-
-.statusbar-tabs button {
-  flex: 1;
-  padding: 8px 0;
-  border: none;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  opacity: 0.6;
-}
-
-.statusbar-tabs button.active {
-  opacity: 1;
-  border-bottom: 2px solid #007bff;
-  font-weight: bold;
-}
-
-.statusbar-content {
-  padding: 15px;
-  /* 移除固定的 max-height: 400px，让父级 Flexbox 控制高度。
-     如果设置了 uiHeight，我们给它一个显式的最大高度，让其可拉伸 */
-  max-height: var(--ui-height-content, 400px);
-  overflow-y: auto;
-  flex: 1;
-  min-height: 0;
-}
-
-/* 响应式：在窄屏幕手机端，忽略用户设置的 ui-height，退化为默认的自适应高度限制 */
-@media (max-width: 500px) {
-  .statusbar-content {
-    max-height: 400px;
-  }
-}
-
-/* =========================================================================
-   新增：气泡贴边无缝变身特效 (BUBBLE 模式)
-   ========================================================================= */
-
-.ark-global-statusbar.is-dragging {
-  /* 拖拽拉伸时禁用任何视觉动画，保证黏性物理手感 0 延迟 */
-  transition: none !important;
-}
-
-.ark-global-statusbar.edge-snapped {
-  width: var(--snapped-width, 32px) !important;
-  height: 60px !important;
-  min-width: 32px !important;
-  opacity: 0.8;
-  cursor: grab;
-  /* 屏蔽原版所有普通内容的展示 */
-  display: flex !important;
-  flex-direction: row; /* 水平居中把手图标 */
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--SmartThemeBorderColor, rgba(255, 255, 255, 0.2)) !important;
-  background: var(--SmartThemeBlurTintColor, rgba(40, 40, 40, 0.85)) !important;
-  backdrop-filter: blur(8px);
-  /* 无缝压缩的奥秘所在： */
-  border-radius: 30px;
-}
-
-/* 根据外壳传进来的靠墙方向，动态切平那一侧的圆角，营造“从墙里长出来”的视觉融合 */
-.ark-global-statusbar.edge-snapped-left {
-  /* 左侧靠墙，将左边上下两个角切平 (直角 0) */
-  border-radius: 0 30px 30px 0 !important;
-  border-left: none !important;
-}
-
-.ark-global-statusbar.edge-snapped-right {
-  /* 右侧靠墙，将右边上下两个角切平 (直角 0) */
-  border-radius: 30px 0 0 30px !important;
-  border-right: none !important;
-}
-
-.edge-snap-indicator {
-  /* 充满气泡内部作为拖拽抓手 */
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1em;
-  cursor: grab;
-}
-
-/* 如果有弹性拉伸，图标应该跟着圆弧部分走，而不是呆在正中央 */
-.ark-global-statusbar.edge-snapped-left .edge-snap-indicator {
-  justify-content: flex-end;
-  padding-right: 8px;
-}
-
-.ark-global-statusbar.edge-snapped-right .edge-snap-indicator {
-  justify-content: flex-start;
-  padding-left: 8px;
-}
-
-.edge-snap-indicator .icon {
-  display: inline-block;
-  line-height: 1;
-  pointer-events: none;
-}
-.edge-snap-indicator:active {
-  cursor: grabbing;
-}
-.ark-global-statusbar.edge-snapped:hover {
-  opacity: 1;
-  background: rgba(0, 123, 255, 0.2) !important;
-}
-
-/* =========================================================================
-   新增：物理壳平滑阻尼过渡 (用于处理碰撞墙壁及状态跳转时的瞬间回弹)
-   ========================================================================= */
-.ark-global-statusbar-shell.is-snapping {
-  transition:
-    left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    right 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* =========================================================================
-   新增：内容防“高跷”拉伸保护淡入 (Grid 0fr 方案)
-   ========================================================================= */
-.statusbar-content-wrapper {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-  width: 100%; /* 防止 Grid 宽度失控 (Grid Blowout) */
-  min-height: 0; /* 允许在父级 Flex 容器中被压缩 */
-}
-
-.statusbar-content-wrapper.is-full-expanded {
-  grid-template-rows: 1fr;
-}
-
-.statusbar-content-inner {
-  min-height: 0;
-  min-width: 0; /* 防止 Grid 内的 Flex 子项撑破父级限制的绝对关键 */
-  width: 100%;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  display: flex;
-  flex-direction: column;
-}
-
-.statusbar-content-wrapper.is-full-expanded .statusbar-content-inner {
-  opacity: 1;
-}
+/* 保留对原始样式的防线。由于我们改用了 Tailwind 动态渲染类名，这里清空了以前手写的恶心 Grid 0fr 魔法。
+   Tailwind 的 JIT 编译器会自动生成我们写在 class 里的工具类。
+*/
 </style>

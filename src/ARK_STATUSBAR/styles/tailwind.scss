@@ -117,6 +117,15 @@
 }
 
 @layer utilities {
+    .ark-transition-shell {
+        transition:
+            background-color 0.3s ease,
+            border-color 0.3s ease,
+            color 0.3s ease,
+            opacity 0.3s ease,
+            width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+            border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
     /* 隐藏滚动条但保留滚动功能 (Firefox) */
     .scrollbar-none {

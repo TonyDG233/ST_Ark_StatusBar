@@ -350,6 +350,11 @@ export function useDraggablePhysics(statusBarEl: Ref<HTMLElement | null>, curren
       return;
     }
 
+    // 斩断浏览器原生 HTML5 拖放 (Ghost Image) 和文本选中行为
+    if (e.type === 'mousedown') {
+      e.preventDefault();
+    }
+
     isDragging = true;
     isDraggingState.value = true;
     isSnapping.value = false;

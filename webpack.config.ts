@@ -448,7 +448,11 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
         unpluginVueComponents({
           dts: true,
           syncMode: 'overwrite',
-          // globs: ['src/panel/component/*.vue'],
+          // 仅扫描通用的笨组件，防止将业务视图组件 (Views) 意外全局化
+          dirs: [
+            'src/ARK_STATUSBAR/components'
+          ],
+          deep: true,
           resolvers: [VueUseComponentsResolver(), VueUseDirectiveResolver()],
         }),
         new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
@@ -560,3 +564,4 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
 }
 
 export default config.entries.map(parse_configuration);
+
