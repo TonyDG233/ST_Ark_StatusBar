@@ -16,6 +16,7 @@
         :max="max" 
         :step="step" 
         v-model="model" 
+        @change="emit('change', model)"
         class="w-full appearance-none bg-transparent focus:outline-none cursor-pointer relative z-10 m-0 p-0"
       />
     </div>
@@ -30,6 +31,10 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+
+const emit = defineEmits<{
+  (e: 'change', value: number): void;
+}>();
 
 const props = withDefaults(defineProps<{
   label: string;

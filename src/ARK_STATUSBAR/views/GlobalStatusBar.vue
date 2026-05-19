@@ -102,6 +102,8 @@
                 <HistoryTab v-if="currentTab === 'worldbook' && currentSubTab === 'history'" />
                 
                 <SettingsTab v-if="currentTab === 'settings'" />
+
+                <ToolsTab v-if="currentTab === 'misc'" />
               </div>
 
               <!-- 底部导航区 (SubNav + BottomNav) -->
@@ -163,6 +165,7 @@ import DashboardTab from './global_tabs/dashboard/DashboardTab.vue';
 import HistoryTab from './global_tabs/history/HistoryTab.vue';
 import InterceptorTab from './global_tabs/interceptor/InterceptorTab.vue';
 import SettingsTab from './global_tabs/settings/SettingsTab.vue';
+import ToolsTab from './global_tabs/tools/ToolsTab.vue';
 import WorldbookTab from './global_tabs/worldbook/WorldbookTab.vue';
 
 // Pinia化前端数据中心
