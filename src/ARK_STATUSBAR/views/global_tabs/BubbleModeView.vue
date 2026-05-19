@@ -17,7 +17,9 @@
       :width="width"
       :triggerCount="triggerCount"
       :showPopover="showPopover"
-      :entries="pendingEntries"
+      :totalTokens="currentTokenCount"
+      :showTypeIndicator="currentConfig?.showConstantEntries"
+      :entries="mappedEntries"
       @click-bubble="handleBubbleClick"
       @close-popover="showPopover = false"
       @action="handleAction"
@@ -29,9 +31,11 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import BubbleWindow from '../../components/BubbleWindow.vue';
-import { useUIStateStore } from '../../store/ui_state_store';
+import { StatusBarManager } from '../../services/statusbar_manager';
+import { useArkConfig } from '../../store/config_store';
+import { useUIStateStore, type UIWorldbookEntry } from '../../store/ui_state_store';
 
 const props = defineProps<{
   position: 'left' | 'right';
@@ -41,30 +45,73 @@ const props = defineProps<{
 const emit = defineEmits(['drag-start', 'open-full']);
 
 const uiStore = useUIStateStore();
-const { pendingEntries } = storeToRefs(uiStore);
+const { pendingEntries, currentTokenCount, entryTokenCountCache, currentPrimaryWorldbook } = storeToRefs(uiStore);
+const manager = StatusBarManager.getInstance();
+const currentConfig = useArkConfig();
 
 const showPopover = ref(false);
 
 const triggerCount = computed(() => pendingEntries.value.length);
 
-// TODO: [Phase 2] 行为逻辑分离
-// - 当该气泡由被动拦截触发时，点击面板应触发事件展开为全屏拦截页。
-// - 当处于主动点击气泡窗状态时，在此展开小拦截面板，且点击“发送”按钮后应自动收缩回气泡形态。
+// 映射给 BubbleWindow 的纯展示数据
+const mappedEntries = computed(() => {
+  return pendingEntries.value.map((entry: UIWorldbookEntry) => ({
+    uid: entry.uid,
+    name: entry.name || (entry.strategy?.keys && entry.strategy.keys.length ? entry.strategy.keys[0].toString() : '未知'),
+    enabled: entry.enabled,
+    tempDisabled: entry.tempDisabled,
+    tokens: entryTokenCountCache.value[uiStore.getEntryKey(entry)] || 0,
+    world: entry.world
+  }));
+});
+
+// 被动拦截触发时，自动展开小气泡面板
+watch(triggerCount, (newVal, oldVal) => {
+  if (newVal > 0 && newVal > oldVal) {
+    showPopover.value = true;
+  }
+});
+
 const handleBubbleClick = () => {
+  // 气泡态下，手动点击可以展开/收缩内置拦截器面板
   showPopover.value = !showPopover.value;
 };
 
-// TODO: [Phase 2] 接入真正的 send_interceptor 拦截状态切换逻辑
-const handleToggleEntry = (entry: any, action: 'enable' | 'resume' | 'temp' | 'disable') => {
-  console.log('[Phase 2 TODO] toggle-entry triggered:', entry.name, action);
-};
+const handleToggleEntry = async (mappedEntry: any, action: 'enable' | 'resume' | 'temp' | 'disable') => {
+  const originalEntry = pendingEntries.value.find((e: UIWorldbookEntry) => e.uid === mappedEntry.uid);
+  if (!originalEntry) return;
 
-const handleAction = (actionName: string) => {
-  showPopover.value = false;
-  if (actionName === 'open_full') {
-    emit('open-full');
+  const targetWorldbook = originalEntry.world || currentPrimaryWorldbook.value;
+  if (!targetWorldbook) return;
+
+  if (action === 'enable' || action === 'disable') {
+    originalEntry.enabled = (action === 'enable');
+    originalEntry.tempDisabled = false;
+    manager.interceptor.removeTempDisabledEntry(originalEntry.uid, targetWorldbook);
+    await manager.editor.toggleEntryEnabled(originalEntry, targetWorldbook);
+  } else if (action === 'temp' || action === 'resume') {
+    originalEntry.tempDisabled = (action === 'temp');
+    originalEntry.enabled = !originalEntry.tempDisabled;
+    if (originalEntry.tempDisabled) {
+      manager.interceptor.addTempDisabledEntry(originalEntry.uid, targetWorldbook);
+    } else {
+      manager.interceptor.removeTempDisabledEntry(originalEntry.uid, targetWorldbook);
+    }
+    await manager.interceptor.toggleEntrySilent(originalEntry, targetWorldbook);
   }
 };
 
-// TODO: [Phase 2] 接入真实的总 Token 算力数据 (需与全局大拦截面板逻辑保持一致)
+const handleAction = async (actionType: 'send' | 'cancel' | 'open_full') => {
+  showPopover.value = false;
+  if (actionType === 'send') {
+    const currentEntries = [...pendingEntries.value];
+    pendingEntries.value = [];
+    manager.releaseInterceptAndSend(currentEntries, currentTokenCount.value);
+  } else if (actionType === 'cancel') {
+    await manager.interceptor.cancelSend();
+    pendingEntries.value = [];
+  } else if (actionType === 'open_full') {
+    emit('open-full');
+  }
+};
 </script>

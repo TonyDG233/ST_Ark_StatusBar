@@ -7,10 +7,59 @@ import { WorldbookMapper } from './worldbook_mapper';
  * 拦截与干跑逻辑服务
  * 从原来的 StatusBarManager 中剥离，专门负责截获发送动作、执行双轨干跑。
  */
-class SendInterceptor {
+export class SendInterceptor {
   private static instance: SendInterceptor;
   private isDryRunning: boolean = false;
   private interceptorBound: boolean = false;
+  public tempDisabledEntries: { uid: number; world: string }[] = [];
+
+  public addTempDisabledEntry(uid: number, world: string) {
+    if (!this.tempDisabledEntries.find(e => e.uid === uid && e.world === world)) {
+      this.tempDisabledEntries.push({ uid, world });
+    }
+  }
+
+  public removeTempDisabledEntry(uid: number, world: string) {
+    const idx = this.tempDisabledEntries.findIndex(e => e.uid === uid && e.world === world);
+    if (idx !== -1) {
+      this.tempDisabledEntries.splice(idx, 1);
+    }
+  }
+
+  public async toggleEntrySilent(entry: any, targetWorldbook: string) {
+    try {
+      await updateWorldbookWith(targetWorldbook, (wbEntries: any[]) => {
+        const e = wbEntries.find(x => x.uid === entry.uid);
+        if (e) e.enabled = entry.enabled;
+        return wbEntries;
+      });
+      document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: targetWorldbook } }));
+    } catch (e) {
+      console.error('[ARK_Interceptor] Failed to toggle entry silently', e);
+    }
+  }
+
+  public async cancelSend() {
+    if (this.tempDisabledEntries.length > 0) {
+      for (const tempInfo of this.tempDisabledEntries) {
+        if (tempInfo.world) {
+          try {
+            await updateWorldbookWith(tempInfo.world, (wbEntries: any[]) => {
+              const targetEntry = wbEntries.find(x => x.uid === tempInfo.uid);
+              if (targetEntry) {
+                targetEntry.enabled = true;
+              }
+              return wbEntries;
+            });
+            document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: tempInfo.world } }));
+          } catch (e) {
+            console.error('[ARK_Interceptor] Failed to restore temp disabled entry on cancel:', e);
+          }
+        }
+      }
+      this.tempDisabledEntries = [];
+    }
+  }
 
   private constructor() {
     // 监听内部事件：当配置变更导致拦截器开关变化时，自动绑定或解绑

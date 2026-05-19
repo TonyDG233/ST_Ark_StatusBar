@@ -1,191 +1,132 @@
 <template>
-  <div class="tab-panel flex-col">
-    <div
-      class="panel-header-action"
-      style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap"
-    >
-      <div style="display: flex; align-items: center; gap: 10px">
-        <label>发送预检拦截</label>
-        <label class="switch">
-          <input type="checkbox" :checked="currentConfig?.isInterceptorEnabled" @change="toggleInterceptor" />
-          <span class="slider round"></span>
-        </label>
-      </div>
-      <button
-        class="icon-btn tiny"
-        style="border: 1px solid var(--SmartThemeBorderColor, #444); padding: 4px 8px"
-        @click="runManualTest"
-        title="主动测试当前输入和上下文会触发的条目"
-      >
-        🔍 主动检测
-      </button>
-    </div>
-
-    <div v-if="!currentConfig?.isInterceptorEnabled && !isTestMode" class="empty-state">
-      ⚠️ 预检拦截已关闭，发送请求将直接通行。
-    </div>
-    <div v-else-if="pendingEntries.length === 0" class="empty-state">
-      <div v-if="!isTestMode">
-        当前没有被拦截的发送请求。
-        <p class="hint">点击发送按钮时，即将触发的条目将在此等待确认。</p>
-      </div>
-      <div v-else>
-        <strong style="color: #007bff">🔍 测试结果</strong>
-        <p>根据当前上下文，未触发任何条件世界书条目。</p>
-        <div class="action-bar compact" style="margin-top: 15px">
-          <button class="btn-primary" @click="clearTestResults" title="清除测试结果">清除测试结果</button>
+  <div class="relative w-full flex flex-col box-border">
+    <!-- Inner content wrapper with padding -->
+    <div class="p-2 flex flex-col gap-2 box-border">
+      
+      <!-- Header Area (Now scrollable) -->
+      <div class="tab-header flex flex-col gap-2 border-b border-outline pb-2 px-1 pt-1 flex-shrink-0 bg-transparent transition-all">
+        <!-- SYS_MODULE Label -->
+        <div class="font-mono text-primary-text mb-0.5 uppercase opacity-80 flex items-center gap-1.5 text-xs tracking-wider">
+          <span class="w-1.5 h-1.5 bg-primary"></span>
+          SYS_MODULE // SEC_INT
+        </div>
+        
+        <!-- Title & Description -->
+        <div class="flex flex-col min-w-0 w-full">
+          <h1 class="font-display text-xl md:text-2xl font-bold text-on-surface break-words whitespace-normal leading-tight uppercase">
+            拦截预警控制中心
+          </h1>
+          <p class="tab-desc font-body text-on-surface-variant text-xs break-words whitespace-normal mt-1 leading-snug transition-all">
+            主动扫描模式运行中。监测所有世界书数据注入请求以防止危险的内容污染或底层逻辑冲突。
+          </p>
+        </div>
+        
+        <!-- Global Controls -->
+        <div class="flex flex-wrap items-center justify-between gap-2 mt-1 w-full">
+          <!-- PRE-CHECK ENABLED Toggle -->
+          <label class="flex items-center gap-2 cursor-pointer border border-outline-variant px-2 py-1 bg-surface-container-low hover:bg-surface-variant transition-colors min-w-0">
+            <span class="font-display text-xs text-on-surface uppercase font-bold tracking-widest whitespace-nowrap">预检拦截</span>
+            <div class="relative w-8 h-4 flex items-center p-0.5 transition-colors"
+                 :class="currentConfig?.isInterceptorEnabled ? 'bg-primary justify-end' : 'bg-surface-variant justify-start'">
+              <input type="checkbox" class="hidden" :checked="currentConfig?.isInterceptorEnabled" @change="toggleInterceptor" />
+              <div class="w-3 h-3 bg-black transition-transform"></div>
+            </div>
+          </label>
+          
+          <!-- MANUAL SCAN Button -->
+          <button class="bg-surface border border-outline-variant text-on-surface px-2 py-1 font-display text-xs font-bold tracking-widest uppercase hover:bg-inverse-on-surface transition-colors flex items-center justify-center gap-1 flex-1 min-w-[100px] outline-none" @click="runManualTest">
+            <span class="material-symbols-outlined text-sm">radar</span>
+            手动检测
+          </button>
         </div>
       </div>
 
-      <div v-if="!isTestMode && (recentTriggerLogs[0]?.entries || []).length > 0" class="last-record-box">
-        <hr class="record-divider" />
-        <strong>上一轮触发记录</strong>
-        <ul class="entry-list read-only">
-          <li
-            v-for="entry in recentTriggerLogs[0].entries"
-            :key="entry.uid || Math.random()"
-            :class="{ 'disabled-entry': !entry.enabled }"
-          >
-            <div class="entry-info">
-              <span class="entry-name">
-                <span v-if="isPinned(entry)" class="pin-icon">📌</span>
-                <span style="font-size: 0.9em; margin-right: 4px">{{
-                  getEntryType(entry) === 'constant' ? '🔵' : '🟢'
-                }}</span>
-                {{
-                  entry.name || (entry.strategy?.keys && entry.strategy.keys.length ? entry.strategy.keys[0] : '未知')
-                }}
-                <span v-if="entryTokenCountCache[getEntryKey(entry)] !== undefined" class="token-badge">
-                  ~{{ entryTokenCountCache[getEntryKey(entry)] }} tok
-                </span>
-                <span v-if="entry.world" style="font-size: 0.8em; opacity: 0.7; margin-left: 5px"
-                  >({{ entry.world }})</span
-                >
-              </span>
-              <span class="badge" v-if="entry.enabled !== false">已发送</span>
-              <span class="badge blocked" v-else>已阻断</span>
-            </div>
-          </li>
-        </ul>
+      <div v-if="!currentConfig?.isInterceptorEnabled && !isTestMode" class="text-on-surface-variant text-sm p-4 text-center border border-dashed border-outline-variant/50 mt-4 flex flex-col items-center gap-2">
+        <span class="material-symbols-outlined text-outline">warning</span>
+        预检拦截已关闭，发送请求将直接通行。
       </div>
-    </div>
-    <div v-else>
-      <div
-        class="warning-box"
-        :style="isTestMode ? 'background: rgba(0, 123, 255, 0.2); border-left-color: #007bff;' : ''"
-      >
-        <strong v-if="!isTestMode">⚠️ 拦截预警</strong>
-        <strong v-else>🔍 测试结果</strong>
-        <p v-if="!isTestMode">
-          本次回复将触发以下世界书条目：<br />
-          <span style="opacity: 0.8; font-size: 0.9em">(预计 Token: {{ currentTokenCount }})</span>
-        </p>
-        <p v-else>
-          根据当前上下文，模拟检测触发了以下条目：<br />
-          <span style="opacity: 0.8; font-size: 0.9em">(预计 Token: {{ currentTokenCount }})</span>
-        </p>
-      </div>
-      <ul class="entry-list stacked">
-        <li
-          v-for="entry in pendingEntries"
-          :key="entry.uid || Math.random()"
-          :class="{ 'disabled-entry': entry.enabled === false && !entry.tempDisabled }"
-        >
-          <div class="entry-name">
-            <span v-if="isPinned(entry)" class="pin-icon">📌</span>
-            <span style="font-size: 0.9em; margin-right: 4px">{{
-              getEntryType(entry) === 'constant' ? '🔵' : '🟢'
-            }}</span>
-            {{ entry.name || (entry.strategy?.keys && entry.strategy.keys.length ? entry.strategy.keys[0] : '未知') }}
-            <span v-if="entryTokenCountCache[getEntryKey(entry)] !== undefined" class="token-badge">
-              ~{{ entryTokenCountCache[getEntryKey(entry)] }} tok
-            </span>
-            <div v-if="entry.world" style="font-size: 0.75em; color: var(--ui-text-secondary); margin-top: 2px">
-              📁 来源: {{ entry.world }}
-            </div>
+      <div v-else-if="pendingEntries.length === 0" class="text-on-surface-variant text-sm p-4 text-center border border-dashed border-outline-variant/50 mt-4">
+        <div v-if="!isTestMode" class="flex flex-col items-center">
+          当前没有被拦截的发送请求。
+          <p class="text-xs opacity-70 mt-1">点击发送按钮时，即将触发的条目将在此等待确认。</p>
+        </div>
+        <div v-else class="flex flex-col items-center">
+          <div class="flex items-center gap-1 text-primary-text mb-1 font-bold">
+            <span class="material-symbols-outlined text-[16px]">search</span>
+            <span>测试结果</span>
           </div>
-          <div class="entry-footer">
-            <div class="status-badges">
-              <span class="badge" v-if="entry.enabled !== false && !entry.tempDisabled">将被发送</span>
-              <span class="badge warning" v-else-if="entry.tempDisabled">临时阻断</span>
-              <span class="badge blocked" v-else>已阻断</span>
-            </div>
-            <div class="action-btns">
-              <!-- 如果当前是彻底关闭状态，只显示恢复开启 -->
-              <button
-                v-if="entry.enabled === false && !entry.tempDisabled"
-                class="icon-btn tiny"
-                style="color: #28a745; border-color: rgba(40, 167, 69, 0.4)"
-                title="重新开启此条目"
-                @click="togglePendingEntry(entry)"
-              >
-                ✅ 开启
-              </button>
+          <p>根据当前上下文，未触发任何条件世界书条目。</p>
+          <button class="mt-4 bg-primary/10 text-primary-text border border-primary/30 px-3 py-1 font-bold text-xs hover:bg-primary/20 transition-colors" @click="clearTestResults">
+            清除测试结果
+          </button>
+        </div>
+      </div>
+      <template v-else>
+        <!-- Alert Banner / Warning Section -->
+        <InterceptorAlert 
+          :isTestMode="isTestMode" 
+          :count="pendingEntries.length" 
+          :tokenCount="Number(currentTokenCount) || 0" 
+        />
 
-              <template v-else>
-                <button
-                  v-if="!entry.tempDisabled"
-                  class="icon-btn tiny"
-                  style="color: #ff9800; border-color: rgba(255, 152, 0, 0.4)"
-                  title="本次发送阻断，发送后自动恢复"
-                  @click="toggleTempDisable(entry)"
-                >
-                  ⏳ 单次
-                </button>
-                <button
-                  v-else
-                  class="icon-btn tiny"
-                  style="color: #28a745; border-color: rgba(40, 167, 69, 0.4)"
-                  title="取消临时阻断，重新加入本次发送"
-                  @click="toggleTempDisable(entry)"
-                >
-                  ✅ 恢复
-                </button>
-                <button
-                  class="icon-btn tiny"
-                  style="color: #dc3545; border-color: rgba(220, 53, 69, 0.4)"
-                  title="彻底阻断此条目，不再自动恢复"
-                  @click="togglePendingEntry(entry)"
-                >
-                  ❎ 彻底
-                </button>
-              </template>
-            </div>
+        <!-- Pending Entries Queue -->
+        <div class="flex flex-col gap-2 w-full mt-1">
+          <div class="font-display text-xs font-bold tracking-widest uppercase text-on-surface-variant border-b border-surface-variant pb-1 flex justify-between">
+            <span>待处理队列 (PENDING ENTRIES)</span>
+            <button v-if="isTestMode" class="text-[10px] text-primary hover:underline" @click="clearTestResults">清除测试结果</button>
           </div>
-        </li>
-      </ul>
-      <div class="action-bar compact" v-if="!isTestMode">
-        <button class="btn-success" @click="confirmSend" title="确认发送">确认发送</button>
-        <button class="btn-danger" @click="cancelSend" title="取消发送">取消发送</button>
-      </div>
-      <div class="action-bar compact" v-else>
-        <button class="btn-primary" @click="clearTestResults" title="清除测试结果">清除测试结果</button>
-      </div>
+
+          <InterceptorQueueItem
+            v-for="entry in pendingEntries"
+            :key="entry.uid || Math.random()"
+            :status="getEntryStatus(entry)"
+            :showTypeIndicator="currentConfig?.showConstantEntries"
+            :entry="{
+              name: entry.name || (entry.strategy?.keys && entry.strategy.keys.length ? entry.strategy.keys[0].toString() : '未知'),
+              tokens: entryTokenCountCache[getEntryKey(entry)] || 0,
+              source: entry.world || currentPrimaryWorldbook || '未知',
+              type: entry.strategy?.type === 'constant' ? 'constant' : 'selective'
+            }"
+            @action="(actionType: 'enable' | 'resume' | 'temp' | 'disable') => handleEntryAction(entry, actionType)"
+          />
+        </div>
+
+        <!-- Bottom Actions -->
+        <div class="w-full mt-4 flex flex-wrap gap-2" v-if="!isTestMode">
+          <button class="bg-surface border border-error text-error font-display text-[11px] font-bold tracking-widest uppercase py-2.5 hover:bg-error hover:text-on-error transition-colors flex items-center justify-center gap-1 flex-1 min-w-[120px] outline-none" @click="cancelSend">
+            <span class="material-symbols-outlined text-base">block</span>
+            中止 (ABORT)
+          </button>
+          <button class="bg-primary text-on-primary font-display text-[11px] font-bold tracking-widest uppercase py-2.5 hover:bg-primary-container transition-colors flex items-center justify-center gap-1 flex-1 min-w-[120px] outline-none shadow-[0_0_8px_rgba(78,213,255,0.4)]" @click="confirmSend">
+            <span class="material-symbols-outlined text-base">send</span>
+            发送 (PROCEED)
+          </button>
+        </div>
+      </template>
+
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { watch } from 'vue';
 import { StatusBarManager } from '../../../services/statusbar_manager';
 import { configStore, useArkConfig } from '../../../store/config_store';
-import { type UIWorldbookEntry } from '../../../store/ui_state_store';
+import { useUIStateStore, type UIWorldbookEntry } from '../../../store/ui_state_store';
 
-// Pinia化前端数据中心改造
-import { storeToRefs } from 'pinia';
-import { useUIStateStore } from '../../../store/ui_state_store';
-// 1. 实例化 Store
+import InterceptorAlert from '../../../components/interceptor/InterceptorAlert.vue';
+import InterceptorQueueItem from '../../../components/interceptor/InterceptorQueueItem.vue';
+
 const uiStore = useUIStateStore();
-// 2. 解构状态变量（必须用 storeToRefs 保持响应式）
 const { 
   currentPrimaryWorldbook,
   currentTokenCount,
   entryTokenCountCache,
   isTestMode,
-  recentTriggerLogs,
   pendingEntries,
 } = storeToRefs(uiStore);
-// 3. 解构方法（不需要 storeToRefs，直接解构即可）
+
 const { 
   calculateTokenForEntry,
   getEntryKey
@@ -195,9 +136,6 @@ const emit = defineEmits<{ (e: 'close-panel'): void }>();
 const currentConfig = useArkConfig();
 const manager = StatusBarManager.getInstance();
 
-// ----------------------------------------------------------------------------
-// Token 异步计算自动触发
-// ----------------------------------------------------------------------------
 watch(
   pendingEntries,
   newEntries => {
@@ -208,57 +146,48 @@ watch(
   { immediate: true },
 );
 
-watch(
-  recentTriggerLogs,
-  newLogs => {
-    if (newLogs && newLogs.length > 0) {
-      newLogs[0].entries.forEach((entry: UIWorldbookEntry) => calculateTokenForEntry(entry));
-    }
-  },
-  { immediate: true },
-);
-
-/**
- * 触发“主动检测”：运行一次 Dry Run 并在拦截器面板显示将被触发的条目，但不实际发送。
- */
 const runManualTest = () => {
   isTestMode.value = true;
   manager.runManualTest();
 };
 
-/**
- * 清除“主动检测”的结果，退出测试模式。
- */
 const clearTestResults = () => {
   pendingEntries.value = [];
   isTestMode.value = false;
 };
 
-/**
- * 切换拦截器功能的总开关
- */
 const toggleInterceptor = (e: Event) => {
   const checked = (e.target as HTMLInputElement).checked;
   configStore.updateConfig({ isInterceptorEnabled: checked });
 };
 
-/**
- * 检查条目是否被用户置顶
- */
-const isPinned = (entry: UIWorldbookEntry) => {
-  return currentConfig.value?.pinnedEntries?.includes(entry.uid) || false;
+const getEntryStatus = (entry: UIWorldbookEntry) => {
+  if (entry.enabled === false && !entry.tempDisabled) return 'violation';
+  if (entry.tempDisabled) return 'warning';
+  return 'active';
 };
 
-/**
- * 获取世界书条目的触发类型 (constant=蓝灯常驻, selective=绿灯条件触发)
- */
-const getEntryType = (entry: UIWorldbookEntry) => {
-  return entry.strategy?.type || 'selective';
+const handleEntryAction = async (entry: UIWorldbookEntry, actionType: 'enable' | 'resume' | 'temp' | 'disable') => {
+  const targetWorldbook = entry.world || currentPrimaryWorldbook.value;
+  if (!targetWorldbook) return;
+
+  if (actionType === 'enable' || actionType === 'disable') {
+    entry.enabled = (actionType === 'enable');
+    entry.tempDisabled = false;
+    manager.interceptor.removeTempDisabledEntry(entry.uid, targetWorldbook);
+    await manager.editor.toggleEntryEnabled(entry, targetWorldbook);
+  } else if (actionType === 'temp' || actionType === 'resume') {
+    entry.tempDisabled = (actionType === 'temp');
+    entry.enabled = !entry.tempDisabled;
+    if (entry.tempDisabled) {
+      manager.interceptor.addTempDisabledEntry(entry.uid, targetWorldbook);
+    } else {
+      manager.interceptor.removeTempDisabledEntry(entry.uid, targetWorldbook);
+    }
+    await manager.interceptor.toggleEntrySilent(entry, targetWorldbook);
+  }
 };
 
-/**
- * 确认发送：将当前列表存入快照记录，并通知管理器释放拦截
- */
 const confirmSend = () => {
   const currentEntries = [...pendingEntries.value];
   pendingEntries.value = [];
@@ -266,205 +195,9 @@ const confirmSend = () => {
   emit('close-panel');
 };
 
-const toggleEntrySilent = async (entry: UIWorldbookEntry) => {
-  try {
-    const targetWorldbook = entry.world || currentPrimaryWorldbook.value;
-    if (!targetWorldbook) {
-      console.warn('[ARK_UI] 临时切换状态失败：无法确定目标世界书', entry);
-      return;
-    }
-    await updateWorldbookWith(targetWorldbook, (wbEntries: UIWorldbookEntry[]) => {
-      // 放宽匹配条件：只比对 UID，因为世界书条目的 name 和 comment 可能会在中间环节变空或被剔除
-      const e = wbEntries.find(x => x.uid === entry.uid);
-      if (e) e.enabled = entry.enabled;
-      return wbEntries;
-    });
-
-    // 主动通知底层修改
-    document.dispatchEvent(new CustomEvent('ark:worldbook:data_changed'));
-  } catch (e) {
-    console.error('Failed to toggle entry silently', e);
-  }
-};
-
-const toggleTempDisable = (entry: UIWorldbookEntry) => {
-  entry.tempDisabled = !entry.tempDisabled;
-
-  const targetWorldbook = entry.world || currentPrimaryWorldbook.value;
-
-  if (entry.tempDisabled) {
-    entry.enabled = false;
-    if (!manager.tempDisabledEntries.find(e => e.uid === entry.uid && e.world === targetWorldbook)) {
-      if (targetWorldbook) manager.tempDisabledEntries.push({ uid: entry.uid, world: targetWorldbook });
-    }
-    toggleEntrySilent(entry);
-  } else {
-    entry.enabled = true;
-    const idx = manager.tempDisabledEntries.findIndex(e => e.uid === entry.uid && e.world === targetWorldbook);
-    if (idx !== -1) manager.tempDisabledEntries.splice(idx, 1);
-    toggleEntrySilent(entry);
-  }
-};
-
-/**
- * 取消发送：不释放拦截，清空当前列表并收起面板。恢复临时阻断。
- */
 const cancelSend = async () => {
-  if (manager.tempDisabledEntries.length > 0) {
-    // 遍历所有被记录下来的临时阻断对象
-    for (const tempInfo of manager.tempDisabledEntries) {
-      if (tempInfo.world) {
-        try {
-          await updateWorldbookWith(tempInfo.world, (wbEntries: UIWorldbookEntry[]) => {
-            const targetEntry = wbEntries.find(x => x.uid === tempInfo.uid);
-            if (targetEntry) {
-              targetEntry.enabled = true;
-            }
-            return wbEntries;
-          });
-          // 逐个触发数据变化事件通知全局刷新
-          document.dispatchEvent(
-            new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: tempInfo.world } })
-          );
-        } catch (e) {
-          console.error('[ARK_Interceptor] Failed to restore temp disabled entry on cancel:', e);
-        }
-      }
-    }
-    // 恢复完毕后清空管理器里的记录
-    manager.tempDisabledEntries = [];
-  }
+  await manager.interceptor.cancelSend();
   pendingEntries.value = [];
   emit('close-panel');
 };
-
-/**
- * 切换任意世界书条目的开关 (enabled) 状态，并记录进提交历史
- */
-const toggleEntry = async (entry: UIWorldbookEntry, explicitWbName?: string) => {
-  try {
-    const targetWorldbook = explicitWbName || entry.world || currentPrimaryWorldbook.value;
-    if (!targetWorldbook) return;
-
-    await updateWorldbookWith(targetWorldbook, (wbEntries: UIWorldbookEntry[]) => {
-      const e = wbEntries.find(x => x.uid === entry.uid);
-      if (e) e.enabled = entry.enabled;
-      return wbEntries;
-    });
-
-    // 主动通知底层修改
-    document.dispatchEvent(new CustomEvent('ark:worldbook:data_changed'));
-
-    const newCommit = {
-      id: Math.random().toString(36).substr(2, 6),
-      timestamp: Date.now(),
-      description: `[用户手动切换开关] ${entry.name}`,
-      worldbook: targetWorldbook,
-      changes: [{ uid: entry.uid, comment: entry.name, from: !entry.enabled, to: entry.enabled }],
-    };
-    const commits = [...(currentConfig.value?.commits || []), newCommit];
-    configStore.updateConfig({ commits });
-  } catch (e) {
-    console.error('Failed to toggle entry', e);
-    entry.enabled = !entry.enabled; // 如果失败则恢复 UI 状态
-  }
-};
-
-/**
- * 拦截预警面板中使用的快捷开关功能，关联上面的 toggleEntry
- */
-const togglePendingEntry = async (entry: UIWorldbookEntry) => {
-  const targetWorldbook = entry.world || currentPrimaryWorldbook.value;
-
-  if (entry.tempDisabled) {
-    entry.tempDisabled = false;
-    const idx = manager.tempDisabledEntries.findIndex(e => e.uid === entry.uid && e.world === targetWorldbook);
-    if (idx !== -1) manager.tempDisabledEntries.splice(idx, 1);
-    await toggleEntry(entry);
-    return;
-  }
-
-  entry.enabled = !entry.enabled;
-  if (!entry.enabled) {
-    entry.tempDisabled = false;
-    const idx = manager.tempDisabledEntries.findIndex(e => e.uid === entry.uid && e.world === targetWorldbook);
-    if (idx !== -1) manager.tempDisabledEntries.splice(idx, 1);
-  }
-  await toggleEntry(entry);
-};
 </script>
-
-<style scoped>
-@import '../../styles/theme.scss';
-@import '../../styles/shared_ui.scss';
-
-.tab-panel.flex-col {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.panel-header-action {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 10px;
-  margin-bottom: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.last-record-box {
-  margin-top: 15px;
-  text-align: left;
-}
-
-.record-divider {
-  border: none;
-  border-top: 1px dashed rgba(255, 255, 255, 0.2);
-  margin: 15px 0;
-}
-
-.entry-list.stacked li {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
-}
-
-.entry-list.stacked .entry-name {
-  word-break: break-all;
-  font-weight: 500;
-}
-
-.entry-list.stacked .entry-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.entry-list.stacked .action-btns {
-  display: flex;
-  gap: 4px;
-}
-
-.entry-list.stacked .badge.warning {
-  background: #ff9800;
-  color: white;
-}
-
-.status-badges {
-  display: flex;
-  gap: 4px;
-}
-
-.token-badge {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.8em;
-  padding: 2px 6px;
-  margin-left: 6px;
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  display: inline-block;
-  white-space: nowrap;
-}
-</style>

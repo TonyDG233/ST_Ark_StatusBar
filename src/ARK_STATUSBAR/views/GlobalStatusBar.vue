@@ -92,7 +92,10 @@
               <div class="flex-1 overflow-y-auto scrollbar-none flex flex-col relative min-h-0 bg-background global-watermark">
                 <DashboardTab v-if="currentTab === 'dashboard'" />
                 
-                <InterceptorTab v-if="currentTab === 'worldbook' && currentSubTab === 'interceptor'" @close-panel="currentUiMode = UiMode.MINI" />
+                <InterceptorTab v-if="currentTab === 'worldbook' && currentSubTab === 'interceptor'" @close-panel="() => {
+                  if (preInterceptUiMode === UiMode.MINI) currentUiMode = UiMode.MINI;
+                  preInterceptUiMode = null;
+                }" />
                 
                 <WorldbookTab v-if="currentTab === 'worldbook' && currentSubTab === 'lore'" />
                 
@@ -186,6 +189,7 @@ const displayEntries = computed(() => {
 
 const isVisible = ref(true);
 const currentUiMode = ref<UiMode>(UiMode.MINI);
+const preInterceptUiMode = ref<UiMode | null>(null);
 
 // 双层路由状态
 const currentTab = ref('worldbook');
@@ -258,7 +262,15 @@ onMounted(() => {
     
     currentTab.value = 'worldbook';
     currentSubTab.value = 'interceptor';
-    currentUiMode.value = UiMode.FULL;
+
+    // 如果处于 MINI 态（悬浮窗），或者因为某些原因被折叠，强制弹出完整拦截页。
+    // 气泡态下 (BUBBLE)，不强制弹出版面，气泡窗自身会展示微型拦截面板。
+    if (currentUiMode.value !== UiMode.BUBBLE) {
+      preInterceptUiMode.value = currentUiMode.value;
+      currentUiMode.value = UiMode.FULL;
+    } else {
+      preInterceptUiMode.value = null; // 气泡态不做记忆切换
+    }
 
     if (!isSystemEnabled.value) {
       configStore.updateConfig({ isSystemEnabled: true });

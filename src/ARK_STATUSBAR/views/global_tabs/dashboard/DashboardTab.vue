@@ -21,20 +21,39 @@
         <div class="w-1.5 h-1.5 bg-secondary"></div>
       </div>
       
-      <!--
-        TODO: [Phase 2] 持久化缓存近20次触发记录
-        - 需引入浏览器持久化缓存（如 localStorage 或酒馆的自定义变量）来记录最近触发的 20 条记录。
-        - 主页面板应只展示“总记录概览”，点击后才展开完整的 20 次触发详细列表（包含条目内容与 Token 数）。
-        - 当前阶段仅作 UI 占位，需在实际应用至工程项目中做出对应功能。
-      -->
-      <div class="p-3 flex flex-col gap-3">
-        <div v-for="i in 3" :key="i" class="flex gap-2 items-start border-b border-outline-variant/50 pb-3 last:border-0 last:pb-0 cursor-pointer hover:bg-surface-variant/30 transition-colors -mx-3 px-3">
-          <span class="material-symbols-outlined text-on-surface-variant mt-0.5 flex-shrink-0 text-[14px]">memory</span>
-          <div class="flex-1 min-w-0 flex flex-col">
-            <span class="text-on-surface text-[12px] font-bold tracking-wide truncate">Entry [Amiya] triggered</span>
-            <span class="text-on-surface-variant text-[10px] font-mono mt-1 tracking-wider truncate">LOG_ID: A83-B</span>
+      <div class="p-3 flex flex-col gap-3 overflow-y-auto max-h-[240px] slim-scroll-container">
+        <div v-if="recentTriggerLogs.length === 0" class="text-on-surface-variant text-xs text-center py-2 opacity-70 font-mono">
+          NO_RECORDS_FOUND
+        </div>
+        <div v-else v-for="(log, idx) in recentTriggerLogs" :key="log.timestamp" class="flex flex-col border-b border-outline-variant/50 pb-3 last:border-0 last:pb-0 -mx-3 px-3">
+          <!-- 概览条目 -->
+          <div class="flex gap-2 items-start cursor-pointer hover:bg-surface-variant/30 transition-colors py-1" @click="toggleExpand(idx)">
+            <span class="material-symbols-outlined text-on-surface-variant mt-0.5 flex-shrink-0 text-[14px]">memory</span>
+            <div class="flex-1 min-w-0 flex flex-col">
+              <span class="text-on-surface text-[12px] font-bold tracking-wide truncate">Triggered {{ log.entries.length }} entries</span>
+              <span class="text-on-surface-variant text-[10px] font-mono mt-1 tracking-wider truncate">~{{ log.tokenCount }} TOKENS</span>
+            </div>
+            <div class="flex flex-col items-end gap-1">
+              <span class="text-on-surface-variant text-[10px] font-mono mt-0.5 flex-shrink-0">{{ formatTime(log.timestamp) }}</span>
+              <span class="material-symbols-outlined text-on-surface-variant text-[16px] transition-transform duration-200" :class="{ 'rotate-180': expandedLogIdx === idx }">expand_more</span>
+            </div>
           </div>
-          <span class="text-on-surface-variant text-[10px] font-mono mt-0.5 flex-shrink-0">13:58</span>
+          <!-- 展开详情 (简化的 InterceptorQueueItem) -->
+          <div v-show="expandedLogIdx === idx" class="flex flex-col gap-1.5 mt-2 pl-6 pr-1 overflow-hidden transition-all duration-300">
+            <div v-for="(entry, eIdx) in log.entries" :key="eIdx" class="flex flex-col gap-1 p-1.5 rounded-sm border border-outline-variant/30 bg-surface-container-lowest">
+              <div class="flex justify-between items-start gap-1">
+                <span class="text-[11px] font-display text-on-surface flex-1 min-w-0 break-words whitespace-normal leading-tight">
+                  {{ entry.name || (entry.strategy?.keys && entry.strategy.keys.length ? entry.strategy.keys[0].toString() : '未知') }}
+                </span>
+                <span class="text-[9px] font-mono text-on-surface-variant whitespace-nowrap flex-shrink-0 opacity-70 bg-surface-container-high px-1 py-0.5 rounded-sm">
+                  ~{{ uiStore.entryTokenCountCache[uiStore.getEntryKey(entry)] || 0 }} tok
+                </span>
+              </div>
+              <div class="font-body text-on-surface-variant text-[9px] mt-0.5">
+                📁 来源: {{ entry.world || uiStore.currentPrimaryWorldbook || '未知' }}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </Panel>
@@ -61,11 +80,31 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
+import { ref } from 'vue';
 import Button from '../../../components/Button.vue';
 import Panel from '../../../components/Panel.vue';
 import ProgressBar from '../../../components/ProgressBar.vue';
 import SectionHeader from '../../../components/SectionHeader.vue';
 import WipMask from '../../../components/WipMask.vue';
+import { useArkConfig } from '../../../store/config_store';
+import { useUIStateStore } from '../../../store/ui_state_store';
 
-// 页面级组件：DashboardTab 主页
+const uiStore = useUIStateStore();
+const { recentTriggerLogs } = storeToRefs(uiStore);
+const currentConfig = useArkConfig();
+
+const expandedLogIdx = ref<number | null>(null); // 默认收起
+
+const toggleExpand = (idx: number) => {
+  if (expandedLogIdx.value === idx) {
+    expandedLogIdx.value = null;
+  } else {
+    expandedLogIdx.value = idx;
+  }
+};
+
+const formatTime = (timestamp: number) => {
+  return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+};
 </script>

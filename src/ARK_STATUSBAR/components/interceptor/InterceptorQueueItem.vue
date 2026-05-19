@@ -17,10 +17,17 @@
 
     <div class="p-2 flex flex-col gap-1.5 relative z-10">
       <div class="flex justify-between items-start w-full gap-2">
-        <h3 class="font-display text-sm font-bold break-words whitespace-normal leading-tight flex-1"
-            :class="status === 'warning' ? 'text-on-surface-variant opacity-80' : 'text-on-surface'">
-          {{ entry.name }}
-        </h3>
+        <div class="flex-1 flex gap-2 items-start min-w-0">
+          <div v-if="showTypeIndicator"
+               class="w-2 h-2 mt-1 flex-shrink-0 border-none p-0 m-0 rounded-none shadow-sm"
+               :class="entry.type === 'constant' ? 'bg-[#4ed5ff] shadow-[0_0_6px_#4ed5ff88]' : 'bg-[#afd439] shadow-[0_0_6px_#afd43988]'"
+               :title="entry.type === 'constant' ? '蓝灯(常驻)' : '绿灯(条件)'">
+          </div>
+          <h3 class="font-display text-sm font-bold break-words whitespace-normal leading-tight min-w-0 flex-1"
+              :class="status === 'warning' ? 'text-on-surface-variant opacity-80' : 'text-on-surface'">
+            {{ entry.name }}
+          </h3>
+        </div>
         <span class="font-mono text-[10px] bg-surface-container-high text-on-surface-variant px-1 py-0.5 rounded-sm border border-outline-variant whitespace-nowrap flex-shrink-0">
           ~{{ entry.tokens }} tok
         </span>
@@ -53,29 +60,37 @@
           {{ actionReqText }}
        </div>
        <div class="flex flex-wrap gap-1.5 ml-auto">
-         <ActionToggle v-if="status === 'violation'" type="enable">允许发送</ActionToggle>
-         <ActionToggle v-else-if="status === 'warning'" type="resume">取消单次</ActionToggle>
+         <ActionToggle v-if="status === 'violation'" type="enable" @click="$emit('action', 'enable')">允许发送</ActionToggle>
+         <ActionToggle v-else-if="status === 'warning'" type="resume" @click="$emit('action', 'resume')">取消单次</ActionToggle>
          <template v-else>
-           <ActionToggle type="temp">单次</ActionToggle>
-           <ActionToggle type="disable">彻底</ActionToggle>
+           <ActionToggle type="temp" @click="$emit('action', 'temp')">单次</ActionToggle>
+           <ActionToggle type="disable" @click="$emit('action', 'disable')">彻底</ActionToggle>
          </template>
        </div>
-    </div>
-  </div>
+     </div>
+   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
 import ActionToggle from '../../../ARK_STATUSBAR/components/ActionToggle.vue';
 
-const props = defineProps<{
+const emit = defineEmits<{
+  (e: 'action', type: 'enable' | 'resume' | 'temp' | 'disable'): void;
+}>();
+
+const props = withDefaults(defineProps<{
   status: 'violation' | 'warning' | 'active';
+  showTypeIndicator?: boolean;
   entry: {
     name: string;
     tokens: number;
     source: string;
+    type?: 'constant' | 'selective';
   };
-}>();
+}>(), {
+  showTypeIndicator: false
+});
 
 const actionReqText = computed(() => {
   if (props.status === 'violation') return 'Action Req: 解除阻断需授权';

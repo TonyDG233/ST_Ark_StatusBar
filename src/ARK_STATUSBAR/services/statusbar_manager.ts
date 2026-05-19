@@ -3,6 +3,7 @@ import { configStore } from '../store/config_store';
 import { backupService } from './worldbook/backup_service';
 import { entryService } from './worldbook/entry_service';
 import { historyService } from './worldbook/history_service';
+import { SendInterceptor } from './worldbook/send_interceptor';
 import { snapshotService } from './worldbook/snapshot_service';
 import { worldbookEditorService } from './worldbook/worldbook_editor_service';
 
@@ -104,10 +105,31 @@ export class StatusBarManager {
   private static instance: StatusBarManager;
   private targetWorldbook: string | null = null; // 当前绑定的世界书名称
 
-  public tempDisabledEntries: { uid: number; world: string }[] = []; // 单次临时阻断的条目 UID 及世界书名称列表
+  /**
+   * 世界书基础信息门面：通过 StatusBarManager 聚合调用
+   * 包含：快照功能、全量备份、开局剧本应用、获取世界书列表等。
+   */
   public readonly worldbook: WorldbookFacade;
+  
+  /**
+   * 世界书编辑器服务：直接挂载独立单例
+   * 包含：创建、删除世界书，以及修改具体条目（保存、批量删除、切换类型）。
+   */
   public readonly editor = worldbookEditorService;
+  
+  /**
+   * 历史记录与提交服务：直接挂载独立单例
+   * 包含：生成 ArkCommit、恢复快照、删除记录、批量操作提交记录。
+   */
   public readonly history = historyService;
+
+  /**
+   * 发送预检拦截器：直接提供 Getter 以访问单例
+   * 包含：主动测试干跑、拦截队列控制、单次临时开关、发送/取消拦截动作。
+   */
+  get interceptor() {
+    return SendInterceptor.getInstance();
+  }
 
   private constructor() {
     this.worldbook = new WorldbookFacade(() => this.targetWorldbook);
@@ -193,9 +215,9 @@ export class StatusBarManager {
 
           return this.targetWorldbook;
         },
-        () => this.tempDisabledEntries,
+        () => this.interceptor.tempDisabledEntries,
         () => {
-          this.tempDisabledEntries = [];
+          this.interceptor.tempDisabledEntries = [];
         },
       );
     });

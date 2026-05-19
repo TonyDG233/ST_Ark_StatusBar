@@ -34,8 +34,7 @@
     >
       <div class="flex justify-between items-center border-b border-outline-variant/50 pb-1 px-1">
         <span class="text-[10px] font-display text-primary-text tracking-widest uppercase">
-          <!-- TODO: [Phase 2] 接入真实的总 Token 算力数据 (需与全局大拦截面板逻辑保持一致) -->
-          拦截面板 ~546 tok | {{ entries.length }}
+          拦截面板 ~{{ totalTokens }} tok | {{ entries.length }}
         </span>
         <button class="reset-btn text-on-surface-variant hover:text-on-surface flex items-center justify-center p-0" @click="emit('close-popover')">
           <span class="material-symbols-outlined text-[12px]">close</span>
@@ -121,12 +120,16 @@ const props = withDefaults(defineProps<{
   width?: number;
   triggerCount?: number;
   showPopover?: boolean;
-  entries?: { name: string; enabled?: boolean; tempDisabled?: boolean; tokens?: number }[];
+  totalTokens?: number | string;
+  showTypeIndicator?: boolean;
+  entries?: { name: string; enabled?: boolean; tempDisabled?: boolean; tokens?: number; type?: 'constant' | 'selective' }[];
 }>(), {
   position: 'right',
   width: 32,
   triggerCount: 0,
   showPopover: false,
+  totalTokens: 0,
+  showTypeIndicator: false,
   entries: () => []
 });
 
