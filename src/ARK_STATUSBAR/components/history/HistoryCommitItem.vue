@@ -11,9 +11,12 @@
       <!-- Header -->
       <div class="flex justify-between items-start gap-2 mb-1">
         <!-- Checkbox for batch mode -->
-        <div v-if="isBatchMode" class="shrink-0 pt-0.5">
-          <input type="checkbox" :checked="isSelected" class="accent-primary" @click.stop="emit('toggleSelection')" />
-        </div>
+        <label v-if="isBatchMode" class="shrink-0 pt-0.5 cursor-pointer flex items-center group" @click.stop>
+          <input type="checkbox" :checked="isSelected" class="hidden peer" @change="emit('toggleSelection')" />
+          <div class="w-3.5 h-3.5 border border-outline-variant bg-surface rounded-sm flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-colors group-hover:border-primary/50">
+            <span v-if="isSelected" class="material-symbols-outlined text-[12px] text-on-primary font-bold">check</span>
+          </div>
+        </label>
 
         <div class="flex flex-col min-w-0 flex-1">
           <div class="text-[10px] font-mono text-on-surface-variant opacity-80 flex items-center gap-2 flex-wrap">
@@ -48,20 +51,20 @@
 
       <!-- Changes List Details -->
       <div v-if="changes && changes.length" class="flex flex-col gap-1.5 bg-surface-variant/20 p-2 border border-outline-variant/30 mb-3 rounded-sm min-w-0">
-        <div v-for="(change, idx) in changes" :key="idx" class="text-[10px] text-on-surface flex flex-wrap gap-x-1 gap-y-0.5 items-center break-all">
-          <span class="text-on-surface-variant shrink-0">{{ change.label }}</span>
-          <span class="text-primary-text shrink-0" v-if="change.path">[{{ change.path }}]</span>
-          <span v-if="change.path">:</span>
-          <span class="text-error line-through shrink-0">{{ change.from }}</span>
-          <span class="text-on-surface-variant shrink-0">-></span>
-          <span class="text-[#28a745] shrink-0">{{ change.to }}</span>
+        <div v-for="(change, idx) in changes" :key="idx" class="text-[10px] text-on-surface break-words whitespace-normal leading-tight">
+          <span class="text-on-surface-variant">{{ change.label }}</span>
+          <span class="text-primary-text" v-if="change.path"> [{{ change.path }}]</span>
+          <span v-if="change.path">: </span>
+          <span class="text-error line-through">{{ change.from }}</span>
+          <span class="text-on-surface-variant"> -> </span>
+          <span class="text-[#28a745]">{{ change.to }}</span>
         </div>
       </div>
       
       <!-- Action Buttons -->
       <div v-if="!isBatchMode" class="flex gap-4 pt-2 border-t border-outline-variant/50 justify-end flex-wrap">
-        <ActionToggle type="restore" @click.stop="emit('restore')" />
-        <ActionToggle type="delete" @click.stop="emit('delete')" />
+        <ActionToggle type="restore" @click="emit('restore')" />
+        <ActionToggle type="delete" @click="emit('delete')" />
       </div>
     </div>
   </div>

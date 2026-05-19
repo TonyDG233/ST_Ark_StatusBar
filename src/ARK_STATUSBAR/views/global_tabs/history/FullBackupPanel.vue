@@ -1,111 +1,71 @@
 <template>
-  <div>
-    <!-- 全量备份区域 (新) -->
-    <div
-      class="warning-box"
-      style="
-        margin-top: 20px;
-        margin-bottom: 0;
-        padding: 10px;
-        border-radius: 6px 6px 0 0;
-        border-bottom: none;
-        background-color: rgba(23, 162, 184, 0.1);
-        border-color: #17a2b8;
-      "
-    >
-      <strong style="display: block; margin-bottom: 4px; color: #17a2b8">💾 世界书全量备份</strong>
-      <p style="margin: 0; font-size: 0.9em; opacity: 0.9">
-        克隆目标世界书所有的条目内容与状态并创建独立文件。适用于大范围编辑或重构前的安全兜底。
-      </p>
-    </div>
-    <div
-      class="snapshot-controls"
-      style="
-        border: 1px solid rgba(23, 162, 184, 0.4);
-        border-top: none;
-        border-radius: 0 0 6px 6px;
-        padding: 15px;
-        background: rgba(0, 0, 0, 0.15);
-      "
-    >
-      <div
-        v-if="backupWarningMsg"
-        class="warning-box"
-        style="margin-bottom: 10px; background-color: rgba(255, 193, 7, 0.2); border-color: #ffc107; color: #ffc107"
-      >
-        <strong>⚠️ 备份数量警告</strong>
-        <p style="margin: 0; font-size: 0.85em">{{ backupWarningMsg }}</p>
+  <HistoryActionCard
+    label="ACTION_02"
+    title="全量备份 (Full Backup)"
+    description="克隆目标世界书所有的条目内容与状态并创建独立文件。适用于大范围重构前的兜底。"
+    icon="save"
+    type="default"
+  >
+    <div class="flex flex-col gap-2">
+      <!-- Warning -->
+      <div v-if="backupWarningMsg" class="bg-[#ffc107]/10 border border-[#ffc107]/30 p-2 flex flex-col gap-1">
+        <div class="text-[#ffc107] text-[10px] font-bold flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px]">warning</span> 备份数量警告
+        </div>
+        <div class="text-[#ffc107]/80 text-[10px]">{{ backupWarningMsg }}</div>
       </div>
 
-      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px">
-        <select v-model="selectedFullBackupWorldbook" class="filter-select" style="width: 100%">
-          <option value="">选择要全量备份的世界书 (默认主书)</option>
-          <option v-for="wbName in allAvailableWorldbooks" :key="wbName" :value="wbName">{{ wbName }}</option>
-        </select>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap">
-          <input
-            type="text"
-            v-model="newFullBackupName"
-            placeholder="自定义标识 (如: v1.2版本)..."
-            class="search-input"
-            style="flex: 1; min-width: 150px"
-          />
-          <button
-            class="btn-primary"
-            @click="createFullBackup"
-            style="
-              padding: 6px 12px;
-              white-space: nowrap;
-              flex-grow: 1;
-              background-color: #17a2b8;
-              border-color: #17a2b8;
-            "
-          >
-            新建独立备份
-          </button>
+      <select v-model="selectedFullBackupWorldbook" class="bg-surface text-[11px] text-on-surface border border-outline-variant px-2 py-1 outline-none w-full">
+        <option value="">选择要全量备份的世界书 (默认主书)</option>
+        <option v-for="wbName in allAvailableWorldbooks" :key="wbName" :value="wbName">{{ wbName }}</option>
+      </select>
+
+      <div class="flex gap-2 items-center flex-wrap">
+        <input
+          type="text"
+          v-model="newFullBackupName"
+          placeholder="自定义标识 (如: v1.2版本)..."
+          class="bg-surface border border-outline-variant px-2 py-1 flex-1 min-w-[150px] text-[11px] text-on-surface outline-none placeholder:text-on-surface-variant/50"
+        />
+        <button
+          @click="createFullBackup"
+          class="bg-[#17a2b8] text-white font-bold px-3 py-1 text-[11px] uppercase tracking-wider hover:bg-[#17a2b8]/80 transition-colors shrink-0 outline-none"
+        >
+          新建独立备份
+        </button>
+      </div>
+
+      <!-- Backup List -->
+      <div class="flex flex-col gap-1 mt-2 border-t border-outline-variant/50 pt-2">
+        <div v-if="!fullBackupsList.length" class="text-[11px] text-on-surface-variant p-2 text-center opacity-70">
+          暂无本地全量备份文件。
+        </div>
+        <div v-else v-for="snap in fullBackupsList" :key="snap" 
+             class="flex flex-col border border-outline-variant bg-surface-container-lowest p-2 min-w-0 mb-1">
+           <div class="flex flex-wrap justify-between items-center gap-x-2 gap-y-1 mb-1">
+             <div class="text-[11px] font-bold text-on-surface break-words min-w-0">{{ extractBackupName(snap).name }}</div>
+             <div class="text-[9px] text-on-surface-variant font-mono whitespace-nowrap">{{ extractBackupName(snap).time }}</div>
+           </div>
+           <div class="text-[10px] text-on-surface-variant mb-2 truncate max-w-full">📁 实体文件: {{ snap }}</div>
+           <div class="flex flex-wrap gap-2 justify-end">
+             <ActionToggle type="restore" @click="restoreFullBackup(snap)">完整覆盖</ActionToggle>
+             <ActionToggle type="delete" @click="deleteFullBackup(snap)">删除文件</ActionToggle>
+           </div>
         </div>
       </div>
-
-      <div v-if="!fullBackupsList.length" class="empty-state" style="padding: 10px">暂无本地全量备份文件。</div>
-      <ul v-else class="entry-list read-only" style="margin: 0; max-height: 200px; overflow-y: auto">
-        <li
-          v-for="snap in fullBackupsList"
-          :key="snap"
-          style="
-            flex-direction: column;
-            align-items: stretch;
-            background: rgba(255, 255, 255, 0.05);
-            margin-bottom: 8px;
-          "
-        >
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px">
-            <strong style="font-size: 0.95em">{{ extractBackupName(snap) }}</strong>
-          </div>
-          <div style="font-size: 0.8em; opacity: 0.7; margin-bottom: 8px">📁 实体文件: {{ snap }}</div>
-          <div class="action-bar compact">
-            <button class="btn-success tiny" @click="restoreFullBackup(snap)" style="padding: 4px; font-size: 0.85em">
-              ✅ 完整覆盖
-            </button>
-            <button class="btn-danger tiny" @click="deleteFullBackup(snap)" style="padding: 4px; font-size: 0.85em">
-              ❌ 删除文件
-            </button>
-          </div>
-        </li>
-      </ul>
     </div>
-  </div>
+  </HistoryActionCard>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import { StatusBarManager } from '../../../services/statusbar_manager';
-
-// Pinia化前端数据中心改造
 import { storeToRefs } from 'pinia';
+import { onMounted, ref } from 'vue';
+import ActionToggle from '../../../components/ActionToggle.vue';
+import HistoryActionCard from '../../../components/history/HistoryActionCard.vue';
+import { StatusBarManager } from '../../../services/statusbar_manager';
 import { useUIStateStore } from '../../../store/ui_state_store';
-// 1. 实例化 Store
+
 const uiStore = useUIStateStore();
-// 2. 解构状态变量（必须用 storeToRefs 保持响应式）
 const { 
   allAvailableWorldbooks, 
   currentPrimaryWorldbook
@@ -131,9 +91,9 @@ const extractBackupName = (wbName: string) => {
   const match = wbName.match(/^\[ARK_BACKUP_(.+?)\]_(.+)$/);
   if (match) {
     const timeStr = match[1].replace(/-/g, ':').replace('T', ' ').substring(0, 19);
-    return `备份 - ${match[2]} (${timeStr})`;
+    return { name: `备份 - ${match[2]}`, time: timeStr };
   }
-  return wbName;
+  return { name: wbName, time: '' };
 };
 
 const createFullBackup = async () => {
@@ -179,10 +139,16 @@ const restoreFullBackup = async (backupName: string) => {
   }
 };
 
+declare const deleteWorldbook: (name: string) => Promise<void>;
+
 const deleteFullBackup = async (backupName: string) => {
   if (confirm(`确定要彻底删除该全量备份文件 (${backupName}) 吗？`)) {
     try {
-      await deleteWorldbook(backupName);
+      if (typeof deleteWorldbook !== 'undefined') {
+        await deleteWorldbook(backupName);
+      } else {
+         throw new Error("deleteWorldbook is not defined in global scope");
+      }
       await fetchBackups();
       if (typeof toastr !== 'undefined') toastr.success('备份删除成功');
     } catch (e) {
@@ -194,22 +160,4 @@ const deleteFullBackup = async (backupName: string) => {
 </script>
 
 <style scoped>
-@import '../../styles/theme.scss';
-@import '../../styles/shared_ui.scss';
-
-.filter-select {
-  padding: 6px;
-  border-radius: 4px;
-  border: 1px solid var(--SmartThemeBorderColor, #444);
-  background: rgba(0, 0, 0, 0.1);
-  color: inherit;
-}
-
-.search-input {
-  padding: 8px;
-  border-radius: 4px;
-  border: 1px solid var(--SmartThemeBorderColor, #444);
-  background: rgba(0, 0, 0, 0.1);
-  color: inherit;
-}
 </style>

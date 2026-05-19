@@ -1,56 +1,42 @@
 <template>
-  <div
+  <HistoryActionCard
     v-if="isArknightsCard"
-    style="
-      margin-top: 15px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 6px;
-      padding: 12px;
-      background: rgba(0, 0, 0, 0.2);
-    "
+    label="CRITICAL"
+    title="恢复基准状态 (Reset Baseline)"
+    description="一键还原至初始状态，这将清空所有历史修改记录。操作仅作用于当前主书。"
+    icon="warning"
+    type="danger"
   >
-    <div style="font-size: 0.85em; color: rgba(255, 255, 255, 0.8); margin-bottom: 12px; line-height: 1.4">
-      <span style="color: orange; font-weight: bold">⚠️ 角色卡主书专属操作</span><br />
-      以下操作仅作用于当前角色的主世界书: <strong>{{ currentPrimaryWorldbook || '无' }}</strong
-      >。<br />
-      如果需要大规模修改或回滚状态，强烈建议您优先使用上方更安全的【快照】功能。
-    </div>
-
-    <div class="action-bar compact" style="flex-wrap: wrap">
+    <div class="flex gap-2 flex-wrap">
       <button
-        class="btn-danger tiny"
         @click="resetToBaseline"
-        style="flex: 1; min-width: 140px; padding: 8px; font-size: 0.9em"
+        class="flex-1 min-w-[140px] bg-error/20 text-error border border-error/50 font-bold px-3 py-2 text-[11px] hover:bg-error/30 transition-colors outline-none flex justify-center items-center gap-1 text-center"
       >
-        ↺ 恢复初始状态 (Baseline)
+        <span class="material-symbols-outlined text-[14px]">settings_backup_restore</span> 恢复初始状态 (Baseline)
       </button>
       <button
-        class="btn-warning tiny"
         @click="closeSingleChar"
-        style="flex: 1; min-width: 140px; padding: 8px; font-size: 0.9em"
+        class="flex-1 min-w-[140px] bg-[#ffc107]/20 text-[#ffc107] border border-[#ffc107]/50 font-bold px-3 py-2 text-[11px] hover:bg-[#ffc107]/30 transition-colors outline-none flex justify-center items-center gap-1 text-center"
       >
-        ⚡ 屏蔽所有单字干员
+        <span class="material-symbols-outlined text-[14px]">bolt</span> 屏蔽所有单字干员
       </button>
     </div>
-  </div>
+  </HistoryActionCard>
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
+import HistoryActionCard from '../../../components/history/HistoryActionCard.vue';
 import { StatusBarManager } from '../../../services/statusbar_manager';
 import { configStore } from '../../../store/config_store';
-
-// Pinia化前端数据中心改造
-import { storeToRefs } from 'pinia';
 import { useUIStateStore } from '../../../store/ui_state_store';
-// 1. 实例化 Store
+
 const uiStore = useUIStateStore();
-// 2. 解构状态变量（必须用 storeToRefs 保持响应式）
 const { 
   allAvailableWorldbooks, 
   currentPrimaryWorldbook, 
   isArknightsCard
 } = storeToRefs(uiStore);
-
 
 const manager = StatusBarManager.getInstance();
 
@@ -85,6 +71,4 @@ const closeSingleChar = async () => {
 </script>
 
 <style scoped>
-@import '../../styles/theme.scss';
-@import '../../styles/shared_ui.scss';
 </style>

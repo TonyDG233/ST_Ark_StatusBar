@@ -87,12 +87,10 @@ import Panel from '../../../components/Panel.vue';
 import ProgressBar from '../../../components/ProgressBar.vue';
 import SectionHeader from '../../../components/SectionHeader.vue';
 import WipMask from '../../../components/WipMask.vue';
-import { useArkConfig } from '../../../store/config_store';
 import { useUIStateStore } from '../../../store/ui_state_store';
 
 const uiStore = useUIStateStore();
 const { recentTriggerLogs } = storeToRefs(uiStore);
-const currentConfig = useArkConfig();
 
 const expandedLogIdx = ref<number | null>(null); // 默认收起
 

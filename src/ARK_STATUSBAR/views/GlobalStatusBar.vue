@@ -102,9 +102,6 @@
                 <HistoryTab v-if="currentTab === 'worldbook' && currentSubTab === 'history'" />
                 
                 <SettingsTab v-if="currentTab === 'settings'" />
-
-                <!-- 【安全避让防线】：垫高列表尾部，避免被悬浮 SubNav 遮挡 -->
-                <div v-if="currentTab === 'worldbook'" class="h-16 flex-shrink-0 w-full pointer-events-none"></div>
               </div>
 
               <!-- 底部导航区 (SubNav + BottomNav) -->

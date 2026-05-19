@@ -8,15 +8,15 @@
     
     <!-- Top Area (Always visible) -->
     <div class="flex flex-col relative group">
-      <div class="text-[10px] font-display font-bold tracking-wider uppercase mb-1"
+      <div class="text-[10px] font-display font-bold tracking-wider uppercase mb-1 whitespace-normal"
            :class="type === 'danger' ? 'text-error' : (type === 'primary' ? 'text-primary-text' : 'text-secondary')">
         {{ label }}
       </div>
-      <div class="text-sm font-display font-bold text-on-surface tracking-wide"
+      <div class="text-sm font-display font-bold text-on-surface tracking-wide whitespace-normal"
            :class="type === 'danger' ? 'text-error' : ''">
         {{ title }}
       </div>
-      <div class="text-[11px] mt-1 leading-tight break-words min-w-0 pr-6"
+      <div class="text-[11px] mt-1 leading-tight break-words whitespace-normal min-w-0 pr-6"
            :class="type === 'danger' ? 'text-error/80' : 'text-on-surface-variant'">
         {{ description }}
       </div>

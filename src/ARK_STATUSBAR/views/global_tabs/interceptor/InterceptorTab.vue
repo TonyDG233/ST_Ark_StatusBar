@@ -1,7 +1,7 @@
 <template>
-  <div class="relative w-full flex flex-col box-border">
+  <div class="relative w-full h-full overflow-hidden flex flex-col box-border">
     <!-- Inner content wrapper with padding -->
-    <div class="p-2 flex flex-col gap-2 box-border">
+    <div class="p-2 flex flex-col gap-2 box-border flex-1 min-h-0 overflow-y-auto ark-scrollbar pb-14">
       
       <!-- Header Area (Now scrollable) -->
       <div class="tab-header flex flex-col gap-2 border-b border-outline pb-2 px-1 pt-1 flex-shrink-0 bg-transparent transition-all">

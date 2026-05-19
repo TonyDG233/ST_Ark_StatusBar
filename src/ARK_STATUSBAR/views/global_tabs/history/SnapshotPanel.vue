@@ -1,107 +1,79 @@
 <template>
-  <div>
-    <div
-      v-if="!isArknightsCard && !hasSnapshotForPrimary && currentPrimaryWorldbook"
-      class="warning-box"
-      style="margin-bottom: 10px; background-color: rgba(220, 53, 69, 0.2); border-color: #dc3545"
-    >
-      <strong style="color: #ff6b6b; display: block; margin-bottom: 4px">⚠️ 警告：检测到角色卡主书快照缺失</strong>
-      <p style="margin: 0; font-size: 0.9em; opacity: 0.9">
-        检测到当前角色卡世界书尚无快照。在您首次操作世界书前，强烈建议您拍摄一张快照，以便在需要时无损回滚。
-      </p>
-    </div>
-
-    <!-- 快照管理顶栏 (黄框介绍) -->
-    <div class="warning-box" style="margin-bottom: 0; padding: 10px; border-radius: 6px 6px 0 0; border-bottom: none">
-      <strong style="display: block; margin-bottom: 4px">📸 世界书快照管理</strong>
-      <p style="margin: 0; font-size: 0.9em; opacity: 0.9">
-        此处可以对任意世界书保存当前所有条目 “蓝/绿灯”，“开启/禁用状态” 的快照，并在日后随时无损恢复。
-      </p>
-    </div>
-
-    <!-- 实际的快照操作区域 -->
-    <div
-      class="snapshot-controls"
-      style="
-        border: 1px solid rgba(255, 165, 0, 0.4);
-        border-top: none;
-        border-radius: 0 0 6px 6px;
-        padding: 15px;
-        background: rgba(0, 0, 0, 0.15);
-      "
-    >
-      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px">
-        <select v-model="selectedSnapshotWorldbook" class="filter-select" style="width: 100%">
-          <option value="">选择要拍摄的世界书 (默认主书)</option>
-          <option v-for="wbName in allAvailableWorldbooks" :key="wbName" :value="wbName">{{ wbName }}</option>
-        </select>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap">
-          <input
-            type="text"
-            v-model="newSnapshotName"
-            placeholder="输入快照名称 (留空自动生成时间戳)..."
-            class="search-input"
-            style="flex: 1; min-width: 150px"
-          />
-          <button
-            class="btn-primary"
-            @click="createSnapshot"
-            style="padding: 6px 12px; white-space: nowrap; flex-grow: 1"
-          >
-            拍摄快照
-          </button>
+  <HistoryActionCard
+    label="ACTION_01"
+    title="创建快照 (Snapshot)"
+    description="将当前世界书内容克隆并保存，以便在需要时无损回滚。"
+    icon="camera"
+    type="primary"
+  >
+    <div class="flex flex-col gap-2">
+      <div v-if="!isArknightsCard && !hasSnapshotForPrimary && currentPrimaryWorldbook"
+           class="bg-error/10 border border-error/30 p-2 flex flex-col gap-1">
+        <div class="text-error text-[10px] font-bold flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px]">warning</span> 缺失主书快照
+        </div>
+        <div class="text-error/80 text-[10px]">
+          检测到当前角色卡世界书尚无快照。在您首次操作前，强烈建议您拍摄一张快照。
         </div>
       </div>
 
-      <div v-if="!currentConfig?.snapshots?.length" class="empty-state" style="padding: 10px">暂无保存的快照。</div>
-      <ul v-else class="entry-list read-only" style="margin: 0; max-height: 200px; overflow-y: auto">
-        <li
-          v-for="snap in currentConfig?.snapshots"
-          :key="snap.id"
-          style="
-            flex-direction: column;
-            align-items: stretch;
-            background: rgba(255, 255, 255, 0.05);
-            margin-bottom: 8px;
-          "
+      <select v-model="selectedSnapshotWorldbook" class="bg-surface text-[11px] text-on-surface border border-outline-variant px-2 py-1 outline-none w-full">
+        <option value="">选择要拍摄的世界书 (默认主书)</option>
+        <option v-for="wbName in allAvailableWorldbooks" :key="wbName" :value="wbName">{{ wbName }}</option>
+      </select>
+
+      <div class="flex gap-2 items-center flex-wrap">
+        <input
+          type="text"
+          v-model="newSnapshotName"
+          placeholder="输入快照名称 (留空自动生成时间戳)..."
+          class="bg-surface border border-outline-variant px-2 py-1 flex-1 min-w-[150px] text-[11px] text-on-surface outline-none placeholder:text-on-surface-variant/50"
+        />
+        <button
+          @click="createSnapshot"
+          class="bg-primary text-on-primary font-bold px-3 py-1 text-[11px] uppercase tracking-wider hover:bg-primary-container transition-colors shrink-0 outline-none"
         >
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px">
-            <strong style="font-size: 0.95em">{{ snap.name }}</strong>
-            <span style="font-size: 0.8em; opacity: 0.7">{{ new Date(snap.timestamp).toLocaleString() }}</span>
-          </div>
-          <div style="font-size: 0.8em; opacity: 0.7; margin-bottom: 8px">📁 来源: {{ snap.worldbook }}</div>
-          <div class="action-bar compact">
-            <button class="btn-success tiny" @click="restoreSnapshot(snap.id)" style="padding: 4px; font-size: 0.85em">
-              ✅ 恢复状态
-            </button>
-            <button class="btn-danger tiny" @click="deleteSnapshot(snap.id)" style="padding: 4px; font-size: 0.85em">
-              ❌ 删除
-            </button>
-          </div>
-        </li>
-      </ul>
+          拍摄快照
+        </button>
+      </div>
+
+      <!-- Snapshot List -->
+      <div class="flex flex-col gap-1 mt-2 border-t border-outline-variant/50 pt-2">
+        <div v-if="!currentConfig?.snapshots?.length" class="text-[11px] text-on-surface-variant p-2 text-center opacity-70">
+          暂无保存的快照。
+        </div>
+        <div v-else v-for="snap in currentConfig?.snapshots" :key="snap.id" 
+             class="flex flex-col border border-outline-variant bg-surface-container-lowest p-2 min-w-0 mb-1">
+           <div class="flex flex-wrap justify-between items-center gap-x-2 gap-y-1 mb-1">
+             <div class="text-[11px] font-bold text-on-surface break-all min-w-0">{{ snap.name }}</div>
+             <div class="text-[9px] text-on-surface-variant font-mono whitespace-nowrap">{{ new Date(snap.timestamp).toLocaleString() }}</div>
+           </div>
+           <div class="text-[10px] text-primary-text/80 mb-2 truncate max-w-full">📁 来源: {{ snap.worldbook }}</div>
+           <div class="flex flex-wrap gap-2 justify-end">
+             <ActionToggle type="restore" @click="restoreSnapshot(snap.id)">恢复状态</ActionToggle>
+             <ActionToggle type="delete" @click="deleteSnapshot(snap.id)">删除</ActionToggle>
+           </div>
+        </div>
+      </div>
     </div>
-  </div>
+  </HistoryActionCard>
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref } from 'vue';
+import ActionToggle from '../../../components/ActionToggle.vue';
+import HistoryActionCard from '../../../components/history/HistoryActionCard.vue';
 import { StatusBarManager } from '../../../services/statusbar_manager';
 import { useArkConfig } from '../../../store/config_store';
-
-// Pinia化前端数据中心改造
-import { storeToRefs } from 'pinia';
 import { useUIStateStore } from '../../../store/ui_state_store';
-// 1. 实例化 Store
+
 const uiStore = useUIStateStore();
-// 2. 解构状态变量（必须用 storeToRefs 保持响应式）
 const { 
   allAvailableWorldbooks, 
   currentPrimaryWorldbook, 
   isArknightsCard
 } = storeToRefs(uiStore);
-// 3. 解构方法（不需要 storeToRefs，直接解构即可）
-
 
 const currentConfig = useArkConfig();
 const manager = StatusBarManager.getInstance();
@@ -151,22 +123,4 @@ const deleteSnapshot = async (id: string) => {
 </script>
 
 <style scoped>
-@import '../../styles/theme.scss';
-@import '../../styles/shared_ui.scss';
-
-.filter-select {
-  padding: 6px;
-  border-radius: 4px;
-  border: 1px solid var(--SmartThemeBorderColor, #444);
-  background: rgba(0, 0, 0, 0.1);
-  color: inherit;
-}
-
-.search-input {
-  padding: 8px;
-  border-radius: 4px;
-  border: 1px solid var(--SmartThemeBorderColor, #444);
-  background: rgba(0, 0, 0, 0.1);
-  color: inherit;
-}
 </style>
