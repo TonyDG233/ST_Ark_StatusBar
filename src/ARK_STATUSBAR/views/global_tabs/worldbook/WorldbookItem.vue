@@ -1,44 +1,29 @@
 <template>
-  <div class="wb-accordion-item">
-    <div class="wb-accordion-header" @click="!isGlobalBatchMode && toggleAccordion()">
-      <div class="wb-accordion-title">
-        <input v-if="isGlobalBatchMode" type="checkbox" :value="wb.name" v-model="isSelected" @click.stop />
-        <span v-if="wb.isPinned" class="pin-icon">📌</span>
-        <span class="wb-type-badge" :class="wb.type">
-          {{ wb.type === 'char' ? '角色绑定' : wb.type === 'global' ? '已挂载' : '未挂载' }}
-        </span>
-        <span class="wb-name-text">{{ wb.name }}</span>
-      </div>
-      <div class="wb-accordion-actions">
-        <button
-          class="icon-btn tiny pin-btn"
-          @click.stop="toggleWorldbookPin"
-          :title="wb.isPinned ? '取消置顶' : '置顶世界书'"
-          :class="{ pinned: wb.isPinned }"
-        >
-          {{ wb.isPinned ? '📌' : '📍' }}
-        </button>
-        <button
-          v-if="wb.type !== 'char'"
-          class="icon-btn tiny"
-          @click.stop="toggleGlobalMountUI"
-          :title="wb.type === 'global' ? '卸载' : '挂载'"
-        >
-          {{ wb.type === 'global' ? '⛓️' : '🔗' }}
-        </button>
-        <button class="icon-btn tiny" style="color: #ff6b6b" @click.stop="deleteWorldbookUI" title="删除世界书">
-          🗑️
-        </button>
-        <span class="accordion-arrow" v-if="!isGlobalBatchMode">{{ isExpanded ? '▼' : '▶' }}</span>
-      </div>
-    </div>
-
+  <div class="flex flex-col border border-outline-variant bg-surface-container-low mb-4">
+    <!-- Folder Header -->
+    <LoreFolderItem 
+      :title="wb.name" 
+      :count="worldbookEntriesCache[wb.name]?.length || 0" 
+      :bindType="wb.type as 'char' | 'global' | 'unmounted'"
+      :isPinned="wb.isPinned"
+      :expanded="isExpanded"
+      :globalBatchMode="isGlobalBatchMode"
+      :selected="isSelected"
+      @toggle="!isGlobalBatchMode && toggleAccordion()"
+      @toggle-select="isSelected = !isSelected"
+      @toggle-pin="toggleWorldbookPin"
+      @toggle-mount="toggleGlobalMountUI"
+      @delete="deleteWorldbookUI"
+    />
+    
+    <!-- Collapsible Entry List -->
     <WorldbookEntryList v-if="isExpanded" :wbName="wb.name" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import LoreFolderItem from '../../../components/worldbook/LoreFolderItem.vue';
 import type { UIWorldbookEntry } from '../../../store/ui_state_store';
 import { useWorldbookActions } from './useWorldbookActions';
 import WorldbookEntryList from './WorldbookEntryList.vue';
@@ -46,6 +31,7 @@ import WorldbookEntryList from './WorldbookEntryList.vue';
 // Pinia化前端数据中心改造
 import { storeToRefs } from 'pinia';
 import { useUIStateStore } from '../../../store/ui_state_store';
+
 // 1. 实例化 Store
 const uiStore = useUIStateStore();
 // 2. 解构状态变量（必须用 storeToRefs 保持响应式）
@@ -121,7 +107,5 @@ const deleteWorldbookUI = () => {
 </script>
 
 <style scoped>
-@import '../../styles/theme.scss';
-@import '../../styles/shared_ui.scss';
-@import './worldbook_shared.scss';
+/* 移除旧的样式引入 */
 </style>

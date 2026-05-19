@@ -1,61 +1,29 @@
 <template>
-  <div class="wb-item" :class="{ 'disabled-entry': !entry.enabled }">
-    <div class="wb-info">
-      <!-- Checkbox for batch mode -->
-      <label v-if="isBatchMode" class="batch-checkbox-container">
-        <input type="checkbox" :value="entry.uid" v-model="isSelected" />
-      </label>
-
-      <!-- Entry Basic Info -->
-      <div class="wb-info-text">
-        <div class="wb-name">
-          <span v-if="entry._isPinned" class="pin-icon">📌</span>
-          {{ entry.name || (entry.strategy?.keys ? entry.strategy.keys[0] : '未知') }}
-        </div>
-        <div class="wb-keys" v-if="entry.strategy?.keys && entry.strategy.keys.length">
-          触发词: {{ entry.strategy.keys.join(', ') }}
-        </div>
-      </div>
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="wb-action">
-      <button class="icon-btn tiny" @click="toggleEdit" title="编辑完整属性">✏️</button>
-      <button
-        class="icon-btn tiny pin-btn"
-        @click="togglePin"
-        :title="entry._isPinned ? '取消置顶' : '偏好置顶'"
-        :class="{ pinned: entry._isPinned }"
-      >
-        {{ entry._isPinned ? '📌' : '📍' }}
-      </button>
-      <button
-        class="icon-btn tiny"
-        @click="toggleType"
-        :title="entry._computedType === 'constant' ? '当前：蓝灯(常驻)，点击切换' : '当前：绿灯(条件)，点击切换'"
-      >
-        {{ entry._computedType === 'constant' ? '🔵' : '🟢' }}
-      </button>
-      <label class="switch" title="开启/关闭">
-        <input type="checkbox" :checked="entry.enabled" @change="toggleEnabled" />
-        <span class="slider round"></span>
-      </label>
-      <button class="icon-btn tiny" style="color: #ff6b6b" @click="deleteEntry" title="删除条目">🗑️</button>
-    </div>
-  </div>
+  <LoreDataCard 
+    :entry="transformedEntry"
+    :batchMode="isBatchMode"
+    :selected="isSelected"
+    @toggle-select="isSelected = !isSelected"
+    @toggle-type="toggleType"
+    @toggle-state="toggleEnabled"
+    @toggle-pin="togglePin"
+    @edit="toggleEdit"
+    @delete="deleteEntry"
+  />
 
   <!-- 内联展开的完整编辑器 -->
-  <WorldbookEntryEditor v-if="isEditing" :entry="entry" @save="onSave" @cancel="isEditing = false" />
+  <WorldbookEntryEditor v-if="isEditing" :entry="entry" :wbName="wbName" @save="onSave" @cancel="isEditing = false" />
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import LoreDataCard, { LoreEntryData } from '../../../components/worldbook/LoreDataCard.vue';
 import { UIWorldbookEntry } from '../../../store/ui_state_store';
 import { useWorldbookActions } from './useWorldbookActions';
 import WorldbookEntryEditor from './WorldbookEntryEditor.vue';
 
 const props = defineProps<{
-  entry: UIWorldbookEntry;
+  entry: UIWorldbookEntry & { _isPinned?: boolean; _computedType?: string };
   wbName: string;
   isBatchMode: boolean;
   selectedEntries: number[];
@@ -78,6 +46,15 @@ const isSelected = computed({
   },
 });
 
+const transformedEntry = computed<LoreEntryData>(() => ({
+  uid: props.entry.uid,
+  name: String(props.entry.name || (props.entry.strategy?.keys ? props.entry.strategy.keys[0] : '未知')),
+  keys: (props.entry.strategy?.keys || []).map(String),
+  type: (props.entry._computedType as 'constant' | 'selective') || 'selective',
+  enabled: props.entry.enabled,
+  isPinned: props.entry._isPinned || false
+}));
+
 const toggleEdit = () => {
   isEditing.value = !isEditing.value;
 };
@@ -90,10 +67,8 @@ const toggleType = () => {
   actions.toggleEntryType(props.entry, props.wbName);
 };
 
-const toggleEnabled = (e: Event) => {
-  const checked = (e.target as HTMLInputElement).checked;
-  // Create a localized clone so UI can preemptively update, although underlying state is shared
-  const localEntry = { ...props.entry, enabled: checked };
+const toggleEnabled = () => {
+  const localEntry = { ...props.entry, enabled: !props.entry.enabled };
   actions.toggleEntryEnabled(localEntry, props.wbName);
 };
 
@@ -108,7 +83,5 @@ const onSave = (changes: any[], newEntry: UIWorldbookEntry) => {
 </script>
 
 <style scoped>
-@import '../../styles/theme.scss';
-@import '../../styles/shared_ui.scss';
-@import './worldbook_shared.scss';
+/* 移除旧样式 */
 </style>

@@ -1,65 +1,61 @@
 <template>
-  <div class="wb-editor-panel">
-    <div class="editor-header">
-      <h4>编辑条目: {{ localEntry.name }}</h4>
-      <button class="icon-btn tiny close-btn" @click="$emit('cancel')" title="取消编辑">✖</button>
+  <div class="bg-surface-container-highest border-b border-outline-variant p-2 flex flex-col gap-3 box-border w-full min-w-0">
+    <!-- Header -->
+    <div class="flex justify-between items-center border-b border-outline-variant/50 pb-1.5 min-w-0 w-full gap-2">
+      <h4 class="font-display font-bold text-on-surface text-[11px] uppercase flex items-center gap-1.5 min-w-0 flex-1">
+        <span class="material-symbols-outlined text-primary-text text-[14px] flex-shrink-0">edit_document</span>
+        <span class="min-w-0 break-words whitespace-normal leading-tight">编辑: {{ localEntry.name }}</span>
+      </h4>
+      <button class="text-on-surface-variant hover:text-error transition-colors flex-shrink-0 cursor-pointer outline-none w-6 h-6 flex items-center justify-center rounded hover:bg-error-container/20" title="取消编辑" @click="$emit('cancel')">
+        <span class="material-symbols-outlined text-[16px]">close</span>
+      </button>
     </div>
 
-    <div class="editor-body">
-      <!-- 1. 基本信息 (标题, 蓝绿灯) -->
-      <div class="form-group row">
-        <div class="form-item flex-2">
-          <label>标题/备注 (Title)</label>
-          <input type="text" v-model="localEntry.name" class="editor-input" />
-        </div>
-        <div class="form-item flex-1">
-          <label>触发类型 (Type)</label>
-          <select v-model="localEntry.strategy.type" class="editor-select">
+    <!-- Fluid Body -->
+    <div class="flex flex-col gap-2 min-w-0 w-full">
+      
+      <div class="flex flex-col gap-0.5 min-w-0 w-full">
+        <label class="font-mono text-[9px] text-on-surface-variant uppercase">标题/备注 (TITLE)</label>
+        <input type="text" class="bg-transparent border-b border-outline-variant hover:border-outline px-1 py-1 text-xs text-on-surface focus:outline-none focus:border-primary transition-colors font-mono w-full min-w-0 box-border" v-model="localEntry.name" />
+      </div>
+
+      <!-- Trigger Row -->
+      <div class="flex flex-wrap gap-2 min-w-0 w-full">
+        <div class="flex flex-col gap-0.5 flex-1 min-w-[80px] max-w-full">
+          <label class="font-mono text-[9px] text-on-surface-variant uppercase">类型 (TYPE)</label>
+          <select v-model="localEntry.strategy.type" class="bg-surface border-b border-outline-variant hover:border-outline px-1 py-1 text-[10px] text-on-surface focus:outline-none focus:border-primary transition-colors font-mono w-full min-w-0 box-border outline-none cursor-pointer">
             <option value="selective">条件 (🟢 绿灯)</option>
             <option value="constant">常驻 (🔵 蓝灯)</option>
           </select>
         </div>
-      </div>
-
-      <!-- 2. 绿灯专属：关键词与逻辑 -->
-      <div class="form-group" v-if="localEntry.strategy.type === 'selective'">
-        <label>主关键词 (逗号分隔)</label>
-        <input
-          type="text"
-          :value="joinKeys(localEntry.strategy.keys)"
-          @input="updateKeys($event, 'keys')"
-          class="editor-input"
-          placeholder="例如: 阿米娅, 罗德岛"
-        />
-
-        <div class="row" style="margin-top: 8px">
-          <div class="form-item flex-1">
-            <label>可选逻辑 (Logic)</label>
-            <select v-model="localEntry.strategy.keys_secondary.logic" class="editor-select">
-              <option value="and_any">与任意 (AND ANY)</option>
-              <option value="and_all">与所有 (AND ALL)</option>
-              <option value="not_any">非任意 (NOT ANY)</option>
-              <option value="not_all">非所有 (NOT ALL)</option>
-            </select>
-          </div>
-          <div class="form-item flex-2">
-            <label>可选过滤器/次要关键词 (逗号分隔)</label>
-            <input
-              type="text"
-              :value="joinKeys(localEntry.strategy.keys_secondary.keys)"
-              @input="updateKeys($event, 'keys_secondary')"
-              class="editor-input"
-              placeholder="需要结合可选逻辑生效..."
-            />
-          </div>
+        <div class="flex flex-col gap-0.5 flex-[2] min-w-[120px] max-w-full">
+          <label class="font-mono text-[9px] text-on-surface-variant uppercase break-words whitespace-normal leading-tight">主关键词 (KEYS)</label>
+          <input type="text" class="bg-transparent border-b border-outline-variant hover:border-outline px-1 py-1 text-xs text-on-surface focus:outline-none focus:border-primary transition-colors font-mono w-full min-w-0 box-border" :value="joinKeys(localEntry.strategy.keys)" @input="updateKeys($event, 'keys')" placeholder="例如: 阿米娅, 罗德岛" />
         </div>
       </div>
 
-      <!-- 3. 插入位置与顺序 -->
-      <div class="form-group row">
-        <div class="form-item flex-1">
-          <label>插入位置 (Position)</label>
-          <select v-model="localEntry.position.type" class="editor-select">
+      <!-- Conditional Row: Logic (v-if type === selective) -->
+      <div v-if="localEntry.strategy.type === 'selective'" class="flex flex-wrap gap-2 min-w-0 w-full mt-1">
+        <div class="flex flex-col gap-0.5 flex-1 min-w-[80px] max-w-full">
+          <label class="font-mono text-[9px] text-on-surface-variant uppercase break-words whitespace-normal leading-tight">可选逻辑</label>
+          <select v-model="localEntry.strategy.keys_secondary.logic" class="bg-surface border-b border-outline-variant hover:border-outline px-1 py-1 text-[10px] text-on-surface focus:outline-none focus:border-primary transition-colors font-mono w-full min-w-0 box-border outline-none cursor-pointer">
+            <option value="and_any">与任意 (AND ANY)</option>
+            <option value="and_all">与所有 (AND ALL)</option>
+            <option value="not_any">非任意 (NOT ANY)</option>
+            <option value="not_all">非所有 (NOT ALL)</option>
+          </select>
+        </div>
+        <div class="flex flex-col gap-0.5 flex-[2] min-w-[120px] max-w-full">
+          <label class="font-mono text-[9px] text-on-surface-variant uppercase break-words whitespace-normal leading-tight">次要关键词</label>
+          <input type="text" class="bg-transparent border-b border-outline-variant hover:border-outline px-1 py-1 text-xs text-on-surface focus:outline-none focus:border-primary transition-colors font-mono w-full min-w-0 box-border" :value="joinKeys(localEntry.strategy.keys_secondary.keys)" @input="updateKeys($event, 'keys_secondary')" placeholder="需要结合可选逻辑生效..." />
+        </div>
+      </div>
+
+      <!-- Position Row -->
+      <div class="flex flex-wrap gap-2 min-w-0 w-full mt-1">
+        <div class="flex flex-col gap-0.5 flex-1 min-w-[120px] max-w-full">
+          <label class="font-mono text-[9px] text-on-surface-variant uppercase break-words whitespace-normal leading-tight">插入位置 (POSITION)</label>
+          <select v-model="localEntry.position.type" class="bg-surface border-b border-outline-variant hover:border-outline px-1 py-1 text-[10px] text-on-surface focus:outline-none focus:border-primary transition-colors font-mono w-full min-w-0 box-border outline-none cursor-pointer">
             <option value="before_character_definition">角色定义前</option>
             <option value="after_character_definition">角色定义后</option>
             <option value="before_example_messages">示例消息前</option>
@@ -69,65 +65,77 @@
             <option value="at_depth">指定深度 (@ Depth)</option>
           </select>
         </div>
-        <div class="form-item flex-1">
-          <label>顺序 (Order)</label>
-          <input type="number" v-model.number="localEntry.position.order" class="editor-input" />
+        <div class="flex flex-col gap-0.5 flex-1 min-w-[60px] max-w-[80px]">
+          <label class="font-mono text-[9px] text-on-surface-variant uppercase truncate">顺序</label>
+          <input type="number" v-model.number="localEntry.position.order" class="bg-transparent border-b border-outline-variant hover:border-outline px-1 py-1 text-xs text-on-surface focus:outline-none focus:border-primary transition-colors font-mono text-center w-full min-w-0 box-border" />
         </div>
-        <div class="form-item flex-1">
-          <label>触发概率% (Prob)</label>
-          <input type="number" v-model.number="localEntry.probability" min="0" max="100" class="editor-input" />
+        <div class="flex flex-col gap-0.5 flex-1 min-w-[60px] max-w-[80px]">
+          <label class="font-mono text-[9px] text-on-surface-variant uppercase truncate">概率%</label>
+          <input type="number" v-model.number="localEntry.probability" min="0" max="100" class="bg-transparent border-b border-outline-variant hover:border-outline px-1 py-1 text-xs text-on-surface focus:outline-none focus:border-primary transition-colors font-mono text-center w-full min-w-0 box-border" />
         </div>
       </div>
 
-      <!-- 指定深度专属设置 -->
-      <div class="form-group row" v-if="localEntry.position.type === 'at_depth'">
-        <div class="form-item flex-1">
-          <label>角色身份 (Role)</label>
-          <select v-model="localEntry.position.role" class="editor-select">
+      <!-- Conditional Row: Depth (v-if position === at_depth) -->
+      <div v-if="localEntry.position.type === 'at_depth'" class="flex flex-wrap gap-2 min-w-0 w-full mt-1">
+        <div class="flex flex-col gap-0.5 flex-1 min-w-[80px] max-w-full">
+          <label class="font-mono text-[9px] text-on-surface-variant uppercase break-words whitespace-normal leading-tight">角色身份</label>
+          <select v-model="localEntry.position.role" class="bg-surface border-b border-outline-variant hover:border-outline px-1 py-1 text-[10px] text-on-surface focus:outline-none focus:border-primary transition-colors font-mono w-full min-w-0 box-border outline-none cursor-pointer">
             <option value="system">System</option>
             <option value="user">User</option>
             <option value="assistant">Assistant</option>
           </select>
         </div>
-        <div class="form-item flex-1">
-          <label>深度 (Depth)</label>
-          <input type="number" v-model.number="localEntry.position.depth" min="0" class="editor-input" />
+        <div class="flex flex-col gap-0.5 flex-[2] min-w-[80px] max-w-full">
+          <label class="font-mono text-[9px] text-on-surface-variant uppercase break-words whitespace-normal leading-tight">深度 (Depth)</label>
+          <input type="number" v-model.number="localEntry.position.depth" min="0" class="bg-transparent border-b border-outline-variant hover:border-outline px-1 py-1 text-xs text-on-surface focus:outline-none focus:border-primary transition-colors font-mono w-full min-w-0 box-border" />
         </div>
       </div>
 
-      <!-- 4. 递归与特殊选项 -->
-      <div class="form-group check-group">
-        <label class="check-label">
-          <input type="checkbox" v-model="localEntry.recursion.prevent_incoming" />
-          不可递归 (防止被其他激活)
-        </label>
-        <label class="check-label">
-          <input type="checkbox" v-model="localEntry.recursion.prevent_outgoing" />
-          防止进一步递归 (不激活其他)
-        </label>
-        <label class="check-label">
-          <input type="checkbox" :checked="localEntry.recursion.delay_until !== null" @change="toggleDelayUntil" />
-          延迟到递归
-        </label>
+      <!-- Advanced Rules (Wrap) -->
+      <div class="flex flex-col gap-1 mt-1 border-t border-outline-variant/30 pt-1 min-w-0 w-full">
+        <div class="flex flex-wrap gap-2">
+          <label class="flex items-center gap-1.5 cursor-pointer text-[10px] text-on-surface-variant hover:text-on-surface transition-colors min-w-0 max-w-full">
+            <input type="checkbox" v-model="localEntry.recursion.prevent_incoming" class="accent-primary flex-shrink-0" />
+            <span class="font-mono break-words whitespace-normal leading-tight">不可递归被触发 (PREV_IN)</span>
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer text-[10px] text-on-surface-variant hover:text-on-surface transition-colors min-w-0 max-w-full">
+            <input type="checkbox" v-model="localEntry.recursion.prevent_outgoing" class="accent-primary flex-shrink-0" />
+            <span class="font-mono break-words whitespace-normal leading-tight">不触发其他条目 (PREV_OUT)</span>
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer text-[10px] text-on-surface-variant hover:text-on-surface transition-colors min-w-0 max-w-full">
+            <input type="checkbox" :checked="localEntry.recursion.delay_until !== null" @change="toggleDelayUntil" class="accent-primary flex-shrink-0" />
+            <span class="font-mono break-words whitespace-normal leading-tight">延迟递归 (DELAY)</span>
+          </label>
+        </div>
       </div>
 
-      <!-- 5. 正文内容 -->
-      <div class="form-group">
-        <label>内容 (Content)</label>
-        <textarea v-model="localEntry.content" class="editor-textarea" rows="6"></textarea>
+      <!-- Content -->
+      <div class="flex flex-col gap-0.5 mt-1 min-w-0 w-full">
+        <label class="font-mono text-[9px] text-primary-text uppercase flex justify-between min-w-0">
+          <span class="truncate">正文 (CONTENT)</span>
+          <span class="text-on-surface-variant flex-shrink-0 ml-2" v-if="tokenCount !== null">~{{ tokenCount }} TOKENS</span>
+        </label>
+        <textarea v-model="localEntry.content" class="bg-transparent border border-outline-variant hover:border-outline px-2 py-1.5 text-xs text-on-surface focus:outline-none focus:border-primary transition-colors font-mono resize-y min-h-[60px] w-full min-w-0 box-border" placeholder="输入世界书正文..."></textarea>
       </div>
+
     </div>
 
-    <div class="editor-footer">
-      <button class="btn-secondary" @click="$emit('cancel')">取消</button>
-      <button class="btn-primary" @click="saveChanges">保存更改</button>
+    <!-- Footer Actions -->
+    <div class="flex flex-wrap justify-end items-center gap-2 mt-1 flex-shrink-0 w-full">
+      <button class="px-3 py-1 bg-surface border border-outline text-on-surface-variant font-display font-bold text-[10px] hover:text-on-surface hover:bg-surface-variant transition-colors outline-none cursor-pointer" @click="$emit('cancel')">
+        取消
+      </button>
+      <button class="px-3 py-1 bg-primary-container text-on-primary border border-primary-container font-display font-bold text-[10px] hover:bg-primary transition-colors flex items-center gap-1 outline-none cursor-pointer" @click="saveChanges">
+        <span class="material-symbols-outlined text-[12px]">save</span>
+        保存
+      </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { cloneDeep, isEqual } from 'lodash';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { UIWorldbookEntry } from '../../../store/ui_state_store';
 import { ArkCommitChange } from '../../../types/system_config';
 
@@ -142,6 +150,7 @@ const emit = defineEmits<{
 
 // 使用 cloneDeep 确保不污染原数据
 const localEntry = ref<UIWorldbookEntry>(cloneDeep(props.entry));
+const tokenCount = ref<number | null>(null);
 
 // 初始化防护：确保所有被用到的嵌套对象都存在，防止 v-model 报错
 onMounted(() => {
@@ -166,6 +175,19 @@ onMounted(() => {
     localEntry.value.extra = {};
   }
 });
+
+// 动态计算 Token (调用 SillyTavern API)
+watch(() => localEntry.value.content, async (newVal) => {
+  if (newVal && typeof SillyTavern !== 'undefined' && SillyTavern.getTokenCountAsync) {
+    try {
+      tokenCount.value = await SillyTavern.getTokenCountAsync(newVal);
+    } catch (e) {
+      tokenCount.value = null;
+    }
+  } else {
+    tokenCount.value = null;
+  }
+}, { immediate: true });
 
 // 字符串转数组工具
 const joinKeys = (keys: (string | RegExp)[] | undefined) => {
@@ -303,155 +325,5 @@ const saveChanges = () => {
 </script>
 
 <style scoped>
-.wb-editor-panel {
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid var(--SmartThemeBorderColor, rgba(255, 255, 255, 0.15));
-  border-radius: 6px;
-  padding: 12px;
-  margin-top: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.editor-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 8px;
-  margin-bottom: 12px;
-}
-
-.editor-header h4 {
-  margin: 0;
-  font-size: 1.05em;
-  color: var(--SmartThemeBodyColor, #fff);
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  color: #ccc;
-  cursor: pointer;
-}
-.close-btn:hover {
-  color: #ff6b6b;
-}
-
-.editor-body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.form-group.row {
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-}
-
-.form-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.flex-1 {
-  flex: 1;
-}
-.flex-2 {
-  flex: 2;
-}
-
-label {
-  font-size: 0.85em;
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 500;
-}
-
-.editor-input,
-.editor-select {
-  width: 100%;
-  padding: 6px 8px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-  color: #fff;
-  font-size: 0.9em;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.editor-input:focus,
-.editor-select:focus {
-  border-color: #1e90ff;
-}
-
-.editor-textarea {
-  width: 100%;
-  padding: 8px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-  color: #fff;
-  font-family: monospace;
-  font-size: 0.9em;
-  resize: vertical;
-  outline: none;
-}
-
-.check-group {
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 15px;
-  padding: 6px 0;
-}
-
-.check-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.85em;
-  color: #ccc;
-  cursor: pointer;
-}
-
-.editor-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 15px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.btn-primary {
-  background: #1e90ff;
-  color: #fff;
-  border: none;
-  padding: 6px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-}
-.btn-primary:hover {
-  background: #187bcd;
-}
-
-.btn-secondary {
-  background: transparent;
-  color: #ccc;
-  border: 1px solid #555;
-  padding: 6px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
+/* 旧的样式已全部移除，使用 Tailwind 原子类 */
 </style>

@@ -164,10 +164,12 @@ const filteredCommits = computed(() => {
 
   // 先按时间倒序排（最新的在前），再将置顶的提升到最前
   return commits.sort((a, b) => {
-    if (a.isPinned !== b.isPinned) {
+    if (!!a.isPinned !== !!b.isPinned) {
       return a.isPinned ? -1 : 1;
     }
-    return b.timestamp - a.timestamp;
+    const timeA = Number(a.timestamp) || 0;
+    const timeB = Number(b.timestamp) || 0;
+    return timeB - timeA;
   });
 });
 
@@ -213,7 +215,7 @@ const togglePinCommit = (commit: ArkCommit) => {
 
 const getChangeText = (commit: unknown, value: any) => {
   if (typeof value === 'boolean') {
-    if ((commit as ArkCommit).description?.includes('changed type')) {
+    if ((commit as ArkCommit).description?.includes('changed type') || (commit as ArkCommit).description?.includes('修改触发类型') || (commit as ArkCommit).description?.includes('切换灯色')) {
       return value ? '蓝灯(常驻)' : '绿灯(条件)';
     }
     return value ? '开启' : '关闭';

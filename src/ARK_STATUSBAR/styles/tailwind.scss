@@ -117,6 +117,49 @@
 }
 
 @layer utilities {
+
+    /* 强行提权：对抗酒馆全局的表单 !important 污染 */
+    .ark-global-statusbar-mount-point {
+
+        input.bg-transparent,
+        textarea.bg-transparent,
+        select.bg-transparent {
+            background-color: transparent !important;
+            color: inherit !important;
+        }
+
+        input.bg-surface,
+        textarea.bg-surface,
+        select.bg-surface {
+            background-color: var(--color-surface) !important;
+            color: var(--color-on-surface) !important;
+        }
+
+        input.border-none,
+        textarea.border-none,
+        select.border-none {
+            border: none !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        input.border-outline-variant,
+        textarea.border-outline-variant,
+        select.border-outline-variant {
+            border: 1px solid var(--color-outline-variant) !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        input.border-outline,
+        textarea.border-outline,
+        select.border-outline {
+            border: 1px solid var(--color-outline) !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+    }
+
     .ark-transition-shell {
         transition:
             background-color 0.3s ease,
