@@ -90,7 +90,10 @@
                  :style="{ height: currentConfig?.uiHeight ? currentConfig.uiHeight + 'px' : '400px' }">
             
               <div class="flex-1 overflow-y-auto scrollbar-none flex flex-col relative min-h-0 bg-background global-watermark">
-                <DashboardTab v-if="currentTab === 'dashboard'" />
+                <DashboardTab
+                  v-if="currentTab === 'dashboard'"
+                  @navigate="(t, s) => { currentTab = t; currentSubTab = s || ''; }"
+                />
                 
                 <InterceptorTab v-if="currentTab === 'worldbook' && currentSubTab === 'interceptor'" @close-panel="() => {
                   if (preInterceptUiMode === UiMode.MINI) currentUiMode = UiMode.MINI;

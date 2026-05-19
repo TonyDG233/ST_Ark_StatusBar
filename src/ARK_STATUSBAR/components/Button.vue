@@ -8,6 +8,7 @@
       disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
     ]"
     :disabled="disabled"
+    @click="emit('click', $event)"
   >
     <!-- 可视化意图标签 -->
     <div class="absolute top-0 right-0 bg-error/90 text-on-error text-[8px] px-1 font-mono z-50 opacity-0 group-hover:opacity-50 pointer-events-none transition-opacity">
@@ -27,6 +28,8 @@
 
 <script setup lang="ts">
 // Button: 方舟风格交互按钮
+const emit = defineEmits(['click']);
+
 withDefaults(defineProps<{
   variant?: 'primary' | 'outline' | 'ghost';
   icon?: string;

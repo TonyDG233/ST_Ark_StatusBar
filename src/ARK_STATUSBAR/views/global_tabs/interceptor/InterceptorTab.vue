@@ -26,8 +26,8 @@
           <!-- PRE-CHECK ENABLED Toggle -->
           <label class="flex items-center gap-2 cursor-pointer border border-outline-variant px-2 py-1 bg-surface-container-low hover:bg-surface-variant transition-colors min-w-0">
             <span class="font-display text-xs text-on-surface uppercase font-bold tracking-widest whitespace-nowrap">预检拦截</span>
-            <div class="relative w-8 h-4 flex items-center p-0.5 transition-colors"
-                 :class="currentConfig?.isInterceptorEnabled ? 'bg-primary justify-end' : 'bg-surface-variant justify-start'">
+            <div class="relative w-8 h-4 flex items-center p-0.5 transition-colors border border-outline/50"
+                 :class="currentConfig?.isInterceptorEnabled ? 'bg-primary justify-end border-primary' : 'bg-surface-variant justify-start'">
               <input type="checkbox" class="hidden" :checked="currentConfig?.isInterceptorEnabled" @change="toggleInterceptor" />
               <div class="w-3 h-3 bg-black transition-transform"></div>
             </div>

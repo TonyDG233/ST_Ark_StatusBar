@@ -6,13 +6,16 @@
     </div>
 
     <!-- 顶部状态面板 (Top Status) -->
-    <Panel class="p-4 gap-4 flex-shrink-0">
-      <div class="flex flex-col @[300px]:flex-row justify-between items-start gap-4">
-        <SectionHeader title="12-1" subtitle="当前剧情节点" showDecoration class="w-full @[300px]:w-auto" />
-        <SectionHeader title="14:00" subtitle="游戏内时间" class="w-full @[300px]:w-auto @[300px]:text-right" />
-      </div>
-      <ProgressBar label="理智 / HP" :current="120" :max="135" class="mt-2" />
-    </Panel>
+    <div class="relative flex-shrink-0">
+      <Panel class="p-4 gap-4 h-full">
+        <div class="flex flex-col @[300px]:flex-row justify-between items-start gap-4">
+          <SectionHeader title="12-1" subtitle="当前剧情节点" showDecoration class="w-full @[300px]:w-auto" />
+          <SectionHeader title="14:00" subtitle="游戏内时间" class="w-full @[300px]:w-auto @[300px]:text-right" />
+        </div>
+        <ProgressBar label="理智 / HP" :current="120" :max="135" class="mt-2" />
+      </Panel>
+      <WipMask text="即将实装" />
+    </div>
 
     <!-- 中部活动日志 (Recent Activity) -->
     <Panel class="flex-col flex-shrink-0">
@@ -61,19 +64,17 @@
     <!-- 底部快捷操作网格 (Quick Access) -->
     <div class="grid grid-cols-1 @[400px]:grid-cols-2 gap-3 flex-shrink-0">
       <!-- 大按键跨列 -->
-      <Button variant="primary" icon="menu_book" class="h-16 @[400px]:col-span-2 text-sm font-bold tracking-widest uppercase">
+      <Button variant="primary" icon="menu_book" class="h-16 @[400px]:col-span-2 text-sm font-bold tracking-widest uppercase" @click="handleNavigate('worldbook', 'lore')">
         世界书管理器
       </Button>
       
       <!-- 小按键加遮罩 -->
       <div class="relative h-12">
-        <Button class="w-full h-full" icon="group">干员列表</Button>
-        <WipMask text="开发中" />
+        <Button class="w-full h-full" icon="security" @click="handleNavigate('worldbook', 'interceptor')">拦截记录</Button>
       </div>
       
       <div class="relative h-12">
-        <Button class="w-full h-full" icon="map">部署视图</Button>
-        <WipMask text="开发中" />
+        <Button class="w-full h-full" icon="history" @click="handleNavigate('worldbook', 'history')">历史档案</Button>
       </div>
     </div>
   </div>
@@ -88,6 +89,19 @@ import ProgressBar from '../../../components/ProgressBar.vue';
 import SectionHeader from '../../../components/SectionHeader.vue';
 import WipMask from '../../../components/WipMask.vue';
 import { useUIStateStore } from '../../../store/ui_state_store';
+
+
+const emit = defineEmits<{
+  (e: 'navigate', tab: string, subTab?: string): void;
+}>();
+
+// 路由跳转处理
+// @note: 如果需要修改跳转的目标，请查阅 src/ARK_STATUSBAR/views/GlobalStatusBar.vue 中 v-if="currentTab === 'xxx'"
+// 以及 SubNav.vue 所约定的标识符。当前世界书相关的页面均归属于 'worldbook' tab 之下。
+const handleNavigate = (tab: string, subTab?: string) => {
+  console.log(`[Dashboard] Navigating to ${tab} -> ${subTab}`);
+  emit('navigate', tab, subTab);
+};
 
 const uiStore = useUIStateStore();
 const { recentTriggerLogs } = storeToRefs(uiStore);

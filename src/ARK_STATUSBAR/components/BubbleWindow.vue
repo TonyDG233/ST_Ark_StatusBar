@@ -48,9 +48,9 @@
       -->
       
       <!-- 最简拦截列表 (集成单次/彻底逻辑) -->
-      <ul class="flex flex-col gap-1 max-h-[140px] overflow-y-auto scrollbar-none pl-0 m-0 list-none">
+      <ul class="flex flex-col gap-1 max-h-[140px] overflow-y-auto scrollbar-thin scrollbar-thumb-outline-variant/50 scrollbar-track-transparent pl-0 m-0 list-none">
         <li v-for="(entry, idx) in entries" :key="idx"
-            class="flex flex-col gap-1 p-1 rounded-sm border border-transparent overflow-hidden relative group"
+            class="flex-shrink-0 flex flex-col gap-1 p-1 rounded-sm border border-transparent overflow-hidden relative group"
             :class="[
               entry.enabled === false && !entry.tempDisabled ? 'ark-stripe-error bg-error/5 border-error/30' :
               entry.tempDisabled ? 'ark-stripe-warning bg-outline-variant/10 border-outline-variant' : 'bg-surface-container-low border-outline-variant/50'
