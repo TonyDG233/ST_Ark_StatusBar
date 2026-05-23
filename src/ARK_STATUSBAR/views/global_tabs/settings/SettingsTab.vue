@@ -17,7 +17,7 @@
         <div class="flex justify-between items-center border-b border-outline-variant/50 pb-0.5">
           <span class="text-on-surface-variant">Kernel_Ver</span>
           <!-- TODO: 版本号暂时硬编码，等待后续酒馆官方扩展API或GitHub Release获取 -->
-          <span class="text-primary-text font-bold">v2.0.0-beta</span>
+          <span class="text-primary-text font-bold">v6.1.x</span>
         </div>
         <div class="flex justify-between items-center border-b border-outline-variant/50 pb-0.5">
           <span class="text-on-surface-variant">Mem_Alloc</span>
