@@ -110,7 +110,6 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { watch } from 'vue';
 import { StatusBarManager } from '../../../services/statusbar_manager';
 import { configStore, useArkConfig } from '../../../store/config_store';
 import { useUIStateStore, type UIWorldbookEntry } from '../../../store/ui_state_store';
@@ -128,7 +127,6 @@ const {
 } = storeToRefs(uiStore);
 
 const { 
-  calculateTokenForEntry,
   getEntryKey
 } = uiStore;
 
@@ -136,15 +134,7 @@ const emit = defineEmits<{ (e: 'close-panel'): void }>();
 const currentConfig = useArkConfig();
 const manager = StatusBarManager.getInstance();
 
-watch(
-  pendingEntries,
-  newEntries => {
-    if (newEntries) {
-      newEntries.forEach((entry: UIWorldbookEntry) => calculateTokenForEntry(entry));
-    }
-  },
-  { immediate: true },
-);
+// Token 计算逻辑已迁移至 ui_state_store.ts 进行全局监控，避免气泡态下不渲染导致无法计算
 
 const runManualTest = () => {
   isTestMode.value = true;

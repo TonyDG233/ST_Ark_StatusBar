@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 import type { WorldbookEntry } from '../types/st_worldbook_types';
 
@@ -68,6 +68,17 @@ export const useUIStateStore = defineStore('ark_ui_state', () => {
       }
     }
   };
+
+  // 全局自动触发被拦截条目的 Token 计算，不再依赖 InterceptorTab 的挂载
+  watch(
+    pendingEntries,
+    (newEntries) => {
+      if (newEntries) {
+        newEntries.forEach((entry: UIWorldbookEntry) => calculateTokenForEntry(entry));
+      }
+    },
+    { immediate: true }
+  );
 
   /*
    * [FUTURE TODO]: 为了保证后续可以实现诸如 token 计数，isPinned 方法等的sort，以及开启蓝灯条目时归类蓝灯/绿灯排列的 sort 等功能，
