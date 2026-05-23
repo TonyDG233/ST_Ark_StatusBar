@@ -17,7 +17,7 @@
             拦截预警控制中心
           </h1>
           <p class="tab-desc font-body text-on-surface-variant text-xs break-words whitespace-normal mt-1 leading-snug transition-all">
-            主动扫描模式运行中。监测所有世界书数据注入请求以防止危险的内容污染或底层逻辑冲突。
+            监测所有世界书数据注入请求，以防止危险的内容污染与冗余的数据注入，优化上下文与LLM表现。
           </p>
         </div>
         

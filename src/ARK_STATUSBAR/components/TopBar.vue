@@ -2,9 +2,9 @@
   <header class="ark-top-bar w-full max-w-full min-w-0 flex justify-between items-center px-3 bg-surface border-b border-outline-variant flex-shrink-0 select-none cursor-grab active:cursor-grabbing transition-all duration-300 overflow-hidden"
           :class="isMini ? 'h-8' : 'h-10'">
     <!-- 开发标签 -->
-    <div class="absolute top-0 right-10 bg-error/90 text-on-error text-[calc(8em/14)] px-1 font-mono z-50 pointer-events-none opacity-50">
+    <!-- <div class="absolute top-0 right-10 bg-error/90 text-on-error text-[calc(8em/14)] px-1 font-mono z-50 pointer-events-none opacity-50">
       [TopBar]
-    </div>
+    </div> -->
 
     <!-- 左侧标题与图标 -->
     <div class="flex items-center gap-2 text-primary-text font-display font-bold tracking-widest uppercase truncate min-w-0 flex-1">

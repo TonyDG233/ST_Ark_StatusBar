@@ -79,7 +79,7 @@ export const DEFAULT_CONFIG: ArkConfig = {
   showConstantEntries: false, // 默认隐藏蓝灯条目
   isDebugMode: false,
   uiWidth: 400,
-  uiHeight: 500,
+  uiHeight: 600,
   uiFontSize: 14,
   worldbookPageSize: 15,
   commits: [],

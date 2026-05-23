@@ -1,9 +1,9 @@
 <template>
   <div class="ark-mini-window w-full bg-surface border-x border-b border-outline-variant flex flex-col relative overflow-hidden" style="max-height: 120px;">
     <!-- 开发意图标签 -->
-    <div class="absolute top-0 right-10 bg-error/90 text-on-error text-[calc(8em/14)] px-1 font-mono z-50 pointer-events-none opacity-50">
+    <!-- <div class="absolute top-0 right-10 bg-error/90 text-on-error text-[calc(8em/14)] px-1 font-mono z-50 pointer-events-none opacity-50">
       [MiniWindow]
-    </div>
+    </div> -->
 
     <!-- 列表区，无数据时居中显示留白，有数据时可内部滚动 -->
     <div v-if="entries.length === 0" class="flex-1 flex flex-col items-center justify-center opacity-50 p-4">

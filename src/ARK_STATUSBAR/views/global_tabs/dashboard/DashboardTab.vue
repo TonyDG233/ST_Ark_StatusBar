@@ -1,9 +1,9 @@
 <template>
   <div class="dashboard-tab relative flex flex-col p-4 gap-4 @container scrollbar-none overflow-y-auto">
     <!-- 开发标签 -->
-    <div class="absolute top-0 right-0 bg-error/90 text-on-error text-[calc(10em/14)] px-1 font-mono z-50 pointer-events-none opacity-50">
+    <!-- <div class="absolute top-0 right-0 bg-error/90 text-on-error text-[calc(10em/14)] px-1 font-mono z-50 pointer-events-none opacity-50">
       [DashboardTab]
-    </div>
+    </div> -->
 
     <!-- 顶部状态面板 (Top Status) -->
     <div class="relative flex-shrink-0">

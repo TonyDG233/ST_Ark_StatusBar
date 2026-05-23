@@ -1,9 +1,9 @@
 <template>
   <nav class="sub-nav z-50 flex items-center p-1 bg-surface-container-highest/90 backdrop-blur-md border border-outline-variant shadow-lg rounded-xl max-w-full overflow-x-auto scrollbar-none mx-auto box-border">
     <!-- 开发时对齐意图用 -->
-    <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-error/90 text-on-error text-[calc(8em/14)] px-1 font-mono opacity-50 pointer-events-none rounded whitespace-nowrap">
+    <!-- <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-error/90 text-on-error text-[calc(8em/14)] px-1 font-mono opacity-50 pointer-events-none rounded whitespace-nowrap">
       [SubNav]
-    </div>
+    </div> -->
 
     <!-- 动态渲染的菜单项 -->
     <button
