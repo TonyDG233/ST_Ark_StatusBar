@@ -3,6 +3,7 @@ import { deteleportStyle, teleportStyle } from '../util/script';
 import GlobalStatusBar from './components/GlobalStatusBar.vue';
 import ReturnButton from './components/ReturnButton.vue';
 import StartupNavigator from './components/StartupNavigator.vue';
+import { acquireInstanceLock, releaseInstanceLock } from './components/global_tabs/useInstanceLock';
 import { StatusBarManager } from './logic/statusbar_manager';
 
 // 导入全局样式
@@ -208,6 +209,8 @@ function mountGlobalStatusBar() {
  * 作用：取代过去的散装初始化，提供一个从上到下、明确的生命周期主干。
  */
 async function bootstrap() {
+  if (!acquireInstanceLock()) return;
+
   console.info('[ARK_STATUSBAR] Module Loaded. Bootstrapping...');
 
   // --- 1. 初始化业务管理器 ---
@@ -278,4 +281,8 @@ $(window).on('pagehide', () => {
   const ST_DOC = window.parent?.document || document;
   ST_DOC.querySelectorAll(`.${STARTUP_CONTAINER_CLASS}`).forEach(el => el.remove());
   ST_DOC.querySelectorAll(`.${RETURN_BTN_CONTAINER_CLASS}`).forEach(el => el.remove());
+  ST_DOC.querySelectorAll(`.${GLOBAL_STATUSBAR_CONTAINER_CLASS}`).forEach(el => el.remove());
+
+  // 7. 释放全局单例锁
+  releaseInstanceLock();
 });
