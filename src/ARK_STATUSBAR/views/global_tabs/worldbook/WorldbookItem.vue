@@ -3,7 +3,7 @@
     <!-- Folder Header -->
     <LoreFolderItem 
       :title="wb.name" 
-      :count="worldbookEntriesCache[wb.name]?.length || 0" 
+      :count="worldbookEntriesCache[wb.name]?.length" 
       :bindType="wb.type as 'char' | 'global' | 'unmounted'"
       :isPinned="wb.isPinned"
       :expanded="isExpanded"

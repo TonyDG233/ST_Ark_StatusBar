@@ -28,7 +28,7 @@
       
       <!-- Count Badge -->
       <span class="bg-surface-container-highest border border-outline-variant text-on-surface-variant font-mono text-[calc(9em/14)] px-1.5 py-0.5 flex-shrink-0 whitespace-nowrap">
-        {{ count }} 条
+        {{ count !== undefined ? `${count} 条` : '...' }}
       </span>
     </div>
 
@@ -64,7 +64,7 @@
 <script setup lang="ts">
 defineProps<{
   title: string;
-  count: number;
+  count?: number;
   expanded: boolean;
   bindType: 'char' | 'global' | 'unmounted';
   isPinned: boolean;

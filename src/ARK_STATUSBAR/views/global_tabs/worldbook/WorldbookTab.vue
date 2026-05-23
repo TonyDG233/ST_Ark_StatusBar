@@ -80,7 +80,7 @@
     <!-- Accordion Lists Container -->
     <div class="flex flex-col px-2 pb-2 w-full box-border gap-2">
       <WorldbookItem
-        v-for="wb in filteredWorldbooks"
+        v-for="wb in paginatedWorldbooks"
         :key="wb.name"
         :wb="wb"
         :isGlobalBatchMode="isGlobalBatchMode"
@@ -89,6 +89,48 @@
 
       <div v-if="filteredWorldbooks.length === 0" class="text-on-surface-variant text-xs text-center py-4">没有找到匹配的世界书。</div>
 
+      <!-- Pagination Controls & Page Size Selector -->
+      <div v-if="filteredWorldbooks.length > 0" class="flex flex-wrap justify-between items-center mt-2 mb-2 gap-2">
+        <div class="flex-1"></div>
+
+        <div v-if="totalPages > 1" class="flex items-center gap-4 flex-shrink-0">
+          <button 
+            class="w-8 h-8 flex items-center justify-center border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface transition-colors cursor-pointer outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="currentPage <= 1"
+            @click="prevPage"
+          >
+            <span class="material-symbols-outlined text-[calc(18em/14)]">chevron_left</span>
+          </button>
+          
+          <span class="font-mono text-[calc(12em/14)] text-on-surface-variant font-bold">
+            {{ currentPage }} / {{ totalPages }}
+          </span>
+          
+          <button 
+            class="w-8 h-8 flex items-center justify-center border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface transition-colors cursor-pointer outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="currentPage >= totalPages"
+            @click="nextPage"
+          >
+            <span class="material-symbols-outlined text-[calc(18em/14)]">chevron_right</span>
+          </button>
+        </div>
+        <div v-else class="flex-shrink-0"></div>
+
+        <div class="flex-1 flex justify-end">
+          <div class="relative flex items-center border border-outline-variant bg-surface hover:border-primary transition-colors h-8 group">
+            <select v-model="pageSize" class="appearance-none bg-transparent border-none outline-none text-[calc(11em/14)] font-mono text-on-surface pl-2 pr-6 h-full cursor-pointer z-10 w-full">
+              <option :value="5">5 / 页</option>
+              <option :value="10">10 / 页</option>
+              <option :value="15">15 / 页</option>
+              <option :value="20">20 / 页</option>
+              <option :value="30">30 / 页</option>
+              <option :value="50">50 / 页</option>
+            </select>
+            <span class="material-symbols-outlined text-[calc(14em/14)] text-on-surface-variant absolute right-1 pointer-events-none group-hover:text-primary transition-colors">arrow_drop_down</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Bottom Spacer to avoid SubNav overlap -->
       <div class="h-14 flex-shrink-0 w-full pointer-events-none"></div>
     </div>
@@ -96,14 +138,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { useArkConfig } from '../../../store/config_store';
+import { computed, ref, watch } from 'vue';
+import { configStore, useArkConfig } from '../../../store/config_store';
 import { useWorldbookActions } from './useWorldbookActions';
 import WorldbookItem from './WorldbookItem.vue';
 
 // Pinia化前端数据中心改造
 import { storeToRefs } from 'pinia';
-import { useUIStateStore } from '../../../store/ui_state_store';
+import { UIWorldbookEntry, useUIStateStore } from '../../../store/ui_state_store';
 
 // 1. 实例化 Store
 const uiStore = useUIStateStore();
@@ -111,8 +153,10 @@ const uiStore = useUIStateStore();
 const { 
   allAvailableWorldbooks, 
   charBoundWorldbooks, 
-  globalMountedWorldbooks
+  globalMountedWorldbooks,
+  worldbookEntriesCache
 } = storeToRefs(uiStore);
+const { CONFIG_ENTRY_PREFIX } = uiStore;
 
 const currentConfig = useArkConfig();
 const actions = useWorldbookActions();
@@ -162,6 +206,46 @@ const filteredWorldbooks = computed(() => {
   return result;
 });
 
+// --- Pagination Logic ---
+const currentPage = ref(1);
+const pageSize = ref(currentConfig.value?.worldbookPageSize || 15);
+
+watch(filterText, () => { currentPage.value = 1; });
+watch(isGlobalBatchMode, () => { currentPage.value = 1; });
+watch(pageSize, (newSize) => { 
+  currentPage.value = 1; 
+  configStore.updateConfig({ worldbookPageSize: newSize });
+});
+
+const totalPages = computed(() => Math.ceil(filteredWorldbooks.value.length / pageSize.value) || 1);
+
+const paginatedWorldbooks = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  return filteredWorldbooks.value.slice(start, end);
+});
+
+const prevPage = () => { if (currentPage.value > 1) currentPage.value--; };
+const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++; };
+
+// --- Pre-load Logic ---
+watch(paginatedWorldbooks, async (newWbs) => {
+  // 静默预加载当前页的 Worldbook 条目数量
+  for (const wb of newWbs) {
+    if (!worldbookEntriesCache.value[wb.name]) {
+      try {
+        const entries = (await getWorldbook(wb.name)) as unknown as UIWorldbookEntry[];
+        worldbookEntriesCache.value[wb.name] = entries.filter(
+          (e: UIWorldbookEntry) => !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)),
+        );
+      } catch (e) {
+        console.warn(`[ARK_UI] 预加载世界书 ${wb.name} 失败`, e);
+      }
+    }
+  }
+}, { immediate: true });
+
+// --- Selection Logic ---
 const isAllWorldbooksSelected = computed(() => {
   const wbs = filteredWorldbooks.value;
   return wbs.length > 0 && selectedWorldbooks.value.length === wbs.length;
