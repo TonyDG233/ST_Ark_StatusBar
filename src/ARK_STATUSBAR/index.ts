@@ -13,6 +13,7 @@ import {
   STARTUP_CONTAINER_CLASS,
   stopChatMonitor
 } from './hooks/useChatMonitor';
+import { acquireInstanceLock, releaseInstanceLock } from './hooks/useInstanceLock';
 import { setupTavernControls } from './hooks/useTavernControls';
 
 // 导入全局样式
@@ -152,6 +153,8 @@ function mountGlobalStatusBar() {
 // 引导程序 (Bootstrapper)
 // -----------------------------------------------------------------------------
 async function bootstrap() {
+  if (!acquireInstanceLock()) return;
+
   console.info('[ARK_STATUSBAR] Module Loaded. Bootstrapping...');
 
   // --- 1. 初始化业务管理器 ---
@@ -218,4 +221,8 @@ $(window).on('pagehide', () => {
   const ST_DOC = window.parent?.document || document;
   ST_DOC.querySelectorAll(`.${STARTUP_CONTAINER_CLASS}`).forEach(el => el.remove());
   ST_DOC.querySelectorAll(`.${RETURN_BTN_CONTAINER_CLASS}`).forEach(el => el.remove());
+  ST_DOC.querySelectorAll(`.${GLOBAL_STATUSBAR_CONTAINER_CLASS}`).forEach(el => el.remove());
+
+  // 7. 释放全局单例锁
+  releaseInstanceLock();
 });
