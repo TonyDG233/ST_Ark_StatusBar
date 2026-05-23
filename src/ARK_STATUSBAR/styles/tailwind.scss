@@ -64,6 +64,16 @@
 
     /* 背景水印映射 */
     --bg-watermark: var(--bg-watermark);
+
+    /* 覆盖 Tailwind 默认的 rem 字体单位为 em，使得全局 font-size 控制生效 */
+    --text-xs: 0.75em;
+    --text-sm: 0.875em;
+    --text-base: 1em;
+    --text-lg: 1.125em;
+    --text-xl: 1.25em;
+    --text-2xl: 1.5em;
+    --text-3xl: 1.875em;
+    --text-4xl: 2.25em;
 }
 
 /* 4. 提取公用的原子组件类 (从 shared_ui.scss 中逐步迁移) */

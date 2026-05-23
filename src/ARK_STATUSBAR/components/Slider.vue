@@ -1,8 +1,8 @@
 <template>
   <div class="ark-slider flex flex-col gap-1 w-full">
     <div class="flex justify-between items-end">
-      <label class="font-display text-[11px] font-bold text-on-surface-variant tracking-widest uppercase">{{ label }}</label>
-      <span class="font-mono text-[12px] text-on-surface">{{ displayValue }}</span>
+      <label class="font-display text-[calc(11em/14)] font-bold text-on-surface-variant tracking-widest uppercase">{{ label }}</label>
+      <span class="font-mono text-[calc(12em/14)] text-on-surface">{{ displayValue }}</span>
     </div>
     
     <!-- Range Input -->
@@ -11,18 +11,18 @@
       <div class="absolute w-full h-1 bg-outline-variant pointer-events-none top-1/2 -translate-y-1/2"></div>
       
       <input
-        type="range" 
-        :min="min" 
-        :max="max" 
-        :step="step" 
-        v-model="model" 
+        type="range"
+        :min="min"
+        :max="max"
+        :step="step"
+        v-model.number="model"
         @change="emit('change', model)"
         class="w-full appearance-none bg-transparent focus:outline-none cursor-pointer relative z-10 m-0 p-0"
       />
     </div>
     
     <!-- Min / Max Labels -->
-    <div class="flex justify-between text-[10px] text-outline font-mono">
+    <div class="flex justify-between text-[calc(10em/14)] text-outline font-mono">
       <span>{{ minLabel || 'MIN' }}</span>
       <span>{{ maxLabel || 'MAX' }}</span>
     </div>

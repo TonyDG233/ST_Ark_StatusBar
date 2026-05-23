@@ -1,7 +1,7 @@
 <template>
   <div class="ark-wip-mask absolute inset-0 bg-surface/80 backdrop-blur-[2px] flex items-center justify-center z-10 select-none overflow-hidden">
     <!-- 开发意图标签 -->
-    <div class="absolute top-0 right-0 bg-error/90 text-on-error text-[10px] px-1 font-mono z-50 pointer-events-none opacity-50">
+    <div class="absolute top-0 right-0 bg-error/90 text-on-error text-[calc(10em/14)] px-1 font-mono z-50 pointer-events-none opacity-50">
       [WipMask]
     </div>
 

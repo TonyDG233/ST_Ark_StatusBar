@@ -1,7 +1,7 @@
 <template>
   <div class="ark-panel relative bg-surface border border-outline-variant overflow-hidden flex flex-col shadow-sm">
     <!-- 开发时对齐意图用：可视化组件名称标签 (正式上线后可设为 false 隐藏) -->
-    <div class="absolute top-0 right-0 bg-error/90 text-on-error text-[10px] px-1 font-mono z-50 pointer-events-none opacity-50">
+    <div class="absolute top-0 right-0 bg-error/90 text-on-error text-[calc(10em/14)] px-1 font-mono z-50 pointer-events-none opacity-50">
       [Panel]
     </div>
 

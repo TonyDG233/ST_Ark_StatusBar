@@ -10,14 +10,14 @@
     >
       <div class="flex items-center gap-1.5 px-2 overflow-hidden w-full" :class="position === 'left' ? 'justify-end' : 'justify-start'">
         <!-- 书本图标 -->
-        <span class="material-symbols-outlined text-primary-text text-[20px] flex-shrink-0">menu_book</span>
+        <span class="material-symbols-outlined text-primary-text text-[calc(20em/14)] flex-shrink-0">menu_book</span>
         <!-- 压缩文案：仅在宽度允许时显示 -->
-        <span v-if="width > 60 && triggerCount > 0" class="text-[10px] font-code-data text-primary-text whitespace-nowrap truncate font-bold">
+        <span v-if="width > 60 && triggerCount > 0" class="text-[calc(10em/14)] font-code-data text-primary-text whitespace-nowrap truncate font-bold">
           拦截: {{ triggerCount }}
         </span>
         <!-- 如果宽度窄，用红点/徽章代替文本 -->
         <div v-else-if="triggerCount > 0" class="absolute top-2 bg-primary rounded-full min-w-[14px] h-[14px] px-[3px] flex items-center justify-center border border-surface shadow-sm" :class="position === 'left' ? 'right-1' : 'left-1'">
-          <span class="text-[8px] text-on-primary font-bold leading-none translate-y-[0.5px]">{{ triggerCount > 99 ? '99+' : triggerCount }}</span>
+          <span class="text-[calc(8em/14)] text-on-primary font-bold leading-none translate-y-[0.5px]">{{ triggerCount > 99 ? '99+' : triggerCount }}</span>
         </div>
       </div>
     </div>
@@ -33,11 +33,11 @@
       ]"
     >
       <div class="flex justify-between items-center border-b border-outline-variant/50 pb-1 px-1">
-        <span class="text-[10px] font-display text-primary-text tracking-widest uppercase">
+        <span class="text-[calc(10em/14)] font-display text-primary-text tracking-widest uppercase">
           拦截面板 ~{{ totalTokens }} tok | {{ entries.length }}
         </span>
         <button class="reset-btn text-on-surface-variant hover:text-on-surface flex items-center justify-center p-0" @click="emit('close-popover')">
-          <span class="material-symbols-outlined text-[12px]">close</span>
+          <span class="material-symbols-outlined text-[calc(12em/14)]">close</span>
         </button>
       </div>
 
@@ -56,14 +56,14 @@
               entry.tempDisabled ? 'ark-stripe-warning bg-outline-variant/10 border-outline-variant' : 'bg-surface-container-low border-outline-variant/50'
             ]">
           <div class="flex justify-between items-start gap-1 relative z-10">
-            <span class="text-[11px] font-body flex-1 min-w-0 break-words whitespace-normal leading-tight"
+            <span class="text-[calc(11em/14)] font-body flex-1 min-w-0 break-words whitespace-normal leading-tight"
                   :class="[
                     entry.enabled === false && !entry.tempDisabled ? 'text-on-surface line-through opacity-70' :
                     entry.tempDisabled ? 'text-on-surface-variant' : 'text-on-surface'
                   ]">
               {{ entry.name }}
             </span>
-            <span class="text-[9px] font-mono text-on-surface-variant whitespace-nowrap flex-shrink-0 opacity-70 mt-0.5">
+            <span class="text-[calc(9em/14)] font-mono text-on-surface-variant whitespace-nowrap flex-shrink-0 opacity-70 mt-0.5">
               ~{{ entry.tokens || 0 }}
             </span>
           </div>
@@ -103,8 +103,8 @@
 
       <!-- 发送/取消 动作区 -->
       <div class="flex gap-1.5 pt-1.5 border-t border-outline-variant/50">
-        <button class="reset-btn flex-1 py-1 hover:bg-surface-variant text-on-surface-variant hover:text-on-surface text-[11px] font-display border border-outline-variant transition-colors rounded-sm" @click="emit('action', 'cancel')">取消</button>
-        <button class="reset-btn flex-1 py-1 hover:bg-primary/20 text-primary-text text-[11px] font-display border border-primary/50 transition-colors font-bold rounded-sm bg-primary/10" style="background-color: rgb(var(--color-primary-rgb) / 0.1);" @click="emit('action', 'send')">发送</button>
+        <button class="reset-btn flex-1 py-1 hover:bg-surface-variant text-on-surface-variant hover:text-on-surface text-[calc(11em/14)] font-display border border-outline-variant transition-colors rounded-sm" @click="emit('action', 'cancel')">取消</button>
+        <button class="reset-btn flex-1 py-1 hover:bg-primary/20 text-primary-text text-[calc(11em/14)] font-display border border-primary/50 transition-colors font-bold rounded-sm bg-primary/10" style="background-color: rgb(var(--color-primary-rgb) / 0.1);" @click="emit('action', 'send')">发送</button>
       </div>
     </div>
 

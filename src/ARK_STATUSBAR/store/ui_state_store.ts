@@ -225,6 +225,7 @@ export const useUIStateStore = defineStore('ark_ui_state', () => {
   // ----------------------------------------------------------------------------
   // 用于设置界面拖动滑动条时，实现父容器外壳尺寸/字体的实时无延迟预览防撕裂
   const previewUiWidth = ref<number | null>(null);
+  const previewUiHeight = ref<number | null>(null);
   const previewUiFontSize = ref<number | null>(null);
 
   return {
@@ -244,6 +245,7 @@ export const useUIStateStore = defineStore('ark_ui_state', () => {
     worldbookEntriesCache,
     isLoadingWb,
     previewUiWidth,
+    previewUiHeight,
     previewUiFontSize,
 
     // === 纯静态常量 & 方法 / 动作 (Constants & Actions) ===

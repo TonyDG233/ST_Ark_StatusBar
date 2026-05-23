@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard-tab relative flex flex-col p-4 gap-4 @container scrollbar-none overflow-y-auto">
     <!-- 开发标签 -->
-    <div class="absolute top-0 right-0 bg-error/90 text-on-error text-[10px] px-1 font-mono z-50 pointer-events-none opacity-50">
+    <div class="absolute top-0 right-0 bg-error/90 text-on-error text-[calc(10em/14)] px-1 font-mono z-50 pointer-events-none opacity-50">
       [DashboardTab]
     </div>
 
@@ -20,7 +20,7 @@
     <!-- 中部活动日志 (Recent Activity) -->
     <Panel class="flex-col flex-shrink-0">
       <div class="p-3 border-b border-outline-variant flex justify-between items-center bg-surface-container-low flex-shrink-0">
-        <span class="font-bold tracking-widest text-[11px] uppercase text-on-surface">近期触发记录</span>
+        <span class="font-bold tracking-widest text-[calc(11em/14)] uppercase text-on-surface">近期触发记录</span>
         <div class="w-1.5 h-1.5 bg-secondary"></div>
       </div>
       
@@ -31,28 +31,28 @@
         <div v-else v-for="(log, idx) in recentTriggerLogs" :key="log.timestamp" class="flex flex-col border-b border-outline-variant/50 pb-3 last:border-0 last:pb-0 -mx-3 px-3">
           <!-- 概览条目 -->
           <div class="flex gap-2 items-start cursor-pointer hover:bg-surface-variant/30 transition-colors py-1" @click="toggleExpand(idx)">
-            <span class="material-symbols-outlined text-on-surface-variant mt-0.5 flex-shrink-0 text-[14px]">memory</span>
+            <span class="material-symbols-outlined text-on-surface-variant mt-0.5 flex-shrink-0 text-[calc(14em/14)]">memory</span>
             <div class="flex-1 min-w-0 flex flex-col">
-              <span class="text-on-surface text-[12px] font-bold tracking-wide truncate">Triggered {{ log.entries.length }} entries</span>
-              <span class="text-on-surface-variant text-[10px] font-mono mt-1 tracking-wider truncate">~{{ log.tokenCount }} TOKENS</span>
+              <span class="text-on-surface text-[calc(12em/14)] font-bold tracking-wide truncate">Triggered {{ log.entries.length }} entries</span>
+              <span class="text-on-surface-variant text-[calc(10em/14)] font-mono mt-1 tracking-wider truncate">~{{ log.tokenCount }} TOKENS</span>
             </div>
             <div class="flex flex-col items-end gap-1">
-              <span class="text-on-surface-variant text-[10px] font-mono mt-0.5 flex-shrink-0">{{ formatTime(log.timestamp) }}</span>
-              <span class="material-symbols-outlined text-on-surface-variant text-[16px] transition-transform duration-200" :class="{ 'rotate-180': expandedLogIdx === idx }">expand_more</span>
+              <span class="text-on-surface-variant text-[calc(10em/14)] font-mono mt-0.5 flex-shrink-0">{{ formatTime(log.timestamp) }}</span>
+              <span class="material-symbols-outlined text-on-surface-variant text-[calc(16em/14)] transition-transform duration-200" :class="{ 'rotate-180': expandedLogIdx === idx }">expand_more</span>
             </div>
           </div>
           <!-- 展开详情 (简化的 InterceptorQueueItem) -->
           <div v-show="expandedLogIdx === idx" class="flex flex-col gap-1.5 mt-2 pl-6 pr-1 overflow-hidden transition-all duration-300">
             <div v-for="(entry, eIdx) in log.entries" :key="eIdx" class="flex flex-col gap-1 p-1.5 rounded-sm border border-outline-variant/30 bg-surface-container-lowest">
               <div class="flex justify-between items-start gap-1">
-                <span class="text-[11px] font-display text-on-surface flex-1 min-w-0 break-words whitespace-normal leading-tight">
+                <span class="text-[calc(11em/14)] font-display text-on-surface flex-1 min-w-0 break-words whitespace-normal leading-tight">
                   {{ entry.name || (entry.strategy?.keys && entry.strategy.keys.length ? entry.strategy.keys[0].toString() : '未知') }}
                 </span>
-                <span class="text-[9px] font-mono text-on-surface-variant whitespace-nowrap flex-shrink-0 opacity-70 bg-surface-container-high px-1 py-0.5 rounded-sm">
+                <span class="text-[calc(9em/14)] font-mono text-on-surface-variant whitespace-nowrap flex-shrink-0 opacity-70 bg-surface-container-high px-1 py-0.5 rounded-sm">
                   ~{{ uiStore.entryTokenCountCache[uiStore.getEntryKey(entry)] || 0 }} tok
                 </span>
               </div>
-              <div class="font-body text-on-surface-variant text-[9px] mt-0.5">
+              <div class="font-body text-on-surface-variant text-[calc(9em/14)] mt-0.5">
                 📁 来源: {{ entry.world || uiStore.currentPrimaryWorldbook || '未知' }}
               </div>
             </div>

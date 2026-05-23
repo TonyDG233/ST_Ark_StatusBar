@@ -1,7 +1,7 @@
 <template>
   <div class="ark-section-header flex flex-col relative">
     <!-- 意图标签 -->
-    <div class="absolute top-0 right-0 bg-error/90 text-on-error text-[8px] px-1 font-mono z-50 opacity-0 hover:opacity-50 pointer-events-none transition-opacity">
+    <div class="absolute top-0 right-0 bg-error/90 text-on-error text-[calc(8em/14)] px-1 font-mono z-50 opacity-0 hover:opacity-50 pointer-events-none transition-opacity">
       [SectionHeader]
     </div>
 

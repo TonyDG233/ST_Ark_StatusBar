@@ -42,7 +42,7 @@
 
       <!-- Global Worldbook Search -->
       <div class="flex items-center bg-surface border border-outline-variant px-2 py-1.5 focus-within:border-primary transition-colors mt-1 w-full min-w-0 box-border">
-        <span class="material-symbols-outlined text-on-surface-variant text-[14px] flex-shrink-0 mr-2">search</span>
+        <span class="material-symbols-outlined text-on-surface-variant text-[calc(14em/14)] flex-shrink-0 mr-2">search</span>
         <input
           class="bg-transparent border-none text-on-surface font-mono focus:outline-none p-0 w-full placeholder-on-surface-variant/50 text-xs min-w-0"
           placeholder="搜索世界书..."
@@ -53,25 +53,25 @@
 
       <!-- Global Batch Toolbar -->
       <div v-if="isGlobalBatchMode" class="flex flex-wrap items-center gap-2 mt-1 pt-2 border-t border-outline-variant/50 w-full">
-        <label class="flex items-center gap-1 cursor-pointer font-display text-[10px] text-on-surface hover:text-primary-text transition-colors mr-2 flex-shrink-0">
+        <label class="flex items-center gap-1 cursor-pointer font-display text-[calc(10em/14)] text-on-surface hover:text-primary-text transition-colors mr-2 flex-shrink-0">
           <input type="checkbox" class="accent-primary" :checked="isAllWorldbooksSelected" @change="toggleSelectAllWorldbooks" /> 全选
         </label>
         
         <div class="flex flex-wrap items-center gap-1.5 flex-1 min-w-0">
-          <button class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface text-[10px] flex items-center gap-0.5 transition-colors cursor-pointer outline-none" @click="actions.batchPinWorldbooks(selectedWorldbooks, true)">
-            <span class="material-symbols-outlined text-[12px] text-primary-text">push_pin</span> 置顶
+          <button class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface text-[calc(10em/14)] flex items-center gap-0.5 transition-colors cursor-pointer outline-none" @click="actions.batchPinWorldbooks(selectedWorldbooks, true)">
+            <span class="material-symbols-outlined text-[calc(12em/14)] text-primary-text">push_pin</span> 置顶
           </button>
-          <button class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface text-[10px] flex items-center gap-0.5 transition-colors cursor-pointer outline-none" @click="actions.batchPinWorldbooks(selectedWorldbooks, false)">
-            <span class="material-symbols-outlined text-[12px] text-on-surface-variant">push_pin</span> 消顶
+          <button class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface text-[calc(10em/14)] flex items-center gap-0.5 transition-colors cursor-pointer outline-none" @click="actions.batchPinWorldbooks(selectedWorldbooks, false)">
+            <span class="material-symbols-outlined text-[calc(12em/14)] text-on-surface-variant">push_pin</span> 消顶
           </button>
-          <button class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface text-[10px] flex items-center gap-0.5 transition-colors cursor-pointer outline-none" @click="actions.batchMountWorldbooks(selectedWorldbooks, true)">
-            <span class="material-symbols-outlined text-[12px]">link</span> 挂载
+          <button class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface text-[calc(10em/14)] flex items-center gap-0.5 transition-colors cursor-pointer outline-none" @click="actions.batchMountWorldbooks(selectedWorldbooks, true)">
+            <span class="material-symbols-outlined text-[calc(12em/14)]">link</span> 挂载
           </button>
-          <button class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface text-[10px] flex items-center gap-0.5 transition-colors cursor-pointer outline-none" @click="actions.batchMountWorldbooks(selectedWorldbooks, false)">
-            <span class="material-symbols-outlined text-[12px]">link_off</span> 卸载
+          <button class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface text-[calc(10em/14)] flex items-center gap-0.5 transition-colors cursor-pointer outline-none" @click="actions.batchMountWorldbooks(selectedWorldbooks, false)">
+            <span class="material-symbols-outlined text-[calc(12em/14)]">link_off</span> 卸载
           </button>
-          <button class="px-1.5 py-0.5 border border-error/50 bg-error-container/10 hover:bg-error-container/30 text-error text-[10px] flex items-center gap-0.5 transition-colors cursor-pointer outline-none" @click="handleBatchDelete">
-            <span class="material-symbols-outlined text-[12px]">delete</span> 删除
+          <button class="px-1.5 py-0.5 border border-error/50 bg-error-container/10 hover:bg-error-container/30 text-error text-[calc(10em/14)] flex items-center gap-0.5 transition-colors cursor-pointer outline-none" @click="handleBatchDelete">
+            <span class="material-symbols-outlined text-[calc(12em/14)]">delete</span> 删除
           </button>
         </div>
       </div>

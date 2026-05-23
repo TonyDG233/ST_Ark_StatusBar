@@ -3,7 +3,7 @@
     class="ark-action-toggle relative flex items-center justify-center font-display font-bold transition-all outline-none cursor-pointer"
     :class="[
       // Size variants
-      size === 'sm' ? 'text-[9px] px-1 py-0.5 gap-0.5 rounded-sm' : 'text-xs px-2 py-1 gap-1 rounded',
+      size === 'sm' ? 'text-[calc(9em/14)] px-1 py-0.5 gap-0.5 rounded-sm' : 'text-xs px-2 py-1 gap-1 rounded',
       // Type/Color variants (Removed borders for cleaner look)
       type === 'temp' ? 'text-primary-text bg-transparent hover:bg-primary/10' : '',
       type === 'disable' ? 'text-error bg-transparent hover:bg-error/10' : '',
@@ -17,7 +17,7 @@
     <div class="hidden appearance-none bg-transparent m-0 p-0"></div>
 
     <!-- Icon -->
-    <span class="material-symbols-outlined leading-none -translate-y-[0.5px]" :class="size === 'sm' ? 'text-[11px]' : 'text-sm'">
+    <span class="material-symbols-outlined leading-none -translate-y-[0.5px]" :class="size === 'sm' ? 'text-[calc(11em/14)]' : 'text-sm'">
       {{ type === 'temp' ? 'hourglass_empty' : 
          type === 'disable' ? 'block' : 
          type === 'delete' ? 'delete' :

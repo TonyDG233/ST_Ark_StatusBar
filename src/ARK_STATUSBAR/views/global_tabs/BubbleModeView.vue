@@ -1,12 +1,14 @@
 <template>
   <div class="w-full h-full relative pointer-events-auto">
-    <!-- 气泡拉拽把手 (覆盖在最上方，截获拖拽事件) -->
+    <!-- 气泡拉拽把手 (覆盖在最上方，截获拖拽与双击事件) -->
     <div
       class="w-full h-full flex items-center text-[1.1em] cursor-grab active:cursor-grabbing absolute inset-0 z-10"
       :class="position === 'left' ? 'justify-end pr-2' : 'justify-start pl-2'"
       @mousedown="(e) => $emit('drag-start', e)"
       @touchstart="(e) => $emit('drag-start', e)"
-      title="向屏幕内侧拖动以展开窗口"
+      @click="handleBubbleClick"
+      @dblclick="$emit('open-mini')"
+      title="单击展开微型拦截窗，双击恢复迷你悬浮窗，或拖拽展开"
     >
       <!-- 透明占位，实际图标和 Badge 由下方的 BubbleWindow 渲染 -->
     </div>
@@ -42,7 +44,7 @@ const props = defineProps<{
   width: number;
 }>();
 
-const emit = defineEmits(['drag-start', 'open-full']);
+const emit = defineEmits(['drag-start', 'open-full', 'open-mini']);
 
 const uiStore = useUIStateStore();
 const { pendingEntries, currentTokenCount, entryTokenCountCache, currentPrimaryWorldbook } = storeToRefs(uiStore);
@@ -73,8 +75,11 @@ watch(triggerCount, (newVal, oldVal) => {
 });
 
 const handleBubbleClick = () => {
-  // 气泡态下，手动点击可以展开/收缩内置拦截器面板
-  showPopover.value = !showPopover.value;
+  // 用户反馈更新：如果在有拦截数据的情况下，用户误关了小面板，需要有重新打开的方法。
+  // 因此恢复单击打开/关闭气泡微型面板的功能。
+  if (triggerCount.value > 0) {
+    showPopover.value = !showPopover.value;
+  }
 };
 
 const handleToggleEntry = async (mappedEntry: any, action: 'enable' | 'resume' | 'temp' | 'disable') => {

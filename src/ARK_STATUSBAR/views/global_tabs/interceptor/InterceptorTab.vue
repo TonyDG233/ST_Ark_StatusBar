@@ -52,7 +52,7 @@
         </div>
         <div v-else class="flex flex-col items-center">
           <div class="flex items-center gap-1 text-primary-text mb-1 font-bold">
-            <span class="material-symbols-outlined text-[16px]">search</span>
+            <span class="material-symbols-outlined text-[calc(16em/14)]">search</span>
             <span>测试结果</span>
           </div>
           <p>根据当前上下文，未触发任何条件世界书条目。</p>
@@ -73,7 +73,7 @@
         <div class="flex flex-col gap-2 w-full mt-1">
           <div class="font-display text-xs font-bold tracking-widest uppercase text-on-surface-variant border-b border-surface-variant pb-1 flex justify-between">
             <span>待处理队列 (PENDING ENTRIES)</span>
-            <button v-if="isTestMode" class="text-[10px] text-primary hover:underline" @click="clearTestResults">清除测试结果</button>
+            <button v-if="isTestMode" class="text-[calc(10em/14)] text-primary hover:underline" @click="clearTestResults">清除测试结果</button>
           </div>
 
           <InterceptorQueueItem
@@ -93,11 +93,11 @@
 
         <!-- Bottom Actions -->
         <div class="w-full mt-4 flex flex-wrap gap-2" v-if="!isTestMode">
-          <button class="bg-surface border border-error text-error font-display text-[11px] font-bold tracking-widest uppercase py-2.5 hover:bg-error hover:text-on-error transition-colors flex items-center justify-center gap-1 flex-1 min-w-[120px] outline-none" @click="cancelSend">
+          <button class="bg-surface border border-error text-error font-display text-[calc(11em/14)] font-bold tracking-widest uppercase py-2.5 hover:bg-error hover:text-on-error transition-colors flex items-center justify-center gap-1 flex-1 min-w-[120px] outline-none" @click="cancelSend">
             <span class="material-symbols-outlined text-base">block</span>
             中止 (ABORT)
           </button>
-          <button class="bg-primary text-on-primary font-display text-[11px] font-bold tracking-widest uppercase py-2.5 hover:bg-primary-container transition-colors flex items-center justify-center gap-1 flex-1 min-w-[120px] outline-none shadow-[0_0_8px_rgba(78,213,255,0.4)]" @click="confirmSend">
+          <button class="bg-primary text-on-primary font-display text-[calc(11em/14)] font-bold tracking-widest uppercase py-2.5 hover:bg-primary-container transition-colors flex items-center justify-center gap-1 flex-1 min-w-[120px] outline-none shadow-[0_0_8px_rgba(78,213,255,0.4)]" @click="confirmSend">
             <span class="material-symbols-outlined text-base">send</span>
             发送 (PROCEED)
           </button>

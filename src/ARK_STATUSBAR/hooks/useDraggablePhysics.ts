@@ -58,7 +58,6 @@ export function useDraggablePhysics(statusBarEl: Ref<HTMLElement | null>, curren
   const snappedStretchWidth = ref(PHYSICS_CONSTANTS.BUBBLE_WIDTH);
 
   // 内部拖拽暂存 (基于 clientX/clientY 绝对坐标)
-  let isDragging = false;
   let startX = 0;
   let startY = 0;
   let initialLeft = 0;
@@ -186,7 +185,7 @@ export function useDraggablePhysics(statusBarEl: Ref<HTMLElement | null>, curren
     }
 
     // 非拖拽时严防沉底
-    if (!isDragging) {
+    if (!isDraggingState.value) {
       const bottomLimit = viewportHeight - currentHeight - PHYSICS_CONSTANTS.SAFE_MARGIN_BOTTOM;
       if (newY > bottomLimit) {
         newY = Math.max(PHYSICS_CONSTANTS.SAFE_TOP, bottomLimit);
@@ -195,7 +194,7 @@ export function useDraggablePhysics(statusBarEl: Ref<HTMLElement | null>, curren
     }
 
     if (transformLeft.value !== newLeft || transformRight.value !== newRight || transformY.value !== newY) {
-      if (forceSmooth || (outOfBounds && !isDragging)) {
+      if (forceSmooth || (outOfBounds && !isDraggingState.value)) {
         triggerSmoothSnap();
       }
       transformLeft.value = newLeft;
@@ -205,7 +204,7 @@ export function useDraggablePhysics(statusBarEl: Ref<HTMLElement | null>, curren
   };
 
   const onDrag = (e: MouseEvent | TouchEvent) => {
-    if (!isDragging || !statusBarEl.value) return;
+    if (!isDraggingState.value || !statusBarEl.value) return;
     e.preventDefault();
 
     let clientX = 0;
@@ -261,7 +260,6 @@ export function useDraggablePhysics(statusBarEl: Ref<HTMLElement | null>, curren
   };
 
   const stopDrag = () => {
-    isDragging = false;
     isDraggingState.value = false;
     const ST_DOC = window.parent?.document || document;
     ST_DOC.removeEventListener('mousemove', onDrag);
@@ -311,12 +309,16 @@ export function useDraggablePhysics(statusBarEl: Ref<HTMLElement | null>, curren
           currentAnchor.value = 'right';
           willSnap = true;
         }
-        // 右侧较近 -> 磁吸对齐
-        else if (distRight <= PHYSICS_CONSTANTS.SNAP_ALIGN_THRESHOLD) {
-          transformRight.value = 0;
-          currentAnchor.value = 'right';
-          willSnap = true;
-        }
+        /*
+         * 根据用户要求注释：由于吸附边缘（而非拽入边缘进入气泡状态）的逻辑会在 UI 被动展开时
+         * 产生边界死锁，导致后续无法拖拽 UI，因此暂时移除被动贴边的物理效果。
+         */
+        // // 右侧较近 -> 磁吸对齐
+        // else if (distRight <= PHYSICS_CONSTANTS.SNAP_ALIGN_THRESHOLD) {
+        //   transformRight.value = 0;
+        //   currentAnchor.value = 'right';
+        //   willSnap = true;
+        // }
         // 左侧极近 -> 气泡化
         else if (distLeft < PHYSICS_CONSTANTS.HIDE_THRESHOLD) {
           isSnappedToEdge.value = 'left';
@@ -326,12 +328,12 @@ export function useDraggablePhysics(statusBarEl: Ref<HTMLElement | null>, curren
           currentAnchor.value = 'left';
           willSnap = true;
         }
-        // 左侧较近 -> 磁吸对齐
-        else if (distLeft <= PHYSICS_CONSTANTS.SNAP_ALIGN_THRESHOLD) {
-          transformLeft.value = 0;
-          currentAnchor.value = 'left';
-          willSnap = true;
-        }
+        // // 左侧较近 -> 磁吸对齐
+        // else if (distLeft <= PHYSICS_CONSTANTS.SNAP_ALIGN_THRESHOLD) {
+        //   transformLeft.value = 0;
+        //   currentAnchor.value = 'left';
+        //   willSnap = true;
+        // }
 
         if (willSnap) {
           triggerSmoothSnap();
@@ -355,7 +357,6 @@ export function useDraggablePhysics(statusBarEl: Ref<HTMLElement | null>, curren
       e.preventDefault();
     }
 
-    isDragging = true;
     isDraggingState.value = true;
     isSnapping.value = false;
     if (snappingTimeout !== null) clearTimeout(snappingTimeout);
@@ -403,13 +404,13 @@ export function useDraggablePhysics(statusBarEl: Ref<HTMLElement | null>, curren
   onMounted(() => {
     if (statusBarEl.value) {
       resizeObserver = new ResizeObserver(() => {
-        if (!isDragging) requestAnimationFrame(() => checkBounds());
+        if (!isDraggingState.value) requestAnimationFrame(() => checkBounds());
       });
       resizeObserver.observe(statusBarEl.value);
     }
 
     heartbeatTimer = window.setInterval(() => {
-      if (!isDragging) requestAnimationFrame(() => checkBounds());
+      if (!isDraggingState.value) requestAnimationFrame(() => checkBounds());
     }, 1000);
 
     resetPosition();

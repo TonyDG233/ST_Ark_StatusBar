@@ -6,7 +6,7 @@
       <div class="flex flex-wrap items-center gap-2 min-w-0 w-full">
         <!-- Select Checkbox (only in batch mode) -->
         <div v-if="batchMode" class="cursor-pointer flex-shrink-0" @click="$emit('toggle-select')">
-          <span class="material-symbols-outlined text-on-surface-variant text-[16px]">
+          <span class="material-symbols-outlined text-on-surface-variant text-[calc(16em/14)]">
             {{ selected ? 'check_box' : 'check_box_outline_blank' }}
           </span>
         </div>
@@ -19,16 +19,16 @@
         </button>
         
         <!-- Title -->
-        <h3 class="font-display text-[14px] font-bold text-on-surface min-w-0 break-words whitespace-normal leading-tight flex-1">
+        <h3 class="font-display text-[calc(14em/14)] font-bold text-on-surface min-w-0 break-words whitespace-normal leading-tight flex-1">
           {{ entry.name }}
         </h3>
       </div>
       
       <!-- Keys (触发词) with wrapping -->
-      <div class="font-mono text-on-surface-variant text-[10px] min-w-0 break-words whitespace-normal leading-tight w-full" v-if="entry.keys && entry.keys.length">
+      <div class="font-mono text-on-surface-variant text-[calc(10em/14)] min-w-0 break-words whitespace-normal leading-tight w-full" v-if="entry.keys && entry.keys.length">
         <span class="text-primary-text/70 mr-1 font-bold">触发词:</span>{{ entry.keys.join(', ') }}
       </div>
-      <div class="font-mono text-on-surface-variant text-[10px] min-w-0 break-words whitespace-normal w-full opacity-50" v-else>
+      <div class="font-mono text-on-surface-variant text-[calc(10em/14)] min-w-0 break-words whitespace-normal w-full opacity-50" v-else>
         <span class="mr-1">触发词:</span>[无]
       </div>
     </div>
@@ -53,7 +53,7 @@
 
         <!-- Original Styled Slide Switch -->
         <div class="flex items-center gap-1 mr-1 cursor-pointer group/toggle flex-shrink-0" @click.stop="$emit('toggle-state')">
-          <span class="font-display font-bold text-[9px] uppercase tracking-widest transition-colors mr-1"
+          <span class="font-display font-bold text-[calc(9em/14)] uppercase tracking-widest transition-colors mr-1"
                 :class="entry.enabled ? 'text-secondary' : 'text-on-surface-variant'">
             {{ entry.enabled ? 'ON' : 'OFF' }}
           </span>
@@ -67,16 +67,16 @@
         
         <!-- Action Buttons -->
         <button class="text-on-surface-variant hover:text-primary-text transition-colors flex-shrink-0 outline-none flex items-center justify-center w-6 h-6 rounded hover:bg-surface-variant cursor-pointer" title="编辑" @click.stop="$emit('edit')">
-          <span class="material-symbols-outlined text-[15px]">edit</span>
+          <span class="material-symbols-outlined text-[calc(15em/14)]">edit</span>
         </button>
         <button class="transition-colors flex-shrink-0 outline-none flex items-center justify-center w-6 h-6 rounded hover:bg-surface-variant cursor-pointer" 
                 :class="entry.isPinned ? 'text-primary-text' : 'text-on-surface-variant hover:text-primary-text'"
                 :title="entry.isPinned ? '取消置顶' : '置顶'" 
                 @click.stop="$emit('toggle-pin')">
-          <span class="material-symbols-outlined text-[15px]" :style="entry.isPinned ? `font-variation-settings: 'FILL' 1;` : ''">push_pin</span>
+          <span class="material-symbols-outlined text-[calc(15em/14)]" :style="entry.isPinned ? `font-variation-settings: 'FILL' 1;` : ''">push_pin</span>
         </button>
         <button class="text-on-surface-variant hover:text-error transition-colors flex-shrink-0 outline-none flex items-center justify-center w-6 h-6 rounded hover:bg-error-container/20 cursor-pointer" title="删除" @click.stop="$emit('delete')">
-          <span class="material-symbols-outlined text-[15px]">delete</span>
+          <span class="material-symbols-outlined text-[calc(15em/14)]">delete</span>
         </button>
       </div>
     </div>

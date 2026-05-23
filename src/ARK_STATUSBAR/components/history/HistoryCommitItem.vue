@@ -14,12 +14,12 @@
         <label v-if="isBatchMode" class="shrink-0 pt-0.5 cursor-pointer flex items-center group" @click.stop>
           <input type="checkbox" :checked="isSelected" class="hidden peer" @change="emit('toggleSelection')" />
           <div class="w-3.5 h-3.5 border border-outline-variant bg-surface rounded-sm flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-colors group-hover:border-primary/50">
-            <span v-if="isSelected" class="material-symbols-outlined text-[12px] text-on-primary font-bold">check</span>
+            <span v-if="isSelected" class="material-symbols-outlined text-[calc(12em/14)] text-on-primary font-bold">check</span>
           </div>
         </label>
 
         <div class="flex flex-col min-w-0 flex-1">
-          <div class="text-[10px] font-mono text-on-surface-variant opacity-80 flex items-center gap-2 flex-wrap">
+          <div class="text-[calc(10em/14)] font-mono text-on-surface-variant opacity-80 flex items-center gap-2 flex-wrap">
             <span class="font-bold" :class="isSnapshot ? 'text-secondary' : 'text-primary-text'">#{{ commitId }}</span>
             <span>{{ time }}</span>
           </div>
@@ -35,23 +35,23 @@
                 :class="isPinned ? 'text-secondary' : 'text-on-surface-variant hover:text-secondary'"
                 title="保护记录"
                 @click.stop="emit('togglePin')">
-          <span class="material-symbols-outlined text-[16px]">keep</span>
+          <span class="material-symbols-outlined text-[calc(16em/14)]">keep</span>
         </button>
       </div>
       
       <!-- Source -->
-      <div v-if="source" class="text-[10px] text-primary-text/80 mb-2 truncate max-w-full">
+      <div v-if="source" class="text-[calc(10em/14)] text-primary-text/80 mb-2 truncate max-w-full">
         📁 来源: {{ source }}
         <span v-if="isHeavy" class="text-[#ffc107] ml-1">(重度修改)</span>
       </div>
       
-      <div v-if="description" class="text-[11px] text-on-surface-variant leading-relaxed mb-3 break-words min-w-0">
+      <div v-if="description" class="text-[calc(11em/14)] text-on-surface-variant leading-relaxed mb-3 break-words min-w-0">
         {{ description }}
       </div>
 
       <!-- Changes List Details -->
       <div v-if="changes && changes.length" class="flex flex-col gap-1.5 bg-surface-variant/20 p-2 border border-outline-variant/30 mb-3 rounded-sm min-w-0">
-        <div v-for="(change, idx) in changes" :key="idx" class="text-[10px] text-on-surface break-words whitespace-normal leading-tight">
+        <div v-for="(change, idx) in changes" :key="idx" class="text-[calc(10em/14)] text-on-surface break-words whitespace-normal leading-tight">
           <span class="text-on-surface-variant">{{ change.label }}</span>
           <span class="text-primary-text" v-if="change.path"> [{{ change.path }}]</span>
           <span v-if="change.path">: </span>

@@ -43,10 +43,11 @@
         isDraggingState ? '!transition-none' : ''
       ]"
       :style="{
+        position: 'relative',
         'transform-origin': currentAnchor === 'left' ? 'left top' : 'right top',
         '--ui-width': (previewUiWidth ?? currentConfig?.uiWidth ?? 400) + 'px',
-        '--ui-font-size': (previewUiFontSize ?? currentConfig?.uiFontSize ?? 14) + 'px',
         '--snapped-width': isSnappedToEdge ? `${snappedStretchWidth}px` : '32px',
+        fontSize: (previewUiFontSize ?? currentConfig?.uiFontSize ?? 14) + 'px',
       }"
     >
       
@@ -57,6 +58,7 @@
           :width="snappedStretchWidth"
           @drag-start="startDrag"
           @open-full="handleOpenFull"
+          @open-mini="handleOpenMini"
         />
       </template>
 
@@ -85,9 +87,12 @@
           <div class="min-h-0 min-w-0 overflow-hidden w-full transition-opacity duration-300"
                :class="currentUiMode === UiMode.FULL ? 'opacity-100' : 'opacity-0'">
                
-            <!-- 第三层：业务定高防线。写死 400px，确保 FULL 态下绝不塌陷。无论内部有多少内容，它总是 uiHeight。 -->
+            <!-- 第三层：恢复业务定高防线以保证 Grid 展开动画平滑，但新增动态 max-height 钳制防止因缩放窗口导致底部被裁切 -->
             <div class="flex flex-col w-full"
-                 :style="{ height: currentConfig?.uiHeight ? currentConfig.uiHeight + 'px' : '400px' }">
+                 :style="{
+                   height: (previewUiHeight ?? currentConfig?.uiHeight ?? 400) + 'px',
+                   maxHeight: 'calc(100dvh - 140px)'
+                 }">
             
               <div class="flex-1 overflow-y-auto scrollbar-none flex flex-col relative min-h-0 bg-background global-watermark">
                 <DashboardTab
@@ -127,6 +132,26 @@
             </div>
           </div>
         </div>
+
+        <!-- FULL 态专属底角拉伸把手 -->
+        <template v-if="currentUiMode === UiMode.FULL">
+          <div
+            class="absolute bottom-0 left-0 w-6 h-6 cursor-sw-resize z-[100]"
+            @mousedown.stop.prevent="e => startResize(e, 'sw')"
+            @touchstart.stop.prevent="e => startResize(e, 'sw')"
+            title="拖拽缩放UI尺寸"
+          ></div>
+          <div
+            class="absolute bottom-0 right-0 w-6 h-6 cursor-se-resize z-[100]"
+            @mousedown.stop.prevent="e => startResize(e, 'se')"
+            @touchstart.stop.prevent="e => startResize(e, 'se')"
+            title="拖拽缩放UI尺寸"
+          ></div>
+          
+          <!-- 视觉提示三角 (可选，如果影响美观可忽略，仅提供功能) -->
+          <svg class="absolute bottom-1 right-1 w-3 h-3 opacity-30 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v6h-6M21 21l-7-7" /></svg>
+          <svg class="absolute bottom-1 left-1 w-3 h-3 opacity-30 pointer-events-none transform scale-x-[-1]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v6h-6M21 21l-7-7" /></svg>
+        </template>
 
         <!-- 2. MINI 悬浮窗态的内容区 (仅包含列表本身) -->
         <div class="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden w-full min-h-0"
@@ -184,6 +209,7 @@ const {
     recentTriggerLogs,
     previewUiFontSize,
     previewUiWidth,
+    previewUiHeight,
 } = storeToRefs(uiStore);
 
 const displayEntries = computed(() => {
@@ -217,6 +243,11 @@ const handleOpenFull = () => {
   setTimeout(() => checkBounds(), 350);
 };
 
+const handleOpenMini = () => {
+  currentUiMode.value = UiMode.MINI;
+  setTimeout(() => checkBounds(), 350);
+};
+
 // ==========================================
 // 业务视图层 与 纯物理引擎层的切割交接点
 // ==========================================
@@ -233,14 +264,119 @@ const {
   checkBounds,
 } = useDraggablePhysics(statusBarEl, currentUiMode);
 
+// ==========================================
+// 缩放把手逻辑 (Resize Handlers)
+// ==========================================
+let isResizing = false;
+let resizeStartX = 0;
+let resizeStartY = 0;
+let initialWidth = 0;
+let initialHeight = 0;
+let initialTransformLeft = 0;
+let initialTransformRight = 0;
+let resizeDirection: 'se' | 'sw' | null = null;
+
+const startResize = (e: MouseEvent | TouchEvent, direction: 'se' | 'sw') => {
+  e.preventDefault();
+  isResizing = true;
+  resizeDirection = direction;
+  isDraggingState.value = true;
+  
+  if (e.type === 'touchstart') {
+    resizeStartX = (e as TouchEvent).touches[0].clientX;
+    resizeStartY = (e as TouchEvent).touches[0].clientY;
+  } else {
+    resizeStartX = (e as MouseEvent).clientX;
+    resizeStartY = (e as MouseEvent).clientY;
+  }
+  
+  initialWidth = Number(previewUiWidth.value ?? currentConfig.value?.uiWidth ?? 400);
+  initialHeight = Number(previewUiHeight.value ?? currentConfig.value?.uiHeight ?? 400);
+  
+  initialTransformLeft = transformLeft.value;
+  initialTransformRight = transformRight.value;
+
+  const ST_DOC = window.parent?.document || document;
+  ST_DOC.addEventListener('mousemove', onResizeDrag);
+  ST_DOC.addEventListener('touchmove', onResizeDrag, { passive: false });
+  ST_DOC.addEventListener('mouseup', stopResize);
+  ST_DOC.addEventListener('touchend', stopResize);
+};
+
+const onResizeDrag = (e: MouseEvent | TouchEvent) => {
+  if (!isResizing) return;
+  e.preventDefault();
+  
+  let currentX = 0;
+  let currentY = 0;
+  if (e.type === 'touchmove') {
+    currentX = (e as TouchEvent).touches[0].clientX;
+    currentY = (e as TouchEvent).touches[0].clientY;
+  } else {
+    currentX = (e as MouseEvent).clientX;
+    currentY = (e as MouseEvent).clientY;
+  }
+  
+  const dx = currentX - resizeStartX;
+  const dy = currentY - resizeStartY;
+  
+  let newHeight = initialHeight + dy;
+  const maxHeight = (window.parent?.innerHeight || window.innerHeight) - 100;
+  newHeight = Math.max(200, Math.min(newHeight, maxHeight));
+  
+  let newWidth = initialWidth;
+  
+  if (resizeDirection === 'se') {
+    newWidth = initialWidth + dx;
+    newWidth = Math.max(300, Math.min(newWidth, (window.parent?.innerWidth || window.innerWidth) - 40));
+    // 当按右下角且基于 right 锚点时，我们需要向右推 offset 抵消左边缘默认移动
+    if (currentAnchor.value === 'right') {
+      transformRight.value = initialTransformRight - (newWidth - initialWidth);
+    }
+  } else if (resizeDirection === 'sw') {
+    newWidth = initialWidth - dx;
+    newWidth = Math.max(300, Math.min(newWidth, (window.parent?.innerWidth || window.innerWidth) - 40));
+    // 当按左下角且基于 left 锚点时，我们需要向左推 offset 抵消右边缘默认移动
+    if (currentAnchor.value === 'left') {
+      transformLeft.value = initialTransformLeft - (newWidth - initialWidth);
+    }
+  }
+  
+  previewUiWidth.value = newWidth;
+  previewUiHeight.value = newHeight;
+};
+
+const stopResize = () => {
+  isResizing = false;
+  isDraggingState.value = false;
+  
+  const ST_DOC = window.parent?.document || document;
+  ST_DOC.removeEventListener('mousemove', onResizeDrag);
+  ST_DOC.removeEventListener('touchmove', onResizeDrag);
+  ST_DOC.removeEventListener('mouseup', stopResize);
+  ST_DOC.removeEventListener('touchend', stopResize);
+  
+  if (previewUiWidth.value !== null || previewUiHeight.value !== null) {
+    configStore.updateConfig({
+      uiWidth: previewUiWidth.value ?? currentConfig.value?.uiWidth,
+      uiHeight: previewUiHeight.value ?? currentConfig.value?.uiHeight
+    });
+    setTimeout(() => {
+      previewUiWidth.value = null;
+      previewUiHeight.value = null;
+      checkBounds(true);
+    }, 100);
+  }
+};
+
 const toggleMinimize = () => {
   if (currentUiMode.value === UiMode.FULL) {
     currentUiMode.value = UiMode.MINI;
   } else if (currentUiMode.value === UiMode.MINI) {
     currentUiMode.value = UiMode.FULL;
-    // 强制跳转到拦截界面
-    currentTab.value = 'worldbook';
-    currentSubTab.value = 'interceptor';
+    // 根据用户要求，取消强制跳转到拦截界面的逻辑，默认保持或返回主页 (Dashboard)
+    // currentTab.value = 'worldbook';
+    // currentSubTab.value = 'interceptor';
   }
   // 给 CSS 的 transition 留出时间后，执行最后一次物理兜底碰撞收口
   setTimeout(() => checkBounds(), 350);

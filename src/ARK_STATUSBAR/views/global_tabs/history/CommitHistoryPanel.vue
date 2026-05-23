@@ -2,22 +2,22 @@
   <div class="flex flex-col flex-shrink-0 mt-4">
     <!-- Section Title & Tools -->
     <div class="flex flex-col gap-2 pb-2 border-b border-outline-variant mb-4">
-      <div class="font-display text-[11px] font-bold tracking-widest uppercase text-on-surface-variant flex justify-between items-center px-1 flex-wrap gap-2">
+      <div class="font-display text-[calc(11em/14)] font-bold tracking-widest uppercase text-on-surface-variant flex justify-between items-center px-1 flex-wrap gap-2">
         <div class="flex items-center gap-2 flex-wrap">
           <span>COMMIT_LOG / 操作历史</span>
-          <div class="text-[9px] px-1.5 py-0.5 rounded-sm bg-error/10 text-error border border-error/20 flex items-center gap-1 font-mono normal-case tracking-normal shrink-0 whitespace-normal">
-            <span class="material-symbols-outlined text-[10px]">warning</span>
+          <div class="text-[calc(9em/14)] px-1.5 py-0.5 rounded-sm bg-error/10 text-error border border-error/20 flex items-center gap-1 font-mono normal-case tracking-normal shrink-0 whitespace-normal">
+            <span class="material-symbols-outlined text-[calc(10em/14)]">warning</span>
             重度修改额度: {{ heavyCommitsCount }}/{{ maxHeavy }}
           </div>
         </div>
-        <span class="text-[9px] opacity-70">{{ currentConfig?.commits?.length || 0 }} 条记录</span>
+        <span class="text-[calc(9em/14)] opacity-70">{{ currentConfig?.commits?.length || 0 }} 条记录</span>
       </div>
       
       <!-- Filter and Batch Tools -->
       <div class="flex flex-wrap items-center justify-between gap-2 bg-surface-variant/30 p-2 border border-outline-variant/50 min-w-0">
         <div class="flex items-center gap-2 flex-1 min-w-0">
-          <span class="material-symbols-outlined text-[14px] text-on-surface-variant shrink-0">filter_list</span>
-          <select v-model="selectedFilter" class="bg-surface text-[11px] text-on-surface border border-outline-variant px-1 py-0.5 flex-1 min-w-0 outline-none w-full">
+          <span class="material-symbols-outlined text-[calc(14em/14)] text-on-surface-variant shrink-0">filter_list</span>
+          <select v-model="selectedFilter" class="bg-surface text-[calc(11em/14)] text-on-surface border border-outline-variant px-1 py-0.5 flex-1 min-w-0 outline-none w-full">
             <option value="all">显示全部 ({{ currentConfig?.commits?.length || 0 }})</option>
             <option v-for="filter in availableFilters" :key="filter.value" :value="filter.value">
               {{ filter.label }} ({{ filter.count }})
@@ -25,7 +25,7 @@
           </select>
         </div>
         <button v-if="currentConfig?.commits?.length"
-                class="border border-outline-variant px-2 py-0.5 text-[10px] uppercase tracking-wider text-on-surface hover:bg-surface-variant whitespace-nowrap shrink-0 transition-colors"
+                class="border border-outline-variant px-2 py-0.5 text-[calc(10em/14)] uppercase tracking-wider text-on-surface hover:bg-surface-variant whitespace-nowrap shrink-0 transition-colors"
                 @click="toggleBatchMode">
           {{ isBatchMode ? '退出多选' : '批量多选' }}
         </button>
@@ -33,10 +33,10 @@
 
       <!-- Batch Action Bar -->
       <div v-if="isBatchMode" class="flex flex-wrap justify-between items-center gap-2 mt-2 bg-surface-variant/30 p-2 border border-dashed border-outline-variant/50">
-        <label class="flex items-center gap-2 cursor-pointer text-[11px] text-on-surface group">
+        <label class="flex items-center gap-2 cursor-pointer text-[calc(11em/14)] text-on-surface group">
           <input type="checkbox" :checked="isAllSelected" class="hidden peer" @change="toggleSelectAll" />
           <div class="w-3.5 h-3.5 border border-outline-variant bg-surface rounded-sm flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-colors group-hover:border-primary/50">
-            <span v-if="isAllSelected" class="material-symbols-outlined text-[12px] text-on-primary font-bold">check</span>
+            <span v-if="isAllSelected" class="material-symbols-outlined text-[calc(12em/14)] text-on-primary font-bold">check</span>
           </div>
           全选
         </label>
@@ -48,10 +48,10 @@
     </div>
 
     <!-- Timeline Items Container -->
-    <div v-if="!currentConfig?.commits?.length" class="text-[11px] text-on-surface-variant p-4 text-center opacity-70">
+    <div v-if="!currentConfig?.commits?.length" class="text-[calc(11em/14)] text-on-surface-variant p-4 text-center opacity-70">
       暂无修改记录。
     </div>
-    <div v-else-if="filteredCommits.length === 0" class="text-[11px] text-on-surface-variant p-4 text-center opacity-70">
+    <div v-else-if="filteredCommits.length === 0" class="text-[calc(11em/14)] text-on-surface-variant p-4 text-center opacity-70">
       没有符合当前筛选条件的记录。
     </div>
     <div v-else class="relative flex flex-col ml-1 pl-4 pb-4 border-l border-outline-variant border-dashed">

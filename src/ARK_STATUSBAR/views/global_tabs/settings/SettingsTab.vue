@@ -13,7 +13,7 @@
       </div>
       
       <!-- 控制台状态栏 -->
-      <div class="mt-2 bg-surface-container-low border border-outline-variant p-2.5 grid grid-cols-1 @sm:grid-cols-2 gap-x-4 gap-y-1.5 font-mono text-[10px] uppercase tracking-widest shadow-inner">
+      <div class="mt-2 bg-surface-container-low border border-outline-variant p-2.5 grid grid-cols-1 @sm:grid-cols-2 gap-x-4 gap-y-1.5 font-mono text-[calc(10em/14)] uppercase tracking-widest shadow-inner">
         <div class="flex justify-between items-center border-b border-outline-variant/50 pb-0.5">
           <span class="text-on-surface-variant">Kernel_Ver</span>
           <!-- TODO: 版本号暂时硬编码，等待后续酒馆官方扩展API或GitHub Release获取 -->
@@ -38,8 +38,8 @@
 
     <!-- 界面布局 (UI_LAYOUT) -->
     <Panel class="p-4 gap-4 flex-shrink-0">
-      <div class="font-bold text-primary-text text-[12px] uppercase border-b border-outline-variant pb-2 flex items-center gap-2">
-        <span class="material-symbols-outlined text-[16px]">aspect_ratio</span>
+      <div class="font-bold text-primary-text text-[calc(12em/14)] uppercase border-b border-outline-variant pb-2 flex items-center gap-2">
+        <span class="material-symbols-outlined text-[calc(16em/14)]">aspect_ratio</span>
         界面布局
       </div>
       <div class="flex flex-col gap-5">
@@ -65,19 +65,19 @@
           :valueFormatter="val => val + 'px'" 
         />
       </div>
-      <p class="text-[10px] text-on-surface-variant mt-1 leading-tight min-w-0 break-words whitespace-normal">
+      <p class="text-[calc(10em/14)] text-on-surface-variant mt-1 leading-tight min-w-0 break-words whitespace-normal">
         * 松开滑块后应用尺寸变化。在移动端等小屏设备上，尺寸调整可能受到物理屏幕限制。
       </p>
     </Panel>
 
     <!-- 视觉表现 (APPEARANCE) -->
     <Panel class="p-4 gap-4 flex-shrink-0">
-      <div class="font-bold text-primary-text text-[12px] uppercase border-b border-outline-variant pb-2 flex items-center gap-2">
-        <span class="material-symbols-outlined text-[16px]">palette</span>
+      <div class="font-bold text-primary-text text-[calc(12em/14)] uppercase border-b border-outline-variant pb-2 flex items-center gap-2">
+        <span class="material-symbols-outlined text-[calc(16em/14)]">palette</span>
         视觉表现
       </div>
       <div class="flex flex-col gap-2">
-        <label class="font-display text-[11px] font-bold text-on-surface-variant tracking-widest uppercase">主题选择</label>
+        <label class="font-display text-[calc(11em/14)] font-bold text-on-surface-variant tracking-widest uppercase">主题选择</label>
         <SegmentedControl 
           v-model="theme" 
           :options="themeOptions" 
@@ -87,8 +87,8 @@
 
     <!-- 核心预警系统 (CORE_SYSTEM) -->
     <Panel class="p-4 gap-4 flex-shrink-0">
-      <div class="font-bold text-primary-text text-[12px] uppercase border-b border-outline-variant pb-2 flex items-center gap-2">
-        <span class="material-symbols-outlined text-[16px]">memory</span>
+      <div class="font-bold text-primary-text text-[calc(12em/14)] uppercase border-b border-outline-variant pb-2 flex items-center gap-2">
+        <span class="material-symbols-outlined text-[calc(16em/14)]">memory</span>
         核心系统
       </div>
       
@@ -96,10 +96,10 @@
         <!-- 拦截器开关 -->
         <div class="flex flex-col gap-1.5">
           <div class="flex justify-between items-center">
-            <label class="font-bold text-[12px] text-on-surface">发送预检拦截</label>
+            <label class="font-bold text-[calc(12em/14)] text-on-surface">发送预检拦截</label>
             <Switch v-model="isInterceptorEnabled" />
           </div>
-          <p class="text-[10px] text-on-surface-variant leading-tight min-w-0 break-words whitespace-normal">
+          <p class="text-[calc(10em/14)] text-on-surface-variant leading-tight min-w-0 break-words whitespace-normal">
             开启后，点击发送按钮时将无痕预览即将触发的世界书，防止暴走。
           </p>
         </div>
@@ -107,10 +107,10 @@
         <!-- 回车拦截 -->
         <div class="flex flex-col gap-1.5">
           <div class="flex justify-between items-center">
-            <label class="font-bold text-[12px] text-on-surface">回车键拦截预警</label>
+            <label class="font-bold text-[calc(12em/14)] text-on-surface">回车键拦截预警</label>
             <Switch v-model="enableEnterToIntercept" />
           </div>
-          <p class="text-[10px] text-on-surface-variant leading-tight min-w-0 break-words whitespace-normal">
+          <p class="text-[calc(10em/14)] text-on-surface-variant leading-tight min-w-0 break-words whitespace-normal">
             开启后，按下回车键发送也将被拦截预览。默认关闭，以方便习惯回车换行的用户。
           </p>
         </div>
@@ -118,10 +118,10 @@
         <!-- 常驻条目显示 -->
         <div class="flex flex-col gap-1.5">
           <div class="flex justify-between items-center">
-            <label class="font-bold text-[12px] text-on-surface">显示常驻(蓝灯)条目</label>
+            <label class="font-bold text-[calc(12em/14)] text-on-surface">显示常驻(蓝灯)条目</label>
             <Switch v-model="showConstantEntries" />
           </div>
-          <p class="text-[10px] text-on-surface-variant leading-tight min-w-0 break-words whitespace-normal">
+          <p class="text-[calc(10em/14)] text-on-surface-variant leading-tight min-w-0 break-words whitespace-normal">
             开启后，无论是在被动发送拦截还是主动检测中，都将展示被激活的常驻条目（仅供检查调试）。
           </p>
         </div>
@@ -129,10 +129,10 @@
         <!-- Token 计算器 -->
         <div class="flex flex-col gap-1.5">
           <div class="flex justify-between items-center">
-            <label class="font-bold text-[12px] text-on-surface">Token 消耗估算</label>
+            <label class="font-bold text-[calc(12em/14)] text-on-surface">Token 消耗估算</label>
             <Switch v-model="enableTokenCalculator" />
           </div>
-          <p class="text-[10px] text-on-surface-variant leading-tight min-w-0 break-words whitespace-normal">
+          <p class="text-[calc(10em/14)] text-on-surface-variant leading-tight min-w-0 break-words whitespace-normal">
             预检拦截时，同时估算即将发送的 Token。 <span class="text-[#ff9800]">如果遇到拦截严重卡顿，请关闭此项。</span>
           </p>
         </div>
@@ -140,13 +140,13 @@
         <!-- 调试模式 -->
         <div class="flex flex-col gap-1.5 pt-2 border-t border-outline-variant/50">
           <div class="flex justify-between items-center">
-            <label class="font-bold text-[12px] text-error flex items-center gap-1">
-              <span class="material-symbols-outlined text-[14px]">bug_report</span>
+            <label class="font-bold text-[calc(12em/14)] text-error flex items-center gap-1">
+              <span class="material-symbols-outlined text-[calc(14em/14)]">bug_report</span>
               导出底层调试日志
             </label>
             <Switch v-model="isDebugMode" />
           </div>
-          <p class="text-[10px] text-error/80 leading-tight min-w-0 break-words whitespace-normal">
+          <p class="text-[calc(10em/14)] text-error/80 leading-tight min-w-0 break-words whitespace-normal">
             开启后将记录所有底层检测流并写入独立的世界书条目，仅供 Bug 反馈时使用。
           </p>
         </div>
@@ -159,14 +159,14 @@
         <Button variant="outline" class="w-full text-on-surface-variant hover:text-on-surface hover:border-on-surface" @click="clearPins">
           清空偏好置顶
         </Button>
-        <p class="text-[10px] text-on-surface-variant text-center">取消全部条目的置顶状态</p>
+        <p class="text-[calc(10em/14)] text-on-surface-variant text-center">取消全部条目的置顶状态</p>
       </div>
 
       <div class="flex flex-col gap-1">
         <Button variant="primary" class="w-full bg-error border-error text-white hover:bg-error/80" @click="factoryReset">
           恢复初始设置
         </Button>
-        <p class="text-[10px] text-error text-center font-bold">清除所有配置、快照和记录！不可逆转！</p>
+        <p class="text-[calc(10em/14)] text-error text-center font-bold">清除所有配置、快照和记录！不可逆转！</p>
       </div>
     </div>
   </div>

@@ -4,10 +4,10 @@
       v-for="option in options"
       :key="option.value"
       @click="model = option.value"
-      class="flex-1 py-1.5 px-1 flex justify-center items-center gap-1 transition-colors font-display text-[11px] font-bold tracking-widest uppercase"
+      class="flex-1 py-1.5 px-1 flex justify-center items-center gap-1 transition-colors font-display text-[calc(11em/14)] font-bold tracking-widest uppercase"
       :class="model === option.value ? 'bg-primary text-on-primary' : 'bg-surface hover:bg-surface-variant text-on-surface'"
     >
-      <span v-if="option.icon" class="material-symbols-outlined text-[14px] flex-shrink-0" :style="model === option.value ? `font-variation-settings: 'FILL' 1;` : ''">
+      <span v-if="option.icon" class="material-symbols-outlined text-[calc(14em/14)] flex-shrink-0" :style="model === option.value ? `font-variation-settings: 'FILL' 1;` : ''">
         {{ option.icon }}
       </span>
       <span class="break-words whitespace-normal leading-tight min-w-0 text-center">{{ option.label }}</span>

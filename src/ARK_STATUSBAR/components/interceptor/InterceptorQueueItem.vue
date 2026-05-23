@@ -28,35 +28,35 @@
             {{ entry.name }}
           </h3>
         </div>
-        <span class="font-mono text-[10px] bg-surface-container-high text-on-surface-variant px-1 py-0.5 rounded-sm border border-outline-variant whitespace-nowrap flex-shrink-0">
+        <span class="font-mono text-[calc(10em/14)] bg-surface-container-high text-on-surface-variant px-1 py-0.5 rounded-sm border border-outline-variant whitespace-nowrap flex-shrink-0">
           ~{{ entry.tokens }} tok
         </span>
       </div>
       
       <div class="flex flex-wrap items-center gap-1.5">
         <!-- Status Badge -->
-        <div v-if="status === 'violation'" class="font-mono text-error flex items-center gap-0.5 border border-error/50 px-1 py-0.5 text-[10px] bg-error/10">
-          <span class="material-symbols-outlined text-[12px]">gavel</span>
+        <div v-if="status === 'violation'" class="font-mono text-error flex items-center gap-0.5 border border-error/50 px-1 py-0.5 text-[calc(10em/14)] bg-error/10">
+          <span class="material-symbols-outlined text-[calc(12em/14)]">gavel</span>
           VIOLATION / 已阻断
         </div>
-        <div v-else-if="status === 'warning'" class="font-mono text-on-surface-variant flex items-center gap-0.5 border border-outline-variant/80 px-1 py-0.5 text-[10px] bg-surface-variant/30">
-          <span class="material-symbols-outlined text-[12px]">warning</span>
+        <div v-else-if="status === 'warning'" class="font-mono text-on-surface-variant flex items-center gap-0.5 border border-outline-variant/80 px-1 py-0.5 text-[calc(10em/14)] bg-surface-variant/30">
+          <span class="material-symbols-outlined text-[calc(12em/14)]">warning</span>
           TEMP_HOLD / 临时阻断
         </div>
-        <div v-else class="font-mono text-primary-text flex items-center gap-0.5 border border-primary/50 px-1 py-0.5 text-[10px] bg-primary/10">
-          <span class="material-symbols-outlined text-[12px]">check_circle</span>
+        <div v-else class="font-mono text-primary-text flex items-center gap-0.5 border border-primary/50 px-1 py-0.5 text-[calc(10em/14)] bg-primary/10">
+          <span class="material-symbols-outlined text-[calc(12em/14)]">check_circle</span>
           ACTIVE / 将被发送
         </div>
         
         <!-- Source -->
-        <div class="font-body text-on-surface-variant text-[10px] ml-1">
+        <div class="font-body text-on-surface-variant text-[calc(10em/14)] ml-1">
           📁 来源: {{ entry.source }}
         </div>
       </div>
     </div>
     
     <div class="bg-surface-container-lowest border-t border-surface-variant/50 p-2 flex flex-wrap justify-between items-center w-full gap-2 relative z-10">
-       <div class="font-mono text-[10px] text-on-surface-variant opacity-70">
+       <div class="font-mono text-[calc(10em/14)] text-on-surface-variant opacity-70">
           {{ actionReqText }}
        </div>
        <div class="flex flex-wrap gap-1.5 ml-auto">
