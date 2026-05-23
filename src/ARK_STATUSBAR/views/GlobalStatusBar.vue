@@ -37,7 +37,7 @@
         : currentUiMode === UiMode.MINI
           ? 'w-[13em] max-w-[13em] rounded-2xl opacity-80 hover:opacity-100'
         /* --- FULL 物理形态补偿 --- */
-        : 'w-[var(--ui-width)] min-w-[var(--ui-width)] max-w-[90vw] max-h-[calc(100dvh-80px)] rounded-lg',
+        : 'w-[var(--ui-width)] max-w-[90vw] max-h-[calc(100dvh-80px)] rounded-lg',
 
         /* --- 拖拽帧率保护 --- */
         isDraggingState ? '!transition-none' : ''
@@ -320,22 +320,27 @@ const onResizeDrag = (e: MouseEvent | TouchEvent) => {
   const dx = currentX - resizeStartX;
   const dy = currentY - resizeStartY;
   
+  const ST_WIN = window.parent || window;
+  
   let newHeight = initialHeight + dy;
-  const maxHeight = (window.parent?.innerHeight || window.innerHeight) - 100;
+  // 高度最大值：Settings上限 1200，且不超过 CSS 的 max-h (100dvh - 80px)
+  const maxHeight = Math.min(1200, ST_WIN.innerHeight - 80);
   newHeight = Math.max(200, Math.min(newHeight, maxHeight));
   
   let newWidth = initialWidth;
+  // 宽度最大值：Settings上限 1000，且不超过 CSS 的 max-w (90vw)
+  const maxWidth = Math.min(1000, ST_WIN.innerWidth * 0.9);
   
   if (resizeDirection === 'se') {
     newWidth = initialWidth + dx;
-    newWidth = Math.max(300, Math.min(newWidth, (window.parent?.innerWidth || window.innerWidth) - 40));
+    newWidth = Math.max(200, Math.min(newWidth, maxWidth));
     // 当按右下角且基于 right 锚点时，我们需要向右推 offset 抵消左边缘默认移动
     if (currentAnchor.value === 'right') {
       transformRight.value = initialTransformRight - (newWidth - initialWidth);
     }
   } else if (resizeDirection === 'sw') {
     newWidth = initialWidth - dx;
-    newWidth = Math.max(300, Math.min(newWidth, (window.parent?.innerWidth || window.innerWidth) - 40));
+    newWidth = Math.max(200, Math.min(newWidth, maxWidth));
     // 当按左下角且基于 left 锚点时，我们需要向左推 offset 抵消右边缘默认移动
     if (currentAnchor.value === 'left') {
       transformLeft.value = initialTransformLeft - (newWidth - initialWidth);

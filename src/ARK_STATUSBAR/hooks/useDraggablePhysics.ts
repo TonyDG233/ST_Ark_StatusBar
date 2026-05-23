@@ -1,4 +1,4 @@
-import { onMounted, onUnmounted, Ref, ref } from 'vue';
+import { onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 
 // 全局唯一的 UI 状态机
 export enum UiMode {
@@ -68,6 +68,24 @@ export function useDraggablePhysics(statusBarEl: Ref<HTMLElement | null>, curren
   // 双保险计时器
   let heartbeatTimer: number | null = null;
   let resizeObserver: ResizeObserver | null = null;
+
+  // 监听模式变化，如果以任何途径离开 BUBBLE 模式，必须立刻清空边缘吸附状态
+  watch(currentUiMode, (newMode) => {
+    if (newMode !== UiMode.BUBBLE && isSnappedToEdge.value) {
+      const edge = isSnappedToEdge.value;
+      isSnappedToEdge.value = false;
+      
+      // 赋予一个弹开的安全距离，防止它继续贴边
+      if (edge === 'left') {
+        transformLeft.value = PHYSICS_CONSTANTS.EXPAND_BOUNCE_MARGIN;
+        currentAnchor.value = 'left';
+      } else {
+        transformRight.value = PHYSICS_CONSTANTS.EXPAND_BOUNCE_MARGIN;
+        currentAnchor.value = 'right';
+      }
+      triggerSmoothSnap();
+    }
+  });
 
   const triggerSmoothSnap = () => {
     isSnapping.value = true;
