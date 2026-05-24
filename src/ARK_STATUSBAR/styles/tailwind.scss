@@ -104,17 +104,17 @@
         }
     }
 
-    /* 直接通过图床硬编码地址预览 UI 效果，发布时将替换为 @latest */
+    /* 背景图片现在由 AssetManager 动态加载并注入根节点的 CSS 变量中 */
+    /* 这样可以统一管理所有的远端资源并进行自动容错降级 */
     .light-theme .global-watermark::before {
-        background-image: url('https://testingcf.jsdelivr.net/gh/TonyDG233/ST_Ark_StatusBar@a633c71/src/ARK_STATUSBAR/assets/page-bg-light.jpg');
-        //opacity: 0.3;
+        background-image: var(--ark-bg-light-url, none);
         /* 降低透明度让底层 #f5f5f5 亮色透出，提升整体亮度 */
         filter: contrast(1.6) brightness(1.2);
         /* 增强白色等高线的对比度 */
     }
 
     .dark-theme .global-watermark::before {
-        background-image: url('https://testingcf.jsdelivr.net/gh/TonyDG233/ST_Ark_StatusBar@a633c71/src/ARK_STATUSBAR/assets/page-bg-dark.jpg');
+        background-image: var(--ark-bg-dark-url, none);
     }
 
     /* 方舟风格的通用面板容器：支持等高线水印 */

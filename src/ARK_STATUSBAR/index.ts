@@ -1,6 +1,7 @@
 import { createPinia } from 'pinia';
 import { createApp } from 'vue';
 import { teleportStyle } from '../util/script';
+import { AssetManager } from './services/asset_manager';
 import { StatusBarManager } from './services/statusbar_manager';
 import GlobalStatusBar from './views/GlobalStatusBar.vue';
 import ReturnButton from './views/ReturnButton.vue';
@@ -150,6 +151,37 @@ function mountGlobalStatusBar() {
 }
 
 // -----------------------------------------------------------------------------
+// 全局启动进度播报器
+// -----------------------------------------------------------------------------
+let $bootToast: any = null;
+const TOTAL_STEPS = 7; // 总启动步骤数
+
+function reportBootProgress(stepIdx: number, stepName: string) {
+  const percent = Math.floor((stepIdx / TOTAL_STEPS) * 100);
+  const message = `系统启动中: ${stepName} [${percent}%]`;
+  console.info(`[ARK_BOOTSTRAP] ${stepIdx}/${TOTAL_STEPS} - ${stepName}`);
+
+  if (typeof toastr !== 'undefined') {
+    if (!$bootToast) {
+      $bootToast = toastr.info(message, 'ARK STATUSBAR', { timeOut: 0, extendedTimeOut: 0, tapToDismiss: false, closeButton: false });
+    } else {
+      $bootToast.find('.toast-message').text(message);
+    }
+  }
+}
+
+function finishBootProgress() {
+  console.info('[ARK_BOOTSTRAP] Bootstrapping Complete.');
+  if ($bootToast && typeof toastr !== 'undefined') {
+    setTimeout(() => {
+      toastr.clear($bootToast);
+      toastr.success('神经连接已建立，UI 就绪。', 'ARK STATUSBAR', { timeOut: 2000 });
+      $bootToast = null;
+    }, 500);
+  }
+}
+
+// -----------------------------------------------------------------------------
 // 引导程序 (Bootstrapper)
 // -----------------------------------------------------------------------------
 async function bootstrap() {
@@ -157,27 +189,41 @@ async function bootstrap() {
 
   console.info('[ARK_STATUSBAR] Module Loaded. Bootstrapping...');
 
+  // --- 0. 预加载核心视觉资源 ---
+  reportBootProgress(1, '分析核心视觉资源');
+  // 注入回调，让资源管理器内部进度也反映到总进度条上
+  await AssetManager.initCoreAssets((taskName, assetPercent) => {
+    // 假设 AssetManager 占据整个 Bootstrapping 的前 2 步权重
+    const simulatedStep = 1 + (assetPercent / 100);
+    reportBootProgress(simulatedStep, `加载 ${taskName}`);
+  });
+
   // --- 1. 初始化业务管理器 ---
+  reportBootProgress(3, '初始化业务管理器');
   const manager = StatusBarManager.getInstance();
   await manager.init();
 
   // --- 2. 注册 Vue 挂载监听器 ---
+  reportBootProgress(4, '注册 Vue 挂载钩子');
   setupMountListeners();
 
   // --- 3. 注入外部控制台按钮 ---
+  reportBootProgress(5, '桥接外部控制台');
   setupTavernControls();
 
   // --- 4. 准备渲染 UI ---
+  reportBootProgress(6, '准备样式穿透');
   const { destroy } = teleportStyle();
   destroyStyle = destroy;
 
   // --- 5. 挂载全局状态栏 UI ---
+  reportBootProgress(7, '挂载全局 UI 视图');
   mountGlobalStatusBar();
 
   // --- 6. 启动轮询观测器 ---
   startChatMonitor();
 
-  console.info('[ARK_STATUSBAR] Bootstrapping Complete.');
+  finishBootProgress();
 }
 
 $(() => {
