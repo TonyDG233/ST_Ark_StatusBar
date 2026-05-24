@@ -1,4 +1,16 @@
 /*
+ * CSS 顶层依赖导入区
+ * 警告：所有 @import 必须放置在文件最顶部，在任何 CSS 规则或选择器之前，否则浏览器将直接忽略网络加载！
+ */
+
+/* 采用 NPM 镜像的静态单文件加载 Material Symbols，彻底解决低配安卓机高并发切片超时问题 */
+@import url('https://fastly.jsdelivr.net/npm/material-symbols@0.14.4/outlined.css');
+/* 冗余备份 (原始切片加载方案): @import url('https://fonts.loli.net/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap'); */
+/* 文本字体继续使用 loli.net 镜像 */
+@import url('https://fonts.loli.net/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.loli.net/css2?family=Noto+Serif+SC:wght@300;400;500;700&display=swap');
+
+/*
  * Tailwind v4 引入
  */
 

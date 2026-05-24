@@ -1,9 +1,6 @@
-/* 字体导入：采用 CDN 镜像，防止原生 Google Fonts 在部分地区无法加载导致 Icon 和字体丢失 */
-/* 使用了境内外均可访问的 CDN 镜像 (如 loli.net 提供的高速稳定镜像) */
-@import url('https://fonts.loli.net/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
-@import url('https://fonts.loli.net/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap');
-/* 中文防线后备字体，确保剧情等长文本显示美观 */
-@import url('https://fonts.loli.net/css2?family=Noto+Serif+SC:wght@300;400;500;700&display=swap');
+/*
+ * 字体加载已迁移至 tailwind.scss 顶部，以保证 @import 的合法性。
+ */
 
 :root {
     /* 全局字体定义 (Token) */
