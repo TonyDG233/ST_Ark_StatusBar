@@ -36,79 +36,171 @@ export class AssetManager {
   };
 
   /**
-   * 带降级重试机制的图片加载器
+   * 采用“交错并发竞速 (Staggered Race)”机制加载图片：
+   * 如果首选节点在超时时间内未响应，则启动下一个节点的加载（并发竞速），
+   * 哪个先加载完就用哪个，避免某个 CDN 失联或返回慢导致整个启动流程卡死。
    */
-  static async preloadImageWithFallback(paths: string[]): Promise<string> {
-    let lastError: any = null;
-    for (const path of paths) {
-      try {
-        return await new Promise((resolve, reject) => {
-          const img = new Image();
-          img.onload = () => resolve(path);
-          img.onerror = () => reject(new Error(`Failed to load image: ${path}`));
-          img.src = path;
-        });
-      } catch (e) {
-        lastError = e;
-        console.warn(`[AssetManager] 图片加载失败，准备尝试下一个降级节点: ${path}`);
-      }
-    }
-    console.error('[AssetManager] 核心图片全部节点加载失败！', lastError);
-    // 返回一个透明的安全 Base64 作为终极兜底，防止 CSS 解析报错
-    return 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-  }
+  static async preloadImageWithFallback(paths: string[], staggerMs = 1500): Promise<string> {
+    return new Promise((resolve) => {
+      let resolved = false;
+      let failedCount = 0;
+      let startedCount = 0;
 
-  /**
-   * 动态 CSS 加载器 (通过 <link> 标签插入)
-   */
-  static async loadCSSWithFallback(urls: string[], id: string): Promise<void> {
-    const ST_DOC = window.parent?.document || document;
-    if (ST_DOC.getElementById(id)) return; // 已经加载过了
-
-    for (const url of urls) {
-      try {
-        await new Promise<void>((resolve, reject) => {
-          const link = ST_DOC.createElement('link');
-          link.id = id;
-          link.rel = 'stylesheet';
-          link.onload = () => resolve();
-          link.onerror = () => {
-            link.remove(); // 失败则移除废弃标签
-            reject(new Error(`CSS load failed: ${url}`));
-          };
-          link.href = url;
-          ST_DOC.head.appendChild(link);
-        });
-        return; // 成功则直接返回
-      } catch (e) {
-        console.warn(`[AssetManager] CSS 加载失败，尝试降级: ${url}`);
-      }
-    }
-    console.error(`[AssetManager] 样式库加载失败 (ID: ${id})`);
-  }
-
-  /**
-   * 使用 JS 原生 FontFace API 强制加载并注册字体
-   * 优势：能精准捕捉成功或失败，不受 Webpack 打包及 CSS 规则位置影响。
-   */
-  static async loadFontFace(family: string, urls: string[], descriptors: FontFaceDescriptors = {}): Promise<void> {
-    for (const url of urls) {
-      try {
-        const font = new FontFace(family, `url(${url})`, descriptors);
-        await font.load();
+      const tryNode = (index: number) => {
+        if (resolved || index >= paths.length) return;
         
-        // 如果是在 iframe 中，需要同时注册到宿主和当前 document
-        document.fonts.add(font);
-        const ST_DOC = window.parent?.document;
-        if (ST_DOC && ST_DOC !== document) {
-          ST_DOC.fonts.add(font);
-        }
-        return;
-      } catch (e) {
-        console.warn(`[AssetManager] 字体 ${family} 从节点加载失败，尝试降级: ${url}`);
-      }
-    }
-    console.error(`[AssetManager] 字体 ${family} 所有节点加载失败！`);
+        startedCount = Math.max(startedCount, index + 1);
+        const path = paths[index];
+        let hasFinished = false;
+
+        const img = new Image();
+        img.onload = () => {
+          if (!resolved) {
+            resolved = true;
+            resolve(path);
+          }
+        };
+        img.onerror = () => {
+          hasFinished = true;
+          failedCount++;
+          if (!resolved) {
+            console.warn(`[AssetManager] 图片降级节点失败: ${path}`);
+            if (failedCount === paths.length) {
+              console.error('[AssetManager] 核心图片全部节点加载失败！');
+              resolve('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7');
+            } else if (startedCount === index + 1) {
+              tryNode(index + 1);
+            }
+          }
+        };
+        img.src = path;
+
+        setTimeout(() => {
+          if (!resolved && !hasFinished && startedCount === index + 1) {
+            console.warn(`[AssetManager] 图片加载超时，触发并发降级竞速: ${path}`);
+            tryNode(index + 1);
+          }
+        }, staggerMs);
+      };
+
+      tryNode(0);
+    });
+  }
+
+  /**
+   * 动态 CSS 加载器 (带交错竞速机制)
+   */
+  static async loadCSSWithFallback(urls: string[], id: string, staggerMs = 1500): Promise<void> {
+    const ST_DOC = window.parent?.document || document;
+    if (ST_DOC.getElementById(id)) return;
+
+    return new Promise((resolve) => {
+      let resolved = false;
+      let failedCount = 0;
+      let startedCount = 0;
+
+      const tryNode = (index: number) => {
+        if (resolved || index >= urls.length) return;
+        
+        startedCount = Math.max(startedCount, index + 1);
+        const url = urls[index];
+        let hasFinished = false;
+
+        const link = ST_DOC.createElement('link');
+        link.className = `ark-css-fallback-${id}`;
+        link.rel = 'stylesheet';
+        
+        link.onload = () => {
+          if (!resolved) {
+            resolved = true;
+            link.id = id;
+            // 清理其他竞速失败的冗余标签
+            ST_DOC.querySelectorAll(`.ark-css-fallback-${id}`).forEach(el => {
+              if (el !== link) el.remove();
+            });
+            resolve();
+          }
+        };
+        link.onerror = () => {
+          link.remove();
+          hasFinished = true;
+          failedCount++;
+          if (!resolved) {
+            console.warn(`[AssetManager] CSS 降级节点失败: ${url}`);
+            if (failedCount === urls.length) {
+              console.error(`[AssetManager] 样式库加载失败 (ID: ${id})`);
+              resolve();
+            } else if (startedCount === index + 1) {
+              tryNode(index + 1);
+            }
+          }
+        };
+        link.href = url;
+        ST_DOC.head.appendChild(link);
+
+        setTimeout(() => {
+          if (!resolved && !hasFinished && startedCount === index + 1) {
+            console.warn(`[AssetManager] CSS 加载超时，触发并发降级竞速: ${url}`);
+            tryNode(index + 1);
+          }
+        }, staggerMs);
+      };
+
+      tryNode(0);
+    });
+  }
+
+  /**
+   * 使用 JS 原生 FontFace API 强制加载并注册字体 (带交错竞速机制)
+   */
+  static async loadFontFace(family: string, urls: string[], descriptors: FontFaceDescriptors = {}, staggerMs = 1500): Promise<void> {
+    return new Promise((resolve) => {
+      let resolved = false;
+      let failedCount = 0;
+      let startedCount = 0;
+
+      const tryNode = (index: number) => {
+        if (resolved || index >= urls.length) return;
+        
+        startedCount = Math.max(startedCount, index + 1);
+        const url = urls[index];
+        let hasFinished = false;
+
+        const font = new FontFace(family, `url(${url})`, descriptors);
+        font.load().then(() => {
+          if (!resolved) {
+            resolved = true;
+            document.fonts.add(font);
+            const ST_DOC = window.parent?.document;
+            if (ST_DOC && ST_DOC !== document) {
+              ST_DOC.fonts.add(font);
+            }
+            resolve();
+          }
+        }).catch(() => {
+          hasFinished = true;
+          failedCount++;
+          if (!resolved) {
+            console.warn(`[AssetManager] 字体 ${family} 节点失败: ${url}`);
+            if (failedCount === urls.length) {
+              console.error(`[AssetManager] 字体 ${family} 全部节点加载失败！`);
+              resolve();
+            } else if (startedCount === index + 1) {
+              tryNode(index + 1);
+            }
+          }
+        });
+
+        setTimeout(() => {
+          if (!resolved && !hasFinished && startedCount === index + 1) {
+             console.warn(`[AssetManager] 字体 ${family} 超时，触发并发降级竞速: ${url}`);
+             tryNode(index + 1);
+          }
+        }, staggerMs);
+      };
+
+      tryNode(0);
+    });
   }
 
   /**
