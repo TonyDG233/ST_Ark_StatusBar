@@ -189,13 +189,15 @@ async function bootstrap() {
 
   console.info('[ARK_STATUSBAR] Module Loaded. Bootstrapping...');
 
-  // --- 0. 预加载核心视觉资源 ---
-  reportBootProgress(1, '分析核心视觉资源');
-  // 注入回调，让资源管理器内部进度也反映到总进度条上
-  await AssetManager.initCoreAssets((taskName, assetPercent) => {
-    // 假设 AssetManager 占据整个 Bootstrapping 的前 2 步权重
-    const simulatedStep = 1 + (assetPercent / 100);
-    reportBootProgress(simulatedStep, `加载 ${taskName}`);
+  // --- 0. 异步加载核心视觉资源 (不阻塞 UI 渲染) ---
+  // 根据用户反馈，以前资源是同步后台下载，UI 能秒开，体验更好。
+  // 因此我们去掉 await，让它在后台静默竞速加载，UI 会先以骨架或基础颜色显示。
+  AssetManager.initCoreAssets((taskName, assetPercent) => {
+    // 只有在 UI 未就绪时才通过 Toastr 提示，
+    // UI 就绪后资源即使在后台加载，也不要霸占太久的屏幕弹窗。
+    if (assetPercent < 100) {
+      console.info(`[ARK_ASSETS] 正在后台加载: ${taskName} [${assetPercent}%]`);
+    }
   });
 
   // --- 1. 初始化业务管理器 ---

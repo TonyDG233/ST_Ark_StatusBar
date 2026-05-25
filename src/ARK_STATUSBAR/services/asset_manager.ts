@@ -11,6 +11,8 @@
  * 本类仅保留统一调度和分发入口的作用。
  */
 
+import { reject } from "lodash";
+
 // 声明全局 toastr，酒馆环境中原生存在
 declare const toastr: any;
 
@@ -67,7 +69,8 @@ export class AssetManager {
             console.warn(`[AssetManager] 图片降级节点失败: ${path}`);
             if (failedCount === paths.length) {
               console.error('[AssetManager] 核心图片全部节点加载失败！');
-              resolve('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7');
+              // 必须 reject，让上层捕获并弹出 toastr
+              reject(new Error('核心图片全部节点加载失败'));
             } else if (startedCount === index + 1) {
               tryNode(index + 1);
             }
@@ -129,7 +132,7 @@ export class AssetManager {
             console.warn(`[AssetManager] CSS 降级节点失败: ${url}`);
             if (failedCount === urls.length) {
               console.error(`[AssetManager] 样式库加载失败 (ID: ${id})`);
-              resolve();
+              reject(new Error(`样式库加载失败 (ID: ${id})`));
             } else if (startedCount === index + 1) {
               tryNode(index + 1);
             }
@@ -166,14 +169,21 @@ export class AssetManager {
         const url = urls[index];
         let hasFinished = false;
 
-        const font = new FontFace(family, `url(${url})`, descriptors);
+        // 【核心修复】：跨 Iframe 的 FontFace 对象在部分移动端 Webview（及特定 Safari 版本）中，
+        // 即使调用 ST_DOC.fonts.add() 也会被隐式丢弃（Illegal Invocation / Realm 隔离）。
+        // 因此必须借用宿主的 FontFace 构造器来实例化字体对象。
+        const HostWindow = window.parent || window;
+        const HostFontFace = (HostWindow as any).FontFace || FontFace;
+
+        const font = new HostFontFace(family, `url(${url})`, descriptors);
         font.load().then(() => {
           if (!resolved) {
             resolved = true;
+            // 注册到当前 iframe
             document.fonts.add(font);
-            const ST_DOC = window.parent?.document;
-            if (ST_DOC && ST_DOC !== document) {
-              ST_DOC.fonts.add(font);
+            // 注册到宿主
+            if (HostWindow.document && HostWindow.document !== document) {
+              HostWindow.document.fonts.add(font);
             }
             resolve();
           }
@@ -184,7 +194,7 @@ export class AssetManager {
             console.warn(`[AssetManager] 字体 ${family} 节点失败: ${url}`);
             if (failedCount === urls.length) {
               console.error(`[AssetManager] 字体 ${family} 全部节点加载失败！`);
-              resolve();
+              reject(new Error(`字体 ${family} 全部节点加载失败`));
             } else if (startedCount === index + 1) {
               tryNode(index + 1);
             }
@@ -241,19 +251,22 @@ export class AssetManager {
 
   private static async loadMaterialSymbols() {
     console.info('[AssetManager] Loading Material Symbols...');
-    // 使用 JS API 直接请求静态的 WOFF2 字体包
+    
+    // 采用最新的 0.44.9 版本，彻底解决此前旧版本 "keep" 等图标变字母的缺失问题。
+    // 使用交错并发竞速机制（Staggered Race）来保证某个 CDN 节点被墙或回源卡死时能极速降级。
     await this.loadFontFace(
       'Material Symbols Outlined',
       [
-        `${this.NPM_CDNS.testingcf}/material-symbols@0.14.4/material-symbols-outlined.woff2`,
-        `${this.NPM_CDNS.fastly}/material-symbols@0.14.4/material-symbols-outlined.woff2`,
-        `${this.NPM_CDNS.default}/material-symbols@0.14.4/material-symbols-outlined.woff2`,
+        `${this.NPM_CDNS.testingcf}/material-symbols@0.44.9/material-symbols-outlined.woff2`,
+        `${this.NPM_CDNS.fastly}/material-symbols@0.44.9/material-symbols-outlined.woff2`,
+        `${this.NPM_CDNS.default}/material-symbols@0.44.9/material-symbols-outlined.woff2`,
       ],
       {
         style: 'normal',
         weight: '100 700',
-        display: 'swap', // 使用 swap 防止长时间阻塞，虽然我们已经阻塞了 UI
-      }
+        display: 'swap',
+      },
+      1500 // 竞速间隔
     );
   }
 
@@ -272,19 +285,20 @@ export class AssetManager {
     console.info('[AssetManager] Loading Theme Backgrounds...');
     
     // 图片资源不仅有 CDN 节点的降级，还带有版本降级。
-    // 如果 @latest 未及时更新或者挂了，则回退到一个已经缓存好已知可用的 commit hash 节点 (a633c71)。
+    // 为了极速响应避免 @latest 在 CDN 缓存未命中时的等待，我们将确定可用的固定 hash (a633c71) 提到首位。
+    // 若后续需要更新背景图，只需更新这里的硬编码 hash 或者把它挪回 fallback 序列中即可。
     const bgLightUrl = await this.preloadImageWithFallback([
+      `https://testingcf.jsdelivr.net/gh/TonyDG233/ST_Ark_StatusBar@a633c71/src/ARK_STATUSBAR/assets/page-bg-light.jpg`,
       `${this.CDNS.gh_testingcf}/src/ARK_STATUSBAR/assets/page-bg-light.jpg`,
       `${this.CDNS.gh_fastly}/src/ARK_STATUSBAR/assets/page-bg-light.jpg`,
-      `${this.CDNS.gh_default}/src/ARK_STATUSBAR/assets/page-bg-light.jpg`,
-      `https://testingcf.jsdelivr.net/gh/TonyDG233/ST_Ark_StatusBar@a633c71/src/ARK_STATUSBAR/assets/page-bg-light.jpg`
+      `${this.CDNS.gh_default}/src/ARK_STATUSBAR/assets/page-bg-light.jpg`
     ]);
 
     const bgDarkUrl = await this.preloadImageWithFallback([
+      `https://testingcf.jsdelivr.net/gh/TonyDG233/ST_Ark_StatusBar@a633c71/src/ARK_STATUSBAR/assets/page-bg-dark.jpg`,
       `${this.CDNS.gh_testingcf}/src/ARK_STATUSBAR/assets/page-bg-dark.jpg`,
       `${this.CDNS.gh_fastly}/src/ARK_STATUSBAR/assets/page-bg-dark.jpg`,
-      `${this.CDNS.gh_default}/src/ARK_STATUSBAR/assets/page-bg-dark.jpg`,
-      `https://testingcf.jsdelivr.net/gh/TonyDG233/ST_Ark_StatusBar@a633c71/src/ARK_STATUSBAR/assets/page-bg-dark.jpg`
+      `${this.CDNS.gh_default}/src/ARK_STATUSBAR/assets/page-bg-dark.jpg`
     ]);
 
     // 将预加载成功的图片地址作为 CSS 变量注入宿主的 root 节点
