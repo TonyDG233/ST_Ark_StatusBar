@@ -23,9 +23,12 @@
                :class="entry.type === 'constant' ? 'bg-[#4ed5ff] shadow-[0_0_6px_#4ed5ff88]' : 'bg-[#afd439] shadow-[0_0_6px_#afd43988]'"
                :title="entry.type === 'constant' ? '蓝灯(常驻)' : '绿灯(条件)'">
           </div>
-          <h3 class="font-display text-sm font-bold break-words whitespace-normal leading-tight min-w-0 flex-1"
-              :class="status === 'warning' ? 'text-on-surface-variant opacity-80' : 'text-on-surface'">
+          <h3 class="font-display text-sm font-bold break-words whitespace-normal leading-tight min-w-0 flex-1 cursor-pointer hover:text-primary hover:underline transition-colors flex items-center gap-1"
+              :class="status === 'warning' ? 'text-on-surface-variant opacity-80' : 'text-on-surface'"
+              @click="$emit('view-details')"
+              title="点击查看条目详情">
             {{ entry.name }}
+            <span class="material-symbols-outlined text-[calc(14em/14)] opacity-60">info</span>
           </h3>
         </div>
         <span class="font-mono text-[calc(10em/14)] bg-surface-container-high text-on-surface-variant px-1 py-0.5 rounded-sm border border-outline-variant whitespace-nowrap flex-shrink-0">
@@ -77,6 +80,7 @@ import ActionToggle from '../../../ARK_STATUSBAR/components/ActionToggle.vue';
 
 const emit = defineEmits<{
   (e: 'action', type: 'enable' | 'resume' | 'temp' | 'disable'): void;
+  (e: 'view-details'): void;
 }>();
 
 const props = withDefaults(defineProps<{

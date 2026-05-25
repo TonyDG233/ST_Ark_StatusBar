@@ -56,24 +56,24 @@
             <span>测试结果</span>
           </div>
           <p>根据当前上下文，未触发任何条件世界书条目。</p>
-          <button class="mt-4 bg-primary/10 text-primary-text border border-primary/30 px-3 py-1 font-bold text-xs hover:bg-primary/20 transition-colors" @click="clearTestResults">
+          <button class="mt-4 bg-primary/10 text-primary-text border border-primary/30 px-3 py-1.5 font-bold text-[calc(13em/14)] hover:bg-primary/20 transition-colors break-words whitespace-normal text-center" @click="clearTestResults">
             清除测试结果
           </button>
         </div>
       </div>
       <template v-else>
         <!-- Alert Banner / Warning Section -->
-        <InterceptorAlert 
-          :isTestMode="isTestMode" 
-          :count="pendingEntries.length" 
-          :tokenCount="Number(currentTokenCount) || 0" 
+        <InterceptorAlert
+          :isTestMode="isTestMode"
+          :count="pendingEntries.length"
+          :tokenCount="Number(currentTokenCount) || 0"
         />
 
         <!-- Pending Entries Queue -->
         <div class="flex flex-col gap-2 w-full mt-1">
-          <div class="font-display text-xs font-bold tracking-widest uppercase text-on-surface-variant border-b border-surface-variant pb-1 flex justify-between">
+          <div class="font-display text-xs font-bold tracking-widest uppercase text-on-surface-variant border-b border-surface-variant pb-1 flex flex-wrap justify-between items-center gap-1">
             <span>待处理队列 (PENDING ENTRIES)</span>
-            <button v-if="isTestMode" class="text-[calc(10em/14)] text-primary hover:underline" @click="clearTestResults">清除测试结果</button>
+            <button v-if="isTestMode" class="text-[calc(11em/14)] text-primary hover:underline whitespace-normal break-words text-right" @click="clearTestResults">清除测试结果</button>
           </div>
 
           <InterceptorQueueItem
@@ -88,6 +88,7 @@
               type: entry.strategy?.type === 'constant' ? 'constant' : 'selective'
             }"
             @action="(actionType: 'enable' | 'resume' | 'temp' | 'disable') => handleEntryAction(entry, actionType)"
+            @view-details="openEntryDetails(entry)"
           />
         </div>
 
@@ -105,11 +106,79 @@
       </template>
 
     </div>
+
+    <!-- Entry Details Modal Overlay -->
+    <div
+      v-if="selectedEntry"
+      class="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      @click="closeEntryDetails"
+    >
+      <!-- Modal Body -->
+      <div
+        class="bg-surface-container-highest border border-outline shadow-[0_4px_16px_rgba(0,0,0,0.5)] w-full max-w-sm max-h-full flex flex-col min-w-0"
+        @click.stop
+      >
+        <!-- Header -->
+        <div class="flex justify-between items-center border-b border-outline-variant bg-surface/50 p-2 gap-2 flex-shrink-0">
+          <div class="flex flex-col min-w-0">
+            <div class="flex items-center gap-1.5">
+              <!-- Type Badge -->
+              <span v-if="selectedEntry.strategy?.type === 'constant'" class="text-[10px] bg-[#4ed5ff]/20 text-[#4ed5ff] border border-[#4ed5ff]/30 px-1 py-0.5 rounded-sm font-bold uppercase whitespace-nowrap">
+                🔵 常驻
+              </span>
+              <span v-else class="text-[10px] bg-[#afd439]/20 text-[#afd439] border border-[#afd439]/30 px-1 py-0.5 rounded-sm font-bold uppercase whitespace-nowrap">
+                🟢 条件
+              </span>
+              <!-- Title -->
+              <h3 class="font-display font-bold text-on-surface text-[calc(13em/14)] truncate uppercase" :title="selectedEntry.name">
+                {{ selectedEntry.name || '未命名条目' }}
+              </h3>
+            </div>
+          </div>
+          <!-- Close Button -->
+          <button
+            class="text-on-surface-variant hover:text-error transition-colors flex-shrink-0 cursor-pointer outline-none w-6 h-6 flex items-center justify-center hover:bg-error-container/20 rounded"
+            @click="closeEntryDetails"
+          >
+            <span class="material-symbols-outlined text-[calc(18em/14)]">close</span>
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-3 flex flex-col gap-3 overflow-y-auto ark-scrollbar min-h-0 flex-1">
+          <!-- Keys (if selective) -->
+          <div v-if="selectedEntry.strategy?.type === 'selective'" class="flex flex-col gap-1">
+            <label class="font-mono text-[10px] text-primary-text uppercase tracking-widest flex items-center gap-1">
+              <span class="material-symbols-outlined text-[14px]">key</span> 主关键词 (KEYS)
+            </label>
+            <div class="font-mono text-[calc(11em/14)] text-on-surface-variant bg-surface border border-outline-variant/50 p-1.5 break-words">
+              {{ selectedEntry.strategy?.keys?.join(', ') || '无' }}
+            </div>
+          </div>
+
+          <!-- Content -->
+          <div class="flex flex-col gap-1 flex-1 min-h-0">
+            <div class="flex flex-wrap justify-between items-end gap-1 w-full">
+              <label class="font-mono text-[10px] text-primary-text uppercase tracking-widest flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">description</span> 正文内容 (CONTENT)
+              </label>
+              <span class="font-mono text-[9px] text-on-surface-variant bg-surface-variant/50 border border-outline-variant/30 px-1 py-0.5 rounded-sm whitespace-nowrap">
+                ~{{ entryTokenCountCache[getEntryKey(selectedEntry)] || 0 }} TOKENS
+              </span>
+            </div>
+            <div class="font-mono text-[calc(11em/14)] leading-relaxed text-on-surface bg-surface border border-outline p-2 whitespace-pre-wrap break-words overflow-y-auto ark-scrollbar flex-1">
+              {{ selectedEntry.content || '无内容' }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
+import { ref } from 'vue';
 import { StatusBarManager } from '../../../services/statusbar_manager';
 import { configStore, useArkConfig } from '../../../store/config_store';
 import { useUIStateStore, type UIWorldbookEntry } from '../../../store/ui_state_store';
@@ -118,7 +187,16 @@ import InterceptorAlert from '../../../components/interceptor/InterceptorAlert.v
 import InterceptorQueueItem from '../../../components/interceptor/InterceptorQueueItem.vue';
 
 const uiStore = useUIStateStore();
-const { 
+
+const selectedEntry = ref<UIWorldbookEntry | null>(null);
+const openEntryDetails = (entry: UIWorldbookEntry) => {
+  selectedEntry.value = entry;
+};
+const closeEntryDetails = () => {
+  selectedEntry.value = null;
+};
+
+const {
   currentPrimaryWorldbook,
   currentTokenCount,
   entryTokenCountCache,
