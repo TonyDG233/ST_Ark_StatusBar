@@ -370,7 +370,9 @@ export class SendInterceptor {
             detail: { message: 'executeDualTrackDryRun_BEFORE_AWAIT_WORLDINFO', isDryRun: false },
           }),
         );
-        await worldInfoFn(mockChat, 1000000, false);
+        // CRITICAL FIX: 绑定 context 并补充 globalScanData 避免新版 ST/TT 出现 globalScanData 未定义错误
+        // 同时必须传纯字符串数组，否则 ST 内核在调用 .trim() 时会抛出 TypeError
+        await worldInfoFn.call(context, mockChat, 1000000, false, { trigger: 'ark_dry_run' });
         document.dispatchEvent(
           new CustomEvent('ark:log-debug', {
             detail: { message: 'executeDualTrackDryRun_AFTER_AWAIT_WORLDINFO', isDryRun: false },

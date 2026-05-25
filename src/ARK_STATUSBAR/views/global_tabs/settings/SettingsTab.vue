@@ -142,13 +142,19 @@
           <div class="flex justify-between items-center">
             <label class="font-bold text-[calc(12em/14)] text-error flex items-center gap-1">
               <span class="material-symbols-outlined text-[calc(14em/14)]">bug_report</span>
-              导出底层调试日志
+              底层调试模式
             </label>
             <Switch v-model="isDebugMode" />
           </div>
           <p class="text-[calc(10em/14)] text-error/80 leading-tight min-w-0 break-words whitespace-normal">
-            开启后将记录所有底层检测流并写入独立的世界书条目，仅供 Bug 反馈时使用。
+            开启后将在内存中记录所有底层检测流，仅供 Bug 反馈时使用。由于高频写入可能导致界面卡顿，现已改为手动下载。
           </p>
+          <div class="flex mt-1" v-if="isDebugMode">
+            <Button variant="outline" class="w-full text-error border-error/50 hover:bg-error/10" @click="downloadDebugLogs">
+              <span class="material-symbols-outlined text-[calc(14em/14)] mr-1">download</span>
+              下载日志
+            </Button>
+          </div>
         </div>
       </div>
     </Panel>
@@ -175,6 +181,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { logger } from '../../../services/worldbook/logger';
 import { configStore, useArkConfig } from '../../../store/config_store';
 import { useUIStateStore } from '../../../store/ui_state_store';
 
@@ -279,10 +286,14 @@ const isDebugMode = computed({
   set: (val: boolean) => {
     configStore.updateConfig({ isDebugMode: val });
     if (val && typeof toastr !== 'undefined') {
-      toastr.warning('调试日志已开启！将在下一次拦截或检测后写入世界书。', 'ARK_DEBUG');
+      toastr.warning('调试模式已开启！系统将在内存中记录后续的拦截与检测流。', 'ARK_DEBUG');
     }
   }
 });
+
+const downloadDebugLogs = () => {
+  logger.downloadLogs();
+};
 
 // -------------------------
 // 危险操作

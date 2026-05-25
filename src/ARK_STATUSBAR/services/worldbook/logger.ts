@@ -1,11 +1,9 @@
 import { unref } from 'vue';
 import { useArkConfig } from '../../store/config_store';
-import { DEBUG_ENTRY_FULL_NAME } from '../../types/system_config';
 
 class LoggerService {
   private static instance: LoggerService;
   private debugLogQueue: any[] = [];
-  private flushTimeout: number | null = null;
 
   private constructor() {
     // 监听内部日志事件
@@ -57,67 +55,35 @@ class LoggerService {
     });
 
     // 限制单次记录最大条目防止卡死
-    if (this.debugLogQueue.length > 50) {
-      this.debugLogQueue.splice(0, this.debugLogQueue.length - 50);
+    if (this.debugLogQueue.length > 200) {
+      this.debugLogQueue.splice(0, this.debugLogQueue.length - 200);
     }
-
-    this.scheduleFlushDebugLogs();
+    
+    // 取消定期写入世界书的操作，改为用户手动在选项中下载
   }
 
-  private scheduleFlushDebugLogs() {
-    if (this.flushTimeout) clearTimeout(this.flushTimeout);
-    this.flushTimeout = window.setTimeout(async () => {
-      try {
-        const result = typeof getCharWorldbookNames === 'function' ? await getCharWorldbookNames('current') : null;
-        const wb =
-          result?.primary || (result?.additional && result.additional.length > 0 ? result.additional[0] : null);
-        if (wb) {
-          this.flushDebugLogsToWorldbook(wb);
-        }
-      } catch (e) {
-        console.error('[ARK_DEBUG] Failed to resolve target worldbook for logs', e);
-      }
-    }, 2000); // 防抖 2 秒
-  }
-
-  private async flushDebugLogsToWorldbook(targetWorldbook: string) {
-    if (this.debugLogQueue.length === 0) return;
+  /**
+   * 提供给前端 UI 手动下载当前积攒的调试日志
+   */
+  public downloadLogs() {
+    if (this.debugLogQueue.length === 0) {
+      if (typeof toastr !== 'undefined') toastr.info('当前没有可导出的日志。');
+      return;
+    }
     try {
-      let entries = await getWorldbook(targetWorldbook);
-      let debugEntry = entries.find(e => e.name === DEBUG_ENTRY_FULL_NAME);
-
       const logContent = JSON.stringify(this.debugLogQueue, null, 2);
-
-      if (!debugEntry) {
-        await createWorldbookEntries(targetWorldbook, [
-          {
-            name: DEBUG_ENTRY_FULL_NAME,
-            content: logContent,
-            enabled: false,
-            strategy: {
-              type: 'selective',
-              keys: [],
-              keys_secondary: { logic: 'and_any', keys: [] },
-              scan_depth: 'same_as_global',
-            },
-            position: { type: 'before_character_definition', role: 'system', depth: 0, order: 100 },
-            probability: 100,
-            recursion: { prevent_incoming: false, prevent_outgoing: false, delay_until: null },
-            effect: { sticky: null, cooldown: null, delay: null },
-          },
-        ]);
-      } else {
-        await updateWorldbookWith(targetWorldbook, wbEntries => {
-          const e = wbEntries.find(x => x.name === DEBUG_ENTRY_FULL_NAME);
-          if (e) {
-            e.content = logContent;
-            e.enabled = false;
-          }
-          return wbEntries;
-        });
-      }
+      const blob = new Blob([logContent], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ark_debug_logs_${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      if (typeof toastr !== 'undefined') toastr.success('日志已成功下载！');
     } catch (e) {
-      console.error('[ARK_DEBUG] Failed to flush logs', e);
+      console.error('[ARK_DEBUG] Failed to download logs', e);
+      if (typeof toastr !== 'undefined') toastr.error('日志下载失败，请查看控制台。');
     }
   }
 }
