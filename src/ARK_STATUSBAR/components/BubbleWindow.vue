@@ -56,13 +56,20 @@
               entry.tempDisabled ? 'ark-stripe-warning bg-outline-variant/10 border-outline-variant' : 'bg-surface-container-low border-outline-variant/50'
             ]">
           <div class="flex justify-between items-start gap-1 relative z-10">
-            <span class="text-[calc(11em/14)] font-body flex-1 min-w-0 break-words whitespace-normal leading-tight"
-                  :class="[
-                    entry.enabled === false && !entry.tempDisabled ? 'text-on-surface line-through opacity-70' :
-                    entry.tempDisabled ? 'text-on-surface-variant' : 'text-on-surface'
-                  ]">
-              {{ entry.name }}
-            </span>
+            <div class="flex-1 flex gap-1.5 items-start min-w-0">
+              <div v-if="showTypeIndicator"
+                   class="w-1.5 h-1.5 mt-[3px] flex-shrink-0 border-none p-0 m-0 rounded-none shadow-sm"
+                   :class="entry.type === 'constant' ? 'bg-[#4ed5ff] shadow-[0_0_4px_#4ed5ff88]' : 'bg-[#afd439] shadow-[0_0_4px_#afd43988]'"
+                   :title="entry.type === 'constant' ? '蓝灯(常驻)' : '绿灯(条件)'">
+              </div>
+              <span class="text-[calc(11em/14)] font-body flex-1 min-w-0 break-words whitespace-normal leading-tight"
+                    :class="[
+                      entry.enabled === false && !entry.tempDisabled ? 'text-on-surface line-through opacity-70' :
+                      entry.tempDisabled ? 'text-on-surface-variant' : 'text-on-surface'
+                    ]">
+                {{ entry.name }}
+              </span>
+            </div>
             <span class="text-[calc(9em/14)] font-mono text-on-surface-variant whitespace-nowrap flex-shrink-0 opacity-70 mt-0.5">
               ~{{ entry.tokens || 0 }}
             </span>

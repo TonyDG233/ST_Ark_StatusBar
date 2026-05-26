@@ -63,7 +63,8 @@ const mappedEntries = computed(() => {
     enabled: entry.enabled,
     tempDisabled: entry.tempDisabled,
     tokens: entryTokenCountCache.value[uiStore.getEntryKey(entry)] || 0,
-    world: entry.world
+    world: entry.world,
+    type: (entry.strategy?.type === 'constant' ? 'constant' : 'selective') as 'constant' | 'selective'
   }));
 });
 
