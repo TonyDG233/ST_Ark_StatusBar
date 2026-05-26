@@ -1,3 +1,5 @@
+import iframe_srcdoc from './iframe_srcdoc.html';
+
 export async function loadReadme(url: string): Promise<boolean> {
   const readme = await fetch(url);
   if (!readme.ok) {
@@ -8,24 +10,29 @@ export async function loadReadme(url: string): Promise<boolean> {
   return true;
 }
 
-export function teleportStyle() {
-  if ($(`head > div[script_id="${getScriptId()}"]`).length > 0) {
-    return;
-  }
-  const $div = $(`<div>`).attr('script_id', getScriptId()).append($(`head > style`, document).clone());
-  $('head').append($div);
+export function teleportStyle(
+  append_to: JQuery.Selector | JQuery.htmlString | JQuery.TypeOrArray<Element | DocumentFragment> | JQuery = 'head',
+): { destroy: () => void } {
+  const $div = $(`<div>`)
+    .attr('script_id', getScriptId())
+    .append($(`head > style`, document).clone())
+    .appendTo(append_to);
+
+  return {
+    destroy: () => $div.remove(),
+  };
 }
 
-export function deteleportStyle() {
-  $(`head > div[script_id="${getScriptId()}"]`).remove();
+export function createScriptIdIframe(): JQuery<HTMLIFrameElement> {
+  return $(`<iframe>`).attr({
+    script_id: getScriptId(),
+    frameborder: 0,
+    srcdoc: iframe_srcdoc,
+  }) as JQuery<HTMLIFrameElement>;
 }
 
 export function createScriptIdDiv(): JQuery<HTMLDivElement> {
   return $('<div>').attr('script_id', getScriptId()) as JQuery<HTMLDivElement>;
-}
-
-export function destroyScriptIdDiv(): void {
-  $(`div[script_id="${getScriptId()}"]`).remove();
 }
 
 export function reloadOnChatChange(): EventOnReturn {

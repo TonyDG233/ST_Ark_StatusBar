@@ -18,6 +18,10 @@ declare module '*.css' {
   const content: unknown;
   export default content;
 }
+declare module '*.scss' {
+  const content: unknown;
+  export default content;
+}
 declare module '*.vue' {
   import { DefineComponent } from 'vue';
   const component: DefineComponent;

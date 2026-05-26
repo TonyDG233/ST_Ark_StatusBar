@@ -399,7 +399,15 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
           configFile: path.join(import.meta.dirname, 'tsconfig.json'),
         }),
       ],
-      alias: {},
+      alias: {
+        '@': path.resolve(import.meta.dirname, './'),
+        '@components': path.resolve(import.meta.dirname, 'src/ARK_STATUSBAR/components/'),
+        '@views': path.resolve(import.meta.dirname, 'src/ARK_STATUSBAR/views/'),
+        '@services': path.resolve(import.meta.dirname, 'src/ARK_STATUSBAR/services/'),
+        '@store': path.resolve(import.meta.dirname, 'src/ARK_STATUSBAR/store/'),
+        '@hooks': path.resolve(import.meta.dirname, 'src/ARK_STATUSBAR/hooks/'),
+        '@utils': path.resolve(import.meta.dirname, 'src/ARK_STATUSBAR/utils/'),
+      },
     },
     plugins: (entry.html === undefined
       ? [new MiniCssExtractPlugin()]
@@ -440,7 +448,11 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
         unpluginVueComponents({
           dts: true,
           syncMode: 'overwrite',
-          // globs: ['src/panel/component/*.vue'],
+          // 仅扫描通用的笨组件，防止将业务视图组件 (Views) 意外全局化
+          dirs: [
+            'src/ARK_STATUSBAR/components'
+          ],
+          deep: true,
           resolvers: [VueUseComponentsResolver(), VueUseDirectiveResolver()],
         }),
         new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
@@ -552,3 +564,4 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
 }
 
 export default config.entries.map(parse_configuration);
+

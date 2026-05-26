@@ -7,14 +7,33 @@
       "toastr",
       "type-fest",
       "yaml",
-      "zod",
+      "zod"
     ],
     "target": "ESNext",
     "module": "ESNext",
+    "rootDir": ".",
     "outDir": "dist",
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@components/*": [
+        "./src/ARK_STATUSBAR/components/*"
+      ],
+      "@views/*": [
+        "./src/ARK_STATUSBAR/views/*"
+      ],
+      "@services/*": [
+        "./src/ARK_STATUSBAR/services/*"
+      ],
+      "@store/*": [
+        "./src/ARK_STATUSBAR/store/*"
+      ],
+      "@hooks/*": [
+        "./src/ARK_STATUSBAR/hooks/*"
+      ],
+      "@utils/*": [
+        "./src/ARK_STATUSBAR/utils/*"
       ]
     },
     "moduleDetection": "auto",
@@ -37,11 +56,11 @@
   "include": [
     "@types",
     "src",
-    "*.d.ts",
+    "*.d.ts"
   ],
   "exclude": [
     "**/dist/**",
     "**/node_modules/**",
-    "src/poc/**",
+    "src/poc/**"
   ]
 }

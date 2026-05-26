@@ -32,6 +32,7 @@ export interface ArkConfig {
   uiWidth: number; // 状态栏 UI 的宽度
   uiHeight?: number; // 状态栏 UI 的高度 (仅桌面端非移动端布局下生效)
   uiFontSize: number; // 状态栏 UI 的基础字体大小
+  worldbookPageSize?: number; // 世界书列表分页数量
   commits: ArkCommit[]; // 操作历史记录（类似 Git commit）
   lastUpdateTime: number; // 最后一次配置更新的时间戳
   suppressNextDiffWarning?: boolean; // 是否屏蔽下一次的 Baseline 差异警告
@@ -78,8 +79,9 @@ export const DEFAULT_CONFIG: ArkConfig = {
   showConstantEntries: false, // 默认隐藏蓝灯条目
   isDebugMode: false,
   uiWidth: 400,
-  uiHeight: 400,
+  uiHeight: 600,
   uiFontSize: 14,
+  worldbookPageSize: 15,
   commits: [],
   lastUpdateTime: 0,
   pinnedEntries: [],
