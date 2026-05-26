@@ -1,9 +1,9 @@
 <template>
-    <select v-model="model" class="text_pole">
-        <template v-for="option in options" :key="option">
-            <option :value="option">{{ option }}</option>
-        </template>
-    </select>
+  <select v-model="model" class="text_pole">
+    <template v-for="option in options" :key="option">
+      <option :value="option">{{ option }}</option>
+    </template>
+  </select>
 </template>
 
 <script setup lang="ts">

@@ -12,7 +12,8 @@
         @click="resetToBaseline"
         class="flex-1 min-w-[140px] bg-error/20 text-error border border-error/50 font-bold px-3 py-2 text-[calc(11em/14)] hover:bg-error/30 transition-colors outline-none flex justify-center items-center gap-1 text-center"
       >
-        <span class="material-symbols-outlined text-[calc(14em/14)]">settings_backup_restore</span> 恢复初始状态 (Baseline)
+        <span class="material-symbols-outlined text-[calc(14em/14)]">settings_backup_restore</span> 恢复初始状态
+        (Baseline)
       </button>
       <button
         @click="closeSingleChar"
@@ -32,11 +33,7 @@ import { configStore } from '../../../store/config_store';
 import { useUIStateStore } from '../../../store/ui_state_store';
 
 const uiStore = useUIStateStore();
-const { 
-  allAvailableWorldbooks, 
-  currentPrimaryWorldbook, 
-  isArknightsCard
-} = storeToRefs(uiStore);
+const { allAvailableWorldbooks, currentPrimaryWorldbook, isArknightsCard } = storeToRefs(uiStore);
 
 const manager = StatusBarManager.getInstance();
 
@@ -70,5 +67,4 @@ const closeSingleChar = async () => {
 };
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

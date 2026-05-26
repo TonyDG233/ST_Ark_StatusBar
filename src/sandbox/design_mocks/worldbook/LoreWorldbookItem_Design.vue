@@ -1,21 +1,18 @@
 <template>
   <div class="flex flex-col border border-outline-variant bg-surface-container-low mb-4">
     <!-- Folder Header -->
-    <LoreFolderItem 
-      :title="worldbook.title" 
-      :count="worldbook.entries.length" 
+    <LoreFolderItem
+      :title="worldbook.title"
+      :count="worldbook.entries.length"
       :bindType="worldbook.bindType"
       :isPinned="worldbook.isPinned"
       :expanded="expanded"
       :globalBatchMode="globalBatchMode"
       @toggle="expanded = !expanded"
     />
-    
+
     <!-- Collapsible Entry List -->
-    <LoreEntryList 
-      v-show="expanded" 
-      :entries="worldbook.entries"
-    />
+    <LoreEntryList v-show="expanded" :entries="worldbook.entries" />
   </div>
 </template>
 
@@ -40,5 +37,4 @@ const props = defineProps<{
 const expanded = ref(true); // 默认展开方便测试
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

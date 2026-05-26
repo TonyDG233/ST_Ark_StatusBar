@@ -110,13 +110,13 @@ export class StatusBarManager {
    * 包含：快照功能、全量备份、开局剧本应用、获取世界书列表等。
    */
   public readonly worldbook: WorldbookFacade;
-  
+
   /**
    * 世界书编辑器服务：直接挂载独立单例
    * 包含：创建、删除世界书，以及修改具体条目（保存、批量删除、切换类型）。
    */
   public readonly editor = worldbookEditorService;
-  
+
   /**
    * 历史记录与提交服务：直接挂载独立单例
    * 包含：生成 ArkCommit、恢复快照、删除记录、批量操作提交记录。

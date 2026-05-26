@@ -4,17 +4,17 @@ import { createApp } from 'vue';
 import Panel from './Panel.vue';
 
 export function initPanel() {
-    const app = createApp(Panel).use(getActivePinia() ?? createPinia());
+  const app = createApp(Panel).use(getActivePinia() ?? createPinia());
 
-    const $app = createScriptIdDiv();
-    $('#extensions_settings2').append($app);
-    app.mount($app[0]);
+  const $app = createScriptIdDiv();
+  $('#extensions_settings2').append($app);
+  app.mount($app[0]);
 
-    const { destroy: destroyStyle } = teleportStyle();
+  const { destroy: destroyStyle } = teleportStyle();
 
-    return () => {
-        app.unmount();
-        $app.remove();
-        destroyStyle();
-    };
+  return () => {
+    app.unmount();
+    $app.remove();
+    destroyStyle();
+  };
 }

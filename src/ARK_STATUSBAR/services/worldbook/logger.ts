@@ -58,7 +58,7 @@ class LoggerService {
     if (this.debugLogQueue.length > 200) {
       this.debugLogQueue.splice(0, this.debugLogQueue.length - 200);
     }
-    
+
     // 取消定期写入世界书的操作，改为用户手动在选项中下载
   }
 
@@ -79,7 +79,7 @@ class LoggerService {
       a.download = `ark_debug_logs_${Date.now()}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      
+
       if (typeof toastr !== 'undefined') toastr.success('日志已成功下载！');
     } catch (e) {
       console.error('[ARK_DEBUG] Failed to download logs', e);

@@ -4,8 +4,8 @@
     v-if="isSystemEnabled"
     v-show="isVisible"
     class="ark-global-statusbar-mount-point fixed top-0 z-[9999]"
-    :class="{ 
-      'transition-[left,right,transform] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]': isSnapping 
+    :class="{
+      'transition-[left,right,transform] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]': isSnapping,
     }"
     :style="{
       left: currentAnchor === 'left' ? `${transformLeft}px` : 'auto',
@@ -24,7 +24,7 @@
         currentConfig?.theme === 'light' ? 'light-theme border-outline-variant bg-surface' : '',
         currentConfig?.theme === 'dark' ? 'dark-theme border-outline-variant bg-surface' : '',
         currentConfig?.theme === 'transparent' ? 'dark-theme bg-surface/40 backdrop-blur-md border-white/10' : '',
-        
+
         /* --- 模式边界与溢出控制 --- */
         currentUiMode === UiMode.BUBBLE
           ? 'overflow-visible !border-none !bg-transparent !shadow-none items-end'
@@ -33,14 +33,14 @@
         /* --- BUBBLE 物理形态补偿 (向左向右吸附切角) --- */
         currentUiMode === UiMode.BUBBLE
           ? `!flex-row items-center justify-center !w-[var(--snapped-width)] !h-[60px] !min-w-[32px] opacity-80 cursor-grab hover:opacity-100 hover:bg-[#007bff33] border-white/20 bg-[#282828d9] backdrop-blur-md ${isSnappedToEdge === 'left' ? '!rounded-r-[30px] !border-l-0' : '!rounded-l-[30px] !border-r-0'}`
-        /* --- MINI 物理形态补偿 --- */
-        : currentUiMode === UiMode.MINI
-          ? 'w-[13em] max-w-[13em] rounded-2xl opacity-80 hover:opacity-100'
-        /* --- FULL 物理形态补偿 --- */
-        : 'w-[var(--ui-width)] max-w-[90vw] max-h-[calc(100dvh-80px)] rounded-lg',
+          : /* --- MINI 物理形态补偿 --- */
+            currentUiMode === UiMode.MINI
+            ? 'w-[13em] max-w-[13em] rounded-2xl opacity-80 hover:opacity-100'
+            : /* --- FULL 物理形态补偿 --- */
+              'w-[var(--ui-width)] max-w-[90vw] max-h-[calc(100dvh-80px)] rounded-lg',
 
         /* --- 拖拽帧率保护 --- */
-        isDraggingState ? '!transition-none' : ''
+        isDraggingState ? '!transition-none' : '',
       ]"
       :style="{
         position: 'relative',
@@ -50,7 +50,6 @@
         fontSize: (previewUiFontSize ?? currentConfig?.uiFontSize ?? 14) + 'px',
       }"
     >
-      
       <!-- BUBBLE 气泡态：极度压缩态，由于视觉完全不同，采用独立的渲染树 -->
       <template v-if="currentUiMode === UiMode.BUBBLE">
         <BubbleModeView
@@ -73,7 +72,12 @@
           @mousedown="startDrag"
           @touchstart="startDrag"
           class="flex-shrink-0 z-50 cursor-grab active:cursor-grabbing"
-          :class="currentUiMode === UiMode.MINI ? '!border-b-0 rounded-t-2xl ' + (currentConfig?.theme === 'transparent' ? '!bg-black/20' : '!bg-surface-container-high') : ''"
+          :class="
+            currentUiMode === UiMode.MINI
+              ? '!border-b-0 rounded-t-2xl ' +
+                (currentConfig?.theme === 'transparent' ? '!bg-black/20' : '!bg-surface-container-high')
+              : ''
+          "
         />
 
         <!-- 内容区域容器：采用绝对定位交叉淡入淡出，摆脱高度互相挤压的问题 -->
@@ -84,31 +88,45 @@
           :style="{ gridTemplateRows: currentUiMode === UiMode.FULL ? '1fr' : '0fr' }"
         >
           <!-- 第二层：物理挤压垫片。必须仅有 min-h-0 且不能有固定 height，这样在 0fr 时它才会完全被压扁到 0px -->
-          <div class="min-h-0 min-w-0 overflow-hidden w-full transition-opacity duration-300"
-               :class="currentUiMode === UiMode.FULL ? 'opacity-100' : 'opacity-0'">
-               
+          <div
+            class="min-h-0 min-w-0 overflow-hidden w-full transition-opacity duration-300"
+            :class="currentUiMode === UiMode.FULL ? 'opacity-100' : 'opacity-0'"
+          >
             <!-- 第三层：恢复业务定高防线以保证 Grid 展开动画平滑，但新增动态 max-height 钳制防止因缩放窗口导致底部被裁切 -->
-            <div class="flex flex-col w-full"
-                 :style="{
-                   height: (previewUiHeight ?? currentConfig?.uiHeight ?? 400) + 'px',
-                   maxHeight: 'calc(100dvh - 140px)'
-                 }">
-            
-              <div class="flex-1 overflow-y-auto scrollbar-none flex flex-col relative min-h-0 bg-background global-watermark">
+            <div
+              class="flex flex-col w-full"
+              :style="{
+                height: (previewUiHeight ?? currentConfig?.uiHeight ?? 400) + 'px',
+                maxHeight: 'calc(100dvh - 140px)',
+              }"
+            >
+              <div
+                class="flex-1 overflow-y-auto scrollbar-none flex flex-col relative min-h-0 bg-background global-watermark"
+              >
                 <DashboardTab
                   v-if="currentTab === 'dashboard'"
-                  @navigate="(t, s) => { currentTab = t; currentSubTab = s || ''; }"
+                  @navigate="
+                    (t, s) => {
+                      currentTab = t;
+                      currentSubTab = s || '';
+                    }
+                  "
                 />
-                
-                <InterceptorTab v-if="currentTab === 'worldbook' && currentSubTab === 'interceptor'" @close-panel="() => {
-                  if (preInterceptUiMode === UiMode.MINI) currentUiMode = UiMode.MINI;
-                  preInterceptUiMode = null;
-                }" />
-                
+
+                <InterceptorTab
+                  v-if="currentTab === 'worldbook' && currentSubTab === 'interceptor'"
+                  @close-panel="
+                    () => {
+                      if (preInterceptUiMode === UiMode.MINI) currentUiMode = UiMode.MINI;
+                      preInterceptUiMode = null;
+                    }
+                  "
+                />
+
                 <WorldbookTab v-if="currentTab === 'worldbook' && currentSubTab === 'lore'" />
-                
+
                 <HistoryTab v-if="currentTab === 'worldbook' && currentSubTab === 'history'" />
-                
+
                 <SettingsTab v-if="currentTab === 'settings'" />
 
                 <ToolsTab v-if="currentTab === 'misc'" />
@@ -117,18 +135,19 @@
               <!-- 底部导航区 (SubNav + BottomNav) -->
               <div class="relative flex-shrink-0 z-50 flex flex-col w-full text-[var(--color-on-surface)]">
                 <!-- 二级悬浮导航 (SubNav) 绝对定位于底部 -->
-                <div class="absolute bottom-full left-0 right-0 z-40 flex justify-center mb-2 pointer-events-none px-2 box-border">
+                <div
+                  class="absolute bottom-full left-0 right-0 z-40 flex justify-center mb-2 pointer-events-none px-2 box-border"
+                >
                   <SubNav
                     class="pointer-events-auto"
                     v-if="currentTab === 'worldbook'"
                     :activeSubTab="currentSubTab"
                     :tabs="worldbookSubTabs"
-                    @change-sub-tab="(val: string) => currentSubTab = val"
+                    @change-sub-tab="(val: string) => (currentSubTab = val)"
                   />
                 </div>
-                <BottomNav :activeTab="currentTab" @change-tab="(val: string) => currentTab = val" />
+                <BottomNav :activeTab="currentTab" @change-tab="(val: string) => (currentTab = val)" />
               </div>
-              
             </div>
           </div>
         </div>
@@ -147,29 +166,44 @@
             @touchstart.stop.prevent="e => startResize(e, 'se')"
             title="拖拽缩放UI尺寸"
           ></div>
-          
+
           <!-- 视觉提示三角 (可选，如果影响美观可忽略，仅提供功能) -->
-          <svg class="absolute bottom-1 right-1 w-3 h-3 opacity-30 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v6h-6M21 21l-7-7" /></svg>
-          <svg class="absolute bottom-1 left-1 w-3 h-3 opacity-30 pointer-events-none transform scale-x-[-1]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v6h-6M21 21l-7-7" /></svg>
+          <svg
+            class="absolute bottom-1 right-1 w-3 h-3 opacity-30 pointer-events-none"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M21 15v6h-6M21 21l-7-7" />
+          </svg>
+          <svg
+            class="absolute bottom-1 left-1 w-3 h-3 opacity-30 pointer-events-none transform scale-x-[-1]"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M21 15v6h-6M21 21l-7-7" />
+          </svg>
         </template>
 
         <!-- 2. MINI 悬浮窗态的内容区 (仅包含列表本身) -->
-        <div class="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden w-full min-h-0"
-             :style="{ gridTemplateRows: currentUiMode === UiMode.MINI ? '1fr' : '0fr' }">
-          <div class="min-h-0 min-w-0 overflow-hidden w-full transition-opacity duration-300"
-               :class="currentUiMode === UiMode.MINI ? 'opacity-100' : 'opacity-0'">
+        <div
+          class="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden w-full min-h-0"
+          :style="{ gridTemplateRows: currentUiMode === UiMode.MINI ? '1fr' : '0fr' }"
+        >
+          <div
+            class="min-h-0 min-w-0 overflow-hidden w-full transition-opacity duration-300"
+            :class="currentUiMode === UiMode.MINI ? 'opacity-100' : 'opacity-0'"
+          >
             <div class="w-full flex flex-col">
               <!-- TODO: [Phase 2] 平常状态下此处应展示基于 DashboardTab 2.3 的“触发记录概览”，而不是目前这样特定条目细节的堆砌 -->
-              <MiniWindow
-                :entries="displayEntries"
-                class="rounded-b-2xl shadow-sm !border-t-0"
-              />
+              <MiniWindow :entries="displayEntries" class="rounded-b-2xl shadow-sm !border-t-0" />
             </div>
           </div>
         </div>
-
       </template>
-
     </div>
   </div>
 </template>
@@ -202,18 +236,18 @@ import { useUIStateStore } from '../store/ui_state_store';
 
 const uiStore = useUIStateStore();
 const {
-    currentTokenCount,
-    isArknightsCard,
-    isTestMode,
-    pendingEntries,
-    recentTriggerLogs,
-    previewUiFontSize,
-    previewUiWidth,
-    previewUiHeight,
+  currentTokenCount,
+  isArknightsCard,
+  isTestMode,
+  pendingEntries,
+  recentTriggerLogs,
+  previewUiFontSize,
+  previewUiWidth,
+  previewUiHeight,
 } = storeToRefs(uiStore);
 
 const displayEntries = computed(() => {
-  return pendingEntries.value.length > 0 ? pendingEntries.value : (recentTriggerLogs.value[0]?.entries || []);
+  return pendingEntries.value.length > 0 ? pendingEntries.value : recentTriggerLogs.value[0]?.entries || [];
 });
 
 const isVisible = ref(true);
@@ -228,7 +262,7 @@ const currentSubTab = ref('interceptor');
 const worldbookSubTabs = [
   { id: 'interceptor', label: '预警', icon: 'security' },
   { id: 'lore', label: '条目', icon: 'menu_book' },
-  { id: 'history', label: '历史', icon: 'history' }
+  { id: 'history', label: '历史', icon: 'history' },
 ];
 
 const currentConfig = useArkConfig();
@@ -281,7 +315,7 @@ const startResize = (e: MouseEvent | TouchEvent, direction: 'se' | 'sw') => {
   isResizing = true;
   resizeDirection = direction;
   isDraggingState.value = true;
-  
+
   if (e.type === 'touchstart') {
     resizeStartX = (e as TouchEvent).touches[0].clientX;
     resizeStartY = (e as TouchEvent).touches[0].clientY;
@@ -289,10 +323,10 @@ const startResize = (e: MouseEvent | TouchEvent, direction: 'se' | 'sw') => {
     resizeStartX = (e as MouseEvent).clientX;
     resizeStartY = (e as MouseEvent).clientY;
   }
-  
+
   initialWidth = Number(previewUiWidth.value ?? currentConfig.value?.uiWidth ?? 400);
   initialHeight = Number(previewUiHeight.value ?? currentConfig.value?.uiHeight ?? 400);
-  
+
   initialTransformLeft = transformLeft.value;
   initialTransformRight = transformRight.value;
 
@@ -306,7 +340,7 @@ const startResize = (e: MouseEvent | TouchEvent, direction: 'se' | 'sw') => {
 const onResizeDrag = (e: MouseEvent | TouchEvent) => {
   if (!isResizing) return;
   e.preventDefault();
-  
+
   let currentX = 0;
   let currentY = 0;
   if (e.type === 'touchmove') {
@@ -316,21 +350,21 @@ const onResizeDrag = (e: MouseEvent | TouchEvent) => {
     currentX = (e as MouseEvent).clientX;
     currentY = (e as MouseEvent).clientY;
   }
-  
+
   const dx = currentX - resizeStartX;
   const dy = currentY - resizeStartY;
-  
+
   const ST_WIN = window.parent || window;
-  
+
   let newHeight = initialHeight + dy;
   // 高度最大值：Settings上限 1200，且不超过 CSS 的 max-h (100dvh - 80px)
   const maxHeight = Math.min(1200, ST_WIN.innerHeight - 80);
   newHeight = Math.max(200, Math.min(newHeight, maxHeight));
-  
+
   let newWidth = initialWidth;
   // 宽度最大值：Settings上限 1000，且不超过 CSS 的 max-w (90vw)
   const maxWidth = Math.min(1000, ST_WIN.innerWidth * 0.9);
-  
+
   if (resizeDirection === 'se') {
     newWidth = initialWidth + dx;
     newWidth = Math.max(200, Math.min(newWidth, maxWidth));
@@ -346,7 +380,7 @@ const onResizeDrag = (e: MouseEvent | TouchEvent) => {
       transformLeft.value = initialTransformLeft - (newWidth - initialWidth);
     }
   }
-  
+
   previewUiWidth.value = newWidth;
   previewUiHeight.value = newHeight;
 };
@@ -354,17 +388,17 @@ const onResizeDrag = (e: MouseEvent | TouchEvent) => {
 const stopResize = () => {
   isResizing = false;
   isDraggingState.value = false;
-  
+
   const ST_DOC = window.parent?.document || document;
   ST_DOC.removeEventListener('mousemove', onResizeDrag);
   ST_DOC.removeEventListener('touchmove', onResizeDrag);
   ST_DOC.removeEventListener('mouseup', stopResize);
   ST_DOC.removeEventListener('touchend', stopResize);
-  
+
   if (previewUiWidth.value !== null || previewUiHeight.value !== null) {
     configStore.updateConfig({
       uiWidth: previewUiWidth.value ?? currentConfig.value?.uiWidth,
-      uiHeight: previewUiHeight.value ?? currentConfig.value?.uiHeight
+      uiHeight: previewUiHeight.value ?? currentConfig.value?.uiHeight,
     });
     setTimeout(() => {
       previewUiWidth.value = null;
@@ -398,12 +432,12 @@ onMounted(() => {
   interceptorTriggeredListener = (e: CustomEvent) => {
     const triggered = e.detail.entries || [];
     const isManualTest = !!e.detail.isManualTest;
-    
+
     isTestMode.value = isManualTest;
     currentTokenCount.value = e.detail.tokenCount ?? 0;
 
     pendingEntries.value = triggered;
-    
+
     currentTab.value = 'worldbook';
     currentSubTab.value = 'interceptor';
 
@@ -419,14 +453,14 @@ onMounted(() => {
     if (!isSystemEnabled.value) {
       configStore.updateConfig({ isSystemEnabled: true });
     }
-    
+
     if (isManualTest && typeof toastr !== 'undefined') toastr.success('检测完成。', 'ARK_STATUSBAR');
   };
   document.addEventListener('ark-interceptor-triggered', interceptorTriggeredListener);
 
   let baselineDiffListener: (e: Event) => void;
   baselineDiffListener = () => {
-    if (!isArknightsCard.value) return; 
+    if (!isArknightsCard.value) return;
     if (typeof toastr !== 'undefined') {
       toastr.warning(
         '检测到当前世界书带有开局剧情或手动修改的残余状态。为防止剧情串台，建议在侧边栏或历史记录处重置。',
@@ -443,7 +477,7 @@ onMounted(() => {
     if (newState) checkBounds();
   };
   document.addEventListener('ark:system-toggle', systemToggleListener);
-  
+
   const ST_WIN = window.parent || window;
   const handleWindowResize = () => checkBounds();
   ST_WIN.addEventListener('resize', handleWindowResize);

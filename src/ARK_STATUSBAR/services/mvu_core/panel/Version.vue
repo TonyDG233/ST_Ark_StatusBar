@@ -1,9 +1,9 @@
 <template>
-    <Section label="当前版本">
-        <template #content>
-            <span> {{ build_date }} ({{ commit_id }}) </span>
-        </template>
-    </Section>
+  <Section label="当前版本">
+    <template #content>
+      <span> {{ build_date }} ({{ commit_id }}) </span>
+    </template>
+  </Section>
 </template>
 
 <script setup lang="ts">

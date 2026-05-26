@@ -14,11 +14,11 @@
     <!-- 进度条本体 -->
     <div class="w-full h-[4px] bg-surface-container-high border border-outline-variant relative overflow-hidden">
       <!-- 填充层 -->
-      <div 
+      <div
         class="absolute top-0 left-0 h-full bg-primary transition-all duration-300 ease-out"
         :style="{ width: `${percentage}%` }"
       ></div>
-      
+
       <!-- 刻度线遮罩 (增加机械感) -->
       <div class="absolute inset-0 flex justify-between px-1 opacity-20 pointer-events-none">
         <div class="w-[1px] h-full bg-background" v-for="i in 3" :key="i"></div>
@@ -31,15 +31,18 @@
 import { computed } from 'vue';
 
 // ProgressBar: 数据驱动的工业风进度条
-const props = withDefaults(defineProps<{
-  label: string;
-  current: number;
-  max: number;
-}>(), {
-  label: 'PROGRESS',
-  current: 0,
-  max: 100
-});
+const props = withDefaults(
+  defineProps<{
+    label: string;
+    current: number;
+    max: number;
+  }>(),
+  {
+    label: 'PROGRESS',
+    current: 0,
+    max: 100,
+  },
+);
 
 const percentage = computed(() => {
   if (props.max <= 0) return 0;

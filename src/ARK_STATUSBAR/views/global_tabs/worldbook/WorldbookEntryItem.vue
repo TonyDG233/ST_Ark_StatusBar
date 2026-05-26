@@ -1,5 +1,5 @@
 <template>
-  <LoreDataCard 
+  <LoreDataCard
     :entry="transformedEntry"
     :batchMode="isBatchMode"
     :selected="isSelected"
@@ -52,7 +52,7 @@ const transformedEntry = computed<LoreEntryData>(() => ({
   keys: (props.entry.strategy?.keys || []).map(String),
   type: (props.entry._computedType as 'constant' | 'selective') || 'selective',
   enabled: props.entry.enabled,
-  isPinned: props.entry._isPinned || false
+  isPinned: props.entry._isPinned || false,
 }));
 
 const toggleEdit = () => {

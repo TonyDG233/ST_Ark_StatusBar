@@ -1,17 +1,28 @@
 <template>
-  <header class="ark-top-bar w-full max-w-full min-w-0 flex justify-between items-center px-3 bg-surface border-b border-outline-variant flex-shrink-0 select-none cursor-grab active:cursor-grabbing transition-all duration-300 overflow-hidden"
-          :class="isMini ? 'h-8' : 'h-10'">
+  <header
+    class="ark-top-bar w-full max-w-full min-w-0 flex justify-between items-center px-3 bg-surface border-b border-outline-variant flex-shrink-0 select-none cursor-grab active:cursor-grabbing transition-all duration-300 overflow-hidden"
+    :class="isMini ? 'h-8' : 'h-10'"
+  >
     <!-- 开发标签 -->
     <!-- <div class="absolute top-0 right-10 bg-error/90 text-on-error text-[calc(8em/14)] px-1 font-mono z-50 pointer-events-none opacity-50">
       [TopBar]
     </div> -->
 
     <!-- 左侧标题与图标 -->
-    <div class="flex items-center gap-2 text-primary-text font-display font-bold tracking-widest uppercase truncate min-w-0 flex-1">
-      <span v-if="icon" class="material-symbols-outlined flex-shrink-0 transition-all duration-300" :class="isMini ? 'text-[calc(14em/14)]' : 'text-[calc(20em/14)]'">{{ icon }}</span>
+    <div
+      class="flex items-center gap-2 text-primary-text font-display font-bold tracking-widest uppercase truncate min-w-0 flex-1"
+    >
+      <span
+        v-if="icon"
+        class="material-symbols-outlined flex-shrink-0 transition-all duration-300"
+        :class="isMini ? 'text-[calc(14em/14)]' : 'text-[calc(20em/14)]'"
+        >{{ icon }}</span
+      >
       <!-- 动态标题样式转换 -->
-      <span class="truncate transition-all duration-300 min-w-0"
-            :class="isMini ? 'text-[calc(10em/14)] font-code-data text-on-surface-variant tracking-widest' : 'text-sm'">
+      <span
+        class="truncate transition-all duration-300 min-w-0"
+        :class="isMini ? 'text-[calc(10em/14)] font-code-data text-on-surface-variant tracking-widest' : 'text-sm'"
+      >
         {{ title }}
       </span>
     </div>
@@ -19,14 +30,9 @@
     <!-- 右侧操作区 -->
     <div class="flex items-center gap-3 flex-shrink-0 text-on-surface mr-1">
       <slot name="actions"></slot>
-      
+
       <!-- 原版四角折叠切换按钮 (样式已迁移至 scoped) -->
-      <button
-        class="toggle-btn"
-        :class="{ 'is-mini': isMini }"
-        @click.stop="emit('toggle-minimize')"
-        title="折叠/展开"
-      >
+      <button class="toggle-btn" :class="{ 'is-mini': isMini }" @click.stop="emit('toggle-minimize')" title="折叠/展开">
         <div class="corner top-left"></div>
         <div class="corner top-right"></div>
         <div class="corner bottom-left"></div>
@@ -38,15 +44,18 @@
 
 <script setup lang="ts">
 // TopBar: 全局顶部标题与拖拽控制栏
-withDefaults(defineProps<{
-  title?: string;
-  icon?: string;
-  isMini?: boolean;
-}>(), {
-  title: 'RHODES_MANAGEMENT_SYS',
-  icon: 'menu_book',
-  isMini: false
-});
+withDefaults(
+  defineProps<{
+    title?: string;
+    icon?: string;
+    isMini?: boolean;
+  }>(),
+  {
+    title: 'RHODES_MANAGEMENT_SYS',
+    icon: 'menu_book',
+    isMini: false,
+  },
+);
 
 const emit = defineEmits<{
   (e: 'toggle-minimize'): void;

@@ -4,8 +4,8 @@
     <div
       class="w-full h-full flex items-center text-[1.1em] cursor-grab active:cursor-grabbing absolute inset-0 z-10"
       :class="position === 'left' ? 'justify-end pr-2' : 'justify-start pl-2'"
-      @mousedown="(e) => $emit('drag-start', e)"
-      @touchstart="(e) => $emit('drag-start', e)"
+      @mousedown="e => $emit('drag-start', e)"
+      @touchstart="e => $emit('drag-start', e)"
       @click="handleBubbleClick"
       @dblclick="$emit('open-mini')"
       title="单击展开微型拦截窗，双击恢复迷你悬浮窗，或拖拽展开"
@@ -59,12 +59,13 @@ const triggerCount = computed(() => pendingEntries.value.length);
 const mappedEntries = computed(() => {
   return pendingEntries.value.map((entry: UIWorldbookEntry) => ({
     uid: entry.uid,
-    name: entry.name || (entry.strategy?.keys && entry.strategy.keys.length ? entry.strategy.keys[0].toString() : '未知'),
+    name:
+      entry.name || (entry.strategy?.keys && entry.strategy.keys.length ? entry.strategy.keys[0].toString() : '未知'),
     enabled: entry.enabled,
     tempDisabled: entry.tempDisabled,
     tokens: entryTokenCountCache.value[uiStore.getEntryKey(entry)] || 0,
     world: entry.world,
-    type: (entry.strategy?.type === 'constant' ? 'constant' : 'selective') as 'constant' | 'selective'
+    type: (entry.strategy?.type === 'constant' ? 'constant' : 'selective') as 'constant' | 'selective',
   }));
 });
 
@@ -91,12 +92,12 @@ const handleToggleEntry = async (mappedEntry: any, action: 'enable' | 'resume' |
   if (!targetWorldbook) return;
 
   if (action === 'enable' || action === 'disable') {
-    originalEntry.enabled = (action === 'enable');
+    originalEntry.enabled = action === 'enable';
     originalEntry.tempDisabled = false;
     manager.interceptor.removeTempDisabledEntry(originalEntry.uid, targetWorldbook);
     await manager.editor.toggleEntryEnabled(originalEntry, targetWorldbook);
   } else if (action === 'temp' || action === 'resume') {
-    originalEntry.tempDisabled = (action === 'temp');
+    originalEntry.tempDisabled = action === 'temp';
     originalEntry.enabled = !originalEntry.tempDisabled;
     if (originalEntry.tempDisabled) {
       manager.interceptor.addTempDisabledEntry(originalEntry.uid, targetWorldbook);

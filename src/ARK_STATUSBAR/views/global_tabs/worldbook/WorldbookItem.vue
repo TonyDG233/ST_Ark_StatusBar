@@ -1,9 +1,9 @@
 <template>
   <div class="flex flex-col border border-outline-variant bg-surface-container-low mb-4">
     <!-- Folder Header -->
-    <LoreFolderItem 
-      :title="wb.name" 
-      :count="worldbookEntriesCache[wb.name]?.length" 
+    <LoreFolderItem
+      :title="wb.name"
+      :count="worldbookEntriesCache[wb.name]?.length"
       :bindType="wb.type as 'char' | 'global' | 'unmounted'"
       :isPinned="wb.isPinned"
       :expanded="isExpanded"
@@ -15,7 +15,7 @@
       @toggle-mount="toggleGlobalMountUI"
       @delete="deleteWorldbookUI"
     />
-    
+
     <!-- Collapsible Entry List -->
     <WorldbookEntryList v-if="isExpanded" :wbName="wb.name" />
   </div>
@@ -35,15 +35,9 @@ import { useUIStateStore } from '../../../store/ui_state_store';
 // 1. 实例化 Store
 const uiStore = useUIStateStore();
 // 2. 解构状态变量（必须用 storeToRefs 保持响应式）
-const { 
-  expandedWorldbooks,
-  isLoadingWb,
-  worldbookEntriesCache
-} = storeToRefs(uiStore);
+const { expandedWorldbooks, isLoadingWb, worldbookEntriesCache } = storeToRefs(uiStore);
 // 3. 解构方法（不需要 storeToRefs，直接解构即可）
-const { 
-  CONFIG_ENTRY_PREFIX
-} = uiStore;
+const { CONFIG_ENTRY_PREFIX } = uiStore;
 
 const props = defineProps<{
   wb: { name: string; type: string; isPinned: boolean };

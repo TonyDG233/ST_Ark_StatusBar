@@ -12,7 +12,7 @@ import {
   RETURN_BTN_CONTAINER_CLASS,
   startChatMonitor,
   STARTUP_CONTAINER_CLASS,
-  stopChatMonitor
+  stopChatMonitor,
 } from './hooks/useChatMonitor';
 import { acquireInstanceLock, releaseInstanceLock } from './hooks/useInstanceLock';
 import { setupTavernControls } from './hooks/useTavernControls';
@@ -41,7 +41,7 @@ function setupMountListeners() {
   onMountStartup = (e: Event) => {
     const customEvent = e as CustomEvent;
     const containerEl = customEvent.detail.containerEl as HTMLElement;
-    
+
     // 确保返回按钮已被清理
     const existingReturnBtn = containerEl.querySelector(`.${RETURN_BTN_CONTAINER_CLASS}`);
     if (existingReturnBtn) {
@@ -61,7 +61,7 @@ function setupMountListeners() {
       const mountPoint = document.createElement('div');
       mountPoint.className = STARTUP_CONTAINER_CLASS;
       containerEl.appendChild(mountPoint);
-      
+
       startupApp = createApp(StartupNavigator);
       startupApp.use(globalPinia);
       startupApp.mount(mountPoint);
@@ -89,7 +89,7 @@ function setupMountListeners() {
       const mountPoint = document.createElement('div');
       mountPoint.className = RETURN_BTN_CONTAINER_CLASS;
       containerEl.appendChild(mountPoint);
-      
+
       returnBtnApp = createApp(ReturnButton);
       returnBtnApp.use(globalPinia);
       returnBtnApp.mount(mountPoint);
@@ -163,7 +163,12 @@ function reportBootProgress(stepIdx: number, stepName: string) {
 
   if (typeof toastr !== 'undefined') {
     if (!$bootToast) {
-      $bootToast = toastr.info(message, 'ARK STATUSBAR', { timeOut: 0, extendedTimeOut: 0, tapToDismiss: false, closeButton: false });
+      $bootToast = toastr.info(message, 'ARK STATUSBAR', {
+        timeOut: 0,
+        extendedTimeOut: 0,
+        tapToDismiss: false,
+        closeButton: false,
+      });
     } else {
       $bootToast.find('.toast-message').text(message);
     }

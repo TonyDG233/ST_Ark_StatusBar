@@ -1,13 +1,21 @@
 <template>
-  <div class="settings-tab relative flex flex-col p-4 gap-4 @container overflow-y-auto scrollbar-none min-h-0 w-full h-full text-on-surface">
+  <div
+    class="settings-tab relative flex flex-col p-4 gap-4 @container overflow-y-auto scrollbar-none min-h-0 w-full h-full text-on-surface"
+  >
     <!-- 开发意图标签 -->
-    <div class="absolute top-0 right-0 bg-error/90 text-on-error text-[10px] px-1 font-mono z-50 pointer-events-none opacity-50">
+    <div
+      class="absolute top-0 right-0 bg-error/90 text-on-error text-[10px] px-1 font-mono z-50 pointer-events-none opacity-50"
+    >
       [SettingsTab_Design]
     </div>
 
     <!-- 顶部状态面板复用 HistoryTab 风格 -->
-    <div class="tab-header flex flex-col gap-2 border-b border-outline-variant pb-3 px-1 pt-1 flex-shrink-0 bg-transparent transition-all mb-2">
-      <div class="font-mono text-primary-text mb-0.5 uppercase opacity-80 flex items-center gap-1.5 text-xs tracking-wider">
+    <div
+      class="tab-header flex flex-col gap-2 border-b border-outline-variant pb-3 px-1 pt-1 flex-shrink-0 bg-transparent transition-all mb-2"
+    >
+      <div
+        class="font-mono text-primary-text mb-0.5 uppercase opacity-80 flex items-center gap-1.5 text-xs tracking-wider"
+      >
         <span class="w-1.5 h-1.5 bg-primary"></span>
         SYS_MODULE // SETTINGS
       </div>
@@ -15,9 +23,11 @@
         <div class="w-1.5 h-6 bg-primary flex-shrink-0"></div>
         <h1 class="font-display text-xl md:text-2xl font-bold text-on-surface tracking-widest uppercase">系统配置</h1>
       </div>
-      
+
       <!-- 重新设计的头部视觉：控制台状态栏 -->
-      <div class="mt-2 bg-surface-container-low border border-outline-variant p-2.5 grid grid-cols-2 gap-x-4 gap-y-1.5 font-mono text-[10px] uppercase tracking-widest shadow-inner">
+      <div
+        class="mt-2 bg-surface-container-low border border-outline-variant p-2.5 grid grid-cols-2 gap-x-4 gap-y-1.5 font-mono text-[10px] uppercase tracking-widest shadow-inner"
+      >
         <div class="flex justify-between items-center border-b border-outline-variant/50 pb-0.5">
           <span class="text-on-surface-variant">Kernel_Ver</span>
           <!-- TODO: 后续正式整合时可替换为读取 package.json 的真实版本号 -->
@@ -42,28 +52,36 @@
 
     <!-- 界面布局 (UI_LAYOUT) -->
     <Panel class="p-4 gap-4 flex-shrink-0">
-      <div class="font-bold text-primary-text text-[12px] uppercase border-b border-outline-variant pb-2 flex items-center gap-2">
+      <div
+        class="font-bold text-primary-text text-[12px] uppercase border-b border-outline-variant pb-2 flex items-center gap-2"
+      >
         <span class="material-symbols-outlined text-[16px]">aspect_ratio</span>
         界面布局
       </div>
       <div class="flex flex-col gap-5">
-        <Slider 
-          label="视图宽度" 
-          :min="200" :max="1000" :step="10" 
-          v-model="uiWidth" 
-          :valueFormatter="val => val + 'px'" 
+        <Slider
+          label="视图宽度"
+          :min="200"
+          :max="1000"
+          :step="10"
+          v-model="uiWidth"
+          :valueFormatter="val => val + 'px'"
         />
-        <Slider 
-          label="视图高度" 
-          :min="200" :max="1200" :step="20" 
-          v-model="uiHeight" 
-          :valueFormatter="val => val + 'px'" 
+        <Slider
+          label="视图高度"
+          :min="200"
+          :max="1200"
+          :step="20"
+          v-model="uiHeight"
+          :valueFormatter="val => val + 'px'"
         />
-        <Slider 
-          label="基准字号" 
-          :min="10" :max="24" :step="1" 
-          v-model="uiFontSize" 
-          :valueFormatter="val => val + 'px'" 
+        <Slider
+          label="基准字号"
+          :min="10"
+          :max="24"
+          :step="1"
+          v-model="uiFontSize"
+          :valueFormatter="val => val + 'px'"
         />
       </div>
       <p class="text-[10px] text-on-surface-variant mt-1 leading-tight">
@@ -73,26 +91,29 @@
 
     <!-- 视觉表现 (APPEARANCE) -->
     <Panel class="p-4 gap-4 flex-shrink-0">
-      <div class="font-bold text-primary-text text-[12px] uppercase border-b border-outline-variant pb-2 flex items-center gap-2">
+      <div
+        class="font-bold text-primary-text text-[12px] uppercase border-b border-outline-variant pb-2 flex items-center gap-2"
+      >
         <span class="material-symbols-outlined text-[16px]">palette</span>
         视觉表现
       </div>
       <div class="flex flex-col gap-2">
-        <label class="font-display text-[11px] font-bold text-on-surface-variant tracking-widest uppercase">主题选择</label>
-        <SegmentedControl 
-          v-model="theme" 
-          :options="themeOptions" 
-        />
+        <label class="font-display text-[11px] font-bold text-on-surface-variant tracking-widest uppercase"
+          >主题选择</label
+        >
+        <SegmentedControl v-model="theme" :options="themeOptions" />
       </div>
     </Panel>
 
     <!-- 核心预警系统 (CORE_SYSTEM) -->
     <Panel class="p-4 gap-4 flex-shrink-0">
-      <div class="font-bold text-primary-text text-[12px] uppercase border-b border-outline-variant pb-2 flex items-center gap-2">
+      <div
+        class="font-bold text-primary-text text-[12px] uppercase border-b border-outline-variant pb-2 flex items-center gap-2"
+      >
         <span class="material-symbols-outlined text-[16px]">memory</span>
         核心系统
       </div>
-      
+
       <div class="flex flex-col gap-4">
         <!-- 拦截器开关 -->
         <div class="flex flex-col gap-1.5">
@@ -134,7 +155,8 @@
             <Switch v-model="enableTokenCalculator" />
           </div>
           <p class="text-[10px] text-on-surface-variant leading-tight min-w-0 break-words whitespace-normal">
-            预检拦截时，同时估算即将发送的 Token。 <span class="text-[#ff9800]">如果遇到拦截严重卡顿，请关闭此项。</span>
+            预检拦截时，同时估算即将发送的 Token。
+            <span class="text-[#ff9800]">如果遇到拦截严重卡顿，请关闭此项。</span>
           </p>
         </div>
 
@@ -211,7 +233,7 @@ const theme = ref('dark');
 const themeOptions = [
   { label: '白天', value: 'light', icon: 'light_mode' },
   { label: '夜间', value: 'dark', icon: 'dark_mode' },
-  { label: '透明', value: 'transparent', icon: 'opacity' }
+  { label: '透明', value: 'transparent', icon: 'opacity' },
 ];
 
 const isInterceptorEnabled = ref(true);

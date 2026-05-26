@@ -70,11 +70,11 @@ export function useDraggablePhysics(statusBarEl: Ref<HTMLElement | null>, curren
   let resizeObserver: ResizeObserver | null = null;
 
   // 监听模式变化，如果以任何途径离开 BUBBLE 模式，必须立刻清空边缘吸附状态
-  watch(currentUiMode, (newMode) => {
+  watch(currentUiMode, newMode => {
     if (newMode !== UiMode.BUBBLE && isSnappedToEdge.value) {
       const edge = isSnappedToEdge.value;
       isSnappedToEdge.value = false;
-      
+
       // 赋予一个弹开的安全距离，防止它继续贴边
       if (edge === 'left') {
         transformLeft.value = PHYSICS_CONSTANTS.EXPAND_BOUNCE_MARGIN;

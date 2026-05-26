@@ -1,9 +1,14 @@
 <template>
-  <div class="settings-tab relative flex flex-col p-4 gap-4 @container overflow-y-auto scrollbar-none min-h-0 w-full h-full text-on-surface">
-
+  <div
+    class="settings-tab relative flex flex-col p-4 gap-4 @container overflow-y-auto scrollbar-none min-h-0 w-full h-full text-on-surface"
+  >
     <!-- 顶部状态面板复用 HistoryTab 风格 -->
-    <div class="tab-header flex flex-col gap-2 border-b border-outline-variant pb-3 px-1 pt-1 flex-shrink-0 bg-transparent transition-all mb-2">
-      <div class="font-mono text-primary-text mb-0.5 uppercase opacity-80 flex items-center gap-1.5 text-xs tracking-wider">
+    <div
+      class="tab-header flex flex-col gap-2 border-b border-outline-variant pb-3 px-1 pt-1 flex-shrink-0 bg-transparent transition-all mb-2"
+    >
+      <div
+        class="font-mono text-primary-text mb-0.5 uppercase opacity-80 flex items-center gap-1.5 text-xs tracking-wider"
+      >
         <span class="w-1.5 h-1.5 bg-primary"></span>
         SYS_MODULE // SETTINGS
       </div>
@@ -11,9 +16,11 @@
         <div class="w-1.5 h-6 bg-primary flex-shrink-0"></div>
         <h1 class="font-display text-xl md:text-2xl font-bold text-on-surface tracking-widest uppercase">系统配置</h1>
       </div>
-      
+
       <!-- 控制台状态栏 -->
-      <div class="mt-2 bg-surface-container-low border border-outline-variant p-2.5 grid grid-cols-1 @sm:grid-cols-2 gap-x-4 gap-y-1.5 font-mono text-[calc(10em/14)] uppercase tracking-widest shadow-inner">
+      <div
+        class="mt-2 bg-surface-container-low border border-outline-variant p-2.5 grid grid-cols-1 @sm:grid-cols-2 gap-x-4 gap-y-1.5 font-mono text-[calc(10em/14)] uppercase tracking-widest shadow-inner"
+      >
         <div class="flex justify-between items-center border-b border-outline-variant/50 pb-0.5">
           <span class="text-on-surface-variant">Kernel_Ver</span>
           <!-- TODO: 版本号暂时硬编码，等待后续酒馆官方扩展API或GitHub Release获取 -->
@@ -38,31 +45,39 @@
 
     <!-- 界面布局 (UI_LAYOUT) -->
     <Panel class="p-4 gap-4 flex-shrink-0">
-      <div class="font-bold text-primary-text text-[calc(12em/14)] uppercase border-b border-outline-variant pb-2 flex items-center gap-2">
+      <div
+        class="font-bold text-primary-text text-[calc(12em/14)] uppercase border-b border-outline-variant pb-2 flex items-center gap-2"
+      >
         <span class="material-symbols-outlined text-[calc(16em/14)]">aspect_ratio</span>
         界面布局
       </div>
       <div class="flex flex-col gap-5">
-        <Slider 
-          label="视图宽度" 
-          :min="200" :max="1000" :step="10" 
+        <Slider
+          label="视图宽度"
+          :min="200"
+          :max="1000"
+          :step="10"
           v-model="localUiWidth"
           @change="commitUiWidth"
-          :valueFormatter="val => val + 'px'" 
+          :valueFormatter="val => val + 'px'"
         />
-        <Slider 
-          label="视图高度" 
-          :min="200" :max="1200" :step="20" 
+        <Slider
+          label="视图高度"
+          :min="200"
+          :max="1200"
+          :step="20"
           v-model="localUiHeight"
           @change="commitUiHeight"
-          :valueFormatter="val => val + 'px'" 
+          :valueFormatter="val => val + 'px'"
         />
-        <Slider 
-          label="基准字号" 
-          :min="10" :max="24" :step="1" 
+        <Slider
+          label="基准字号"
+          :min="10"
+          :max="24"
+          :step="1"
           v-model="localUiFontSize"
           @change="commitUiFontSize"
-          :valueFormatter="val => val + 'px'" 
+          :valueFormatter="val => val + 'px'"
         />
       </div>
       <p class="text-[calc(10em/14)] text-on-surface-variant mt-1 leading-tight min-w-0 break-words whitespace-normal">
@@ -72,26 +87,29 @@
 
     <!-- 视觉表现 (APPEARANCE) -->
     <Panel class="p-4 gap-4 flex-shrink-0">
-      <div class="font-bold text-primary-text text-[calc(12em/14)] uppercase border-b border-outline-variant pb-2 flex items-center gap-2">
+      <div
+        class="font-bold text-primary-text text-[calc(12em/14)] uppercase border-b border-outline-variant pb-2 flex items-center gap-2"
+      >
         <span class="material-symbols-outlined text-[calc(16em/14)]">palette</span>
         视觉表现
       </div>
       <div class="flex flex-col gap-2">
-        <label class="font-display text-[calc(11em/14)] font-bold text-on-surface-variant tracking-widest uppercase">主题选择</label>
-        <SegmentedControl 
-          v-model="theme" 
-          :options="themeOptions" 
-        />
+        <label class="font-display text-[calc(11em/14)] font-bold text-on-surface-variant tracking-widest uppercase"
+          >主题选择</label
+        >
+        <SegmentedControl v-model="theme" :options="themeOptions" />
       </div>
     </Panel>
 
     <!-- 核心预警系统 (CORE_SYSTEM) -->
     <Panel class="p-4 gap-4 flex-shrink-0">
-      <div class="font-bold text-primary-text text-[calc(12em/14)] uppercase border-b border-outline-variant pb-2 flex items-center gap-2">
+      <div
+        class="font-bold text-primary-text text-[calc(12em/14)] uppercase border-b border-outline-variant pb-2 flex items-center gap-2"
+      >
         <span class="material-symbols-outlined text-[calc(16em/14)]">memory</span>
         核心系统
       </div>
-      
+
       <div class="flex flex-col gap-4">
         <!-- 拦截器开关 -->
         <div class="flex flex-col gap-1.5">
@@ -133,7 +151,8 @@
             <Switch v-model="enableTokenCalculator" />
           </div>
           <p class="text-[calc(10em/14)] text-on-surface-variant leading-tight min-w-0 break-words whitespace-normal">
-            预检拦截时，同时估算即将发送的 Token。 <span class="text-[#ff9800]">如果遇到拦截严重卡顿，请关闭此项。</span>
+            预检拦截时，同时估算即将发送的 Token。
+            <span class="text-[#ff9800]">如果遇到拦截严重卡顿，请关闭此项。</span>
           </p>
         </div>
 
@@ -150,7 +169,11 @@
             开启后将在内存中记录所有底层检测流，仅供 Bug 反馈时使用。由于高频写入可能导致界面卡顿，现已改为手动下载。
           </p>
           <div class="flex mt-1" v-if="isDebugMode">
-            <Button variant="outline" class="w-full text-error border-error/50 hover:bg-error/10" @click="downloadDebugLogs">
+            <Button
+              variant="outline"
+              class="w-full text-error border-error/50 hover:bg-error/10"
+              @click="downloadDebugLogs"
+            >
               <span class="material-symbols-outlined text-[calc(14em/14)] mr-1">download</span>
               下载日志
             </Button>
@@ -162,14 +185,22 @@
     <!-- 危险操作区 (DANGER_ZONE) -->
     <div class="flex-shrink-0 flex flex-col gap-3 mt-2 border-t border-outline-variant pt-4 pb-16">
       <div class="flex flex-col gap-1">
-        <Button variant="outline" class="w-full text-on-surface-variant hover:text-on-surface hover:border-on-surface" @click="clearPins">
+        <Button
+          variant="outline"
+          class="w-full text-on-surface-variant hover:text-on-surface hover:border-on-surface"
+          @click="clearPins"
+        >
           清空偏好置顶
         </Button>
         <p class="text-[calc(10em/14)] text-on-surface-variant text-center">取消全部条目的置顶状态</p>
       </div>
 
       <div class="flex flex-col gap-1">
-        <Button variant="primary" class="w-full bg-error border-error text-white hover:bg-error/80" @click="factoryReset">
+        <Button
+          variant="primary"
+          class="w-full bg-error border-error text-white hover:bg-error/80"
+          @click="factoryReset"
+        >
           恢复初始设置
         </Button>
         <p class="text-[calc(10em/14)] text-error text-center font-bold">清除所有配置、快照和记录！不可逆转！</p>
@@ -241,9 +272,24 @@ const localUiWidth = ref(currentConfig.value?.uiWidth ?? 400);
 const localUiHeight = ref(currentConfig.value?.uiHeight ?? 400);
 const localUiFontSize = ref(currentConfig.value?.uiFontSize ?? 14);
 
-watch(() => currentConfig.value?.uiWidth, (val) => { if (val) localUiWidth.value = val; });
-watch(() => currentConfig.value?.uiHeight, (val) => { if (val) localUiHeight.value = val; });
-watch(() => currentConfig.value?.uiFontSize, (val) => { if (val) localUiFontSize.value = val; });
+watch(
+  () => currentConfig.value?.uiWidth,
+  val => {
+    if (val) localUiWidth.value = val;
+  },
+);
+watch(
+  () => currentConfig.value?.uiHeight,
+  val => {
+    if (val) localUiHeight.value = val;
+  },
+);
+watch(
+  () => currentConfig.value?.uiFontSize,
+  val => {
+    if (val) localUiFontSize.value = val;
+  },
+);
 
 const commitUiWidth = (val: number) => configStore.updateConfig({ uiWidth: val });
 const commitUiHeight = (val: number) => configStore.updateConfig({ uiHeight: val });
@@ -251,7 +297,7 @@ const commitUiFontSize = (val: number) => configStore.updateConfig({ uiFontSize:
 
 const theme = computed({
   get: () => currentConfig.value?.theme ?? 'dark',
-  set: (val: string) => configStore.updateConfig({ theme: val as 'light' | 'dark' | 'transparent' })
+  set: (val: string) => configStore.updateConfig({ theme: val as 'light' | 'dark' | 'transparent' }),
 });
 
 // 暂时屏蔽透明主题，等待后续优化
@@ -263,22 +309,22 @@ const themeOptions = [
 
 const isInterceptorEnabled = computed({
   get: () => currentConfig.value?.isInterceptorEnabled ?? true,
-  set: (val: boolean) => configStore.updateConfig({ isInterceptorEnabled: val })
+  set: (val: boolean) => configStore.updateConfig({ isInterceptorEnabled: val }),
 });
 
 const enableEnterToIntercept = computed({
   get: () => currentConfig.value?.enableEnterToIntercept ?? false,
-  set: (val: boolean) => configStore.updateConfig({ enableEnterToIntercept: val })
+  set: (val: boolean) => configStore.updateConfig({ enableEnterToIntercept: val }),
 });
 
 const showConstantEntries = computed({
   get: () => currentConfig.value?.showConstantEntries ?? false,
-  set: (val: boolean) => configStore.updateConfig({ showConstantEntries: val })
+  set: (val: boolean) => configStore.updateConfig({ showConstantEntries: val }),
 });
 
 const enableTokenCalculator = computed({
   get: () => currentConfig.value?.enableTokenCalculator ?? true,
-  set: (val: boolean) => configStore.updateConfig({ enableTokenCalculator: val })
+  set: (val: boolean) => configStore.updateConfig({ enableTokenCalculator: val }),
 });
 
 const isDebugMode = computed({
@@ -288,7 +334,7 @@ const isDebugMode = computed({
     if (val && typeof toastr !== 'undefined') {
       toastr.warning('调试模式已开启！系统将在内存中记录后续的拦截与检测流。', 'ARK_DEBUG');
     }
-  }
+  },
 });
 
 const downloadDebugLogs = () => {

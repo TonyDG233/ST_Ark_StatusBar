@@ -13,220 +13,217 @@
 
 /* 1. 采用限定作用域引入 Tailwind 的 Preflight 和工具类，防止污染宿主 */
 .ark-global-statusbar-mount-point {
-    @import "tailwindcss/preflight";
-    @import "tailwindcss/utilities";
+  @import 'tailwindcss/preflight';
+  @import 'tailwindcss/utilities';
 }
 
 /* 引入基础主题，以便提供 Tailwind 所需的底层变量定义 */
-@import "tailwindcss/theme";
+@import 'tailwindcss/theme';
 
 /* 2. 挂载我们自定义的设计系统与主题变量 */
-@import "./theme.scss";
+@import './theme.scss';
 
 /* 
  * 3. 映射 CSS 变量到 Tailwind v4 的 @theme (用于类名生成) 
  * 这样就可以在 Vue 组件里直接使用 `bg-background` 或 `text-on-surface` 
  */
 @theme {
-    --color-background: var(--color-background);
-    --color-surface: var(--color-surface);
-    --color-surface-dim: var(--color-surface-dim);
-    --color-surface-bright: var(--color-surface-bright);
-    --color-surface-container-lowest: var(--color-surface-container-lowest);
-    --color-surface-container-low: var(--color-surface-container-low);
-    --color-surface-container: var(--color-surface-container);
-    --color-surface-container-high: var(--color-surface-container-high);
-    --color-surface-container-highest: var(--color-surface-container-highest);
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-surface-dim: var(--color-surface-dim);
+  --color-surface-bright: var(--color-surface-bright);
+  --color-surface-container-lowest: var(--color-surface-container-lowest);
+  --color-surface-container-low: var(--color-surface-container-low);
+  --color-surface-container: var(--color-surface-container);
+  --color-surface-container-high: var(--color-surface-container-high);
+  --color-surface-container-highest: var(--color-surface-container-highest);
 
-    --color-on-background: var(--color-on-background);
-    --color-on-surface: var(--color-on-surface);
-    --color-on-surface-variant: var(--color-on-surface-variant);
-    --color-inverse-surface: var(--color-inverse-surface);
-    --color-inverse-on-surface: var(--color-inverse-on-surface);
+  --color-on-background: var(--color-on-background);
+  --color-on-surface: var(--color-on-surface);
+  --color-on-surface-variant: var(--color-on-surface-variant);
+  --color-inverse-surface: var(--color-inverse-surface);
+  --color-inverse-on-surface: var(--color-inverse-on-surface);
 
-    --color-outline: var(--color-outline);
-    --color-outline-variant: var(--color-outline-variant);
+  --color-outline: var(--color-outline);
+  --color-outline-variant: var(--color-outline-variant);
 
-    --color-primary: var(--color-primary);
-    --color-on-primary: var(--color-on-primary);
-    --color-primary-container: var(--color-primary-container);
-    --color-on-primary-container: var(--color-on-primary-container);
-    --color-inverse-primary: var(--color-inverse-primary);
+  --color-primary: var(--color-primary);
+  --color-on-primary: var(--color-on-primary);
+  --color-primary-container: var(--color-primary-container);
+  --color-on-primary-container: var(--color-on-primary-container);
+  --color-inverse-primary: var(--color-inverse-primary);
 
-    --color-secondary: var(--color-secondary);
-    --color-on-secondary: var(--color-on-secondary);
-    --color-secondary-container: var(--color-secondary-container);
-    --color-on-secondary-container: var(--color-on-secondary-container);
+  --color-secondary: var(--color-secondary);
+  --color-on-secondary: var(--color-on-secondary);
+  --color-secondary-container: var(--color-secondary-container);
+  --color-on-secondary-container: var(--color-on-secondary-container);
 
-    --color-error: var(--color-error);
-    --color-on-error: var(--color-on-error);
-    --color-error-container: var(--color-error-container);
-    --color-on-error-container: var(--color-on-error-container);
+  --color-error: var(--color-error);
+  --color-on-error: var(--color-on-error);
+  --color-error-container: var(--color-error-container);
+  --color-on-error-container: var(--color-on-error-container);
 
-    /* 专门为文本设立的动态防线，解决白天模式下刺眼黄色的问题 */
-    --color-primary-text: var(--color-primary-text);
+  /* 专门为文本设立的动态防线，解决白天模式下刺眼黄色的问题 */
+  --color-primary-text: var(--color-primary-text);
 
-    /* 字体映射 */
-    --font-display: var(--font-display);
-    --font-body: var(--font-body);
-    --font-label: var(--font-label);
+  /* 字体映射 */
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-label: var(--font-label);
 
-    /* 背景水印映射 */
-    --bg-watermark: var(--bg-watermark);
+  /* 背景水印映射 */
+  --bg-watermark: var(--bg-watermark);
 
-    /* 覆盖 Tailwind 默认的 rem 字体单位为 em，使得全局 font-size 控制生效 */
-    --text-xs: 0.75em;
-    --text-sm: 0.875em;
-    --text-base: 1em;
-    --text-lg: 1.125em;
-    --text-xl: 1.25em;
-    --text-2xl: 1.5em;
-    --text-3xl: 1.875em;
-    --text-4xl: 2.25em;
+  /* 覆盖 Tailwind 默认的 rem 字体单位为 em，使得全局 font-size 控制生效 */
+  --text-xs: 0.75em;
+  --text-sm: 0.875em;
+  --text-base: 1em;
+  --text-lg: 1.125em;
+  --text-xl: 1.25em;
+  --text-2xl: 1.5em;
+  --text-3xl: 1.875em;
+  --text-4xl: 2.25em;
 }
 
 /* 4. 提取公用的原子组件类 (从 shared_ui.scss 中逐步迁移) */
 @layer components {
-
-    /* 全局统一应用水印背景 */
-    .global-watermark {
-        &::before {
-            content: '';
-            @apply absolute inset-0 pointer-events-none;
-            background-size: cover;
-            background-position: center;
-            /* 背景图自带纹理和颜色，无需过度透明化即可展示等高线 */
-            opacity: 1;
-            z-index: 0;
-        }
+  /* 全局统一应用水印背景 */
+  .global-watermark {
+    &::before {
+      content: '';
+      @apply absolute inset-0 pointer-events-none;
+      background-size: cover;
+      background-position: center;
+      /* 背景图自带纹理和颜色，无需过度透明化即可展示等高线 */
+      opacity: 1;
+      z-index: 0;
     }
+  }
 
-    /* 背景图片现在由 AssetManager 动态加载并注入根节点的 CSS 变量中 */
-    /* 这样可以统一管理所有的远端资源并进行自动容错降级 */
-    .light-theme .global-watermark::before {
-        background-image: var(--ark-bg-light-url, none);
-        /* 降低透明度让底层 #f5f5f5 亮色透出，提升整体亮度 */
-        filter: contrast(1.6) brightness(1.2);
-        /* 增强白色等高线的对比度 */
+  /* 背景图片现在由 AssetManager 动态加载并注入根节点的 CSS 变量中 */
+  /* 这样可以统一管理所有的远端资源并进行自动容错降级 */
+  .light-theme .global-watermark::before {
+    background-image: var(--ark-bg-light-url, none);
+    /* 降低透明度让底层 #f5f5f5 亮色透出，提升整体亮度 */
+    filter: contrast(1.6) brightness(1.2);
+    /* 增强白色等高线的对比度 */
+  }
+
+  .dark-theme .global-watermark::before {
+    background-image: var(--ark-bg-dark-url, none);
+  }
+
+  /* 方舟风格的通用面板容器：支持等高线水印 */
+  .ark-panel-v2 {
+    @apply bg-surface text-on-surface border border-outline-variant relative overflow-hidden;
+
+    /* 注入等高线水印背景 */
+    &::before {
+      content: '';
+      @apply absolute inset-0 opacity-10 pointer-events-none;
+      background-image: var(--bg-watermark);
+      background-size: cover;
+      background-position: center;
+      z-index: 0;
     }
+  }
 
-    .dark-theme .global-watermark::before {
-        background-image: var(--ark-bg-dark-url, none);
-    }
-
-    /* 方舟风格的通用面板容器：支持等高线水印 */
-    .ark-panel-v2 {
-        @apply bg-surface text-on-surface border border-outline-variant relative overflow-hidden;
-
-        /* 注入等高线水印背景 */
-        &::before {
-            content: '';
-            @apply absolute inset-0 opacity-10 pointer-events-none;
-            background-image: var(--bg-watermark);
-            background-size: cover;
-            background-position: center;
-            z-index: 0;
-        }
-    }
-
-    /* "敬请期待"的毛玻璃半透明遮罩 */
-    .ark-wip-mask {
-        @apply absolute inset-0 bg-surface/50 backdrop-blur-sm flex items-center justify-center z-10;
-    }
+  /* "敬请期待"的毛玻璃半透明遮罩 */
+  .ark-wip-mask {
+    @apply absolute inset-0 bg-surface/50 backdrop-blur-sm flex items-center justify-center z-10;
+  }
 }
 
 @layer utilities {
-
-    /* 强行提权：对抗酒馆全局的表单 !important 污染 */
-    .ark-global-statusbar-mount-point {
-
-        input.bg-transparent,
-        textarea.bg-transparent,
-        select.bg-transparent {
-            background-color: transparent !important;
-            color: inherit !important;
-        }
-
-        input.bg-surface,
-        textarea.bg-surface,
-        select.bg-surface {
-            background-color: var(--color-surface) !important;
-            color: var(--color-on-surface) !important;
-        }
-
-        input.border-none,
-        textarea.border-none,
-        select.border-none {
-            border: none !important;
-            box-shadow: none !important;
-            outline: none !important;
-        }
-
-        input.border-outline-variant,
-        textarea.border-outline-variant,
-        select.border-outline-variant {
-            border: 1px solid var(--color-outline-variant) !important;
-            box-shadow: none !important;
-            outline: none !important;
-        }
-
-        input.border-outline,
-        textarea.border-outline,
-        select.border-outline {
-            border: 1px solid var(--color-outline) !important;
-            box-shadow: none !important;
-            outline: none !important;
-        }
+  /* 强行提权：对抗酒馆全局的表单 !important 污染 */
+  .ark-global-statusbar-mount-point {
+    input.bg-transparent,
+    textarea.bg-transparent,
+    select.bg-transparent {
+      background-color: transparent !important;
+      color: inherit !important;
     }
 
-    .ark-transition-shell {
-        transition:
-            background-color 0.3s ease,
-            border-color 0.3s ease,
-            color 0.3s ease,
-            opacity 0.3s ease,
-            width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-            border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    input.bg-surface,
+    textarea.bg-surface,
+    select.bg-surface {
+      background-color: var(--color-surface) !important;
+      color: var(--color-on-surface) !important;
     }
 
-    /* 隐藏滚动条但保留滚动功能 (Firefox) */
-    .scrollbar-none {
-        scrollbar-width: none;
+    input.border-none,
+    textarea.border-none,
+    select.border-none {
+      border: none !important;
+      box-shadow: none !important;
+      outline: none !important;
     }
 
-    /* 隐藏滚动条但保留滚动功能 (Chrome/Safari) */
-    .scrollbar-none::-webkit-scrollbar {
-        display: none;
+    input.border-outline-variant,
+    textarea.border-outline-variant,
+    select.border-outline-variant {
+      border: 1px solid var(--color-outline-variant) !important;
+      box-shadow: none !important;
+      outline: none !important;
     }
 
-    /* 统一极简滚动条 */
-    .ark-scrollbar,
-    .slim-scroll-container {
-        scrollbar-width: thin;
-        scrollbar-color: var(--color-outline-variant) transparent;
+    input.border-outline,
+    textarea.border-outline,
+    select.border-outline {
+      border: 1px solid var(--color-outline) !important;
+      box-shadow: none !important;
+      outline: none !important;
     }
+  }
 
-    .ark-scrollbar::-webkit-scrollbar,
-    .slim-scroll-container::-webkit-scrollbar {
-        width: 4px;
-        height: 4px;
-    }
+  .ark-transition-shell {
+    transition:
+      background-color 0.3s ease,
+      border-color 0.3s ease,
+      color 0.3s ease,
+      opacity 0.3s ease,
+      width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
-    .ark-scrollbar::-webkit-scrollbar-track,
-    .slim-scroll-container::-webkit-scrollbar-track {
-        background: transparent;
-    }
+  /* 隐藏滚动条但保留滚动功能 (Firefox) */
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
 
-    .ark-scrollbar::-webkit-scrollbar-thumb,
-    .slim-scroll-container::-webkit-scrollbar-thumb {
-        background-color: var(--color-outline-variant);
-        border-radius: 2px;
-    }
+  /* 隐藏滚动条但保留滚动功能 (Chrome/Safari) */
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
 
-    .ark-scrollbar::-webkit-scrollbar-thumb:hover,
-    .slim-scroll-container::-webkit-scrollbar-thumb:hover {
-        background-color: var(--color-primary);
-    }
+  /* 统一极简滚动条 */
+  .ark-scrollbar,
+  .slim-scroll-container {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-outline-variant) transparent;
+  }
+
+  .ark-scrollbar::-webkit-scrollbar,
+  .slim-scroll-container::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  .ark-scrollbar::-webkit-scrollbar-track,
+  .slim-scroll-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .ark-scrollbar::-webkit-scrollbar-thumb,
+  .slim-scroll-container::-webkit-scrollbar-thumb {
+    background-color: var(--color-outline-variant);
+    border-radius: 2px;
+  }
+
+  .ark-scrollbar::-webkit-scrollbar-thumb:hover,
+  .slim-scroll-container::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-primary);
+  }
 }
 
 /* 
@@ -235,20 +232,20 @@
  * 从而在页面上直接暴露 fallback 字母（如把 push_pin 显示成 KEEP）。
  */
 .material-symbols-outlined {
-    font-family: 'Material Symbols Outlined', sans-serif !important;
-    font-weight: normal;
-    font-style: normal;
-    font-size: 24px;
-    line-height: 1;
-    letter-spacing: normal;
-    text-transform: none;
-    display: inline-block;
-    white-space: nowrap;
-    word-wrap: normal;
-    direction: ltr;
-    /* 强制开启连字特性，对抗酒馆可能存在的全局覆盖 */
-    -webkit-font-feature-settings: 'liga' 1 !important;
-    font-feature-settings: 'liga' 1 !important;
-    font-variant-ligatures: discretionary-ligatures !important;
-    -webkit-font-smoothing: antialiased;
+  font-family: 'Material Symbols Outlined', sans-serif !important;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  /* 强制开启连字特性，对抗酒馆可能存在的全局覆盖 */
+  -webkit-font-feature-settings: 'liga' 1 !important;
+  font-feature-settings: 'liga' 1 !important;
+  font-variant-ligatures: discretionary-ligatures !important;
+  -webkit-font-smoothing: antialiased;
 }

@@ -10,17 +10,19 @@ export class WorldbookEditorService {
     try {
       const entries = await getWorldbook(wbName);
       await deleteWorldbook(wbName);
-      
+
       historyService.logCommit(
         `[删除世界书] ${wbName}`,
         wbName,
-        [{
-          uid: -1,
-          comment: '整个世界书备份',
-          path: 'delete_worldbook',
-          from: entries,
-        }],
-        true
+        [
+          {
+            uid: -1,
+            comment: '整个世界书备份',
+            path: 'delete_worldbook',
+            from: entries,
+          },
+        ],
+        true,
       );
     } catch (e) {
       console.error('[ARK_EditorService] delete worldbook failed', e);
@@ -34,16 +36,14 @@ export class WorldbookEditorService {
   async createWorldbook(name: string): Promise<void> {
     try {
       await createWorldbook(name, []);
-      historyService.logCommit(
-        `[创建世界书] ${name}`,
-        name,
-        [{
+      historyService.logCommit(`[创建世界书] ${name}`, name, [
+        {
           uid: -1,
           comment: '新建的世界书',
           path: 'create_worldbook',
           from: null,
-        }]
-      );
+        },
+      ]);
     } catch (e) {
       console.error('[ARK_EditorService] Create worldbook failed', e);
       throw e;
@@ -81,18 +81,18 @@ export class WorldbookEditorService {
         return wbEntries;
       });
 
-      document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: targetWorldbook } }));
+      document.dispatchEvent(
+        new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: targetWorldbook } }),
+      );
 
-      historyService.logCommit(
-        `[修改触发类型] ${entry.name}`,
-        targetWorldbook,
-        [{
+      historyService.logCommit(`[修改触发类型] ${entry.name}`, targetWorldbook, [
+        {
           uid: entry.uid,
           comment: entry.name || '未命名',
           from: currentType === 'constant',
           to: newType === 'constant',
-        }]
-      );
+        },
+      ]);
     } catch (e) {
       console.error('[ARK_EditorService] Failed to toggle entry type', e);
       throw e;
@@ -110,18 +110,18 @@ export class WorldbookEditorService {
         return wbEntries;
       });
 
-      document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: targetWorldbook } }));
+      document.dispatchEvent(
+        new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: targetWorldbook } }),
+      );
 
-      historyService.logCommit(
-        `[切换开关] ${entry.name}`,
-        targetWorldbook,
-        [{
+      historyService.logCommit(`[切换开关] ${entry.name}`, targetWorldbook, [
+        {
           uid: entry.uid,
           comment: entry.name || '未命名',
           from: !entry.enabled,
           to: entry.enabled,
-        }]
-      );
+        },
+      ]);
     } catch (e) {
       console.error('[ARK_EditorService] Failed to toggle entry', e);
       throw e;
@@ -141,15 +141,12 @@ export class WorldbookEditorService {
         return wbEntries;
       });
 
-      document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: targetWorldbook } }));
+      document.dispatchEvent(
+        new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: targetWorldbook } }),
+      );
 
       const isHeavy = changes.some(c => c.path === 'content');
-      historyService.logCommit(
-        `[修改条目属性] ${newEntry.name || '未命名条目'}`,
-        targetWorldbook,
-        changes,
-        isHeavy
-      );
+      historyService.logCommit(`[修改条目属性] ${newEntry.name || '未命名条目'}`, targetWorldbook, changes, isHeavy);
     } catch (e) {
       console.error('[ARK_EditorService] Failed to save entry', e);
       throw e;
@@ -175,7 +172,7 @@ export class WorldbookEditorService {
             comment: e.name || '未命名',
             path: 'delete_entry',
             from: e,
-          }))
+          })),
         );
       }
     } catch (e) {
@@ -195,17 +192,15 @@ export class WorldbookEditorService {
 
       if (new_entries.length > 0) {
         const e = new_entries[0];
-        historyService.logCommit(
-          `[新建条目] ${e.name}`,
-          wbName,
-          [{
+        historyService.logCommit(`[新建条目] ${e.name}`, wbName, [
+          {
             uid: e.uid,
             comment: e.name || '未命名',
             path: 'create_entry',
             from: null,
             to: e,
-          }]
-        );
+          },
+        ]);
         return e.uid;
       }
     } catch (e) {
@@ -251,11 +246,7 @@ export class WorldbookEditorService {
       document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: wbName } }));
 
       if (changes.length > 0) {
-        historyService.logCommit(
-          `[批量修改触发类型] 选中了 ${uids.length} 个条目`,
-          wbName,
-          changes
-        );
+        historyService.logCommit(`[批量修改触发类型] 选中了 ${uids.length} 个条目`, wbName, changes);
       }
     } catch (e) {
       console.error('[ARK_EditorService] Batch toggle type failed', e);
@@ -287,7 +278,7 @@ export class WorldbookEditorService {
         historyService.logCommit(
           `[批量${enable ? '开启' : '关闭'}开关] 选中了 ${changes.length} 个条目`,
           wbName,
-          changes
+          changes,
         );
       }
     } catch (e) {

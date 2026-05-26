@@ -23,7 +23,7 @@ export function startChatMonitor() {
 
   // 立即触发一次
   updateIdentityAndBroadcast();
-  
+
   // 监听 CHAT_CHANGED 以便切卡瞬间马上识别身份
   if (typeof eventOn === 'function' && typeof tavern_events !== 'undefined') {
     eventOn(tavern_events.CHAT_CHANGED, updateIdentityAndBroadcast);
@@ -44,7 +44,7 @@ export function startChatMonitor() {
 
       const $mesText = $message0.find('.mes_text');
       if ($mesText.length === 0) return;
-      
+
       const containerEl = $mesText[0] as HTMLElement;
 
       // 2. 强制同步鉴权

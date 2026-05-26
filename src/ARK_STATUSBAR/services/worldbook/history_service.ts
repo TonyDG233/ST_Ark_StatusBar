@@ -8,12 +8,7 @@ export class HistoryService {
    * 统一生成并推入 ArkCommit 历史记录。
    * 此方法仅限 Services 层调用，绝不应在前端视图层直接调用。
    */
-  public logCommit(
-    description: string,
-    worldbook: string,
-    changes: ArkCommitChange[],
-    isHeavy: boolean = false
-  ): void {
+  public logCommit(description: string, worldbook: string, changes: ArkCommitChange[], isHeavy: boolean = false): void {
     const newCommit: ArkCommit = {
       id: Math.random().toString(36).substr(2, 6),
       timestamp: Date.now(),

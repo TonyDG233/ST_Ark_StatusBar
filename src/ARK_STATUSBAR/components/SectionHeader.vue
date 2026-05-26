@@ -9,9 +9,11 @@
     <div class="flex items-center gap-2 min-w-0">
       <!-- 装饰方块 -->
       <div v-if="showDecoration" class="w-1.5 h-4 bg-primary flex-shrink-0"></div>
-      
+
       <div class="flex flex-col min-w-0">
-        <span class="font-display text-label-caps text-on-surface-variant tracking-widest uppercase truncate">{{ subtitle }}</span>
+        <span class="font-display text-label-caps text-on-surface-variant tracking-widest uppercase truncate">{{
+          subtitle
+        }}</span>
         <h3 class="font-display text-lg font-bold text-on-surface tracking-wide truncate">{{ title }}</h3>
       </div>
     </div>
@@ -20,12 +22,15 @@
 
 <script setup lang="ts">
 // SectionHeader: 带有工业风排版的区块头部
-withDefaults(defineProps<{
-  title: string;
-  subtitle?: string;
-  showDecoration?: boolean;
-}>(), {
-  subtitle: 'SYSTEM_DATA',
-  showDecoration: false
-});
+withDefaults(
+  defineProps<{
+    title: string;
+    subtitle?: string;
+    showDecoration?: boolean;
+  }>(),
+  {
+    subtitle: 'SYSTEM_DATA',
+    showDecoration: false,
+  },
+);
 </script>

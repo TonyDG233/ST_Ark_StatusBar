@@ -1,18 +1,18 @@
 <template>
-    <Section label="变量更新方式">
-        <template #label-suffix>
-            <HelpIcon :help="update_method_help" />
-        </template>
-        <template #content>
-            <Method />
+  <Section label="变量更新方式">
+    <template #label-suffix>
+      <HelpIcon :help="update_method_help" />
+    </template>
+    <template #content>
+      <Method />
 
-            <template v-if="store.settings.更新方式 === '额外模型解析'">
-                <Prompt />
-                <Request />
-                <Source />
-            </template>
-        </template>
-    </Section>
+      <template v-if="store.settings.更新方式 === '额外模型解析'">
+        <Prompt />
+        <Request />
+        <Source />
+      </template>
+    </template>
+  </Section>
 </template>
 
 <script setup lang="ts">

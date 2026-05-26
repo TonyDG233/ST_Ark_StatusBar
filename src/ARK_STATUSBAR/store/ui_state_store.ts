@@ -72,12 +72,12 @@ export const useUIStateStore = defineStore('ark_ui_state', () => {
   // 全局自动触发被拦截条目的 Token 计算，不再依赖 InterceptorTab 的挂载
   watch(
     pendingEntries,
-    (newEntries) => {
+    newEntries => {
       if (newEntries) {
         newEntries.forEach((entry: UIWorldbookEntry) => calculateTokenForEntry(entry));
       }
     },
-    { immediate: true }
+    { immediate: true },
   );
 
   /*
@@ -129,7 +129,9 @@ export const useUIStateStore = defineStore('ark_ui_state', () => {
 
     try {
       const entries = await getWorldbook(wbName);
-      worldbookEntriesCache.value[wbName] = entries.filter((e: any) => !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)));
+      worldbookEntriesCache.value[wbName] = entries.filter(
+        (e: any) => !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)),
+      );
     } catch (e) {
       console.error(`[ARK_UI_STATE] Failed to refresh cache for ${wbName}`, e);
     }

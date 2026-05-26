@@ -1,11 +1,11 @@
 <template>
-    <i
-        class="fa-solid fa-circle-question fa-sm note-link-span mvu-help-icon"
-        role="button"
-        tabindex="0"
-        aria-label="帮助"
-        @click="showHelpPopup(help)"
-    />
+  <i
+    class="fa-solid fa-circle-question fa-sm note-link-span mvu-help-icon"
+    role="button"
+    tabindex="0"
+    aria-label="帮助"
+    @click="showHelpPopup(help)"
+  />
 </template>
 
 <script setup lang="ts">
@@ -16,6 +16,6 @@ defineProps<{ help: string }>();
 
 <style scoped>
 .mvu-help-icon {
-    cursor: pointer;
+  cursor: pointer;
 }
 </style>

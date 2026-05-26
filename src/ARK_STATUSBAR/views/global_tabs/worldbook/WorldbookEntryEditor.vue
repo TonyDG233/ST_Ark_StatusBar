@@ -1,10 +1,5 @@
 <template>
-  <LoreEntryEditor 
-    v-model="localEntry"
-    :tokenCount="tokenCount"
-    @save="saveChanges"
-    @cancel="$emit('cancel')"
-  />
+  <LoreEntryEditor v-model="localEntry" :tokenCount="tokenCount" @save="saveChanges" @cancel="$emit('cancel')" />
 </template>
 
 <script setup lang="ts">
@@ -52,17 +47,21 @@ onMounted(() => {
 });
 
 // 动态计算 Token (调用 SillyTavern API)
-watch(() => localEntry.value.content, async (newVal) => {
-  if (newVal && typeof SillyTavern !== 'undefined' && SillyTavern.getTokenCountAsync) {
-    try {
-      tokenCount.value = await SillyTavern.getTokenCountAsync(newVal);
-    } catch (e) {
+watch(
+  () => localEntry.value.content,
+  async newVal => {
+    if (newVal && typeof SillyTavern !== 'undefined' && SillyTavern.getTokenCountAsync) {
+      try {
+        tokenCount.value = await SillyTavern.getTokenCountAsync(newVal);
+      } catch (e) {
+        tokenCount.value = null;
+      }
+    } else {
       tokenCount.value = null;
     }
-  } else {
-    tokenCount.value = null;
-  }
-}, { immediate: true });
+  },
+  { immediate: true },
+);
 
 // --- 核心逻辑：差异比对 (Diffing) ---
 const saveChanges = () => {

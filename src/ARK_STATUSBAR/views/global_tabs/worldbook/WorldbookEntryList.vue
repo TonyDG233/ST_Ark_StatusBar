@@ -8,14 +8,17 @@
     :isAllSelected="isAllEntriesSelected"
     @toggleSelectAll="toggleSelectAllEntries"
     @createNewEntry="createNewEntry"
-    @batchPin="(isPin) => actions.batchPinEntries(selectedEntries, isPin)"
+    @batchPin="isPin => actions.batchPinEntries(selectedEntries, isPin)"
     @batchToggleType="actions.batchToggleEntryType(wbName, selectedEntries)"
-    @batchToggleEnabled="(enabled) => actions.batchToggleEntryEnabled(wbName, selectedEntries, enabled)"
+    @batchToggleEnabled="enabled => actions.batchToggleEntryEnabled(wbName, selectedEntries, enabled)"
     @batchDelete="handleBatchDelete"
   >
     <!-- Data Cards List -->
     <div v-if="isLoadingWb === wbName" class="text-on-surface-variant text-xs text-center py-4">加载中...</div>
-    <div v-else-if="!worldbookEntriesCache[wbName] || worldbookEntriesCache[wbName].length === 0" class="text-on-surface-variant text-xs text-center py-4">
+    <div
+      v-else-if="!worldbookEntriesCache[wbName] || worldbookEntriesCache[wbName].length === 0"
+      class="text-on-surface-variant text-xs text-center py-4"
+    >
       此世界书没有包含有效条目。
     </div>
     <div v-else class="flex flex-col min-w-0">
@@ -37,7 +40,9 @@
           加载更多... ({{ visibleEntries.length }} / {{ processedEntries.length }})
         </button>
       </div>
-      <div v-if="processedEntries.length === 0" class="text-on-surface-variant text-xs text-center py-4">没有找到匹配的条目。</div>
+      <div v-if="processedEntries.length === 0" class="text-on-surface-variant text-xs text-center py-4">
+        没有找到匹配的条目。
+      </div>
     </div>
   </LoreEntryList>
 </template>
@@ -56,11 +61,7 @@ import { useUIStateStore } from '../../../store/ui_state_store';
 // 1. 实例化 Store
 const uiStore = useUIStateStore();
 // 2. 解构状态变量（必须用 storeToRefs 保持响应式）
-const { 
-  isLoadingWb,
-  worldbookEntriesCache
-} = storeToRefs(uiStore);
-
+const { isLoadingWb, worldbookEntriesCache } = storeToRefs(uiStore);
 
 const props = defineProps<{
   wbName: string;
@@ -170,10 +171,9 @@ const createNewEntry = () => {
 watch(selectedEntries, () => {
   // If list is emptied, we don't automatically close batch mode, but it's optional.
 });
-watch(isEntryBatchMode, (val) => {
+watch(isEntryBatchMode, val => {
   if (!val) selectedEntries.value = [];
 });
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

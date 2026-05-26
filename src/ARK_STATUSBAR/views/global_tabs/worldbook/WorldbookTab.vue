@@ -2,35 +2,49 @@
   <div class="relative w-full h-full slim-scroll-container overflow-y-auto flex flex-col box-border">
     <!-- Inner content wrapper with padding -->
     <div class="p-2 flex flex-col gap-2 min-h-max box-border">
-      
       <!-- Header Area (Now scrollable) -->
-      <div class="tab-header flex flex-col gap-2 border-b border-outline pb-2 px-1 pt-1 flex-shrink-0 bg-transparent transition-all">
+      <div
+        class="tab-header flex flex-col gap-2 border-b border-outline pb-2 px-1 pt-1 flex-shrink-0 bg-transparent transition-all"
+      >
         <!-- SYS_MODULE Label -->
-        <div class="font-mono text-primary-text mb-0.5 uppercase opacity-80 flex items-center gap-1.5 text-xs tracking-wider">
+        <div
+          class="font-mono text-primary-text mb-0.5 uppercase opacity-80 flex items-center gap-1.5 text-xs tracking-wider"
+        >
           <span class="w-1.5 h-1.5 bg-primary"></span>
           SYS_MODULE // WBOOK_MGR
         </div>
-        
+
         <!-- Title & Description -->
         <div class="flex flex-col min-w-0 w-full">
-          <h1 class="font-display text-xl md:text-2xl font-bold text-on-surface break-words whitespace-normal leading-tight uppercase">
+          <h1
+            class="font-display text-xl md:text-2xl font-bold text-on-surface break-words whitespace-normal leading-tight uppercase"
+          >
             世界书管理面板
           </h1>
-          <p class="tab-desc font-body text-on-surface-variant text-xs break-words whitespace-normal mt-1 leading-snug transition-all">
+          <p
+            class="tab-desc font-body text-on-surface-variant text-xs break-words whitespace-normal mt-1 leading-snug transition-all"
+          >
             管理当前角色、全局挂载的世界书数据源，提供检索、状态切换及批量配置功能。
           </p>
         </div>
-        
+
         <!-- Global Actions -->
         <div class="flex flex-wrap justify-between items-center gap-2 mt-1 w-full">
           <div class="flex flex-wrap items-center gap-2">
-            <button class="px-2 py-1 bg-surface-container-highest border border-outline-variant hover:border-primary text-xs font-bold text-primary-text flex items-center gap-1 transition-colors outline-none cursor-pointer font-display" @click="actions.createNewWorldbook">
+            <button
+              class="px-2 py-1 bg-surface-container-highest border border-outline-variant hover:border-primary text-xs font-bold text-primary-text flex items-center gap-1 transition-colors outline-none cursor-pointer font-display"
+              @click="actions.createNewWorldbook"
+            >
               <span class="material-symbols-outlined text-sm">create_new_folder</span>
               新建书本
             </button>
             <button
               class="px-2 py-1 border text-xs font-bold flex items-center gap-1 transition-colors outline-none cursor-pointer font-display"
-              :class="isGlobalBatchMode ? 'bg-primary-container border-primary-container text-on-primary' : 'bg-surface-container-highest border-outline-variant text-secondary hover:border-secondary'"
+              :class="
+                isGlobalBatchMode
+                  ? 'bg-primary-container border-primary-container text-on-primary'
+                  : 'bg-surface-container-highest border-outline-variant text-secondary hover:border-secondary'
+              "
               @click="toggleGlobalBatchMode"
             >
               <span class="material-symbols-outlined text-sm">library_add_check</span>
@@ -41,8 +55,12 @@
       </div>
 
       <!-- Global Worldbook Search -->
-      <div class="flex items-center bg-surface border border-outline-variant px-2 py-1.5 focus-within:border-primary transition-colors mt-1 w-full min-w-0 box-border">
-        <span class="material-symbols-outlined text-on-surface-variant text-[calc(14em/14)] flex-shrink-0 mr-2">search</span>
+      <div
+        class="flex items-center bg-surface border border-outline-variant px-2 py-1.5 focus-within:border-primary transition-colors mt-1 w-full min-w-0 box-border"
+      >
+        <span class="material-symbols-outlined text-on-surface-variant text-[calc(14em/14)] flex-shrink-0 mr-2"
+          >search</span
+        >
         <input
           class="bg-transparent border-none text-on-surface font-mono focus:outline-none p-0 w-full placeholder-on-surface-variant/50 text-xs min-w-0"
           placeholder="搜索世界书..."
@@ -52,25 +70,51 @@
       </div>
 
       <!-- Global Batch Toolbar -->
-      <div v-if="isGlobalBatchMode" class="flex flex-wrap items-center gap-2 mt-1 pt-2 border-t border-outline-variant/50 w-full">
-        <label class="flex items-center gap-1 cursor-pointer font-display text-[calc(10em/14)] text-on-surface hover:text-primary-text transition-colors mr-2 flex-shrink-0">
-          <input type="checkbox" class="accent-primary" :checked="isAllWorldbooksSelected" @change="toggleSelectAllWorldbooks" /> 全选
+      <div
+        v-if="isGlobalBatchMode"
+        class="flex flex-wrap items-center gap-2 mt-1 pt-2 border-t border-outline-variant/50 w-full"
+      >
+        <label
+          class="flex items-center gap-1 cursor-pointer font-display text-[calc(10em/14)] text-on-surface hover:text-primary-text transition-colors mr-2 flex-shrink-0"
+        >
+          <input
+            type="checkbox"
+            class="accent-primary"
+            :checked="isAllWorldbooksSelected"
+            @change="toggleSelectAllWorldbooks"
+          />
+          全选
         </label>
-        
+
         <div class="flex flex-wrap items-center gap-1.5 flex-1 min-w-0">
-          <button class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface text-[calc(10em/14)] flex items-center gap-0.5 transition-colors cursor-pointer outline-none" @click="actions.batchPinWorldbooks(selectedWorldbooks, true)">
+          <button
+            class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface text-[calc(10em/14)] flex items-center gap-0.5 transition-colors cursor-pointer outline-none"
+            @click="actions.batchPinWorldbooks(selectedWorldbooks, true)"
+          >
             <span class="material-symbols-outlined text-[calc(12em/14)] text-primary-text">push_pin</span> 置顶
           </button>
-          <button class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface text-[calc(10em/14)] flex items-center gap-0.5 transition-colors cursor-pointer outline-none" @click="actions.batchPinWorldbooks(selectedWorldbooks, false)">
+          <button
+            class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface text-[calc(10em/14)] flex items-center gap-0.5 transition-colors cursor-pointer outline-none"
+            @click="actions.batchPinWorldbooks(selectedWorldbooks, false)"
+          >
             <span class="material-symbols-outlined text-[calc(12em/14)] text-on-surface-variant">push_pin</span> 消顶
           </button>
-          <button class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface text-[calc(10em/14)] flex items-center gap-0.5 transition-colors cursor-pointer outline-none" @click="actions.batchMountWorldbooks(selectedWorldbooks, true)">
+          <button
+            class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface text-[calc(10em/14)] flex items-center gap-0.5 transition-colors cursor-pointer outline-none"
+            @click="actions.batchMountWorldbooks(selectedWorldbooks, true)"
+          >
             <span class="material-symbols-outlined text-[calc(12em/14)]">link</span> 挂载
           </button>
-          <button class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface text-[calc(10em/14)] flex items-center gap-0.5 transition-colors cursor-pointer outline-none" @click="actions.batchMountWorldbooks(selectedWorldbooks, false)">
+          <button
+            class="px-1.5 py-0.5 border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface text-[calc(10em/14)] flex items-center gap-0.5 transition-colors cursor-pointer outline-none"
+            @click="actions.batchMountWorldbooks(selectedWorldbooks, false)"
+          >
             <span class="material-symbols-outlined text-[calc(12em/14)]">link_off</span> 卸载
           </button>
-          <button class="px-1.5 py-0.5 border border-error/50 bg-error-container/10 hover:bg-error-container/30 text-error text-[calc(10em/14)] flex items-center gap-0.5 transition-colors cursor-pointer outline-none" @click="handleBatchDelete">
+          <button
+            class="px-1.5 py-0.5 border border-error/50 bg-error-container/10 hover:bg-error-container/30 text-error text-[calc(10em/14)] flex items-center gap-0.5 transition-colors cursor-pointer outline-none"
+            @click="handleBatchDelete"
+          >
             <span class="material-symbols-outlined text-[calc(12em/14)]">delete</span> 删除
           </button>
         </div>
@@ -87,26 +131,28 @@
         v-model:selectedWorldbooks="selectedWorldbooks"
       />
 
-      <div v-if="filteredWorldbooks.length === 0" class="text-on-surface-variant text-xs text-center py-4">没有找到匹配的世界书。</div>
+      <div v-if="filteredWorldbooks.length === 0" class="text-on-surface-variant text-xs text-center py-4">
+        没有找到匹配的世界书。
+      </div>
 
       <!-- Pagination Controls & Page Size Selector -->
       <div v-if="filteredWorldbooks.length > 0" class="flex flex-wrap justify-between items-center mt-2 mb-2 gap-2">
         <div class="flex-1"></div>
 
         <div v-if="totalPages > 1" class="flex items-center gap-4 flex-shrink-0">
-          <button 
+          <button
             class="w-8 h-8 flex items-center justify-center border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface transition-colors cursor-pointer outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="currentPage <= 1"
             @click="prevPage"
           >
             <span class="material-symbols-outlined text-[calc(18em/14)]">chevron_left</span>
           </button>
-          
+
           <span class="font-mono text-[calc(12em/14)] text-on-surface-variant font-bold">
             {{ currentPage }} / {{ totalPages }}
           </span>
-          
-          <button 
+
+          <button
             class="w-8 h-8 flex items-center justify-center border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface transition-colors cursor-pointer outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="currentPage >= totalPages"
             @click="nextPage"
@@ -117,8 +163,13 @@
         <div v-else class="flex-shrink-0"></div>
 
         <div class="flex-1 flex justify-end">
-          <div class="relative flex items-center border border-outline-variant bg-surface hover:border-primary transition-colors h-8 group">
-            <select v-model="pageSize" class="appearance-none bg-transparent border-none outline-none text-[calc(11em/14)] font-mono text-on-surface pl-2 pr-6 h-full cursor-pointer z-10 w-full">
+          <div
+            class="relative flex items-center border border-outline-variant bg-surface hover:border-primary transition-colors h-8 group"
+          >
+            <select
+              v-model="pageSize"
+              class="appearance-none bg-transparent border-none outline-none text-[calc(11em/14)] font-mono text-on-surface pl-2 pr-6 h-full cursor-pointer z-10 w-full"
+            >
               <option :value="5">5 / 页</option>
               <option :value="10">10 / 页</option>
               <option :value="15">15 / 页</option>
@@ -126,7 +177,10 @@
               <option :value="30">30 / 页</option>
               <option :value="50">50 / 页</option>
             </select>
-            <span class="material-symbols-outlined text-[calc(14em/14)] text-on-surface-variant absolute right-1 pointer-events-none group-hover:text-primary transition-colors">arrow_drop_down</span>
+            <span
+              class="material-symbols-outlined text-[calc(14em/14)] text-on-surface-variant absolute right-1 pointer-events-none group-hover:text-primary transition-colors"
+              >arrow_drop_down</span
+            >
           </div>
         </div>
       </div>
@@ -150,12 +204,8 @@ import { UIWorldbookEntry, useUIStateStore } from '../../../store/ui_state_store
 // 1. 实例化 Store
 const uiStore = useUIStateStore();
 // 2. 解构状态变量
-const { 
-  allAvailableWorldbooks, 
-  charBoundWorldbooks, 
-  globalMountedWorldbooks,
-  worldbookEntriesCache
-} = storeToRefs(uiStore);
+const { allAvailableWorldbooks, charBoundWorldbooks, globalMountedWorldbooks, worldbookEntriesCache } =
+  storeToRefs(uiStore);
 const { CONFIG_ENTRY_PREFIX } = uiStore;
 
 const currentConfig = useArkConfig();
@@ -210,10 +260,14 @@ const filteredWorldbooks = computed(() => {
 const currentPage = ref(1);
 const pageSize = ref(currentConfig.value?.worldbookPageSize || 15);
 
-watch(filterText, () => { currentPage.value = 1; });
-watch(isGlobalBatchMode, () => { currentPage.value = 1; });
-watch(pageSize, (newSize) => { 
-  currentPage.value = 1; 
+watch(filterText, () => {
+  currentPage.value = 1;
+});
+watch(isGlobalBatchMode, () => {
+  currentPage.value = 1;
+});
+watch(pageSize, newSize => {
+  currentPage.value = 1;
   configStore.updateConfig({ worldbookPageSize: newSize });
 });
 
@@ -225,25 +279,33 @@ const paginatedWorldbooks = computed(() => {
   return filteredWorldbooks.value.slice(start, end);
 });
 
-const prevPage = () => { if (currentPage.value > 1) currentPage.value--; };
-const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++; };
+const prevPage = () => {
+  if (currentPage.value > 1) currentPage.value--;
+};
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) currentPage.value++;
+};
 
 // --- Pre-load Logic ---
-watch(paginatedWorldbooks, async (newWbs) => {
-  // 静默预加载当前页的 Worldbook 条目数量
-  for (const wb of newWbs) {
-    if (!worldbookEntriesCache.value[wb.name]) {
-      try {
-        const entries = (await getWorldbook(wb.name)) as unknown as UIWorldbookEntry[];
-        worldbookEntriesCache.value[wb.name] = entries.filter(
-          (e: UIWorldbookEntry) => !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)),
-        );
-      } catch (e) {
-        console.warn(`[ARK_UI] 预加载世界书 ${wb.name} 失败`, e);
+watch(
+  paginatedWorldbooks,
+  async newWbs => {
+    // 静默预加载当前页的 Worldbook 条目数量
+    for (const wb of newWbs) {
+      if (!worldbookEntriesCache.value[wb.name]) {
+        try {
+          const entries = (await getWorldbook(wb.name)) as unknown as UIWorldbookEntry[];
+          worldbookEntriesCache.value[wb.name] = entries.filter(
+            (e: UIWorldbookEntry) => !(e.name && e.name.startsWith(CONFIG_ENTRY_PREFIX)),
+          );
+        } catch (e) {
+          console.warn(`[ARK_UI] 预加载世界书 ${wb.name} 失败`, e);
+        }
       }
     }
-  }
-}, { immediate: true });
+  },
+  { immediate: true },
+);
 
 // --- Selection Logic ---
 const isAllWorldbooksSelected = computed(() => {

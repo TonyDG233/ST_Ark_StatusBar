@@ -33,7 +33,9 @@ export class SendInterceptor {
         if (e) e.enabled = entry.enabled;
         return wbEntries;
       });
-      document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: targetWorldbook } }));
+      document.dispatchEvent(
+        new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: targetWorldbook } }),
+      );
     } catch (e) {
       console.error('[ARK_Interceptor] Failed to toggle entry silently', e);
     }
@@ -51,7 +53,9 @@ export class SendInterceptor {
               }
               return wbEntries;
             });
-            document.dispatchEvent(new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: tempInfo.world } }));
+            document.dispatchEvent(
+              new CustomEvent('ark:worldbook-data-changed', { detail: { worldbookName: tempInfo.world } }),
+            );
           } catch (e) {
             console.error('[ARK_Interceptor] Failed to restore temp disabled entry on cancel:', e);
           }
@@ -86,14 +90,14 @@ export class SendInterceptor {
    */
   public recordInterceptHistory(entriesToLog: UIWorldbookEntry[], tokenCount: number | string = 0) {
     if (!entriesToLog || entriesToLog.length === 0) return;
-    
+
     const uiStore = useUIStateStore();
     const newLog = {
       timestamp: Date.now(),
       entries: entriesToLog,
-      tokenCount: tokenCount
+      tokenCount: tokenCount,
     };
-    
+
     uiStore.recentTriggerLogs.unshift(newLog);
     if (uiStore.recentTriggerLogs.length > 20) {
       uiStore.recentTriggerLogs.pop();

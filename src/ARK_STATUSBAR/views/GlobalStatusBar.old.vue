@@ -93,14 +93,14 @@
         <!-- [FEATURE: MINI_SNAPSHOT] -> Compact list shown ONLY in mini mode -->
         <div class="statusbar-mini-content" v-show="currentUiMode === UiMode.MINI">
           <div
-            v-if="(pendingEntries.length > 0 ? pendingEntries : (recentTriggerLogs[0]?.entries || [])).length === 0"
+            v-if="(pendingEntries.length > 0 ? pendingEntries : recentTriggerLogs[0]?.entries || []).length === 0"
             class="mini-empty"
           >
             无近期触发记录
           </div>
           <ul v-else class="mini-entry-list">
             <li
-              v-for="entry in pendingEntries.length > 0 ? pendingEntries : (recentTriggerLogs[0]?.entries || [])"
+              v-for="entry in pendingEntries.length > 0 ? pendingEntries : recentTriggerLogs[0]?.entries || []"
               :key="entry.uid || Math.random()"
             >
               <span class="indicator" :class="{ blocked: entry.enabled === false }"></span>
@@ -136,14 +136,14 @@ import { useUIStateStore } from '../store/ui_state_store';
 const uiStore = useUIStateStore();
 
 // 2. 解构状态变量（必须用 storeToRefs 保持响应式）
-const { 
-    currentTokenCount,
-    isArknightsCard,
-    isTestMode,
-    recentTriggerLogs,
-    pendingEntries,
-    previewUiFontSize,
-    previewUiWidth,
+const {
+  currentTokenCount,
+  isArknightsCard,
+  isTestMode,
+  recentTriggerLogs,
+  pendingEntries,
+  previewUiFontSize,
+  previewUiWidth,
 } = storeToRefs(uiStore);
 
 const isVisible = ref(true);
@@ -183,9 +183,7 @@ const toggleMinimize = () => {
 };
 
 // --- 环境联动与事件总线挂载 ---
-const { 
-  setupGlobalListeners
-} = uiStore;
+const { setupGlobalListeners } = uiStore;
 
 // 保存对事件处理函数的引用以便在 onUnmounted 中移除
 let interceptorTriggeredListener: (e: CustomEvent) => void;

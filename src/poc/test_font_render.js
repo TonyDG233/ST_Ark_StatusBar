@@ -1,6 +1,6 @@
 /**
  * 最小化字体渲染可行性测试脚本 (PoC) - 适配酒馆助手环境版
- * 
+ *
  * 用法：将此脚本直接新建为一个酒馆助手“脚本”，启用后它会自动注入到宿主页面。
  */
 (async function runFontRenderTest() {
@@ -8,11 +8,11 @@
   const ST_DOC = ST_WINDOW.document;
 
   if (ST_WINDOW.toastr) {
-    ST_WINDOW.toastr.info("测试脚本已触发，正在注入测试 DOM...");
+    ST_WINDOW.toastr.info('测试脚本已触发，正在注入测试 DOM...');
   } else {
-    console.log("测试脚本已触发！");
+    console.log('测试脚本已触发！');
   }
-  
+
   const FONT_URL = 'https://fastly.jsdelivr.net/npm/material-symbols@0.44.9/material-symbols-outlined.woff2';
   const FONT_FAMILY = 'Test Material Symbols CSS';
 
@@ -103,9 +103,11 @@
   // 但我们可以通过 document.fonts.ready 检查。
   if (ST_DOC.fonts && ST_DOC.fonts.ready) {
     ST_DOC.fonts.ready.then(() => {
-      ST_DOC.getElementById('test-status').innerHTML = '<span style="color:#2ed573">✅ 浏览器报告字体解析完成！</span><br>如果还是没图标，说明这台设备彻底没救了。';
+      ST_DOC.getElementById('test-status').innerHTML =
+        '<span style="color:#2ed573">✅ 浏览器报告字体解析完成！</span><br>如果还是没图标，说明这台设备彻底没救了。';
     });
   } else {
-     ST_DOC.getElementById('test-status').innerHTML = '<span style="color:#eccc68">⚠️ 无法检测状态，请直接看图标是否显示。</span>';
+    ST_DOC.getElementById('test-status').innerHTML =
+      '<span style="color:#eccc68">⚠️ 无法检测状态，请直接看图标是否显示。</span>';
   }
 })();

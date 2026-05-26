@@ -1,19 +1,19 @@
 <template>
-    <div v-if="store.should_enable" class="inline-drawer">
-        <div class="inline-drawer-toggle inline-drawer-header">
-            <b>MVU 变量框架</b>
-            <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
-        </div>
-
-        <div class="inline-drawer-content">
-            <Version />
-            <Notification />
-            <Update />
-            <Button />
-            <Cleanup />
-            <Compatibility />
-        </div>
+  <div v-if="store.should_enable" class="inline-drawer">
+    <div class="inline-drawer-toggle inline-drawer-header">
+      <b>MVU 变量框架</b>
+      <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
     </div>
+
+    <div class="inline-drawer-content">
+      <Version />
+      <Notification />
+      <Update />
+      <Button />
+      <Cleanup />
+      <Compatibility />
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -30,8 +30,8 @@ const store = useDataStore();
 
 <style scoped>
 .inline-drawer-content {
-    flex-direction: column;
-    gap: 0.75rem;
-    padding-top: 0.5rem;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
 }
 </style>

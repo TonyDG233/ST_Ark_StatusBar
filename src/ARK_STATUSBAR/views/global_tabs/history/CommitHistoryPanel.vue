@@ -2,56 +2,86 @@
   <div class="flex flex-col flex-shrink-0 mt-4">
     <!-- Section Title & Tools -->
     <div class="flex flex-col gap-2 pb-2 border-b border-outline-variant mb-4">
-      <div class="font-display text-[calc(11em/14)] font-bold tracking-widest uppercase text-on-surface-variant flex justify-between items-center px-1 flex-wrap gap-2">
+      <div
+        class="font-display text-[calc(11em/14)] font-bold tracking-widest uppercase text-on-surface-variant flex justify-between items-center px-1 flex-wrap gap-2"
+      >
         <div class="flex items-center gap-2 flex-wrap">
           <span>COMMIT_LOG / 操作历史</span>
-          <div class="text-[calc(9em/14)] px-1.5 py-0.5 rounded-sm bg-error/10 text-error border border-error/20 flex items-center gap-1 font-mono normal-case tracking-normal shrink-0 whitespace-normal">
+          <div
+            class="text-[calc(9em/14)] px-1.5 py-0.5 rounded-sm bg-error/10 text-error border border-error/20 flex items-center gap-1 font-mono normal-case tracking-normal shrink-0 whitespace-normal"
+          >
             <span class="material-symbols-outlined text-[calc(10em/14)]">warning</span>
             重度修改额度: {{ heavyCommitsCount }}/{{ maxHeavy }}
           </div>
         </div>
         <span class="text-[calc(9em/14)] opacity-70">{{ currentConfig?.commits?.length || 0 }} 条记录</span>
       </div>
-      
+
       <!-- Filter and Batch Tools -->
-      <div class="flex flex-wrap items-center justify-between gap-2 bg-surface-variant/30 p-2 border border-outline-variant/50 min-w-0">
+      <div
+        class="flex flex-wrap items-center justify-between gap-2 bg-surface-variant/30 p-2 border border-outline-variant/50 min-w-0"
+      >
         <div class="flex items-center gap-2 flex-1 min-w-0">
-          <span class="material-symbols-outlined text-[calc(14em/14)] text-on-surface-variant shrink-0">filter_list</span>
-          <select v-model="selectedFilter" class="bg-surface text-[calc(11em/14)] text-on-surface border border-outline-variant px-1 py-0.5 flex-1 min-w-0 outline-none w-full">
+          <span class="material-symbols-outlined text-[calc(14em/14)] text-on-surface-variant shrink-0"
+            >filter_list</span
+          >
+          <select
+            v-model="selectedFilter"
+            class="bg-surface text-[calc(11em/14)] text-on-surface border border-outline-variant px-1 py-0.5 flex-1 min-w-0 outline-none w-full"
+          >
             <option value="all">显示全部 ({{ currentConfig?.commits?.length || 0 }})</option>
             <option v-for="filter in availableFilters" :key="filter.value" :value="filter.value">
               {{ filter.label }} ({{ filter.count }})
             </option>
           </select>
         </div>
-        <button v-if="currentConfig?.commits?.length"
-                class="border border-outline-variant px-2 py-0.5 text-[calc(10em/14)] uppercase tracking-wider text-on-surface hover:bg-surface-variant whitespace-nowrap shrink-0 transition-colors"
-                @click="toggleBatchMode">
+        <button
+          v-if="currentConfig?.commits?.length"
+          class="border border-outline-variant px-2 py-0.5 text-[calc(10em/14)] uppercase tracking-wider text-on-surface hover:bg-surface-variant whitespace-nowrap shrink-0 transition-colors"
+          @click="toggleBatchMode"
+        >
           {{ isBatchMode ? '退出多选' : '批量多选' }}
         </button>
       </div>
 
       <!-- Batch Action Bar -->
-      <div v-if="isBatchMode" class="flex flex-wrap justify-between items-center gap-2 mt-2 bg-surface-variant/30 p-2 border border-dashed border-outline-variant/50">
+      <div
+        v-if="isBatchMode"
+        class="flex flex-wrap justify-between items-center gap-2 mt-2 bg-surface-variant/30 p-2 border border-dashed border-outline-variant/50"
+      >
         <label class="flex items-center gap-2 cursor-pointer text-[calc(11em/14)] text-on-surface group">
           <input type="checkbox" :checked="isAllSelected" class="hidden peer" @change="toggleSelectAll" />
-          <div class="w-3.5 h-3.5 border border-outline-variant bg-surface rounded-sm flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-colors group-hover:border-primary/50">
-            <span v-if="isAllSelected" class="material-symbols-outlined text-[calc(12em/14)] text-on-primary font-bold">check</span>
+          <div
+            class="w-3.5 h-3.5 border border-outline-variant bg-surface rounded-sm flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-colors group-hover:border-primary/50"
+          >
+            <span v-if="isAllSelected" class="material-symbols-outlined text-[calc(12em/14)] text-on-primary font-bold"
+              >check</span
+            >
           </div>
           全选
         </label>
         <div class="flex gap-2">
-          <ActionToggle type="restore" @click="batchRevertCommits" :disabled="selectedCommits.length === 0">恢复选中</ActionToggle>
-          <ActionToggle type="delete" @click="batchDeleteCommits" :disabled="selectedCommits.length === 0">删除选中</ActionToggle>
+          <ActionToggle type="restore" @click="batchRevertCommits" :disabled="selectedCommits.length === 0"
+            >恢复选中</ActionToggle
+          >
+          <ActionToggle type="delete" @click="batchDeleteCommits" :disabled="selectedCommits.length === 0"
+            >删除选中</ActionToggle
+          >
         </div>
       </div>
     </div>
 
     <!-- Timeline Items Container -->
-    <div v-if="!currentConfig?.commits?.length" class="text-[calc(11em/14)] text-on-surface-variant p-4 text-center opacity-70">
+    <div
+      v-if="!currentConfig?.commits?.length"
+      class="text-[calc(11em/14)] text-on-surface-variant p-4 text-center opacity-70"
+    >
       暂无修改记录。
     </div>
-    <div v-else-if="filteredCommits.length === 0" class="text-[calc(11em/14)] text-on-surface-variant p-4 text-center opacity-70">
+    <div
+      v-else-if="filteredCommits.length === 0"
+      class="text-[calc(11em/14)] text-on-surface-variant p-4 text-center opacity-70"
+    >
       没有符合当前筛选条件的记录。
     </div>
     <div v-else class="relative flex flex-col ml-1 pl-4 pb-4 border-l border-outline-variant border-dashed">
@@ -153,7 +183,7 @@ const availableFilters = computed(() => {
 
 const filteredCommits = computed(() => {
   let commits = [...(currentConfig.value?.commits || [])];
-  
+
   if (selectedFilter.value !== 'all') {
     commits = commits.filter(commit => {
       return commit.changes.some(change => {
@@ -215,7 +245,11 @@ const togglePinCommit = (commit: ArkCommit) => {
 
 const getChangeText = (commit: unknown, value: any) => {
   if (typeof value === 'boolean') {
-    if ((commit as ArkCommit).description?.includes('changed type') || (commit as ArkCommit).description?.includes('修改触发类型') || (commit as ArkCommit).description?.includes('切换灯色')) {
+    if (
+      (commit as ArkCommit).description?.includes('changed type') ||
+      (commit as ArkCommit).description?.includes('修改触发类型') ||
+      (commit as ArkCommit).description?.includes('切换灯色')
+    ) {
       return value ? '蓝灯(常驻)' : '绿灯(条件)';
     }
     return value ? '开启' : '关闭';
@@ -231,7 +265,7 @@ const mapChanges = (commit: ArkCommit) => {
     label: change.comment || '',
     path: change.path,
     from: getChangeText(commit, change.from),
-    to: getChangeText(commit, change.to)
+    to: getChangeText(commit, change.to),
   }));
 };
 
@@ -262,7 +296,7 @@ const batchRevertCommits = async () => {
 
   try {
     await manager.history.batchRevertCommits(selectedCommits.value, currentPrimaryWorldbook.value);
-    
+
     selectedCommits.value = [];
     isBatchMode.value = false;
 
@@ -284,5 +318,4 @@ const batchDeleteCommits = async () => {
 };
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
