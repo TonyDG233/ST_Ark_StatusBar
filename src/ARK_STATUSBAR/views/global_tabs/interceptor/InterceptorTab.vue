@@ -147,11 +147,11 @@
         <!-- Body -->
         <div class="p-3 flex flex-col gap-3 overflow-y-auto ark-scrollbar min-h-0 flex-1">
           <!-- Keys (if selective) -->
-          <div v-if="selectedEntry.strategy?.type === 'selective'" class="flex flex-col gap-1">
+          <div v-if="selectedEntry.strategy?.type === 'selective'" class="flex flex-col gap-1 w-full min-w-0">
             <label class="font-mono text-[10px] text-primary-text uppercase tracking-widest flex items-center gap-1">
               <span class="material-symbols-outlined text-[14px]">key</span> 主关键词 (KEYS)
             </label>
-            <div class="font-mono text-[calc(11em/14)] text-on-surface-variant bg-surface border border-outline-variant/50 p-1.5 break-words">
+            <div class="font-mono text-[calc(11em/14)] text-on-surface-variant bg-surface border border-outline-variant/50 p-1.5 break-words whitespace-normal w-full min-w-0">
               {{ selectedEntry.strategy?.keys?.join(', ') || '无' }}
             </div>
           </div>
