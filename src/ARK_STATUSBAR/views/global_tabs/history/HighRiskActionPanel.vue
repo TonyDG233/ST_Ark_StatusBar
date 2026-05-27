@@ -2,8 +2,8 @@
   <HistoryActionCard
     v-if="isArknightsCard"
     label="CRITICAL"
-    title="恢复基准状态 (Reset Baseline)"
-    description="一键还原至初始状态，这将清空所有历史修改记录。操作仅作用于当前主书。"
+    title="角色卡主书专属操作 (Character Exclusive)"
+    description="一键还原至初始状态，或屏蔽单字干员条目。操作仅作用于当前明日方舟主书。"
     icon="warning"
     type="danger"
   >
