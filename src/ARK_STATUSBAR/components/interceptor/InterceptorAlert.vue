@@ -25,7 +25,7 @@
       >
         <div><span class="opacity-50">被拦截总数:</span> {{ count }}</div>
         <div>
-          <span class="opacity-50">预计 Token:</span> 
+          <span class="opacity-50">预计 Token:</span>
           {{ typeof tokenCount === 'string' ? tokenCount : '~' + tokenCount + ' tok' }}
         </div>
       </div>
@@ -73,7 +73,7 @@
       >
         <div><span class="opacity-50">预测触发:</span> {{ count }}</div>
         <div>
-          <span class="opacity-50">预计 Token:</span> 
+          <span class="opacity-50">预计 Token:</span>
           {{ typeof tokenCount === 'string' ? tokenCount : '~' + tokenCount + ' tok' }}
         </div>
       </div>

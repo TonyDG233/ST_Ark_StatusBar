@@ -97,11 +97,7 @@
       </div>
       <template v-else>
         <!-- Alert Banner / Warning Section -->
-        <InterceptorAlert
-          :isTestMode="isTestMode"
-          :count="pendingEntries.length"
-          :tokenCount="currentTokenCount"
-        />
+        <InterceptorAlert :isTestMode="isTestMode" :count="pendingEntries.length" :tokenCount="currentTokenCount" />
 
         <!-- Pending Entries Queue -->
         <div class="flex flex-col gap-2 w-full mt-1">

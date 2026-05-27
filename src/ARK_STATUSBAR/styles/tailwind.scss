@@ -87,7 +87,6 @@
 
 /* 4. 提取公用的原子组件类 (从 shared_ui.scss 中逐步迁移) */
 @layer components {
-
   /* 全局统一应用水印背景 */
   .global-watermark {
     &::before {
@@ -136,10 +135,8 @@
 }
 
 @layer utilities {
-
   /* 强行提权：对抗酒馆全局的表单 !important 污染 */
   .ark-global-statusbar-mount-point {
-
     input.bg-transparent,
     textarea.bg-transparent,
     select.bg-transparent {
