@@ -1,6 +1,7 @@
 <template>
   <!-- [物理外壳层] 完全负责承载物理位移，禁止添加任何影响宽高的业务 class -->
   <div
+    id="ark-ui-root"
     v-if="isSystemEnabled"
     v-show="isVisible"
     class="ark-global-statusbar-mount-point fixed top-0 z-[9999]"
