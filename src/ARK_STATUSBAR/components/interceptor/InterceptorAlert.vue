@@ -24,7 +24,10 @@
         class="font-mono text-error flex flex-wrap gap-x-4 gap-y-1 text-[calc(10em/14)] border-t border-error/30 pt-1.5 mt-auto"
       >
         <div><span class="opacity-50">被拦截总数:</span> {{ count }}</div>
-        <div><span class="opacity-50">预计 Token:</span> ~{{ tokenCount }} tok</div>
+        <div>
+          <span class="opacity-50">预计 Token:</span> 
+          {{ typeof tokenCount === 'string' ? tokenCount : '~' + tokenCount + ' tok' }}
+        </div>
       </div>
     </div>
     <!-- Decorative Stripes -->
@@ -69,7 +72,10 @@
         class="font-mono text-primary-text flex flex-wrap gap-x-4 gap-y-1 text-[calc(10em/14)] border-t border-primary/30 pt-1.5 mt-auto"
       >
         <div><span class="opacity-50">预测触发:</span> {{ count }}</div>
-        <div><span class="opacity-50">预计 Token:</span> ~{{ tokenCount }} tok</div>
+        <div>
+          <span class="opacity-50">预计 Token:</span> 
+          {{ typeof tokenCount === 'string' ? tokenCount : '~' + tokenCount + ' tok' }}
+        </div>
       </div>
     </div>
     <div
@@ -92,6 +98,6 @@
 defineProps<{
   isTestMode: boolean;
   count: number;
-  tokenCount: number;
+  tokenCount: number | string;
 }>();
 </script>

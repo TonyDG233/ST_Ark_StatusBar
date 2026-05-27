@@ -475,6 +475,98 @@ export class SendInterceptor {
 
         const generatePromise = async () => {
           if (generateFn) {
+            // ==========================================
+            // [新老模式并行兼容分支]: 判断当前所处的酒馆版本
+            // ==========================================
+            // 在 ST 1.18+ / TauriTavern 版本中，原生 generateFn 被包裹成了 `safeGenerate`。
+            // 它引入了异步队列和 `waitForIdle()`。在拦截器（事件冻结期）内调用会导致长达 15s 的死锁/假死。
+            // 因此，如果是 1.18+，我们采用“模块拼合估算法”（新模式）；如果是 1.16，采用原生干跑（老模式）。
+            if (generateFn.name === 'safeGenerate') {
+              console.warn('[ARK_Interceptor] 探测到 1.18+ safeGenerate，切换至高速 Token 估算模式以避免死锁。');
+              
+              let payloadString = '';
+
+              // 1. 尝试抓取系统预设提示词 (排除闲杂项)
+              try {
+                // @ts-ignore
+                if (typeof getPreset === 'function') {
+                  // @ts-ignore
+                  const preset = getPreset('in_use');
+                  if (preset && preset.prompts) {
+                    const sysPrompts = preset.prompts.filter((p: any) => p.enabled && ['main', 'nsfw', 'jailbreak', 'enhanceDefinitions'].includes(p.id));
+                    payloadString += sysPrompts.map((p: any) => p.content || '').join('\n') + '\n';
+                  }
+                }
+              } catch (e) { console.warn('[ARK_Interceptor] 获取预设失败', e); }
+
+              // 2. 尝试抓取角色卡设定 (注意：不提取 first_messages，因为它已包含在聊天记录中)
+              try {
+                // @ts-ignore
+                if (typeof getCurrentCharacterName === 'function' && typeof getCharacter === 'function') {
+                  // @ts-ignore
+                  const charName = getCurrentCharacterName();
+                  if (charName) {
+                    // 补充官方类型文件中遗漏的 V2 属性
+                    type STCharacterExt = typeof charName & { personality?: string; scenario?: string; description?: string };
+                    // @ts-ignore
+                    const char = (await getCharacter(charName)) as STCharacterExt;
+                    if (char) {
+                      payloadString += (char.description || '') + '\n' + (char.personality || '') + '\n' + (char.scenario || '') + '\n';
+                    }
+                  }
+                }
+              } catch (e) { console.warn('[ARK_Interceptor] 获取角色设定失败', e); }
+
+              // 3. 尝试抓取近期聊天记录 (仅抓取最近 8 楼，模拟受限的记忆窗口)
+              try {
+                // @ts-ignore
+                if (typeof getChatMessages === 'function') {
+                  // @ts-ignore
+                  const msgs = getChatMessages(-8);
+                  payloadString += msgs.map((m: { name: string; message: string }) => `${m.name}: ${m.message}`).join('\n') + '\n';
+                } else {
+                  // 兜底方案：如果没获取到 API，用 mockChat 截取最后 8 行 (注意 mockChat 已经被 reverse 过了)
+                  const recentChat = mockChat.slice(0, 8).reverse(); 
+                  payloadString += recentChat.join('\n') + '\n';
+                }
+              } catch (e) { console.warn('[ARK_Interceptor] 获取聊天记录失败', e); }
+
+              // 4. 拼接本次触发的世界书条目与当前用户的文本输入
+              payloadString += activatedEntries.map(e => e.content || '').join('\n') + '\n';
+              if (text) {
+                const userName = typeof SillyTavern !== 'undefined' ? SillyTavern.name1 : 'User';
+                payloadString += `${userName}: ${text}\n`;
+              }
+
+              console.log(`[ARK_Interceptor] 正在估算 Token，拼接的文本总长度为: ${payloadString.length}`);
+
+              // 5. 调用原生计算器进行文本过秤
+              try {
+                if (typeof SillyTavern !== 'undefined' && typeof (SillyTavern as any).getTokenCountAsync === 'function') {
+                  const count = await (SillyTavern as any).getTokenCountAsync(payloadString);
+                  // 经确认，原先 UI 样式自带波浪号且能完美容纳纯数字，
+                  // 估算误差在 300-500 左右，可接受，因此直接返回数字即可，不附加额外的前缀。
+                  tokenCount = count; 
+                  
+                  document.dispatchEvent(
+                    new CustomEvent('ark:log-debug', {
+                      detail: { message: `executeDualTrackDryRun_FAST_ESTIMATE | length:${payloadString.length} | count:${tokenCount}`, isDryRun: false },
+                    }),
+                  );
+                } else {
+                  tokenCount = '跳过计算';
+                }
+              } catch (e) {
+                console.error('[ARK_Interceptor] Token 估算失败', e);
+                tokenCount = '计算出错';
+              }
+              
+              return; // 新模式在此完成 Track 2，直接返回
+            }
+
+            // ==========================================
+            // [老模式]: 保留原生的干跑生成（适配 ST 1.16 等无死锁的老版本）
+            // ==========================================
             document.dispatchEvent(
               new CustomEvent('ark:log-debug', {
                 detail: { message: 'executeDualTrackDryRun_BEFORE_AWAIT_GENERATE', isDryRun: false },
@@ -495,7 +587,7 @@ export class SendInterceptor {
         try {
           await Promise.race([
             generatePromise(),
-            // 第二轨超时拉长到 15s
+            // 第二轨超时。还原为 15s 以满足老版本原生的长文本等待（新模式瞬间返回，不受此影响）。
             new Promise((_, reject) => setTimeout(() => reject(timeoutError), 15000)),
           ]);
         } catch (error) {

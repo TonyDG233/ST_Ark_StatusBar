@@ -51,7 +51,7 @@
     >
       <div class="flex justify-between items-center border-b border-outline-variant/50 pb-1 px-1">
         <span class="text-[calc(10em/14)] font-display text-primary-text tracking-widest uppercase">
-          拦截面板 ~{{ totalTokens }} tok | {{ entries.length }}
+          拦截面板 {{ typeof totalTokens === 'string' ? totalTokens : '~' + totalTokens + ' tok' }} | {{ entries.length }}
         </span>
         <button
           class="reset-btn text-on-surface-variant hover:text-on-surface flex items-center justify-center p-0"

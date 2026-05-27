@@ -100,7 +100,7 @@
         <InterceptorAlert
           :isTestMode="isTestMode"
           :count="pendingEntries.length"
-          :tokenCount="Number(currentTokenCount) || 0"
+          :tokenCount="currentTokenCount"
         />
 
         <!-- Pending Entries Queue -->
