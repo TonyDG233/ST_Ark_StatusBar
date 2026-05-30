@@ -1,0 +1,447 @@
+"@font-face{
+    font-family: NotoSans;
+    src: local("Noto Sans S Chinese"),url("https://static.prts.wiki/assets/scenario/fonts/NotoSans.ttf");
+	font-weight: normal;
+}
+
+.hidden {
+	display: none !important;
+}
+
+.hide-mouse {
+	cursor: none;
+}
+
+.button_style{
+	position: absolute;
+	top: 25px;
+	z-index: 5;
+	cursor: default;
+}
+.button_style.left{
+	width: 45px;
+	height: 45px;
+	background-repeat: no-repeat;
+	background-position: center;
+	left: 25px;
+}
+.button_style.left.return{
+	text-align: center;
+	color: white;
+	font-size: 25px;
+	z-index: 6;
+}
+.button_style.left.return:after{
+	content: '<�� ';
+}
+.button_style.right{
+	float: right;
+	color: white;
+	width: 120px;
+	height: 25px;
+	font-size: 18px;
+	padding: 0px 6px;
+	text-align: left;
+}
+.button_style.right.forbid{
+	color:#808080;
+}
+.char_style{
+	position: absolute;
+	width: 960px;
+	height: 540px;
+	background-repeat: no-repeat;
+	transform-origin: center bottom;
+}
+.char_style.unfocus,.char_style>canvas.unfocus{
+	z-index: -1;
+	filter: brightness(50%);
+}
+.common_style{
+	position: absolute;
+	width: 960px;
+	height: 540px;
+}
+.cutin_style{
+	position: absolute;
+	background-repeat: no-repeat;
+	background-color: grey;
+}
+.decision_style{
+	position:absolute;
+	width:450px;
+	height:36px;
+	font-size:18px;
+	left:243px;
+	padding:6px 12px 0px 12px;
+	border:solid 2.4px white;
+	text-align:center;
+	color:white;
+	background-color:#303030;
+	cursor:default;
+	user-select:none;
+}
+.dialog_style{
+	z-index: 2;
+	position: absolute;
+	width: 960px;
+}
+.dialog_style.header{
+	height: 100px;
+	top: 0px;
+	background-image: linear-gradient(rgba(80,80,80,0.5) 25%,rgba(0,0,0,0) 50%);
+}
+.dialog_style.header.debug:after{
+	content: attr(d-now)"/"attr(d-max);
+	padding: 10px 0px 0px 460px;
+	display: inline-block;
+	color: white;
+}
+.dialog_style.footer{
+	height: 96px;
+	bottom: 0px;
+	color: white;
+	background-image: linear-gradient(rgba(0,0,0,0),black 40%);
+	cursor: default;
+	padding-top: 30px;
+}
+.dialog_style.footer div{
+	position: inherit;
+}
+.dialog_style.footer>div.name{
+	padding:0px 10px 0px 10px;
+	font-size:21px;
+	left:0px;
+	width:240px;
+	text-align:right;
+	color:#929292;
+}
+.dialog_style.footer>div.content{
+	padding:0px 90px 0px 35px;
+	font-size:18px;
+	left:260px;
+	width:575px;
+}
+.item_style{
+	position:absolute;
+	border:7.5px solid white;
+	background-repeat:no-repeat;
+}
+.log_style{
+	position:absolute;
+	left:45px;
+	width:850px;
+	padding:30px 0px !important;
+	user-select: text;
+}
+.log_style li{
+	list-style-type:none;
+	list-style-image:none;
+	padding:5px 0px 5px 0px;
+}
+.log_style li>em{
+	position:absolute;
+	color:#929292;
+	font-size:16px;
+	font-style:unset;
+	width:200px;
+	text-align:right;
+}
+.log_style li>span{
+	position: relative;
+	display: block;
+	left: 220px;
+	color:white;
+	font-size:14px;
+	padding-left:10px;
+	width:582px;
+	text-align:left;
+}
+.log_style li>span.decision{
+	position: initial;
+	float: right;
+	width: 622px;/*offset of decison*/
+}
+.log_style div.decision{
+	position: relative;
+	border: solid 3px #f3f333;
+}
+.log_style div.decision>div.predicate{
+	position: relative;
+	border: solid 2px #0080ff;
+}
+.log_style div.decision>div.predicate>span{
+	position: inherit;
+	color: deepskyblue;
+	left: 220px;
+}
+.log_style div.decision>div.predicate>li>em{
+	left:5px;
+}
+.log_style div.decision>div.predicate>li>span{
+	width:578px;
+}
+/*scrollbar*/
+.playback_common::-webkit-scrollbar{
+	width: 8px;
+}
+.playback_common::-webkit-scrollbar-thumb{
+	background-color: grey;
+	border-radius: 2px;
+}
+.playback_common::-webkit-scrollbar-track{
+	background-color: rgba(0,0,0,0.9);
+}
+.subtitle_style{
+	position: absolute;
+	color: white;
+	text-shadow: 0 0 5px rgb(64,64,64);
+}
+.report.common:not(.hidden){
+	position: relative;
+	width: 420px;
+	height: 340px;
+	padding: 15px;
+	left: 110px;
+	top: 50px;
+	background-color: rgba(128,128,128,0.85);
+	border: solid 3px white;
+}
+.report > h4{
+	text-align: center;
+	margin: 0 !important;
+	font-size: 15px;
+	font-weight: 400;
+	color: aliceblue;
+}
+.report > label{
+	display: inline-block;
+	margin-bottom: 5px;
+	font-weight: 700;
+	max-width: 100%;
+}
+.report > textarea{
+	resize: none;
+	height: 100px;
+	margin-bottom: 5px;
+	border: solid 2px #dedede;
+	border-radius: 4px;
+	padding: 10px;
+	font-family: inherit;
+}
+.report > textarea:focus{
+	border-color: black;
+	outline: unset;
+}
+.report > button{
+	position: relative;
+	margin-top: 15px;
+	padding: 3px 25px;
+	background-color: #303030;
+	color: white;
+	font-size: 14px;
+	user-select: none;
+	cursor: pointer;
+	font-family: inherit;
+}
+.report > button:hover{
+	background-color:#808080;
+}
+.report > button:disabled{
+	color: gray;
+	background-color: unset !important;
+}
+.report > button:disabled:hover{
+	background-color: unset !important;
+}
+.report > button+svg{
+	position: absolute;
+	top: 21px;
+	left: 20px;
+	fill: white;
+	display: none;
+}
+.report > button.waiting+svg{
+	animation: animate_report_waiting 1.5s infinite;
+	display: block;
+}
+#button_auto {
+	right: 144px;
+}
+#button_auto::before {
+	content: 'w�D��Y;�?;
+}
+#button_reset {
+	right: 0px;
+}
+#button_reset::before {
+	content: '���]�u;�?;
+}
+#button_reset.skipnode::before {
+	content: '�t�[C~;�?;
+}
+#button_fullscreen{
+	z-index: 5;
+}
+#button_fullscreen.normal{
+	background-image:url('https://static.prts.wiki/assets/scenario/ui/ui_fullscreen.png');
+	background-size:30px 30px;
+}
+#button_playback.normal{
+	background-image:url('https://static.prts.wiki/assets/scenario/ui/ui_playback.png');
+	background-size:45px 38px;
+}
+#button_playback_all.normal{
+	background-image:url('https://static.prts.wiki/assets/scenario/ui/ui_playback_all.png');
+	background-size:45px 38px;
+}
+#button_report{
+	z-index: 5;
+}
+#button_report.normal{
+	background-image: url('https://static.prts.wiki/assets/scenario/ui/ui_bug_report.png');
+	background-size: 40px 40px;
+}
+.button_style.left:not(.hidden)~#button_fullscreen,.button_style.left.hidden~#button_playback_all:not(.hidden),.button_style.left.hidden~.button_style.left.hidden~#button_report{
+	left: 75px;
+}
+#button_playback_all.normal,.button_style.left.hidden~#button_report{
+	left: 125px;
+}
+#button_report:not(.hidden){
+	left: 175px;
+}
+#playback_result li:nth-last-child(1) span:before{
+	content: ';�?;
+	color:gold !important;
+	position: absolute;
+	left: -12px;
+}
+#playback_result span.decision.selected{
+	color: deepskyblue !important;
+}
+#playback_result span.decision.selected:before{
+	content: ';�?;
+	position: absolute;
+	left: 208px;
+}
+#report_cancel{
+	background-color: #902222;
+	left: 15px;
+}
+#report_cancel:hover{
+	background-color: #b06347;
+}
+#sys_blocker{
+	z-index: 2;
+	background-color:rgba(0,0,0,1);
+	background-size: cover;
+	user-select:none;
+}
+#sys_blocker.flashlight{
+	background-image: linear-gradient(100deg,black 35%,transparent 45%),linear-gradient(260deg,black 35%,transparent 45%);
+}
+#sys_camera, #sys_masker{
+	overflow:hidden;
+}
+#sys_camera>div.common_style{
+	z-index: 1;
+}
+#sys_camera>#sys_back{
+	z-index: 0;
+}
+#sys_curtain,#sys_subtitle{
+	z-index: 2;
+}
+#sys_clicker,#sys_decision{
+	z-index: 3;
+}
+#sys_dialog.sandbox>div.footer>div.name{
+	text-align: unset;
+}
+#sys_dialog.sandbox>div.footer>div.name.speaker:before{
+	position: absolute;
+	content: url('https://static.prts.wiki/assets/scenario/ui/ui_speaker.png');
+	height: 39px;
+	left: 42px;
+	top: -9px;
+	border: #606060 3px solid;
+	z-index: 1;
+	transform: scale(0.75);
+}
+#sys_dialog.sandbox>div.footer>div.name>span{
+	position: relative;
+	font-size: 18px;
+	left: 70px;
+}
+#sys_dialog.sandbox>div.footer>div.name.speaker>span{
+	background-color: #303030;
+	padding: 6px 10px 3px 10px;
+}
+#sys_dialog.sandbox>div.footer>div.content.waiting:after{
+	content: ';�?;
+	animation: animate_dialog_waiting 2s infinite linear;
+	position: absolute;
+	font-size: 12px;
+	right: 40px;
+	top: 60px;
+	transform: scaleY(1.4);
+}
+#sys_fullscreen{
+	position: relative;
+}
+#sys_main{
+	position: relative;
+	width:960px;
+	height:540px;
+	font-family: NotoSans,"Noto Sans S Chinese";
+	background-color:#000000;
+	transition:all 0.1s ease-out 0s;
+	transform-origin:top left;
+	user-select: none !important;
+	-webkit-transform-origin: top left;
+	-moz-transform-origin: top left;
+}
+#sys_masker > .interlude{
+	position: absolute;
+}
+#sys_masker > .interlude.ui_cutin_mask_horizon{
+	top: 50%;
+}
+#sys_masker > .interlude.ui_cutin_mask_vertical{
+	left: 50%;
+}
+#sys_offset{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+}
+#sys_playback,#sys_playback_all{
+	z-index: 5;
+	background-color:rgba(0,0,0,0.9);
+	overflow-y:auto;
+	cursor:default;
+	user-select:none;
+}
+@keyframes animate_report_waiting{
+	0%{
+		transform: rotate(0deg);
+	}
+	100%{
+		transform: rotate(360deg);
+	}
+}
+@keyframes animate_dialog_waiting{
+	0%{
+		top: 60px;
+		opacity: 1;
+	}
+	50%{
+		top: 56px;
+		opacity: 0.5;
+	}
+	100%{
+		top: 60px;
+		opacity: 1;
+	}
+}"
