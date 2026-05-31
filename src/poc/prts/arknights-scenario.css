@@ -1,4 +1,4 @@
-"@font-face{
+@font-face{
     font-family: NotoSans;
     src: local("Noto Sans S Chinese"),url("https://static.prts.wiki/assets/scenario/fonts/NotoSans.ttf");
 	font-weight: normal;
@@ -32,7 +32,7 @@
 	z-index: 6;
 }
 .button_style.left.return:after{
-	content: '<�� ';
+	content: '◀';
 }
 .button_style.right{
 	float: right;
@@ -269,16 +269,16 @@
 	right: 144px;
 }
 #button_auto::before {
-	content: 'w�D��Y;�?;
+	content: '自动▶';
 }
 #button_reset {
 	right: 0px;
 }
 #button_reset::before {
-	content: '���]�u;�?;
+	content: '重置▶';
 }
 #button_reset.skipnode::before {
-	content: '�t�[C~;�?;
+	content: '跳过▶';
 }
 #button_fullscreen{
 	z-index: 5;
@@ -312,7 +312,7 @@
 	left: 175px;
 }
 #playback_result li:nth-last-child(1) span:before{
-	content: ';�?;
+	content: '▶';
 	color:gold !important;
 	position: absolute;
 	left: -12px;
@@ -321,7 +321,7 @@
 	color: deepskyblue !important;
 }
 #playback_result span.decision.selected:before{
-	content: ';�?;
+	content: '▶';
 	position: absolute;
 	left: 208px;
 }
@@ -379,7 +379,7 @@
 	padding: 6px 10px 3px 10px;
 }
 #sys_dialog.sandbox>div.footer>div.content.waiting:after{
-	content: ';�?;
+	content: '▼';
 	animation: animate_dialog_waiting 2s infinite linear;
 	position: absolute;
 	font-size: 12px;
@@ -444,4 +444,4 @@
 		top: 60px;
 		opacity: 1;
 	}
-}"
+}

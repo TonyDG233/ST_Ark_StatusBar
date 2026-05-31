@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>PRTS 原版 DOM</title>
+    <link rel="stylesheet" href="./arknights-scenario.css">
+    <style>
+        body { 
+            background-color: #222; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        
+        #sys_back { 
+            background-image: url('https://media.prts.wiki/1/12/Avg_bg_bg_23_G09.png'); 
+            background-size: cover; 
+            background-position: center;
+        }
+        
+        #sys_char { 
+            background-image: url('https://media.prts.wiki/5/5b/Avg_avg_npc_624_1$1.png'); 
+            background-size: contain; 
+            background-repeat: no-repeat; 
+            background-position: center bottom; 
+        }
+    </style>
+</head>
+<body>
+<div class="common_style" id="sys_fullscreen"><div id="sys_offset">
+	<div id="sys_main">
+		<div class="common_style" id="sys_camera">
+			<div class="common_style" id="sys_back"></div>
+			<div class="common_style" id="sys_char"></div>
+			<div class="common_style" id="sys_cutin"></div>
+			<div class="common_style" id="sys_item"></div>
+			<div class="common_style" id="sys_image"></div>
+			<div class="common_style" id="sys_video"></div>
+		</div>
+		<div class="common_style" id="sys_blocker"></div>
+		<div class="common_style" id="sys_masker"></div>
+		<div class="common_style" id="sys_subtitle"></div>
+		<div id="sys_dialog">
+			<div class="dialog_style header"></div>
+			<div class="dialog_style footer">
+				<div class="name"><span id="dialog_name">剧情模拟器</span></div>
+				<div class="content"><span id="dialog_output">页面已加载完毕。为避免意外的数据消耗，剧情资源仅在长按1s后开始预载。如果您仅需浏览纯文本内容，请直接单击LOG ALL</span></div>
+			</div>
+		</div>
+		<div class="common_style" id="sys_clicker"></div>
+		<div class="common_style hidden" id="sys_decision"></div>
+		<div class="button_style right forbid" id="button_auto"></div>
+		<div class="button_style right forbid" id="button_reset"></div>
+		<div class="button_style left normal" id="button_playback"></div>
+		<div class="button_style left normal" id="button_fullscreen"></div>
+		<div class="button_style left normal" id="button_playback_all"></div>
+		<div class="button_style left normal nomobile" id="button_report">
+			<div class="report common hidden">
+				<h4>报告错误</h4>
+				<label>已自动收集的信息：</label>
+				<textarea class="playback_common" id="report_collected" disabled="" placeholder="display collected data."></textarea>
+				<label>留言备注：</label>
+				<textarea class="playback_common" id="report_note" placeholder="必填。请在此附上您需要补充的信息"></textarea>
+				<button type="submit" id="report_submit" class="webfonts-changed">提交</button>
+				<svg viewBox="0 0 1024 1024" width="15" height="15">
+					<path d="M523.085935 101.849403m-101.850403 0a101.850403 101.850403 0 1 0 203.700806 0 101.850403 101.850403 0 1 0-203.700806 0Z"></path>
+					<path d="M769.836489 187.508901m-96.031437 0a96.031437 96.031437 0 1 0 192.062875 0 96.031437 96.031437 0 1 0-192.062875 0Z"></path>
+					<path d="M903.286707 381.395765m-90.210471 0a90.210471 90.210471 0 1 0 180.420943 0 90.210471 90.210471 0 1 0-180.420943 0Z"></path>
+					<path d="M905.950692 609.722427m-84.390506 0a84.390506 84.390506 0 1 0 168.781011 0 84.390506 84.390506 0 1 0-168.781011 0Z"></path>
+					<path d="M799.997313 786.127394m-78.57054 0a78.57054 78.57054 0 1 0 157.141079 0 78.57054 78.57054 0 1 0-157.141079 0Z"></path>
+					<path d="M605.196454 889.708787m-72.750574 0a72.750574 72.750574 0 1 0 145.501148 0 72.750574 72.750574 0 1 0-145.501148 0Z"></path>
+					<path d="M397.148673 877.857856m-66.931608 0a66.931608 66.931608 0 1 0 133.863216 0 66.931608 66.931608 0 1 0-133.863216 0Z"></path>
+					<path d="M223.665689 762.483532m-61.110641 0a61.110642 61.110642 0 1 0 122.221283 0 61.110642 61.110642 0 1 0-122.221283 0Z"></path>
+					<path d="M134.483212 587.14856m-55.290676 0a55.290676 55.290676 0 1 0 110.581352 0 55.290676 55.290676 0 1 0-110.581352 0Z"></path>
+					<path d="M135.396207 408.896604m-49.47071 0a49.47071 49.47071 0 1 0 98.94142 0 49.47071 49.47071 0 1 0-98.94142 0Z"></path>
+					<path d="M205.336797 260.047476m-43.650744 0a43.650744 43.650744 0 1 0 87.301488 0 43.650744 43.650744 0 1 0-87.301488 0Z"></path>
+					<path d="M315.81515 159.990063m-37.829779 0a37.829778 37.829778 0 1 0 75.659557 0 37.829778 37.829778 0 1 0-75.659557 0Z"></path>
+				</svg>
+				<button type="button" id="report_cancel" class="webfonts-changed">取消</button>
+			</div>
+		</div>
+		<div class="common_style playback_common hidden" id="sys_playback">
+			<ul class="log_style" id="playback_result"></ul>
+		</div>
+		<div class="common_style playback_common hidden" id="sys_playback_all">
+			<ul class="log_style" id="playback_all_result"><li><span>卡西米尔监正会总部<br>1101年11月</span></li><li><em>罗素</em><span>情况我已经了解了。</span></li><li><em>罗素</em><span>我现在很在意，在你来到这里的同时，这份情报会出现在商业联合会的办公桌上吗？</span></li><li><em>监正会信使</em><span>我想是的，宗师。这种体量的变故，情报不可能被完全掩盖，商业联合会也一定会知晓。</span></li><li><em>监正会信使</em><span>根据从多方信源传来的消息，我们几乎可以确定，科罗萨主矿脉一定出现了某些异常状况，此时乌萨斯国内陷入了极大的能源问题。</span></li><li><em>监正会信使</em><span>前一阵子边境上第一集团军不安分的动作看来也印证了这一点......不得不令人担忧。</span></li><li><em>监正会信使</em><span>我们不知道这样的能源异变是否会蔓延至其他地区，也不知乌萨斯会作出什么样的反应。</span></li><li><em>罗素</em><span>到现在为止，我们有没有收到过任何来自圣骏堡官方的通告？</span></li><li><em>罗素</em><span>面对这样的变故，乌萨斯的第一反应是隐瞒真相而非对外寻求合作——他们的态度已经很明显了。</span></li><li><em>罗素</em><span>濒死野兽的反扑也是最猛烈的，哪怕是已经失去资源优势的乌萨斯，依然是这片大地上最可怕的战争机器。</span></li><li><em>罗素</em><span>我们战胜过许多敌人，我们不畏惧于任何一场正面战争，但来自内部的威胁更需要我们时刻警惕。</span></li><li><em>监正会信使</em><span>您是担心商业联合会趁机威胁监正会？</span></li><li><em>监正会信使</em><span>哪怕是他们也应该清楚，如果乌萨斯在这个时候对外扩张，我们面临的会是什么样的威胁，卡西米尔经受不起别的意外！</span></li><li><em>罗素</em><span>不要低估商人逐利的野心，无论任何时候。</span></li><li><em>罗素</em><span>他们已经在动手了，从第一位征战骑士因为他们的诬告而入狱时，这场没有硝烟的战争就已经打响了。</span></li><li><em>罗素</em><span>......叫莱姆来见我，尽快。</span></li><li><em>罗素</em><span>另外，那位临光家的孩子，现在在哪？</span></li></ul>
+		</div>
+	</div>
+</div></div>
+</body>
+</html>
