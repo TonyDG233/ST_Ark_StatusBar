@@ -17,23 +17,30 @@
 *   **Runtime**: SillyTavern + Tavern Helper 
 
 ## 📂 目录结构
+
 ```text
 src/
 ├── ARK_STATUSBAR/          # 项目核心开发主目录 (平级模块化架构)
-│   ├── types/              # 【独立模块】系统级契约实体与数据清洗防线 (如 system_config.ts)，供所有模块合法平级调用
-│   ├── core/               # 【独立模块】核心纯净基建层 (事件总线、状态库)，不含写库逻辑，供平级调用
-│   ├── data/               # 【独立模块】静态业务数据存放区 (baseline, scenarios 等)，仅供单向读取
-│   ├── logic/              # 【独立模块】业务逻辑层，包含外层门面入口和内部领域服务
-│   │   ├── statusbar_manager.ts # 统一业务门面 (Facade)，封装一切操作并暴露给 UI
-│   │   └── worldbook/      # 世界书领域相关服务 (包含 entry, snapshot, logger, interceptor)
-│   ├── components/         # 【独立模块】纯净的 UI 渲染层与微后端视图逻辑 (包含 shared_ui_state 数据中枢)
-│   ├── index.ts            # 入口文件 (挂载UI及后端初始化)
-│   └── tools/              # 本地构建与代码生成工具
+│   ├── views/              # 【页面级视图层】装载大型功能模块
+│   ├── components/         # 【通用基础组件层】装载可高度复用的 UI 积木
+│   ├── utils/              # 【纯函数辅助工具层】纯净数据加工厂
+│   ├── hooks/              # 【副作用与组合式响应层】Vue 相关的复用逻辑
+│   ├── services/           # 【核心业务拦截与服务层】核心数据流转的中枢
+│   ├── store/              # 【全局状态与配置枢纽】集中管理状态与配置
+│   ├── types/              # 【系统契约与防腐层】TypeScript 接口定义
+│   ├── data/               # 【静态数据存放区】业务数据存放区 (baseline, scenarios 等)
+│   ├── styles/             # 【样式文件存放区】全局样式表
+│   ├── assets/             # 【静态资源存放区】图片等媒体资源
+│   ├── tools/              # 本地构建与代码生成工具
+│   └── index.ts            # 入口文件 (挂载UI及后端初始化)
 ├── poc/                    # PoC (概念验证) 独立勘探区。用于在黑盒环境中写测试脚本排雷 (极度重要！)
 └── util/                   # 共享工具函数箱 (mvu.ts, script.ts)
 ```
 
-## 🛠️ 本地构建与开发指南
+## 📦 插件使用
+请前往本项目的 [Releases](https://github.com/TonyDG233/ST_Ark_StatusBar/releases) 页面，下载最新版本的 `.json` 插件包。下载完成后，打开酒馆（SillyTavern）- 扩展页面中的“酒馆助手”界面，在脚本页面使用导入功能导入最新发布的 json 文件即可直接使用。
+
+## 🛠️ 本地开发与构建指南（简易）
 本项目使用 `pnpm` 作为包管理器，并通过 Webpack 进行打包。
 
 ### 1. 环境准备
@@ -63,4 +70,4 @@ npx tsc --noEmit --skipLibCheck --project tsconfig.json
 所有 Agent 在参与开发前，**必须** 阅读根目录下的 `AGENTS_README.md`。
 
 ---
-*Last Updated: 2026-03-19*
+*Last Updated: 2026-06-01*
