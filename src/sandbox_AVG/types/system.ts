@@ -31,9 +31,9 @@ export interface SystemErrorState {
 
 export interface PRTSData {
     txt: string[];
-    audio: Record<string, string>;
-    back: Record<string, string>;
-    char: Record<string, string>;
+    audio: Record<string, any>;
+    back: Record<string, any>;
+    char: Record<string, any>;
     link: Record<string, any>;
     setting: {
         title: Record<string, string>;

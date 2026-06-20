@@ -1,0 +1,1330 @@
+function txt_analyze_test(txt)
+{
+	let imgs = data.back,chars = data.char,mtpy = pos_multiply;
+	let exFun = scenario.extend;
+	fun_msg(1,true,"<Line "+system.txt.index+">"+txt);
+	if(!txt || txt.match("^\\s+$") || txt.match("^\\s*//.*$")) /* ONLY SPACE REGEX|COMMENT REGEX */
+	{
+		return -2;
+	}
+	let match = txt.match("^\\[\\s*(?:(.*?)\\((.*)\\)|(?:([\\.|\\w]*)|(.*)))\\s*\\]\\s*(.*)"); /* COMMAND REGEX */
+	let temp = {};
+	if (match == null && !system.decision.mode){
+		system.multi.check();
+		system.txt.dynamic = document.getElementById("dialog_output");
+		system.txt.name = "";
+		system.txt.now = fun_txt_format(txt);
+		fun_playback("@p","");
+		$("#dialog_name").empty();
+		$("#sys_dialog").show();
+		return 0;
+	}
+	else if(system.decision.mode){
+		temp.d1 = match == undefined ? "" : match[1] == undefined ? "" : match[1].toLowerCase();
+		temp.d2 = match == undefined ? "" : match[3] == undefined ? "" : match[3].toLowerCase();
+		if(temp.d1 != 'predicate' && temp.d2 != 'predicate') return -2;
+	}
+	if (match[1] != undefined){
+		let m1 = match[1].toLowerCase();
+		let cmd_set = match[2].toObject();
+		if(cmd_set.hidelog) system.stats.log_suppress = true;
+		let sets = cmd_set;
+		switch (m1){
+			case 'background':
+				temp.o1 = $('#sys_back');
+				temp.o1.children().stop(true,true);
+				temp.t = cmd_set.fadetime ? +cmd_set.fadetime : 0.15;
+				temp.c1 = temp.o1.children('div').length;
+				temp.n = (cmd_set.image && "bg_" + cmd_set.image.toLowerCase()) || "";
+				if(temp.n == ""){
+					if(temp.t > 0){
+						temp.o1.children('div').fadeToExit(temp.t*1000,'linear');
+						if(cmd_set.block == "true"){
+							fun_delay("block",temp.t);
+							return 2;
+						}
+					}
+					else temp.o1.empty();
+					return 1;
+				}
+				temp.e1 = document.createElement('div');
+				temp.e1 = $(temp.e1);
+				temp.sx = cmd_set.xscale || cmd_set.width || 1;
+				temp.sy = cmd_set.yscale || cmd_set.height || 1;
+				temp.px = (cmd_set.x && cmd_set.x*0.75) || 0;
+				temp.py = (cmd_set.y && cmd_set.y*0.75) || 0;
+				if(imgs[temp.n] == undefined || imgs[temp.n] == ""){
+					fun_msg(-2,false,"<Background>Data ["+temp.n+"] not exist,please check the data list.");
+					return -1;
+				}
+				temp.sx*=1.2,temp.sy*=1.2;/* temp parameter */
+				temp.i1 = new Image();
+				temp.i1.src = imgs[temp.n];
+				cmd_set.screenadapt = "coverall";
+				temp.e1.attr("d-adapt",cmd_set.screenadapt);
+				temp.i1.onload = function(){
+					var w = this.width*0.75,h = this.height*0.75;
+					var obj = temp.e1;
+					if(obj.attr("d-adapt") == "coverall"){
+						var sx = w / 960,sy = h / 540;
+						var s = Math.min(sx,sy);
+						w /= s;h /= s;
+					}
+					var x = 480 - w/2,y = 270 - h/2;
+					obj.css({"width":w,"height":h,"left":x,"top":y,"background-size":w+"px "+h+"px","background-image":"url("+this.src+")"});
+				}
+				temp.e1.css({"position":"absolute","transform":`matrix(${temp.sx},0,0,${temp.sy},${temp.px},${-temp.py})`});
+				temp.o1.append(temp.e1);
+				temp.e1.hide().fadeIn(temp.t*1000,()=>{
+					temp.o1.children('div:lt('+temp.c1+')').remove();
+				});
+				if(cmd_set.block == "true"){
+					fun_delay("block",temp.t);
+					return 2;
+				}
+				break;
+			case 'backgroundtween':
+				temp.o1 = $("#sys_back").children("div:last");
+				if(temp.o1.length == 0) return -1;
+				/* temp.n = (cmd_set.image && imgs["bg_" + cmd_set.image.toLowerCase()]) || fun_get_url(temp.o1.css("backgroundImage")) || ""; */
+				temp.t = cmd_set.duration || 0.15;
+				/* if(temp.n == "") return -1; */
+				/* temp.o1.css("backgroundImage","url('"+temp.n+"')"); */
+				temp.p = temp.o1.css("transform").replace(/\s/g,"").match(/^[a-z]+\((.*)\)/);
+				temp.p = temp.p == null ? [1,0,0,1,0,0] : temp.p[1].split(','); 
+				temp.sxf = cmd_set.xscalefrom || cmd_set.xscale || temp.p[0];
+				temp.sxt = cmd_set.xscaleto || cmd_set.xscale || temp.p[0];
+				temp.syf = cmd_set.yscalefrom || cmd_set.yscale || temp.p[3];
+				temp.syt = cmd_set.yscaleto || cmd_set.yscale || temp.p[3];
+				temp.pxf = cmd_set.xfrom ? cmd_set.xfrom*0.75 : cmd_set.x ? cmd_set.x*0.75 : temp.p[4];
+				temp.pxt = cmd_set.xto ? cmd_set.xto*0.75 : cmd_set.x ? cmd_set.x*0.75 : temp.p[4];
+				temp.pyf = cmd_set.yfrom ? cmd_set.yfrom*0.75 : cmd_set.y ? cmd_set.y*0.75 : -temp.p[5];
+				temp.pyt = cmd_set.yto ? cmd_set.yto*0.75 : cmd_set.y ? cmd_set.y*0.75 : -temp.p[5];
+				temp.pyf = -temp.pyf;temp.pyt = -temp.pyt;
+				fun_msg(1,true,"<BackgroundTween>From:xscale="+temp.sxf+",yscale="+temp.syf+",x="+temp.pxf+",y="+temp.pyf);
+				fun_msg(1,true,"<BackgroundTween>To:xscale="+temp.sxt+",yscale="+temp.syt+",x="+temp.pxt+",y="+temp.pyt);
+				temp.o1.css("transition","").css("transform","matrix("+temp.sxf+",0,0,"+temp.syf+","+temp.pxf+","+temp.pyf+")");
+				timer.create("backt_w",()=>temp.o1.css("transition","transform "+temp.t + "s linear").css("transform","matrix("+temp.sxt+",0,0,"+temp.syt+","+temp.pxt+","+temp.pyt+")"),20);
+				if(cmd_set.duration == undefined || cmd_set.block == "true"){
+					fun_delay("block",temp.t);
+					return 2;
+				}
+				break;
+			case 'blocker':
+				temp.t = cmd_set.fadetime == undefined ? 0.2 : cmd_set.fadetime;/* 默认12帧过渡时间 */
+				temp.d1 = cmd_set.a == undefined ? 1 : +cmd_set.a;
+				temp.d2 = cmd_set.r == undefined ? 0 : +cmd_set.r;
+				temp.d3 = cmd_set.g == undefined ? 0 : +cmd_set.g;
+				temp.d4 = cmd_set.b == undefined ? 0 : +cmd_set.b;
+				if(temp.d1 > 1) temp.d1 = 1;/* 闲着没事的以防万一 */
+				temp.o1 = $("#sys_blocker");
+				if(cmd_set.image){
+					temp.d1 = Math.max(0,1-temp.d1);
+				}
+				temp.o1.stop(true).css("transition","background-color "+temp.t+"s linear").css("background-color",support.getRGBA(temp.d2,temp.d3,temp.d4,temp.d1));
+				temp.o1.css("background-image",cmd_set.image ? "url('"+imgs[cmd_set.image]+"')" : "");
+				if(cmd_set.block == "true"){
+					fun_delay("block",temp.t);
+					return 2;
+				}
+				break;
+			case 'cameraeffect':
+				temp.d1 = cmd_set.effect == undefined ? "" : cmd_set.effect.toLowerCase();
+				temp.d2 = cmd_set.amount == undefined ? 0 : cmd_set.amount;
+				temp.t = cmd_set.fadetime == undefined ? -1 : +cmd_set.fadetime;
+				temp.o1 = $("#sys_camera");
+				if(temp.t > 0){
+					temp.o1.css("transition","filter "+temp.t+"s linear");
+					timer.create("cmreff_w",()=>{
+						temp.o1.css("transition","");
+					},temp.t*1000);
+				}
+				if(temp.d2 == 0){
+					temp.o1.css("filter","");
+					break;
+				}
+				switch(temp.d1){
+					case 'grayscale':
+						temp.o1.css("filter","grayscale("+temp.d2+")");
+						break;
+					default:
+						temp.o1.css("filter","");
+						break;
+				}
+				break;
+			case 'camerashake':
+				temp.t = cmd_set.duration == undefined ? -1 : +cmd_set.duration;
+				temp.strx = cmd_set.xstrength == undefined ? 0 : cmd_set.xstrength * 0.75;
+				temp.stry = cmd_set.ystrength == undefined ? 0 : cmd_set.ystrength * 0.75;
+				temp.rnd = cmd_set.randomness == undefined ? 90 : +cmd_set.randomness;
+				temp.v = cmd_set.vibrato == undefined ? 30 : +cmd_set.vibrato;
+				timer.clear("shake");
+				temp.o1 = $("#sys_camera");
+				temp.o1.css({left:0,top:0});
+				if(cmd_set.stop == "true"){
+					temp.o1.removeAttr("d-sh-n");
+					temp.o1.removeAttr("d-sh-t");
+					return 1;
+				}
+				temp.c1 = Math.floor(1000/temp.v);
+				temp.c2 = temp.t * temp.v;
+				if(temp.c2 >= 0 && temp.c2<1){
+					fun_msg(-1,false,"<CameraShake>The duration is too short,use the minimum value to instead.");
+					temp.c2 = 1;
+				}
+				fun_msg(1,true,"<CameraShake>duration="+temp.t+",xstrength="+temp.strx+",ystrength="+temp.stry+",randomness="+temp.rnd+",vibrato="+temp.v);
+				temp.o1.css("transition-duration",(1/temp.v).toFixed(4) + "s");
+				temp.o1.attr({"d-sh-n":"shake","d-sh-t":0});
+				timer.create("shake",()=>timer_shake_common("sys_camera",temp.strx,temp.stry,temp.rnd,temp.c2),temp.c1,true);
+				if(cmd_set.block == "true"){
+					fun_delay("block",temp.t);
+					return 2;
+				}
+				break;
+			case 'character':
+				{
+					let n1 = cmd_set.name ? cmd_set.name.toLowerCase() : "",n2 = cmd_set.name2 ? cmd_set.name2.toLowerCase() : "";
+					let f = +cmd_set.focus || 0,dur = +cmd_set.fadetime || 0.15,cnt = n2 ? 2 : 1;
+					let tarA = "char_left",tarB = "char_right";
+					if(!n1 && !n2){
+						$("#sys_char").children().fadeToExit(dur*950);
+						if(cmd_set.block == "true"){
+							fun_delay("block",dur);
+							return 2;
+						}
+						return -2;
+					}
+					let char = $(`#${tarB}`);
+					if(n2){
+						timer.clear("char2_reset",true);
+						let ent = cmd_set.enter2 || "",len = char.children().length;
+						if(char.length === 0){
+							let e = document.createElement("div");
+							e.id = tarB;
+							e.className = "char_style char";
+							$("#sys_char").append(e);
+							char = $(e);
+						}
+						else
+							char.stop(true);
+						let [n,i] = exFun.charLink(n2);
+						fun_msg(1,true,`<${m1}>[2]name: ${n},index: ${i}`);
+						if(n == -1)
+							return -1;
+						let k = exFun.charFormat(n,i);
+						if(!chars[k])
+							fun_msg(-1,false,`<${m1}>Linked key [${k}] not exist.`);
+						let can = char.children(":last");
+						if (f == -1 || f == 1)
+							char.addClass("unfocus");
+						else
+							char.removeClass("unfocus");
+						if(can.attr("data-n") == n && can.attr("data-cnt") == cnt){
+							support.drawChar(can[0],chars[k],can[0].width,can[0].height,cmd_set.blackstart2,cmd_set.blackend2);
+							if(cmd_set.fadetime || cmd_set.duration)
+								can.hide().fadeIn(dur*950 || 0);
+						}
+						else{
+							let [sx,sy,px,py] = exFun.charPos(n,1);
+							let e = $(document.createElement("canvas"));
+							e.css({"position":"absolute","left":px,"top":py});
+							e.attr({"data-n":n,"data-cnt":cnt,"width":sx,"height":sy});
+							support.drawChar(e[0],chars[k],sx,sy,cmd_set.blackstart2,cmd_set.blackend2);
+							char.append(e);
+							if(k == "char_empty") char.attr("style","");
+							let sf = char.attr("style") == "" ? false : can.attr("data-n") == "char_empty" && can.attr("data-cnt") == cnt ? false : true;
+							e.hide().fadeIn(dur*1000);
+							if(sf) timer.create("char2_reset",()=>char.attr("style",""),dur*950);
+							char.children(`:lt(${len})`).fadeToExit(dur*950);
+						}
+						if(ent){
+							timer.clear("char2_enter");
+							char.attr("style","");
+							let tx = ent == "left" ? -base_width : ent == "right" ? base_width : 0,ty = ent == "up" ? -base_height : ent == "down" ? base_height : 0;
+							char.css("transform",`matrix(1,0,0,1,${tx},${ty})`);
+							timer.create("char2_enter",()=>{char.css({"transition":`transform ${dur}s`,"transform":"matrix(1,0,0,1,0,0)"})},20);
+						}
+					}
+					else{
+						char.fadeToExit(dur*950);
+						$(`#${tarA}`).fadeToExit(dur*950);
+						tarA = "char_middle";
+					}
+					char = $(`#${tarA}`);
+					if(n1){
+						let ent = cmd_set.enter || "",len = char.children().length;
+						timer.clear("char1_reset",true);
+						if(char.length === 0){
+							let e = document.createElement("div");
+							e.id = tarA;
+							e.className = "char_style char";
+							$("#sys_char").append(e);
+							char = $(e);
+						}
+						else
+							char.stop(true);
+						let [n,i] = exFun.charLink(n1);
+						fun_msg(1,true,`<${m1}>[1]name: ${n},index: ${i}`);
+						if(n == -1)
+							return -1;
+						let k = exFun.charFormat(n,i);
+						if(!chars[k])
+							fun_msg(-1,false,`<${m1}>Linked key [${k}] not exist.`);
+						let can = char.children(":last");
+						if (f == -1 || f == 2)
+							char.addClass("unfocus");
+						else
+							char.removeClass("unfocus");
+						if(can.attr("data-n") == n && can.attr("data-cnt") == cnt){
+							support.drawChar(can[0],chars[k],can[0].width,can[0].height,cmd_set.blackstart,cmd_set.blackend);
+							if(cmd_set.fadetime || cmd_set.duration)
+								can.hide().fadeIn(dur*950 || 0);
+						}
+						else{
+							if(tarA != "char_middle") $("#char_middle").fadeToExit(dur*950);
+							let [sx,sy,px,py] = exFun.charPos(n,n2 ? -1 : 0);
+							let e = $(document.createElement("canvas"));
+							e.css({"position":"absolute","left":px,"top":py});
+							e.attr({"data-n":n,"data-cnt":cnt,"width":sx,"height":sy});
+							support.drawChar(e[0],chars[k],sx,sy,cmd_set.blackstart,cmd_set.blackend);
+							char.append(e);
+							if(k == "char_empty") char.attr("style","");
+							let sf = char.attr("style") == "" ? false : can.attr("data-n") == "char_empty" && can.attr("data-cnt") == cnt ? false : true;
+							e.hide().fadeIn(dur*1000);
+							if(sf) timer.create("char1_reset",()=>char.attr("style",""),dur*950);
+							char.children(`:lt(${len})`).fadeToExit(dur*950);
+						}
+						if(ent){
+							timer.clear("char1_enter");
+							char.attr("style","");
+							let tx = ent == "left" ? -base_width : ent == "right" ? base_width : 0,ty = ent == "up" ? -base_height : ent == "down" ? base_height : 0;
+							char.css("transform",`matrix(1,0,0,1,${tx},${ty})`);
+							timer.create("char1_enter",()=>{char.css({"transition":`transform ${dur}s`,"transform":"matrix(1,0,0,1,0,0)"})},20);
+						}
+					}
+					if(cmd_set.block == "true"){
+						fun_delay("block",dur);
+						return 2;
+					}
+				}
+				break;
+			case 'characteraction':
+				temp.n = cmd_set.name == undefined ? "" : cmd_set.name;
+				if(temp.n == "") return -1;
+				temp.tp = cmd_set.type;
+				temp.px = cmd_set.xpos == undefined ? 0 : cmd_set.xpos*0.75;
+				temp.py = cmd_set.ypos == undefined ? 0 : cmd_set.ypos*0.75;
+				temp.fd = cmd_set.duration == undefined ? cmd_set.fadetime == undefined ? 0.25 : +cmd_set.fadetime : +cmd_set.duration;
+				temp.pw = cmd_set.power == undefined ? 0 : cmd_set.power*0.75;
+				temp.tm = cmd_set.times == undefined ? 1 : +cmd_set.times;
+				temp.o1 = $(`#char_${temp.n}`);
+				if(temp.o1.length == 0){
+					fun_msg(-2,false,"<CharacterAction>Unexcepted character length.");
+					return -1;
+				}
+				timer.clear("trans_action",true);
+				temp.d1 = temp.o1[0].style.transform.replace(/\s/g,"").match(/^matrix\((.*)\).*$/i);
+				temp.pos = temp.d1 == null ? [1,0,0,1,0,0] : temp.d1[1].split(",");
+				temp.pos[4] = +temp.pos[4] + temp.px;temp.pos[5] = +temp.pos[5] - temp.py;
+				switch(temp.tp){
+					case 'move':
+						temp.o1.css("transition","transform "+temp.fd+"s linear");
+						break;
+					case 'jump':
+						for(let i=0;i<temp.tm;i++)
+						{
+							setTimeout(() => {
+								temp.o1.animate({"top":"-="+temp.pw},temp.fd*500,(o = temp.o1)=>{
+									o.animate({"top":0},temp.fd*500);
+								});
+							}, temp.fd*i*950);
+						}
+						temp.o1.css("transition","transform "+temp.fd+"s");
+						break;
+					case 'rotate':
+						temp.o2 = temp.o1.children();
+						temp.o2.css("transform","");
+						timer.clear(temp.n+"_rotate");
+						if(cmd_set.stop == "true") return 1;
+						temp.st = cmd_set.start == undefined ? 0 : cmd_set.start;
+						temp.le = cmd_set.leftend == undefined ? -15 : -cmd_set.leftend;
+						temp.re = cmd_set.rightend == undefined ? 15 : cmd_set.rightend;
+						temp.o2.css({"transform-origin":"center","transition":"transform "+temp.fd+"s ease-in-out","transform":"rotate("+temp.st+"deg)"});
+						temp.o2.attr({"data-r":0,"data-c":0,"data-cm":temp.tm});
+						timer.create(temp.n+"_rotate",()=>{
+							let d = temp.o2.attr("data-r"),c = temp.o2.attr("data-c"),t = temp.o2.attr("data-cm");
+							if(d == "0") temp.o2.css("transform","rotate(" + temp.le + "deg)");
+							else temp.o2.css("transform","rotate(" + temp.re + "deg)");
+							temp.o2.attr("data-r",d == "1" ? "0" : "1");
+							if(t == "-1") return;
+							if(++c > t){
+								temp.o2.css("transform","");
+								timer.clear(temp.n+"_rotate");
+							}
+							temp.o2.attr("data-c",c);
+						},temp.fd*1000,true);
+						return 1;
+					case 'shake':
+						{
+							let n = "action_" + temp.n,tm = temp.tm,fd = temp.fd,pw = temp.pw;
+							timer.clear(n);
+							temp.o1.css({left:0,top:0});
+							if(cmd_set.stop == "true"){
+								temp.o1.removeAttr("d-sh-n");
+								temp.o1.removeAttr("d-sh-t");
+								return 1;
+							}
+							temp.o1.attr({"d-sh-n":n,"d-sh-t":0});
+							let c = tm > 0 ? Math.max(Math.round(fd*1000/tm),1) : fd;
+							timer.create(n,()=>timer_shake_common(temp.o1,pw,pw,cmd_set.randomness || 90,tm),c,true);
+						}
+						return 1;
+					case 'zoom':
+						temp.pos[0] = cmd_set.xscale || cmd_set.scale || temp.pos[0];
+						temp.pos[3] = cmd_set.yscale || cmd_set.scale || temp.pos[3];
+						temp.o1.css({"transition":"transform "+temp.fd+"s linear"});
+						break;
+					case 'exit':
+						temp.c1 = cmd_set.direction == "left" ? -1920 : 1920;
+						temp.c1 = temp.c1 + (temp.n == "left" ? 480 : -480);
+						temp.pos[4] = temp.c1;
+						temp.o1.css("transition","transform "+temp.fd+"s ease-in-out");
+						break;
+					default:
+						fun_msg(-1,false,"<CharacterAction>:Unknown type data:"+temp.tp);
+						return -1;
+				}
+				timer.create("trans_action",function(){temp.o1.css("transform","matrix("+temp.pos.join(',')+")");},20);
+				if(cmd_set.isblock == "true"){
+					fun_delay("block",temp.fd);
+					return 2;
+				}
+				break;
+			case 'charactercutin':
+				temp.o1 = $("#sys_cutin");
+				if(cmd_set.widgetid == undefined){
+					temp.o1.empty();
+					return -1;
+				}
+				temp.t = cmd_set.fadetime == undefined ? 140 : cmd_set.fadetime*1000;
+				temp.n = cmd_set.name == undefined ? "" : cmd_set.name.toLowerCase();
+				temp.id = "cutin_" + cmd_set.widgetid.replace(/ /g,"_");
+				temp.px = cmd_set.offsetx == undefined ? 480 : 480+cmd_set.offsetx*0.75;
+				temp.py = cmd_set.offsety == undefined ? 0 : -cmd_set.offsety*0.75;
+				temp.w = cmd_set.width == undefined ? 150 : cmd_set.width*0.75;
+				temp.h = cmd_set.height == undefined ? 540 : cmd_set.height*0.75;
+				temp.o2 = $("#"+temp.id);
+				if(temp.n == "" && temp.o2.length > 0){
+					let pas = data_cutin[temp.id];
+					if(pas.style == 0){
+						temp.o2.fadeToExit(temp.t);
+					}
+					else{
+						if(pas.style > 0 && pas.style <= 3) temp.o2.animate({"width":0,"left":pas.left,"backgroundPositionX":pas.imgX},temp.t,"linear");
+						else if(pas.style > 3 && pas.style <= 6) temp.o2.animate({"height":0,"top":pas.top,"backgroundPositionY":pas.imgY},temp.t,"linear");
+					}
+					if(cmd_set.block == "true"){
+						fun_delay("block",temp.t,"ms");
+						return 2;
+					}
+					break;
+				}
+				if(temp.o2.length == 0){
+					temp.o2 = document.createElement('div');
+					temp.o1.append(temp.o2);
+					temp.o2 = $(temp.o2);
+					temp.o2.attr({"id":temp.id,"class":"cutin_style"});
+				}
+				[temp.d1,temp.c1] = exFun.charLink(temp.n);
+				if(temp.d1 == -1) return -1;
+				temp.n = exFun.charFormat(temp.d1,temp.c1);
+				let infos = exFun.charPos(temp.d1);
+				let fx = temp.w/2,fy = temp.h/2;
+				/* backgroundPosition */
+				temp.ixe = temp.ixs = -infos[0]/2+fx;
+				temp.iye = temp.iys = infos[3];
+				/* ls=left start,le=left end,ts=top start,te=top end */
+				temp.le = temp.ls = temp.px-fx;
+				temp.te = temp.ts = temp.py;
+				let cutin_paras = {};
+				switch(cmd_set.fadestyle)
+				{
+					case 'horiz_expand_center':
+						cutin_paras.style = 1;
+						temp.ls += fx;
+						temp.ixs -= fx;
+						break;
+					case 'horiz_expand_left2right':
+						cutin_paras.style = 2;
+						break;
+					case 'horiz_expand_right2left':
+						cutin_paras.style = 3;
+						temp.ls += temp.w;
+						temp.ixs -= temp.w;
+						break;
+					case 'vert_expand_center':
+						cutin_paras.style = 4;
+						temp.ts += fy;
+						temp.iys -= fy;
+						break;
+					case 'vert_expand_top2buttom':
+						cutin_paras.style = 5;
+						break;
+					case 'vert_expand_buttom2top':
+						cutin_paras.style = 6;
+						temp.ts += temp.h;
+						temp.iys -= temp.h;
+						break;
+					default:
+						cutin_paras.style = 0;
+						break;
+				}
+				cutin_paras.width = temp.w;
+				cutin_paras.height = temp.h;
+				cutin_paras.offsetx = temp.px;
+				cutin_paras.left = temp.ls;
+				cutin_paras.top = temp.ts;
+				cutin_paras.imgX = temp.ixs;
+				cutin_paras.imgY = temp.iys;
+				data_cutin[temp.id] = cutin_paras;
+				if(!chars[temp.n]) fun_msg(-1,false,"<CharacterCutin>Data ["+temp.n+"] not exist,please check the data list.");
+				temp.o2.css({"backgroundSize":infos[0]+"px "+infos[1]+"px","backgroundImage":"url('"+chars[temp.n]+"')","backgroundPosition":temp.ixs+"px "+temp.iys+"px"});
+				temp.o2.css({"left":temp.ls,"top":temp.ts});
+				if(cutin_paras.style == 0) temp.o2.hide().css({"width":temp.w,"height":temp.h}).fadeIn(temp.t);
+				else if(cutin_paras.style > 0 && cutin_paras.style <= 3) temp.o2.css({"width":0,"height":temp.h}).animate({"width":temp.w,"left":temp.le,"backgroundPositionX":temp.ixe},temp.t,"linear");
+				else if(cutin_paras.style > 3 && cutin_paras.style <= 6) temp.o2.css({"width":temp.w,"height":0}).animate({"height":temp.h,"top":temp.te,"backgroundPositionY":temp.iye},temp.t,"linear");
+				if(cmd_set.block == "true"){
+					fun_delay("block",temp.t,"ms");
+					return 2;
+				}
+				break;
+			case 'charslot':
+				temp.p = cmd_set.slot;
+				temp.t = +cmd_set.duration || 0.15;
+				temp.o = $("#sys_char");
+				if(!temp.p){
+					temp.o.children().fadeToExit(temp.t*950);
+					if(cmd_set.isblock){
+						fun_delay("block",temp.t);
+						return 2;
+					}
+					return 1;
+				}
+				temp.n = cmd_set.name ? cmd_set.name.toLowerCase() : "";
+				temp.f = cmd_set.focus || "unset";
+				temp.ac = cmd_set.action || "";
+				temp.a = cmd_set.afrom && cmd_set.ato ? [cmd_set.afrom,cmd_set.ato] : "unset";
+				switch(temp.p.toLowerCase()){
+					case "left":
+					case "l":
+						temp.p = "char_left";
+						temp.ps = -1;
+						break;
+					case "middle":
+					case "m":
+						temp.p = "char_middle";
+						temp.ps = 0;
+						break;
+					case "right":
+					case "r":
+						temp.p = "char_right";
+						temp.ps = 1;
+						break;
+				}
+				temp.o1 = $("#"+temp.p);
+				if(temp.o1.length == 0){
+					temp.o1 = $(document.createElement("div"));
+					temp.o1[0].id = temp.p;
+					temp.o1.addClass("char_style slot");
+					temp.o.append(temp.o1);
+				}
+				temp.o3 = temp.o1.children(":last");
+				if(temp.n){
+					if(!temp.o3.attr("data-n")) cmd_set.end = "false";
+					if(!cmd_set.focus) temp.f = cmd_set.slot;
+					let c11 = temp.o1.children().length;
+					/*  timer.clear("char2_reset",true); */
+					let [n,i] = exFun.charLink(temp.n);
+					fun_msg(1,false,"<CharSlot>name="+n+",index="+i);
+					if(n == -1) return -1;
+					let n1 = exFun.charFormat(n,i);
+					if(!chars[n1]) fun_msg(-1,false,"<CharSlot>Data ["+n1+"] not exist,please check the data list.");
+					let [sx,sy,px,py] = exFun.charPos(n,temp.ps);
+					if(temp.o3.attr("data-n") == n){
+						support.drawChar(temp.o3[0],chars[n1],sx,sy,cmd_set.bstart,cmd_set.bend);
+						temp.o3.fadeTo(temp.t*950,1);
+						if(cmd_set.fadetime) temp.o3.hide().fadeIn(cmd_set.fadetime*950);/* 这里就是需要判定fadetime */
+					}
+					else{
+						let e = $(document.createElement("canvas"));
+						e.css({"position":"absolute","left":px,"top":py});
+						e.attr({"data-n":n,"width":sx,"height":sy});
+						support.drawChar(e[0],chars[n1],sx,sy,cmd_set.bstart,cmd_set.bend);
+						temp.o1.append(e);
+						e.hide().fadeIn(temp.t*1000);
+						temp.o1.children(":lt("+c11+")").fadeToExit(temp.t*950);
+						temp.o3 = e;
+					}
+				}
+				let pas = cmd_set.end == "true" ? {px:0,py:0,sx:1,sy:1} : temp.o1[0].props || {px:0,py:0,sx:1,sy:1};
+				/* preload */
+				temp.tsf = [pas.sx,0,0,pas.sy,pas.px,pas.py];
+				if(cmd_set.posfrom && cmd_set.posto){
+					let pf = cmd_set.posfrom.split(','),pt = cmd_set.posto.split(',');
+					if(pf.length == 2 && pt.length == 2){
+						temp.tsf[4] = pf[0] * mtpy;
+						temp.tsf[5] = -pf[1] * mtpy;
+						pas.px = pt[0] * mtpy;
+						pas.py = -pt[1] * mtpy;
+					}
+				}
+				else if(cmd_set.posto){
+					let pt = cmd_set.posto.split(',');
+					if(pt.length == 2){
+						pas.px += pt[0] * mtpy;
+						pas.py -= pt[1] * mtpy;
+					}
+				}
+				/* focus */
+				if(temp.f === "none"){
+					temp.o1.addClass("unfocus");
+				}
+				else if(temp.f !== "unset"){
+					if(cmd_set.focus == "all") temp.f = "l,m,r"; 
+					let fs = temp.f.toLowerCase().split(',');
+					/* fix focus array */
+					for(var i = 0;i<fs.length;i++){
+						switch(fs[i]){
+							case 'l':
+							case 'left':
+								fs[i] = "left";
+								break;
+							case 'm':
+							case 'middle':
+								fs[i] = "middle";
+								break;
+							case 'r':
+							case 'right':
+								fs[i] = "right";
+								break;
+						}
+					}
+					temp.o.children().each((i,e)=>{
+						var s = e.id;
+						for(var f of fs){
+							if(s.includes(f)){
+								e.classList.remove("unfocus");
+								return;
+							}
+						}
+						e.classList.add("unfocus");
+					});
+				}
+				/* action */
+				let trans_str = "transform "+temp.t+"s linear";
+				if(temp.ac){
+					let pw = cmd_set.power ? 0 : cmd_set.power * mtpy;
+					let tm = cmd_set.times ? 0 : +cmd_set.times;
+					let rand = Number.isNaN(parseInt(cmd_set.random)) ? 90 : +cmd_set.random;
+					temp.o1.css("transform-origin","");
+					switch(temp.ac){
+						case "zoom":
+							pas.sx = cmd_set.xscale || cmd_set.scale || pas.sx;
+							pas.sy = cmd_set.yscale || cmd_set.scale || pas.sy;
+							if(cmd_set.poszoom && temp.o3[0]){
+								let [oriX,oriY] = cmd_set.poszoom.split(',');
+								fun_msg(1,true,`[ZoomBefore]px: ${pas.px},py: ${pas.py}`);
+								pas.px += (0.5-oriX)*pas.sx*temp.o3[0].width;
+								pas.py += (oriY-0.5)*pas.sy*temp.o3[0].height;
+								temp.o1.css("transform-origin","center");
+								fun_msg(1,true,`[ZoomAfter]px: ${pas.px},py: ${pas.py}`);
+							}
+							break;
+						case "jump":
+							let et = tm <= 0 ? 0 : temp.t*1000/tm;
+							for(let i=0;i<temp.tm;i++)
+							{
+								setTimeout(() => {
+									temp.o1.animate({"top":"-="+pw},et/2,(o = temp.o1)=>{
+										o.animate({"top":0},et/2);
+									});
+								}, et*i*1000);
+							}
+							trans_str = "transform "+temp.t+"s ease-out";
+							break;
+						case "shake":
+							let n = "shake_" + temp.p;
+							timer.clear(n);
+							temp.o1.css({left:0,top:0});
+							if(cmd_set.stop == "true"){
+								temp.o1.removeAttr("d-sh-n");
+								temp.o1.removeAttr("d-sh-t");
+								return 1;
+							}
+							temp.o1.attr({"d-sh-n":n,"d-sh-t":0});
+							let c = tm > 0 ? Math.max(Math.round(temp.t*1000/tm),1) : temp.t;
+							timer.create(temp.n2,()=>timer_shake_common(temp.o1,pw,pw,rand,tm),c,true);
+							return 1;
+						default:
+							fun_msg(-1,true,"< %s >Unexcepted type of %s",match[1],temp.ac);
+							break;
+					}
+				}
+				/* transform */
+				temp.tst = [pas.sx,0,0,pas.sy,pas.px,pas.py];
+				temp.o1[0].props = pas;
+				fun_msg(1,true,"<CharSlot>trans_from:",temp.tsf,"trans_to:",temp.tst);
+				temp.o1.css({transform:"matrix("+temp.tsf.toString()+")"});
+				/* opacity */
+				if(Array.isArray(temp.a)){
+					temp.o3.fadeTo(0,temp.a[0]);
+					temp.o3.fadeTo(temp.t*1000,temp.a[1]);
+				}
+				else if(temp.a != "unset" && cmd_set.afrom === cmd_set.ato){
+					temp.a = cmd_set.afrom;
+					temp.o3.fadeTo(0,temp.a);
+				}
+				if(cmd_set.duration){
+					timer.create("slot_si",function(){temp.o1.css({transition:trans_str})},15);
+				}
+				timer.create("trans_slot",function(){temp.o1.css({transform:"matrix("+temp.tst.toString()+")"})},20);
+				if(cmd_set.isblock == "true"){
+					fun_delay("block",temp.t,"s");
+					return 2;
+				}
+				break;
+			case 'curtain':
+				{
+					let dr = cmd_set.direction || "",dur = cmd_set.fadetime || 0;
+					if(!dr){
+						$("#sys_masker").children(".curtain").each((idx,ele)=>{
+							var fr = ele.getAttribute("d-end") * 0.01;
+							fun_curtain_create(ele.id.getValue("_"),fr,0,cmd_set.fadetime || 0);
+						});
+						return 1;
+					}
+					let obj = document.getElementById(`curtain_${dr}`);
+					let fr = cmd_set.fillfrom || (obj ? obj.getAttribute("d-end") : 0),ft = cmd_set.fillto;
+					if(!fr || !ft) return -1;
+					fun_curtain_create(dr,fr,ft,dur,cmd_set.a || 1);
+					if(cmd_set.block == "true"){
+						fun_delay("block",dur);
+						return 2;
+					}
+				}
+				break;
+			case 'delay':
+				if (!cmd_set.time) return -1;
+				fun_delay("block",cmd_set.time);
+				return 2;
+			case 'decision':
+				{
+					if(!cmd_set.options) return -1;
+					let ops = fun_txt_format(cmd_set.options).split(";"),op_len = ops.length,vas = cmd_set.values.split(";");
+					let py = Math.max((556 - op_len * 80) / 2,72);/* 556=588-32@向上偏移32px */
+					let dec = document.getElementById("sys_decision");
+					dec.setClear();
+					for(let i = 0;i<op_len;i++){
+						let op = document.createElement("div");
+						dec.append(op);
+						op.className = "decision_style";
+						op.innerHTML = ops[i];
+						op.setAttribute("d-value",vas[i]);
+						op.addEventListener("click",function(){
+							var self = this;
+							let sys_dec = document.getElementById("sys_decision");
+							sys_dec.setHide();
+							let pb = document.createElement('li');
+							document.getElementById("playback_result").append(pb);
+							let arr = [...sys_dec.children];
+							system.decision.select = +self.getAttribute("d-value");
+							for (let ele of arr){
+								let p = document.createElement("span");
+								pb.append(p);
+								p.innerHTML = "【" + ele.innerHTML + "】";
+								p.classList.add("decision");
+								if(ele == self){
+									p.classList.add("selected");
+								}
+							}
+							pb.style = "height: " + (arr.length * 22) + "px";
+							fun_audio_create(data.audio["btn_click"],{remove:true});
+							fun_setting("cmd_resume");
+							if(system.stats.auto && !timer.isTimer("auto")) timer.create("auto",()=>timer_auto(),400,true);
+							txt_next();
+						});
+						op.style.top = py + "px";
+						py += 72;
+					}
+					if(system.stats.auto) timer.clear("auto");
+					fun_setting("cmd_suspend");
+					dec.setShow();
+				}
+				return 2;
+			case 'dialog':
+				{
+					let dur = +sets.fadetime || 0;
+					let dialog = $("#sys_dialog");
+					dialog.stop(true,true).fadeOut(dur*950,'linear');
+					if(sets.block == "true"){
+						fun_delay("block",temp.t);
+						return 2;
+					}
+				}
+				break;
+			case 'dialogsetting':
+				{
+					let delay = system.txt.delay;
+					if(cmd_set.reset == "true"){
+						delay.reset("all");
+						$("#dialog_name").css("color","");
+						return 1;
+					}
+					delay.set("word",cmd_set.interval);
+					delay.set("per",cmd_set.delay);
+					delay.set("common",cmd_set.delayall);
+					if(cmd_set.namecolor){
+						$("#dialog_name").css("color",cmd_set.namecolor);
+					}
+				}
+				break;
+			case 'header':
+				return -1;
+			case 'hideitem':
+				temp.o1 = $("#sys_item").children();
+				temp.t = cmd_set.fadetime == undefined ? 0.16 : cmd_set.fadetime;
+				if(temp.o1.length == 0) return -1;
+				temp.o1.fadeToExit(temp.t*1000,'linear');
+				if(cmd_set.block == "true"){
+					fun_delay("block",temp.t);
+					return 2;
+				}
+				break;
+			case 'image':
+			case 'imgeffect':
+				temp.o1 = $('#sys_image');
+				temp.o1.children().stop(true,true);
+				temp.t = cmd_set.fadetime ? +cmd_set.fadetime : 0.15;
+				temp.c1 = temp.o1.children('div').length;
+				temp.n = (cmd_set.image && cmd_set.image.toLowerCase()) || "";
+				if(temp.n == ""){
+					if(temp.t > 0){
+						temp.o1.children('div').fadeToExit(temp.t*1000,'linear');
+						if(cmd_set.block == "true"){
+							fun_delay("block",temp.t);
+							return 2;
+						}
+					}
+					else temp.o1.empty();
+					break;
+				}
+				temp.e1 = document.createElement('div');
+				temp.e1 = $(temp.e1);
+				temp.sx = cmd_set.xscale || cmd_set.width || 1;
+				temp.sy = cmd_set.yscale || cmd_set.height || 1;
+				temp.px = (cmd_set.x && cmd_set.x*0.75) || 0;
+				temp.py = (cmd_set.y && cmd_set.y*0.75) || 0;
+				if(imgs[temp.n] == undefined || imgs[temp.n] == ""){
+					fun_msg(-2,false,"<Image>Data ["+temp.n+"] not exist,please check the data list.");
+					return -1;
+				}
+				temp.i1 = new Image();
+				temp.i1.src = imgs[temp.n];
+				temp.tsx = temp.i1.width*0.75;temp.tsy = temp.i1.height*0.75;
+				if(cmd_set.screenadapt == "coverall"){
+					let w = temp.tsx / 960,h = temp.tsy / 540;
+					w = Math.min(w,h);
+					temp.tsx /= w,temp.tsy /= w;
+				}
+				temp.tpx = 480-temp.tsx/2,temp.tpy = 270-temp.tsy/2;
+				temp.py = -temp.py;
+				fun_msg(1,true,"<Image>size_x="+temp.sx+",size_y="+temp.sy+",pos_x="+temp.px+",pos_y="+temp.py);
+				temp.e1.css({"position":"absolute","width":temp.tsx,"height":temp.tsy,"left":temp.tpx,"top":temp.tpy,"background-image":"url("+imgs[temp.n]+")","background-size":temp.tsx+"px "+temp.tsy+"px","transform":"matrix("+temp.sx+",0,0,"+temp.sy+","+temp.px+","+temp.py+")"});
+				temp.o1.append(temp.e1);
+				temp.e1.hide().fadeIn(temp.t*1000,()=>{
+					temp.o1.children('div:lt('+temp.c1+')').remove();
+				});
+				if(cmd_set.block == "true"){
+					fun_delay("block",temp.t);
+					return 2;
+				}
+				break;
+			case 'imagerotate':
+				temp.o1 = $("#sys_image").children("div:last");
+				if(temp.o1.length == 0) return -1;
+				temp.ang = cmd_set.angle || 0;
+				temp.fd = cmd_set.fadetime || 0;
+				temp.d1 = temp.o1.css("transform").replace(/rotate\(.*?\)/g,"");
+				temp.o1.css("transition","transform "+temp.fd+"s");
+				timer.create("img_rot_w",(d = temp.d1,r = temp.ang)=>{temp.o1.css("transform",d + " rotate("+r+"deg)")},20);
+				if(cmd_set.block == "true"){
+					fun_delay("block",temp.fd);
+					return 2;
+				}
+				break;
+			case 'imagetween':
+				temp.o1 = $("#sys_image").children("div:last");
+				if(temp.o1.length == 0) return -1;
+				/* temp.n = (cmd_set.image && imgs[cmd_set.image.toLowerCase()]) || fun_get_url(temp.o1.css("backgroundImage")) || ""; */
+				temp.t = cmd_set.duration || 0.15;
+				/* if(temp.n == "") return -1; */
+				/* temp.o1.css("backgroundImage","url('"+temp.n+"')"); */
+				temp.p = temp.o1.css("transform").replace(/\s/g,"").match(/^[a-z]+\((.*)\)/);
+				temp.p = temp.p == null ? [1,0,0,1,0,0] : temp.p[1].split(','); 
+				temp.sxf = cmd_set.xscalefrom || cmd_set.xscale || temp.p[0];
+				temp.sxt = cmd_set.xscaleto || cmd_set.xscale || temp.p[0];
+				temp.syf = cmd_set.yscalefrom || cmd_set.yscale || temp.p[3];
+				temp.syt = cmd_set.yscaleto || cmd_set.yscale || temp.p[3];
+				temp.pxf = cmd_set.xfrom ? cmd_set.xfrom*0.75 : cmd_set.x ? cmd_set.x*0.75 : temp.p[4];
+				temp.pxt = cmd_set.xto ? cmd_set.xto*0.75 : cmd_set.x ? cmd_set.x*0.75 : temp.p[4];
+				temp.pyf = cmd_set.yfrom ? cmd_set.yfrom*0.75 : cmd_set.y ? cmd_set.y*0.75 : -temp.p[5];
+				temp.pyt = cmd_set.yto ? cmd_set.yto*0.75 : cmd_set.y ? cmd_set.y*0.75 : -temp.p[5];
+				temp.pyf = -temp.pyf;temp.pyt = -temp.pyt;
+				fun_msg(1,true,"<ImageTween>From:xscale="+temp.sxf+",yscale="+temp.syf+",x="+temp.pxf+",y="+temp.pyf);
+				fun_msg(1,true,"<ImageTween>To:xscale="+temp.sxt+",yscale="+temp.syt+",x="+temp.pxt+",y="+temp.pyt);
+				temp.o1.css("transform","matrix("+temp.sxf+",0,0,"+temp.syf+","+temp.pxf+","+temp.pyf+")");
+				timer.create("imaget_w",()=>temp.o1.css("transition","transform "+temp.t + "s linear").css("transform","matrix("+temp.sxt+",0,0,"+temp.syt+","+temp.pxt+","+temp.pyt+")"),20);
+				if(cmd_set.duration == undefined || cmd_set.block == "true"){
+					fun_delay("block",temp.t);
+					return 2;
+				}
+				break;
+			case 'interlude':
+				{
+					let ch = sets.channel;
+					if(!ch) return -1;
+					let obj = document.querySelector("#inter_"+ch);
+					if(!obj){
+						obj = document.createElement("span");
+						obj.className = "interlude";
+						obj.id = "inter_" + ch;
+						obj.style.position = "absolute";
+					}
+					let mask = sets.maskid || "";
+					let [sx,sy] = sets.size ? sets.size.split(',') : [0,0];
+					let [px,py] = sets.offset ? sets.offset.split(',') : [0,0];
+					sx *= mtpy;sy *= mtpy; px *= mtpy; py *= mtpy;
+					if(sx > 0 && sy > 0){
+						obj.style.width = `${sx}px`;
+						obj.style.height = `${sy}px`;
+						if(mask){
+							obj.classList.add(mask);
+							if(mask === "ui_cutin_mask_horizon") obj.style.marginTop = `${-sy/2}px`;
+							else if(mask === "ui_cutin_mask_vertical") obj.style.marginLeft = `${-sx/2}px`;
+						}
+					}
+				}
+				break;
+			case 'gridbg':
+			case 'verticalbg':
+			case 'largebg':
+			case 'largeimg':
+				temp.mtf = m1.endsWith("bg");
+				temp.o1 = temp.mtf ? $("#sys_back") : $("#sys_image");
+				temp.ig = cmd_set.imagegroup == undefined ? [] : cmd_set.imagegroup.split('/');
+				temp.sw = cmd_set.solidwidth == undefined ? [] : cmd_set.solidwidth.split('/');
+				temp.sh = cmd_set.solidheight == undefined ? [] : cmd_set.solidheight.split('/');
+				if(temp.ig.length == 0 || temp.sw.length == 0 || temp.sh.length == 0) return -1;
+				temp.px = cmd_set.x == undefined ? 0 : cmd_set.x*0.75;
+				temp.py = cmd_set.y == undefined ? 0 : cmd_set.y*0.75;
+				temp.sx = temp.sw.getSum()*0.9;temp.sy = temp.sh.getSum()*0.9;
+				temp.t = cmd_set.fadetime || 0.15;
+				temp.c1 = temp.o1.children('canvas').length;
+				temp.o2 = document.createElement("canvas");
+				temp.o2 = $(temp.o2);
+				if(m1.startsWith("grid")){
+					let leng = temp.ig.length,r = Math.ceil(Math.sqrt(leng));
+					let sx = Math.floor(temp.sx/r),sy = Math.floor(temp.sy/r);
+					let px = (base_width-sx)/2,py = (base_height-sy)/2;
+					temp.o2.attr({width:sx,height:sy,left:px,top:py});
+					for(let i = 0,offx = 0,offy = 0;i<leng;i++){
+						fun_draw_image(temp.o2[0],imgs[(temp.mtf ? "bg_" : "")+temp.ig[i].toLowerCase()],temp.sw[i]*0.9,temp.sh[i]*0.9,offx,offy);
+						offx += temp.sw[i]*0.9;
+						if(i > 0 && (i+1) % 2 == 0){
+							offx = 0;
+							offy += temp.sh[i]*0.9;
+						}
+					}
+				}
+				else if(m1.startsWith("vertical")){
+					let sx = temp.sx,sy = temp.sy;
+					let px = (base_width-sx)/2,py = (base_height-sy)/2;
+					temp.o2.attr({width:sx,height:sy,left:px,top:py});
+					for(let i = 0,leni = temp.sw.length,offx = 0;i<leni;i++){
+						for(let j = 0,lenj = temp.sh.length,offy = 0;j<lenj;j++){
+							fun_draw_image(temp.o2[0],imgs[(temp.mtf ? "bg_" : "")+temp.ig[i+j*leni].toLowerCase()],temp.sw[i]*0.9,temp.sh[j]*0.9,offx,offy);
+							offy += temp.sh[j]*0.9;
+						}
+						offx += temp.sw[i]*0.9;
+					}
+				}
+				else if(m1.startsWith("large")){
+					let sx = temp.sx,sy = temp.sy;
+					let px = (base_width-sx)/2,py = (base_height-sy)/2;
+					temp.o2.attr({width:sx,height:sy,left:px,top:py});
+					for(let i = 0,offx = 0;i<temp.sw.length;i++){
+						for(let j=0,lenj = temp.sh.length,offy = 0;j<lenj;j++){
+							fun_draw_image(temp.o2[0],imgs[(temp.mtf ? "bg_" : "")+temp.ig[i*lenj+j].toLowerCase()],temp.sw[i]*0.9,temp.sh[j]*0.9,offx,offy);
+							offy += temp.sh[j]*0.9;
+						}
+						offx += temp.sw[i]*0.9;
+					}
+				}
+				else return -1;
+				temp.o2.css({"position":"absolute","transform":`matrix(1.2,0,0,1.2,${temp.px},${-temp.py})`});
+				temp.o1.append(temp.o2);
+				temp.o2.hide().fadeIn(temp.t*1000,()=>{
+					temp.o1.children("canvas:lt("+temp.c1+")").remove();
+				});
+				if(cmd_set.block == "true"){
+					fun_delay("block",temp.t);
+					return 2;
+				}
+				break;
+			case 'largebgtween':
+			case 'largeimgtween':
+				temp.mtf = match[1].toLowerCase() == "largebgtween";
+				temp.o1 = temp.mtf ? $("#sys_back") : $("#sys_image");
+				temp.o1 = temp.o1.children("canvas:last");
+				if(temp.o1.length == 0) return -1;
+				temp.t = cmd_set.duration || 0.15;
+				temp.p = temp.o1.css("transform").replace(/\s/g,"").match(/^[a-z]+\((.*)\)/);
+				temp.p = temp.p == null ? [1,0,0,1,0,0] : temp.p[1].split(','); 
+				temp.sxf = cmd_set.xscalefrom || cmd_set.xscale || temp.p[0];
+				temp.sxt = cmd_set.xscaleto || cmd_set.xscale || temp.p[0];
+				temp.syf = cmd_set.yscalefrom || cmd_set.yscale || temp.p[3];
+				temp.syt = cmd_set.yscaleto || cmd_set.yscale || temp.p[3];
+				temp.pxf = cmd_set.xfrom ? cmd_set.xfrom*0.75 : cmd_set.x ? cmd_set.x*0.75 : temp.p[4];
+				temp.pxt = cmd_set.xto ? cmd_set.xto*0.75 : cmd_set.x ? cmd_set.x*0.75 : temp.p[4];
+				temp.pyf = cmd_set.yfrom ? cmd_set.yfrom*0.75 : cmd_set.y ? cmd_set.y*0.75 : -temp.p[5];
+				temp.pyt = cmd_set.yto ? cmd_set.yto*0.75 : cmd_set.y ? cmd_set.y*0.75 : -temp.p[5];
+				temp.pyf = -temp.pyf;temp.pyt = -temp.pyt;
+				fun_msg(1,true,"<LargeBgTween>From:xscale="+temp.sxf+",yscale="+temp.syf+",x="+temp.pxf+",y="+temp.pyf);
+				fun_msg(1,true,"<LargeBgTween>To:xscale="+temp.sxt+",yscale="+temp.syt+",x="+temp.pxt+",y="+temp.pyt);
+				temp.o1.css("transform","matrix("+temp.sxf+",0,0,"+temp.syf+","+temp.pxf+","+temp.pyf+")");
+				timer.create("large_t_w",()=>temp.o1.css("transition","transform "+temp.t + "s linear").css("transform","matrix("+temp.sxt+",0,0,"+temp.syt+","+temp.pxt+","+temp.pyt+")"),20);
+				if(cmd_set.block == "true"){
+					fun_delay("block",temp.t);
+					return 2;
+				}
+				break;
+			case 'multiline':
+				{
+					if(cmd_set.name == undefined) return -1;
+					system.txt.delay.set("word",cmd_set.delay*1000 || 30);
+					system.txt.dynamic = document.getElementById("dialog_output");
+					if(!system.multi.mode){
+						system.multi.begin();
+						system.txt.now = "";
+					}
+					system.txt.name = cmd_set.name;
+					system.txt.now += fun_txt_format(match[5]);
+					$("#dialog_name").html(cmd_set.name);
+					$("#sys_dialog").show();
+					if(cmd_set.end == "true"){
+						system.multi.end();
+					}
+				}
+				return 0;
+			case 'musicvolume':
+			case "soundvolume":
+				temp.cmd = match[1].toLowerCase();
+				if(cmd_set.volume == undefined){
+					fun_msg(-2,false,"<"+match[1]+">Can't find the volume parameter.");
+					return -1;
+				}
+				temp.ch = temp.cmd == "musicvolume" ? "sys_music" : (cmd_set.channel && "audio_" + cmd_set.channel) || "";
+				if(temp.ch == "") return -1;
+				temp.o1 = document.getElementById(temp.ch);
+				if(temp.o1 == null) return -1;
+				temp.o1.fade(cmd_set.fadetime,cmd_set.volume*0.5);
+				break;
+			case 'playmusic':
+			case 'playsound':
+			{
+					let log = fun_msg;
+					let ms = sets.delay * 1000 || 0;
+					let intro = fun_get_audio_url(sets.intro), key = fun_get_audio_url(sets.key);
+					let id = m1 === "playmusic" ? "sys_music" : (sets.channel && "audio_" + sets.channel) || "";
+					let vol = sets.volume ? Math.min(sets.volume * 0.5, 1) : 0.4;
+					if (!key) {
+						log(-2, false, `<${m1}>The key is not specific.`);
+						return -1;
+					}
+					if (id) {
+						fun_stop_audio(id);
+					}
+					let args = { id: id, volume: vol, delay: ms };
+					if (m1 === "playsound") {
+						args.loop = sets.loop === "true";
+						args.remove = !args.loop;
+					}
+					else if(m1 === "playmusic" && !intro){
+						args.loop = true;
+					}
+					let aud = fun_audio_create(intro || key, args);
+					aud.classList.add(m1);
+					if (m1 === "playmusic" && intro) {
+						aud.setAttribute("data-loop", key);
+						aud.onended = function () {
+							this.src = this.getAttribute("data-loop");
+							this.removeAttribute("data-loop");
+							this.loop = true;
+							this.play();
+						}
+					}
+				}
+				break;
+			case 'predicate':
+				if (cmd_set.references == undefined){
+					system.decision.mode = false;
+					break;
+				}
+				if (cmd_set.references.includes(system.decision.select)){
+					system.decision.mode = false;
+					break;
+				}
+				system.decision.mode = true;
+				break;
+			case 'showitem':
+				temp.o1 = $("#sys_item");
+				temp.n = (cmd_set.image && cmd_set.image.toLowerCase()) || "";
+				temp.b = cmd_set.block || "true";
+				temp.t = cmd_set.fadetime || 0.16;
+				if(temp.n == "") return -1;
+				if(imgs[temp.n] == undefined || imgs[temp.n] == ""){
+					fun_msg(-2,false,"<ShowItem>Data ["+temp.n+"] not exist,please check the data list.");
+					return -1;
+				}
+				temp.i1 = new Image();
+				temp.i1.src = imgs[temp.n];
+				temp.sx = temp.i1.width*0.6;temp.sy = temp.i1.height*0.6;
+				temp.px = (960-temp.sx)/2-7.5;temp.py = (540-temp.sy)/2-7.5;
+				temp.e1 = document.createElement('div');
+				temp.e1 = $(temp.e1);
+				temp.e1.addClass("item_style");
+				temp.e1.css({"background-image":"url("+imgs[temp.n]+")","background-size":"100%","width":temp.sx+"px","height":temp.sy+"px","left":temp.px+"px","top":temp.py+"px"});
+				fun_msg(1,true,"<ShowItem>fadetime="+temp.t+",width="+temp.sx+",height="+temp.sy+",left="+temp.px+",top="+temp.py);
+				temp.e1.hide().fadeIn(temp.t*1000);
+				temp.o1.append(temp.e1);
+				if(temp.b == "true"){
+					fun_delay("block",temp.t);
+					return 2;
+				}
+				break;
+			case 'stopmusic':
+			case 'stopsound':
+				{
+					let id = m1 === "stopmusic" ? "@music" : (sets.channel && "audio_" + sets.channel) || "@sound";
+					fun_stop_audio(id, { time: sets.fadetime || 1 });
+				}
+				break;
+			case 'sticker':
+			case 'subtitle':
+				temp.cmd = match[1].toLowerCase();
+				temp.d1 = cmd_set.text == undefined ? "" : fun_txt_format(cmd_set.text);
+				temp.d2 = cmd_set.alignment == undefined ? "" : cmd_set.alignment;
+				temp.d3 = cmd_set.size == undefined ? 18 : cmd_set.size*0.75;
+				temp.d4 = cmd_set.delay == undefined ? 0 : +cmd_set.delay;
+				temp.d5 = cmd_set.width == undefined ? 675 : cmd_set.width*0.75;
+				temp.c1 = cmd_set.x == undefined ? 0 : cmd_set.x*0.75;
+				temp.c2 = cmd_set.y == undefined ? 0 : cmd_set.y*0.75;
+				temp.t = cmd_set.fadetime || 0;
+				if(temp.cmd == "sticker" && !cmd_set.id){
+					fun_msg(-2,false,"<Sticker>Parameter id not applied");
+					return -1
+				}
+				if(!temp.d1){
+					if(cmd_set.id){
+						system.multi.check();
+						$("#"+temp.cmd+"_"+cmd_set.id).fadeToExit(temp.t);
+					}
+					else if(temp.cmd == "subtitle"){
+						$("#sys_subtitle").children("span.subtitle").fadeToExit(temp.t);
+					}
+					return 1;
+				}
+				
+				if (m1 === "sticker" && !system.txt.checkBind(cmd_set.id))
+					system.multi.check();
+
+				if(cmd_set.multi == "true"){
+					if(system.multi.mode){
+						system.txt.now += temp.d1;
+						return 0;
+					}
+					system.multi.begin();
+				}
+				if(!temp.d2){
+					fun_msg(-2,false,"<"+match[1]+">Parameter alignment not applied.");
+					return -1;
+				}
+				if(temp.cmd == "subtitle"){
+					$("#sys_subtitle").children("span.subtitle").fadeToExit(temp.t);
+				}
+				system.txt.delay.set("word",cmd_set.delay*1000);
+				temp.o1 = document.createElement("span");
+				if(cmd_set.id) temp.o1.id = temp.cmd + "_" + cmd_set.id;
+				temp.o1.className = "subtitle_style "+temp.cmd;
+				temp.pl = temp.d2 == "center" ? Math.max(temp.d5-support.getLen(temp.d1,support.getFont(temp.d3)),0)/2 : temp.d2 == "right" ? Math.max(temp.d5-support.getLen(temp.d1,support.getFont(temp.d3)),0) : 0;
+				$(temp.o1).css({"left" : temp.c1 ,"top" : temp.c2 ,"font-size" : temp.d3 + "px","padding-left" : temp.pl,"width" : temp.d5});
+				$("#sys_subtitle").append(temp.o1);
+				system.txt.name = "";
+				system.txt.now = temp.d1;
+				system.txt.dynamic = temp.o1;
+				if(!system.multi.mode) fun_playback("@p","");
+				return 0;
+			case 'theater':
+				{
+					let mode = cmd_set.mode || "false";
+					let btn1 = document.getElementById("button_playback"),btn2 = document.getElementById("button_auto");
+					if(mode == "true"){
+						if(btn1.classList.contains("return")) txt_playback("sys_playback","button_playback");/* 防止极限情况下导致的bug */
+						system.flag.skip = 0;/* 强制停止skip模式 */
+						btn1.setHide();
+						btn2.setHide();
+						timer.setFake("auto");
+						system.stats.theater = true;
+					}
+					else{
+						btn1.setShow();
+						btn2.setShow();
+						timer.removeFake("auto");
+						system.stats.theater = false;
+					}
+				}
+				break;
+			case 'timerclear':
+				{
+					let span = document.getElementById("sticker_timer");
+					if(!span) return -1;
+					$(span).css("opacity",cmd_set.afrom || 1).fadeTo(cmd_set.duration*1000 || 0,cmd_set.ato || 0);
+					timer.clear("sticker_timer");
+				}
+				break;
+			case 'timersticker':
+				{
+					let px = cmd_set.x*0.75 || 0,py = cmd_set.y*0.75 || 0,size = cmd_set.size*0.75 || 18;
+					var span = document.getElementById("sticker_timer");
+					if(!span){
+						span = document.createElement("span");
+						document.getElementById("sys_subtitle").append(span);
+					}
+					span.className = "subtitle_style";
+					let id = "sticker_timer";
+					span.id = id;
+					span.style.fontSize = `${size}px`;
+					span.style.left = `${px}px`;
+					span.style.top = `${py}px`;
+					span.setAttribute("max-t",cmd_set.time || -1);
+					span.setAttribute("now-t",0);
+					span.innerHTML = fun_format_time(0);
+					timer.create(id,(n = id)=>{
+						var e = document.getElementById(n);
+						if(!e){
+							timer.clear(n,false);
+							return;
+						}
+						var t = parseInt(e.getAttribute("now-t")) || 0,tm = parseInt(e.getAttribute("max-t"));
+						e.setAttribute("now-t",++t);
+						e.innerHTML = fun_format_time(t);
+						if(tm<0 || t<tm) return;
+						timer.clear(n,false);
+					},1000,true);
+				}
+				break;
+			case 'video':
+				return txt_analyze(txt);
+			default:
+				fun_msg(-1,true,"Unknown command:"+match[1]);
+				return -1;
+		}
+		return 1;
+	}
+	else if(match[3])
+	{
+		switch(match[3].toLowerCase())
+		{
+			case 'background':
+				$("#sys_back").children('div').remove();
+				break;
+			case 'character':
+			case 'charslot':
+				$("#sys_char").children().fadeToExit(150);
+				fun_delay("block",0.2);
+				return 2;
+			case 'curtain':
+				$("#sys_masker").children(".curtain").remove();
+				break;
+			case "animtextclean":
+			case 'dialog':
+				{
+					$("#dialog_name").empty();
+					$("#dialog_output").empty();
+					$("#sys_dialog").stop(true,true).hide();
+				}
+				break;
+			/* @self define command */
+			case 'dialogsetting':
+				system.txt.delay.reset("all");
+				$("#dialog_name").removeAttr("style");
+				break;
+			case 'image':
+				$("#sys_image").children('div').remove();
+				break;
+			case 'gridbg':
+			case 'verticalbg':
+			case 'largebg':
+				$("#sys_back").children('canvas').remove();
+				break;
+			case 'largeimg':
+				$("#sys_image").children('canvas').remove();
+				break;
+			case 'predicate':
+				system.decision.mode = false;
+				break;
+			case 'hideitem':
+				$("#sys_item").children("div").fadeToExit(320);
+				fun_delay("block",0.32);
+				return 2;
+			/* @self define command */
+			case 'skiptoend':
+				system.txt.index = system.txt.max;
+				return 2;
+			case 'stickerclear':
+				$("#sys_subtitle").children("span.sticker").fadeToExit(200);
+				fun_delay("block",0.2);
+				return 2;
+			case 'subtitle':
+				$("#sys_subtitle").children("span.subtitle").fadeToExit(200);
+				fun_delay("block",0.2);
+				return 2;
+			default:
+				return -1;
+		}
+		return 1;
+	}
+	else if(!match[5])
+		return -1;
+	else if(match[4])
+	{
+		let p = match[4].toObject();
+		system.txt.dynamic = document.getElementById("dialog_output");
+		if(p.delay){
+			fun_delay("block",p.delay);
+			return 2;
+		}
+		if(p.bind){
+			fun_audio_create(fun_get_audio_url(p.bind),{vol:0.5,id:"dialog_audio",remove:true});
+		}
+		if(p.name == undefined) return -1;
+		system.multi.check();
+		system.txt.name = p.name;
+		system.txt.now = fun_txt_format(match[5]);
+		fun_playback("@p",p);
+		$("#dialog_name").html(p.name);
+		$("#dialog_name").css("color",p.color == undefined ? "" : p.color);
+		$("#sys_dialog").show();
+	}
+	return 0;
+}

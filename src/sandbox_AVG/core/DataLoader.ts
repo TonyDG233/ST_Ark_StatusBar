@@ -6,16 +6,47 @@
 import { data, system, public_disabled, setPublicDisabled } from './globalState';
 import { strToObject } from '../utils/toolbox';
 
+// 使用 Webpack 特性直接载入本地静态数据
+import datasTxtRaw from '../data/datas_txt.txt?raw';
+import datasOverrideRaw from '../data/datas_override.txt?raw';
+import datasBackObj from '../data/datas_back.json';
+import datasCharObj from '../data/datas_char.json';
+import datasAudioObj from '../data/datas_audio.json';
+import datasLinkObj from '../data/datas_link.json';
+
+export interface PRTSDataSource {
+    txt: string;
+    override: string;
+    back: Record<string, any>;
+    char: Record<string, any>;
+    audio: Record<string, any>;
+    link: Record<string, any>;
+}
+
+export function loadPRTSDataLocal() {
+    try {
+        initPRTSDataAndSystem({
+            txt: datasTxtRaw,
+            override: datasOverrideRaw,
+            back: datasBackObj,
+            char: datasCharObj,
+            audio: datasAudioObj,
+            link: datasLinkObj
+        });
+        console.log("[DataLoader] PRTS 静态数据内存挂载完成.");
+    } catch (e) {
+        console.error("Failed to load PRTS data from local imports:", e);
+    }
+}
+
 /**
- * 从页面隐藏的 DOM 节点读取并反序列化静态配置数据
- * TODO: 在迁移到 Vue 后，此方法必须废弃！应改写为通过 fetch() 读取 public/data/ 目录下的 JSON
+ * 直接从内存中读取和反序列化静态配置数据，不再依赖 DOM 元素
  */
-export function initPRTSDataAndSystem() {
-    let obj = document.getElementById("datas_override");
+export function initPRTSDataAndSystem(source: PRTSDataSource) {
     let ride = data.setting;
 
-    if (obj) {
-        let arr = obj.innerHTML.split('\n');
+    if (source.override) {
+        let arr = source.override.split('\n');
         for (let str of arr) {
             if (str === "" || str.match("^\\s+$") || str.match("^\\s*//.*$")) continue;
             let match = str.match("^\\s*(.*?)\\:(.*)$");
@@ -95,12 +126,10 @@ export function initPRTSDataAndSystem() {
                 }
             }
         }
-        console.log(ride);
     }
 
-    obj = document.getElementById("datas_txt");
-    if (obj) {
-        data.txt = (obj.textContent || "").split('\n');
+    if (source.txt) {
+        data.txt = source.txt.split('\n');
         let m = data.txt[0].match(/\[header\((.*)\)/i);
         if (m) {
             let set = strToObject(m[1]);
@@ -108,34 +137,23 @@ export function initPRTSDataAndSystem() {
         }
     }
 
-    obj = document.getElementById("datas_back");
-    if (obj) {
-        for (let d of obj.innerHTML.split('\n')) {
-            let [k, v] = d.split(',');
+    if (source.back) {
+        for (const [k, v] of Object.entries(source.back)) {
             if (k) data.back[k] = v;
         }
     }
 
-    obj = document.getElementById("datas_char");
-    if (obj) {
-        for (let d of obj.innerHTML.split('\n')) {
-            let [k, v] = d.split(',');
+    if (source.char) {
+        for (const [k, v] of Object.entries(source.char)) {
             if (k) data.char[k] = v;
         }
     }
 
-    obj = document.getElementById("datas_audio");
-    if (obj) {
-        let str = obj.innerHTML.toLocaleLowerCase(), pos = str.search(/,\s+\}$/);
-        if (pos !== -1) {
-            if (typeof fun_msg !== "undefined") fun_msg(0, false, "The inner code has been executed.");
-            str = str.substring(0, pos) + "}"; /* 防止背刺 */
-        }
+    if (source.audio) {
         try {
-            let dics = JSON.parse(str);
-            for (let k in dics) {
-                if (dics[k].toString().indexOf("sound_beta_2") === -1) continue;
-                data.audio[k] = dics[k].replace("sound_beta_2", system.assetUrl + "audio") + ".mp3";
+            for (let k in source.audio) {
+                if (source.audio[k].toString().indexOf("sound_beta_2") === -1) continue;
+                data.audio[k] = source.audio[k].replace("sound_beta_2", system.assetUrl + "audio") + ".mp3";
             }
         } catch (e) {
             console.error("Failed to parse datas_audio", e);
@@ -143,10 +161,9 @@ export function initPRTSDataAndSystem() {
         data.audio["btn_click"] = system.sourceUrl + "music/general/g_ui/g_ui_btn_n.mp3";
     }
 
-    obj = document.getElementById("datas_link");
-    if (obj) {
+    if (source.link) {
         try {
-            data.link = JSON.parse(obj.innerHTML.toLowerCase());
+            data.link = source.link;
         } catch (e) {
             console.error("Failed to parse datas_link", e);
         }
@@ -156,7 +173,6 @@ export function initPRTSDataAndSystem() {
     user.client = document.URL.includes("m.prts.wiki") ? "mobile" : "desktop";
     user.display = window.screen.availWidth * 0.7 < window.screen.availHeight ? "vert" : "horiz";
     
-    // 初始化页面标题并检测 Debug 模式
     system.debug = document.URL.includes("&debug=true");
     
     let tarStr = "firstHeading";
@@ -165,8 +181,9 @@ export function initPRTSDataAndSystem() {
         system.page = tarObj.innerText;
         document.title = ride.set(system.page, document.title);
         tarObj.innerHTML = ride.set(system.page, system.page);
+    } else {
+        system.page = "AVG Sandbox";
     }
 
-    // 触发系统内部的鉴权检查 (验证此页面是否被 disable)
     system.disabled.init();
 }
