@@ -1,6 +1,8 @@
 import { CommandHandler } from '../analyzerCore';
 import { data } from '../../store/avgState';
 import { scenarioExtend } from '../../utils/scenario_extend';
+import { domFadeToExit } from '../../utils/toolbox';
+import { fun_delay } from '../engineActions';
 
 // 在原始版本中，全屏切图逻辑共享了一个全局状态对象，用于储存上次动画结束时的位置和样式以供退出时复用。
 // 在 TS 改造中，我们将它放到模块内部的单例或者上下文属性中。
@@ -11,8 +13,7 @@ export const handleCharacterCutin: CommandHandler = (ctx) => {
 
     if (ctx.isSkip) {
         // Skip 模式下的清理逻辑：瞬间移除整个 cutin，不播放展开和淡出动画。
-        // @ts-ignore
-        o1.children().fadeToExit(150);
+        o1.children().each((_, el) => domFadeToExit(el, 150));
         return 1;
     }
 
@@ -37,8 +38,7 @@ export const handleCharacterCutin: CommandHandler = (ctx) => {
     if (n === "" && o2.length > 0) {
         const pas = data_cutin[id];
         if (pas.style === 0) {
-            // @ts-ignore
-            o2.fadeToExit(t);
+            domFadeToExit(o2[0], t);
         } else {
             if (pas.style > 0 && pas.style <= 3) {
                 o2.animate({"width": 0, "left": pas.left, "backgroundPositionX": pas.imgX}, t, "linear");
@@ -47,7 +47,7 @@ export const handleCharacterCutin: CommandHandler = (ctx) => {
             }
         }
         if (ctx.args.block === "true") {
-            (window as any).fun_delay("block", t, "ms");
+            fun_delay("block", t, "ms");
             return 2;
         }
         return 1;
@@ -142,7 +142,7 @@ export const handleCharacterCutin: CommandHandler = (ctx) => {
     }
 
     if (ctx.args.block === "true") {
-        (window as any).fun_delay("block", t, "ms");
+        fun_delay("block", t, "ms");
         return 2;
     }
 
