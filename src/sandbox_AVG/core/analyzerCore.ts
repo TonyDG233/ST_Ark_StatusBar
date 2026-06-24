@@ -35,6 +35,7 @@ import { handleCameraEffect, handleCameraShake } from './handlers/cameraHandlers
 import { handlePlayMusicOrSound, handleStopMusicOrSound, handleMusicVolume } from './handlers/audioHandlers';
 import { handleDelay, handleDecision, handlePredicate, handleTheater, handleShowItem, handleHideItem, handleTimerClear, handleTimerSticker, handleSkipNode, handleSkipToEnd } from './handlers/logicAndItemHandlers';
 import { support } from '../utils/support';
+import { fun_playback } from './uiController';
 
 class CommandRegistry {
     private handlers: Map<string, CommandHandler> = new Map();
@@ -142,8 +143,8 @@ class CommandRegistry {
             system.txt.name = "";
             system.txt.now = exFun.scenarioExtend.formatTxt(txt); // formatTxt 从 scenario_extend 获取
             
-            if (typeof (window as any).fun_playback !== 'undefined') {
-                (window as any).fun_playback("@p", "");
+            if (typeof fun_playback !== 'undefined') {
+                fun_playback("@p", "");
             }
             
             const dialogName = document.getElementById("dialog_name");
