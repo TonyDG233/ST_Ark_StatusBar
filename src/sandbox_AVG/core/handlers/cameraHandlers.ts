@@ -1,4 +1,5 @@
 import { CommandHandler } from '../analyzerCore';
+import { globalTimer } from '../../store/avgState';
 import { timer_shake_common } from '../callbacks';
 
 // ----------------------------------------------------------------------
@@ -25,8 +26,7 @@ export const handleCameraEffect: CommandHandler = (ctx) => {
 
     if (t > 0) {
         o1.css("transition", `filter ${t}s linear`);
-        // @ts-ignore
-        timer.create("cmreff_w", () => {
+        globalTimer.create("cmreff_w", () => {
             o1.css("transition", "");
         }, t * 1000);
     }
@@ -54,23 +54,20 @@ export const handleCameraShake: CommandHandler = (ctx) => {
 
     if (ctx.isSkip) {
         // 瞬间停止所有震动，清空样式
-        // @ts-ignore
-        timer.clear("shake");
+        globalTimer.clear("shake");
         o1.css({ left: 0, top: 0 });
         o1.removeAttr("d-sh-n").removeAttr("d-sh-t");
         return 1;
     }
 
     if (mode === "stop") {
-        // @ts-ignore
-        timer.clear("shake");
+        globalTimer.clear("shake");
         o1.css({ left: 0, top: 0 });
         o1.removeAttr("d-sh-n").removeAttr("d-sh-t");
         return 1;
     }
 
-    // @ts-ignore
-    timer.clear("shake");
+    globalTimer.clear("shake");
     o1.css({ left: 0, top: 0 });
 
     const strx = ctx.args.xstrength === undefined ? 0 : ctx.args.xstrength * 0.75;
@@ -81,8 +78,7 @@ export const handleCameraShake: CommandHandler = (ctx) => {
 
     o1.attr({ "d-sh-n": "shake", "d-sh-t": 0 });
     
-    // @ts-ignore
-    timer.create("shake", () => {
+    globalTimer.create("shake", () => {
         timer_shake_common("sys_camera", strx, stry, rnd, c2);
     }, c1, true);
 
