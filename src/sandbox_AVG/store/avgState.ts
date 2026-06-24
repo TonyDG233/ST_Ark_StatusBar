@@ -1,6 +1,7 @@
 import { Timer } from '../core/timer';
 import { PRTSData, SystemState } from '../types/system';
 import { support } from '../utils/support';
+import { preloadQueue } from '../core/PreloadService';
 
 // ==========================================
 // 1. 全局配置与单例状态
@@ -180,8 +181,7 @@ export const system: SystemState = {
         start() {
             const self = this.handler;
             support.log(2, false, "Source start loading...");
-            // TODO: 真正的 preloadQueue 应该注入进此作用域
-            (window as any).preloadQueue?.load();
+            preloadQueue.load();
             const c = document.getElementById("sys_clicker");
             if (c) {
                 c.removeEventListener("mousedown", self.begin);
