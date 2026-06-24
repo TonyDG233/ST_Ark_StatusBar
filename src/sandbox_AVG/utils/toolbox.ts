@@ -10,6 +10,8 @@
  * 必须将原版的 `match.toObject()` 等调用替换为本文件的 `strToObject(match)`。
  */
 
+import { support } from './support';
+
 // ==========================================
 // 1. Math 工具
 // ==========================================
@@ -271,6 +273,74 @@ export function domFadeOut(el: HTMLElement | null, duration: number, args?: { re
         el.style.opacity = "";
         domHide(el);
     }, 10);
-    
-    el.setAttribute("v-id", String(timer));
+}
+
+export interface CookieOptions {
+    expires?: string;
+    path?: string;
+    domain?: string;
+}
+
+export function SetCookie(name: string, value: string, options: CookieOptions): void {
+    const t = new Date();
+    const m = options.expires ? options.expires.match(/^(?:(\d+)d)?(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/i) : null;
+    const res: string[] = [];
+
+    if (m) {
+        const expireMs = ((((parseInt(m[1]) || 0) * 24 + (parseInt(m[2]) || 0)) * 60 + (parseInt(m[3]) || 0)) * 60 + (parseInt(m[4]) || 0)) * 1000;
+        t.setTime(t.getTime() + expireMs);
+        res.push("expires=" + t.toUTCString());
+        support.log(3, false, "cool down: " + t.toUTCString());
+    }
+    if (options.path) {
+        res.push("path=" + options.path);
+    }
+    if (options.domain) {
+        res.push("domain=" + options.domain);
+    }
+    document.cookie = name + "=" + value + ";" + res.join(";");
+}
+
+export function GetCookie(name: string): string | null {
+    const cook = document.cookie;
+    const arr = cook.split(';');
+    for (const d of arr) {
+        const str = d.trim();
+        if (str.startsWith(name + "=")) {
+            return str.substring(name.length + 1);
+        }
+    }
+    return null;
+}
+
+export function RemoveCookie(name: string, options: CookieOptions): void {
+    const res = ["expires=Thu, 01 Jan 1970 00:00:00 GMT"];
+    if (options.path) {
+        res.push("path=" + options.path);
+    }
+    if (options.domain) {
+        res.push("domain=" + options.domain);
+    }
+    document.cookie = name + "=;" + res.join(";");
+}
+
+export function DeepCopy<T>(k: T): T {
+    function arrCopy(k2: any[]): any[] {
+        const arr: any[] = [];
+        for (const e of k2) {
+            arr.push(typeof e === "object" && e !== null ? DeepCopy(e) : e);
+        }
+        return arr;
+    }
+
+    function objCopy(k2: Record<string, any>): Record<string, any> {
+        const obj: Record<string, any> = {};
+        for (const d of Object.entries(k2)) {
+            obj[d[0]] = typeof d[1] === "object" && d[1] !== null ? DeepCopy(d[1]) : d[1];
+        }
+        return obj;
+    }
+
+    if (k === null) return k;
+    return Array.isArray(k) ? (arrCopy(k) as unknown as T) : typeof k === "object" ? (objCopy(k as any) as unknown as T) : k;
 }

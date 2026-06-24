@@ -69,8 +69,8 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
 import { loadPRTSDataLocal } from '../core/DataLoader';
-import { system } from '../core/globalState';
-import { globalTimer } from '../core/globalState';
+import { system } from '../core/../store/avgState';
+import { globalTimer } from '../core/../store/avgState';
 
 onMounted(() => {
   console.log("[AVGContainer] Mounted. Initiating Ignition Sequence...");

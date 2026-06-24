@@ -7,7 +7,7 @@
  * 建议后续重构为通过 CSS 变量绑定和 CSS Transition，以大幅提升性能。
  */
 
-import { globalTimer } from './globalState';
+import { globalTimer } from './../store/avgState';
 
 /**
  * 屏幕幕布/遮罩动画生成器

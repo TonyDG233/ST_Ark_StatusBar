@@ -8,7 +8,8 @@
  * - timer_shake_common: 通用的振动动画函数，常用来处理镜头震动或立绘震动。
  */
 
-import { system, globalTimer } from './globalState';
+import { support } from '../utils/support';
+import { globalTimer, system } from '../store/avgState';
 import { txt_stop } from './engineActions';
 
 export function timer_auto() {
@@ -41,7 +42,7 @@ export function timer_dialog() {
             if (i < len) {
                 if (str[idx + 1] !== "/") {
                     tag = "</" + str.substring(idx + 1, i) + ">";
-                    if (typeof fun_msg !== 'undefined') fun_msg(1, true, "<TimerDialog>tag=" + tag);
+                    support.log(1, true, "<TimerDialog>tag=" + tag);
                 }
                 if (str[i + 1] === "<") { /* prevent the belong mark. */
                     let i2 = i + 1;
@@ -80,13 +81,13 @@ export function timer_shake_common(tar: any, str_x: number, str_y: number, ustb_
     }
     if (!o || !o.length) {
         globalTimer.clearAll();
-        if (typeof fun_msg !== 'undefined') fun_msg(-2, false, `<ShakeCommon>Err tar of [${tar}]`);
+        support.log(-2, false, `<ShakeCommon>Err tar of [${tar}]`);
         return;
     }
     
     let rx = Math.floor(Math.random() * 99) + 1;
     let ry = Math.floor(Math.random() * 99) + 1;
-    if (typeof fun_msg !== 'undefined') fun_msg(1, true, "<ShakeCommon>rnd_x:" + rx + ",rnd_y:" + ry);
+    support.log(1, true, "<ShakeCommon>rnd_x:" + rx + ",rnd_y:" + ry);
     
     let d = [-1, -0.707, 0, 1, 0.707];
     rx = rx < ustb_p ? Math.floor(Math.random() * 5) : 0;

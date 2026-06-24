@@ -3,24 +3,13 @@
  * @description PRTS 剧情引擎生命周期与事件绑定入口 (转译自 prts_events.js)
  */
 
-// 临时使用 any 屏蔽类型检查，保证功能 1:1 跑通。
-// TODO: 后续需移除这些声明，并从专门的 types/ 目录引入强类型的 System 接口。
+import { system, public_disabled } from '../store/avgState';
+import { fun_sys_init, fun_sys_preload } from './systemInitializer';
+import { txt_fullscreen } from './engineActions';
+import { fun_fullscreen, fun_fullscreen_support } from './uiController';
+
+// 仅保留无法被 TS 推断的对 JQuery 原型链的扩展和极其特定的方法
 declare global {
-    interface Window {
-        $: any; // jQuery
-        mw: any; // MediaWiki 环境变量
-        system: any; // 全局系统状态中枢，未来需要被 Pinia Store 替换
-        public_disabled: boolean;
-        
-        // 全局方法声明
-        fun_fullscreen: () => void;
-        txt_fullscreen: () => void;
-        fun_sys_preload: () => void;
-        fun_fullscreen_support: () => boolean;
-        fun_sys_init: () => void;
-    }
-    
-    // 扩展 jQuery 和 HTMLElement 的类型定义以适应老版本遗留原型扩展
     interface JQuery {
         fadeToExit(duration?: number | string, easing?: string): any;
         remove(): any;
@@ -35,12 +24,11 @@ declare global {
 
 /**
  * 引擎生命周期与 DOM 事件初始化函数
- * TODO: 目前严重依赖 window 全局变量，未来应重构为依赖注入 (如传入 store 单例)
+ * TODO: 目前仍保留对部分全局 DOM 节点的操作，在 Vue 重构时会通过 onMounted 和 v-show 替代
  */
 export function initPrtsEvents() {
-    const $ = window.$;
-    const mw = window.mw;
-    const system = window.system;
+    const $: any = (window as any).$;
+    const mw: any = (window as any).mw;
 
     // TODO: 考虑是否仍需直接扩展 $.prototype。在纯 Vue3 时代，可以改写为原生的 CSS 动画或 Vue Transition
     $.prototype.fadeToExit = function(duration?: number | string, easing?: string) {
@@ -51,21 +39,20 @@ export function initPrtsEvents() {
     };
 
     // 1. 原 $(document).ready 的等价转译
-    // TODO: 在 Vue3 重构后，这一块应当放在最外层 Container 组件的 onMounted 钩子中执行
     $(document).ready(() => {
         $(document).on('webkitfullscreenchange mozfullscreenchange fullscreenchange', function() {
-            window.fun_fullscreen();
+            fun_fullscreen();
         });
         
         $("#button_fullscreen").click(function() {
-            window.txt_fullscreen();
+            txt_fullscreen();
         });
         
         let name = mw?.config?.get("wgUserName");
         system.user.name = name ? name.replace(/[Dd][Rr]\./, "") : "博士";
         
         try {
-            window.fun_sys_preload();
+            fun_sys_preload();
         } catch (err: any) {
             const dialogOutput = document.getElementById("dialog_output");
             if (dialogOutput) {
@@ -78,29 +65,33 @@ export function initPrtsEvents() {
     });
 
     // 2. 原 IIFE (立即执行函数) 的等价转译，负责检查状态和更新 UI
-    // TODO: 这一部分大量的 DOM 操作（setShow, setHide, innerHTML），在转为 Vue 组件后，必须通过 v-if / v-show 和响应式文本绑定来替代。
     (function checkAndInitializeUI() {
-        const logAll = document.getElementById("button_playback_all");
+        const logAll: any = document.getElementById("button_playback_all");
         const txt = document.getElementById("dialog_output");
 
         if (!system.error.stat && system.stats.log_all && logAll) {
             logAll.setShow();
         }
         
-        if (window.fun_fullscreen_support()) {
-            document.getElementById("button_fullscreen")?.setShow();
+        if (fun_fullscreen_support()) {
+            const fullscreenBtn: any = document.getElementById("button_fullscreen");
+            if (fullscreenBtn) fullscreenBtn.setShow();
         }
 
-        if (window.public_disabled || system.disabled.flag) {
+        if (public_disabled || system.disabled.flag) {
             let r = system.disabled.note;
             if (txt) {
-                txt.innerHTML = (window.public_disabled ? "剧情模拟器已被全局停用" : "该页面的剧情模拟器已被停用") 
+                txt.innerHTML = (public_disabled ? "剧情模拟器已被全局停用" : "该页面的剧情模拟器已被停用") 
                                 + "，查看剧情所有文本请单击LOG ALL" 
                                 + (r ? "<br/>附言: " + r : "");
             }
-            document.getElementById("button_auto")?.setHide();
-            document.getElementById("button_reset")?.setHide();
-            document.getElementById("button_playback")?.setHide();
+            const btnAuto: any = document.getElementById("button_auto");
+            const btnReset: any = document.getElementById("button_reset");
+            const btnPlayback: any = document.getElementById("button_playback");
+            
+            if (btnAuto) btnAuto.setHide();
+            if (btnReset) btnReset.setHide();
+            if (btnPlayback) btnPlayback.setHide();
             
             if (logAll) {
                 logAll.setShow();
@@ -110,7 +101,8 @@ export function initPrtsEvents() {
         }
 
         if (system.user.client == "desktop") {
-            document.getElementById("button_report")?.setShow();
+            const btnReport: any = document.getElementById("button_report");
+            if (btnReport) btnReport.setShow();
         }
 
         if (system.error.stat) {
@@ -125,6 +117,5 @@ export function initPrtsEvents() {
     })();
 
     // 3. 触发原版引擎的最终初始化
-    // TODO: 当所有组件迁移到 Vue 之后，此函数将被拆解为各个组件的数据获取与载入逻辑。
-    window.fun_sys_init();
+    fun_sys_init();
 }

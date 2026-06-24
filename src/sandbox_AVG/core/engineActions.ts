@@ -7,31 +7,22 @@
  * 在 Vue3 改造后，这些方法可以挂载到 `methods` 或者是 setup function 供模板触发。
  */
 
-import { system, globalTimer, data } from './globalState';
+import { data, globalTimer, system } from '../store/avgState';
 import { SCENARIO_CONSTANTS } from '../types/enums';
-import { domSetHide, domSetShow, audioDispose } from '../utils/toolbox';
-
-declare global {
-    var txt_analyze_test: any;
-    var txt_analyze: any;
-    var fun_auto_stop: any;
-    var fun_setting: any;
-    var txt_next: any;
-    var txt_stop: any;
-    var fun_fullscreen_check: any;
-    var timer_auto: any;
-    var timer_dialog: any;
-    var fun_playback: any;
-}
+import { support } from '../utils/support';
+import { audioDispose, domSetHide, domSetShow } from '../utils/toolbox';
+import { registry } from './analyzerCore';
+import { timer_auto } from './callbacks';
+import { fun_fullscreen_check, fun_setting } from './uiController';
 
 export function txt_click() {
     if (!system || system.stats.theater || globalTimer.hasTimer("click_block")) return;
     if (system.stats.auto) fun_auto_stop();
     if (!system.stats.click) {
-        if (typeof fun_msg !== 'undefined') fun_msg(0, true, "Click didn't passed.");
+        support.log(0, true, "Click didn't passed.");
         return;
     }
-    if (typeof fun_msg !== 'undefined') fun_msg(0, true, "Click passed.");
+    support.log(0, true, "Click passed.");
     if (system.txt.index === 0 && typeof fun_setting !== 'undefined') fun_setting("pre");
     
     // TODO: Vue 重构后，音频管理将从 DOM 剥离
@@ -76,9 +67,9 @@ export function txt_fullscreen() {
 export function txt_next() {
     /* before */
     if (system.txt.index >= system.txt.max) {
-        if (typeof fun_msg !== 'undefined') fun_msg(1, true, "<Txt>index=" + system.txt.index + ",max=" + system.txt.max);
-        if (globalTimer.hasTimer("auto") && typeof fun_auto_stop !== 'undefined') fun_auto_stop();
-        if (typeof fun_setting !== 'undefined') fun_setting("reset");
+        support.log(1, true, "<Txt>index=" + system.txt.index + ",max=" + system.txt.max);
+        if (globalTimer.hasTimer("auto") && typeof (window as any).fun_auto_stop !== 'undefined') (window as any).fun_auto_stop();
+        if (typeof (window as any).fun_setting !== 'undefined') (window as any).fun_setting("reset");
         const out = document.getElementById("dialog_output");
         if (out) out.innerHTML = "剧情模拟已结束，单击将重新开始剧情回顾";
         return;
@@ -92,31 +83,33 @@ export function txt_next() {
     const $: any = (window as any).$;
     if ($) $(".dialog_style.header").attr({ "d-now": idx });
     
-    ret = txt === "" ? -2 : (system.debug && typeof txt_analyze_test !== 'undefined') ? txt_analyze_test(txt) : txt_analyze(txt);
+    // 连接到重构后的 CommandRegistry
+    ret = txt === "" ? -2 : registry.dispatch(txt, system.flag.skip >= SCENARIO_CONSTANTS.wait_trigger);
+    
     if (system.debug && system.stats.step && ret === 1) ret = 2;
     if (ret !== 0) system.txt.index++;
     
     switch (ret) {
         case -2:
-            if (typeof fun_msg !== 'undefined') fun_msg(0, true, "Has skipped the space or unused part.");
+            support.log(0, true, "Has skipped the space or unused part.");
             txt_next();
             break;
         case -1:
-            if (typeof fun_msg !== 'undefined') fun_msg(0, true, "Has skipped the error part.");
+            support.log(0, true, "Has skipped the error part.");
             txt_next();
             break;
         case 1:
-            if (typeof fun_msg !== 'undefined') fun_msg(0, true, "Data analyze complete.");
+            support.log(0, true, "Data analyze complete.");
             txt_next();
             break;
         case 2:
-            if (typeof fun_msg !== 'undefined') fun_msg(0, true, "Break and wait.");
+            support.log(0, true, "Break and wait.");
             break;
         default:
             if (system.txt.index < system.txt.max && system.txt.index >= 0) {
                 let i = system.flag.skip >= SCENARIO_CONSTANTS.wait_trigger ? 1 : system.txt.delay.word;
                 globalTimer.create("dynamic", () => {
-                    if (typeof timer_dialog !== 'undefined') timer_dialog();
+                    if (typeof (window as any).timer_dialog !== 'undefined') (window as any).timer_dialog();
                 }, i, true);
             }
             break;

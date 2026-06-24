@@ -2,5 +2,18 @@
   "$schema": "https://app.kilo.ai/config.json",
   "indexing": {
     "enabled": true
-  }
+  },
+  "instructions": [
+    "D:\\LLM\\self_programming\\ST_Ark_StatusBar\\.kilocode\\rules\\AGENTS_README.md",
+    "D:\\LLM\\self_programming\\ST_Ark_StatusBar\\.kilocode\\rules\\mcp.md",
+    "D:\\LLM\\self_programming\\ST_Ark_StatusBar\\.kilocode\\rules\\TECH_STACK.md",
+    "D:\\LLM\\self_programming\\ST_Ark_StatusBar\\.kilocode\\rules\\前端界面.md",
+    "D:\\LLM\\self_programming\\ST_Ark_StatusBar\\.kilocode\\rules\\开发环境基本概念.md",
+    "D:\\LLM\\self_programming\\ST_Ark_StatusBar\\.kilocode\\rules\\脚本.md",
+    "D:\\LLM\\self_programming\\ST_Ark_StatusBar\\.kilocode\\rules\\酒馆助手接口.md",
+    "D:\\LLM\\self_programming\\ST_Ark_StatusBar\\.kilocode\\rules\\酒馆变量.md",
+    "D:\\LLM\\self_programming\\ST_Ark_StatusBar\\.kilocode\\rules\\项目基本概念.md",
+    // "D:\\LLM\\self_programming\\ST_Ark_StatusBar\\.kilocode\\rules\\mvu变量框架.mdc",
+    // "D:\\LLM\\self_programming\\ST_Ark_StatusBar\\.kilocode\\rules\\mvu角色卡.mdc"
+  ]
 }

@@ -3,7 +3,7 @@
  * @description PRTS 音频控制与生命周期管理 (转译自 prts_analyze.js)
  */
 
-import { system, data } from './globalState';
+import { system, data } from '../store/avgState';
 import { audioFade } from '../utils/toolbox';
 
 /**

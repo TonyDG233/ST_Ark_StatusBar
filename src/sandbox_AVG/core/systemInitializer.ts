@@ -3,19 +3,16 @@
  * @description PRTS 系统最终装配与资源预加载逻辑 (转译自 prts_analyze.js 结尾处)
  */
 
-import { data, system } from './globalState';
+import { data, system } from './../store/avgState';
 import { scenarioExtend, scenarioRegex } from '../utils/scenario_extend';
 import { fun_report_toggle, fun_report_to_developer } from './uiController';
 import { txt_playback } from './engineActions';
 import { support } from '../utils/support';
-import { GetCookie } from './timer';
+import { GetCookie } from '../utils/toolbox';
 import { strToObject } from '../utils/toolbox';
 import { preloadQueue } from './PreloadService';
 
-declare global {
-    var mw: any;    // MediaWiki api
-}
-
+// 取消 declare global mw 的隐式声明，通过 (window as any).mw 来引用
 /**
  * 原版预加载器核心函数：解析文本、提取图片/音频引用，塞入 LoadQueue
  * TODO: 未来脱离 createjs 后，需重写为 Promise.all(Image.onload) 模型
@@ -400,6 +397,7 @@ export function fun_sys_init() {
         const btnSubmit = document.getElementById("report_submit") as HTMLButtonElement;
         if (btnSubmit) {
             btnSubmit.addEventListener("click", function (e) {
+                const mw = (window as any).mw;
                 if (!mw || !mw.config.values.wgUserGroups.includes("user")) {
                     mw?.notify("您需要登录后才能使用此功能~");
                     return;

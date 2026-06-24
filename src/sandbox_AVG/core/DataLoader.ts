@@ -3,7 +3,7 @@
  * @description PRTS 数据加载器与系统初始配置器
  */
 
-import { data, system, public_disabled, setPublicDisabled } from './globalState';
+import { data, system, public_disabled, setPublicDisabled } from './../store/avgState';
 import { strToObject } from '../utils/toolbox';
 
 // 使用 Webpack 特性直接载入本地静态数据

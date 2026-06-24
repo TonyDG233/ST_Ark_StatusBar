@@ -3,16 +3,12 @@
  * @description PRTS UI 状态控制、回放历史与全屏交互管理器 (转译自 prts_analyze.js)
  */
 
-import { system, data, globalTimer } from './globalState';
+import { system, data, globalTimer } from './../store/avgState';
 import { SCENARIO_CONSTANTS } from '../types/enums';
 import { fun_stop_audio } from './audioController';
 import { support } from '../utils/support';
-import { GetCookie, SetCookie } from './timer';
+import { GetCookie, SetCookie } from '../utils/toolbox';
 import { domSetClear, domHide, domShow, domSetHide, domSetShow } from '../utils/toolbox';
-
-declare global {
-    var mw: any; // MediaWiki global api
-}
 
 /**
  * 处理系统状态切换 (重置引擎、预准备、拦截交互)
@@ -225,6 +221,7 @@ export function fun_fullscreen_support(): boolean {
  * 向 PRTS 开发者报告当前故障信息
  */
 export function fun_report_to_developer(note: string) {
+    const mw = (window as any).mw;
     if (typeof mw === 'undefined') return;
     if (!mw.config.values.wgUserGroups.includes("user") || GetCookie("ak_scerp_cd")) return;
     
