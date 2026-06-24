@@ -1,5 +1,6 @@
 import { CommandHandler } from '../analyzerCore';
 import { fun_get_audio_url, fun_audio_create, fun_stop_audio } from '../audioController';
+import { audioFade } from '../../utils/toolbox';
 
 // ----------------------------------------------------------------------
 // Audio Handlers
@@ -88,9 +89,7 @@ export const handleMusicVolume: CommandHandler = (ctx) => {
 
     const fadeTime = ctx.isSkip ? 0 : (ctx.args.fadetime || 0);
 
-    // 调用工具栏里面的原生 fade
-    // @ts-ignore
-    o1.fade(fadeTime, ctx.args.volume * 0.5);
+    audioFade(o1 as HTMLAudioElement, fadeTime, ctx.args.volume * 0.5);
 
     return 1;
 };
