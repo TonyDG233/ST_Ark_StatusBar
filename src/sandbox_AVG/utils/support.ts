@@ -5,13 +5,7 @@
 
 import { LogType } from '../types/enums';
 import { system } from '../store/avgState';
-
-declare global {
-    // 屏蔽对 String 原型链扩展的报错 (来自外部 krliov.toolbox.js)
-    interface String {
-        getPx(font: string): number;
-    }
-}
+import { strGetPx } from './toolbox';
 
 export const support = {
     /**
@@ -86,7 +80,7 @@ export const support = {
         for (const d of arr) {
             // 清除所有的内置 HTML 标签（如 <font>, <b> 等），仅测算纯文本
             const s = d.replace(/\<.*?\>/g, "");
-            const px = s.getPx(font);
+            const px = strGetPx(s, font);
             len += base ? Math.ceil(px / base) : px;
         }
         return len;

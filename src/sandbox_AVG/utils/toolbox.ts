@@ -136,7 +136,7 @@ export function audioDispose(audio: HTMLAudioElement): void {
 /**
  * 极其重要的音频淡入淡出动画方法
  * @param audio 目标音频元素
- * @param duration 持续时间
+ * @param duration 秒 (注意：根据原版 krliov.toolbox.js 设计，此处的 duration 确实是秒为单位)
  * @param v_end 目标音量 (0-1)
  * @param isremove 动画结束后是否销毁元素
  */
@@ -203,17 +203,18 @@ export function domSetShow(el: HTMLElement | null): void {
     if (el) el.classList.remove("hidden");
 }
 
-export function domFadeIn(el: HTMLElement | null, duration: number): void {
+export function domFadeIn(el: HTMLElement | null, durationMs: number): void {
     if (!el) return;
     const a_beg = el.style.opacity ? parseFloat(el.style.opacity) : (el.style.display === "none" ? 0 : 1);
     
-    if (Number.isNaN(+duration) || a_beg === 1) {
+    if (Number.isNaN(+durationMs) || durationMs <= 0 || a_beg >= 1) {
         el.style.opacity = "";
         domShow(el);
         return;
     }
     
-    const a_step = (1 - a_beg) / (+duration * 100);
+    // 计算每 10 毫秒的步长
+    const a_step = (1 - a_beg) / (durationMs / 10);
     const id_old = el.getAttribute("v-id");
     if (id_old) {
         clearInterval(+id_old);
@@ -221,8 +222,8 @@ export function domFadeIn(el: HTMLElement | null, duration: number): void {
     
     const timer = setInterval(() => {
         let a = el.style.opacity ? parseFloat(el.style.opacity) : 0;
-        a = a + a_step;
-        if (a >= 1) { // 修复了原版的 a>=0 错误，应该是 a>=1
+        a += a_step;
+        if (a >= 1) { 
             const id = el.getAttribute("v-id");
             if (id) clearInterval(+id);
             el.style.opacity = "";
@@ -237,42 +238,96 @@ export function domFadeIn(el: HTMLElement | null, duration: number): void {
     el.style.opacity = String(a_beg);
 }
 
-export function domFadeOut(el: HTMLElement | null, duration: number, args?: { remove?: boolean }): void {
+/**
+ * 平替 jQuery fadeTo: 淡入/淡出到指定透明度
+ * @param el 目标 HTMLElement
+ * @param durationMs 动画持续时间（毫秒）
+ * @param targetOpacity 目标透明度 (0-1)
+ */
+export function domFadeTo(el: HTMLElement | null, durationMs: number, targetOpacity: number): void {
     if (!el) return;
-    const a_beg = el.style.opacity ? parseFloat(el.style.opacity) : (el.style.display === "none" ? 0 : 1);
     
-    if (Number.isNaN(+duration) || a_beg === 0) {
-        el.style.opacity = "";
-        domHide(el);
+    let a_beg = el.style.opacity ? parseFloat(el.style.opacity) : (el.style.display === "none" ? 0 : 1);
+    const a_end = mathClamp(targetOpacity, 0, 1);
+    
+    // 快速出口
+    if (Number.isNaN(+durationMs) || durationMs <= 0 || a_beg === a_end) {
+        el.style.opacity = String(a_end);
+        if (a_end > 0) domShow(el);
         return;
     }
     
-    const a_step = a_beg / (+duration * 100);
-    const id_old = el.getAttribute("v-id");
-    if (id_old) {
-        clearInterval(+id_old);
+    // 初始化显示状态
+    if (el.style.display === "none" && a_end > 0) {
+        domShow(el);
+        a_beg = 0;
     }
     
-    if (args?.remove) el.setAttribute("v-remove", "1");
+    const a_step = (a_end - a_beg) / (durationMs / 10);
+    const id_old = el.getAttribute("v-id");
+    if (id_old) clearInterval(+id_old);
     
-    const timer = setInterval(function () {
+    const timer = setInterval(() => {
+        let a = el.style.opacity ? parseFloat(el.style.opacity) : a_beg;
+        a += a_step;
+        
+        // 浮点数比较的容差处理，判断是否越过终点
+        if ((a_step > 0 && a >= a_end) || (a_step < 0 && a <= a_end)) {
+            const id = el.getAttribute("v-id");
+            if (id) clearInterval(+id);
+            el.style.opacity = String(a_end);
+            return;
+        }
+        el.style.opacity = String(a);
+    }, 10);
+    
+    el.setAttribute("v-id", String(timer));
+    el.style.opacity = String(a_beg);
+}
+
+/**
+ * 原作者基于毫秒 (ms) 设计的原生 jQuery fadeToExit 的纯函数平替
+ * 该函数会在目标元素的透明度逐渐降低至 0 后，将其从 DOM 中移除
+ * @param el 目标 HTMLElement
+ * @param durationMs 动画持续时间（毫秒）
+ */
+export function domFadeToExit(el: HTMLElement | null, durationMs: number = 0): void {
+    if (!el) return;
+    
+    // 快速出口：如果没有 duration，直接移除
+    if (durationMs <= 0) {
+        el.remove();
+        return;
+    }
+
+    const a_beg = el.style.opacity ? parseFloat(el.style.opacity) : (el.style.display === "none" ? 0 : 1);
+    
+    // 如果已经完全透明或隐藏，直接移除
+    if (a_beg === 0) {
+        el.remove();
+        return;
+    }
+    
+    // 计算每 10 毫秒的衰减步长
+    const a_step = a_beg / (durationMs / 10);
+    const id_old = el.getAttribute("v-id");
+    if (id_old) clearInterval(+id_old);
+    
+    const timer = setInterval(() => {
         let a = el.style.opacity ? parseFloat(el.style.opacity) : 1;
-        a = a - a_step;
+        a -= a_step;
+        
         if (a > 0) {
             el.style.opacity = String(a);
-            return;
-        }
-        
-        const id = el.getAttribute("v-id");
-        if (id) clearInterval(+id);
-        
-        if (el.getAttribute("v-remove")) {
+        } else {
+            // 动画结束
+            const id = el.getAttribute("v-id");
+            if (id) clearInterval(+id);
             el.remove();
-            return;
         }
-        el.style.opacity = "";
-        domHide(el);
     }, 10);
+    
+    el.setAttribute("v-id", String(timer));
 }
 
 export interface CookieOptions {
