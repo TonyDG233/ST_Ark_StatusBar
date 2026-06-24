@@ -1,6 +1,8 @@
 import { CommandHandler } from '../analyzerCore';
-import { system } from '../../store/avgState';
+import { system, globalTimer } from '../../store/avgState';
 import { scenarioExtend } from '../../utils/scenario_extend';
+import { domFadeToExit, domFadeIn } from '../../utils/toolbox';
+import { fun_delay } from '../engineActions';
 
 /**
  * [animtext] 从原版恢复的文本表现，通常用于渲染没有名字的连续、带延迟换行的特殊文本
@@ -78,10 +80,7 @@ export const handleDialog: CommandHandler = (ctx) => {
         dialog.stop(true, true).fadeOut(dur * 950, 'linear');
         
         if (ctx.args.block === "true") {
-            // TODO: 调用正确的全局 timer 阻断
-            // exFun.delay("block", dur);
-            // 临时适配:
-            (window as any).fun_delay("block", dur);
+            fun_delay("block", dur);
             return 2;
         }
         return 1;
@@ -172,10 +171,8 @@ export const handleStickerClear: CommandHandler = (ctx) => {
     if (ctx.isSkip) {
         $("#sys_subtitle").children(targetClass).remove(); // skip 模式直接删
     } else {
-        // 这里的 fadeToExit 需要 jQuery 原型链支持
-        // @ts-ignore
-        $("#sys_subtitle").children(targetClass).fadeToExit(200);
-        (window as any).fun_delay("block", 0.2);
+        $("#sys_subtitle").children(targetClass).each((_, el) => domFadeToExit(el, 200));
+        fun_delay("block", 0.2);
         return 2;
     }
     return 1;
@@ -205,11 +202,10 @@ export const handleSticker: CommandHandler = (ctx) => {
     if (!txt) {
         if (ctx.args.id) {
             system.multi.check();
-            // @ts-ignore
-            $("#" + cmd + "_" + ctx.args.id).fadeToExit(fadetime * 1000);
+            const el = document.getElementById(`${cmd}_${ctx.args.id}`);
+            if (el) domFadeToExit(el, fadetime * 1000);
         } else if (cmd === "subtitle") {
-            // @ts-ignore
-            $("#sys_subtitle").children("span." + cmd).fadeToExit(fadetime * 1000);
+            $("#sys_subtitle").children(`span.${cmd}`).each((_, el) => domFadeToExit(el, fadetime * 1000));
         }
         return 1;
     }
@@ -236,11 +232,11 @@ export const handleSticker: CommandHandler = (ctx) => {
     
     if (delay > 0) {
         $e1.hide();
-        // @ts-ignore
-        timer.create("timer_sticker_" + ctx.args.id, (obj) => { obj.fadeIn(fadetime * 1000); }, delay, $e1);
+        globalTimer.create("timer_sticker_" + ctx.args.id, () => { domFadeIn(e1, fadetime * 1000); }, delay);
     } else {
         if (fadetime > 0) {
-            $e1.hide().fadeIn(fadetime * 1000);
+            $e1.hide();
+            domFadeIn(e1, fadetime * 1000);
         }
     }
 
