@@ -1,5 +1,7 @@
 import { CommandHandler } from '../analyzerCore';
-import { data } from '../../store/avgState';
+import { data, globalTimer } from '../../store/avgState';
+import { domFadeIn, domFadeToExit } from '../../utils/toolbox';
+import { fun_delay } from '../engineActions';
 
 // ----------------------------------------------------------------------
 // Image Handlers (#sys_image)
@@ -43,10 +45,9 @@ export const handleImage: CommandHandler = (ctx) => {
 
     if (n === "") {
         if (fadetime > 0) {
-            // @ts-ignore
-            o1.children('div').fadeToExit(fadetime * 1000, 'linear');
+            o1.children('div').each((_, el) => domFadeToExit(el, fadetime * 1000));
             if (ctx.args.block === "true") {
-                (window as any).fun_delay("block", fadetime);
+                fun_delay("block", fadetime);
                 return 2;
             }
         } else {
@@ -95,12 +96,14 @@ export const handleImage: CommandHandler = (ctx) => {
     });
 
     o1.append($e1);
-    $e1.hide().fadeIn(fadetime * 1000, () => {
+    $e1.hide();
+    domFadeIn(e1, fadetime * 1000);
+    setTimeout(() => {
         o1.children(`div:lt(${c1})`).remove();
-    });
+    }, fadetime * 1000);
 
     if (ctx.args.block === "true") {
-        (window as any).fun_delay("block", fadetime);
+        fun_delay("block", fadetime);
         return 2;
     }
 
@@ -143,14 +146,13 @@ export const handleImageTween: CommandHandler = (ctx) => {
 
     o1.css("transform", `matrix(${sxf},0,0,${syf},${pxf},${pyf})`);
     
-    // @ts-ignore
-    timer.create("imaget_w", () => {
+    globalTimer.create("imaget_w", () => {
         o1.css("transition", `transform ${t}s linear`)
           .css("transform", `matrix(${sxt},0,0,${syt},${pxt},${pyt})`);
     }, 20);
 
     if (ctx.args.duration === undefined || ctx.args.block === "true") {
-        (window as any).fun_delay("block", t);
+        fun_delay("block", t);
         return 2;
     }
 
@@ -175,13 +177,12 @@ export const handleImageRotate: CommandHandler = (ctx) => {
     
     o1.css("transition", `transform ${fd}s`);
     
-    // @ts-ignore
-    timer.create("img_rot_w", (d, r) => {
-        o1.css("transform", `${d} rotate(${r}deg)`);
-    }, 20, d1, ang);
+    globalTimer.create("img_rot_w", () => {
+        o1.css("transform", `${d1} rotate(${ang}deg)`);
+    }, 20);
 
     if (ctx.args.block === "true") {
-        (window as any).fun_delay("block", fd);
+        fun_delay("block", fd);
         return 2;
     }
 
