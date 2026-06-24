@@ -1,7 +1,10 @@
 import { CommandHandler } from '../analyzerCore';
-import { data } from '../../store/avgState';
+import { data, globalTimer } from '../../store/avgState';
 import { scenarioExtend } from '../../utils/scenario_extend';
 import { support } from '../../utils/support';
+import { domFadeToExit, domFadeTo, domFadeIn } from '../../utils/toolbox';
+import { fun_delay } from '../engineActions';
+import { timer_shake_common } from '../callbacks';
 
 const base_width = 960;
 const base_height = 540;
@@ -10,9 +13,8 @@ export const handleCharacter: CommandHandler = (ctx) => {
     // 兼容 isSkip 下的清理逻辑:
     // 在原版的跳过逻辑中，无论原来传了什么参数，只要是 skip，就直接抹去 #sys_char 的展示
     if (ctx.isSkip) {
-        // @ts-ignore
-        $("#sys_char").children().fadeToExit(150);
-        (window as any).fun_delay("block", 0.2);
+        $("#sys_char").children().each((_, el) => domFadeToExit(el, 150));
+        fun_delay("block", 0.2);
         return 2;
     }
 
@@ -26,10 +28,9 @@ export const handleCharacter: CommandHandler = (ctx) => {
     let tarB = "char_right";
 
     if (!n1 && !n2) {
-        // @ts-ignore
-        $("#sys_char").children().fadeToExit(dur * 950);
+        $("#sys_char").children().each((_, el) => domFadeToExit(el, dur * 950));
         if (ctx.args.block === "true") {
-            (window as any).fun_delay("block", dur);
+            fun_delay("block", dur);
             return 2;
         }
         return -2;
@@ -39,8 +40,7 @@ export const handleCharacter: CommandHandler = (ctx) => {
     
     // 双人模式处理 (存在 n2)
     if (n2) {
-        // @ts-ignore
-        timer.clear("char2_reset", true);
+        globalTimer.clear("char2_reset", true);
         const ent = ctx.args.enter2 || "";
         const len = char.children().length;
 
@@ -72,8 +72,8 @@ export const handleCharacter: CommandHandler = (ctx) => {
         if (can.attr("data-n") === String(n) && can.attr("data-cnt") === String(cnt)) {
             support.drawChar(can[0] as HTMLCanvasElement, data.char[k], (can[0] as HTMLCanvasElement).width, (can[0] as HTMLCanvasElement).height, ctx.args.blackstart2, ctx.args.blackend2);
             if (ctx.args.fadetime || ctx.args.duration) {
-                // @ts-ignore
-                can.hide().fadeIn(dur * 950 || 0);
+                can.hide();
+                domFadeIn(can[0], dur * 950 || 0);
             }
         } else {
             const [sx, sy, px, py] = scenarioExtend.charPos(n as string, 1);
@@ -88,33 +88,29 @@ export const handleCharacter: CommandHandler = (ctx) => {
             
             const sf = char.attr("style") === "" ? false : (can.attr("data-n") === "char_empty" && can.attr("data-cnt") === String(cnt) ? false : true);
             
-            e.hide().fadeIn(dur * 1000);
+            e.hide();
+            domFadeIn(e[0], dur * 1000);
             if (sf) {
-                // @ts-ignore
-                timer.create("char2_reset", () => char.attr("style", ""), dur * 950);
+                globalTimer.create("char2_reset", () => char.attr("style", ""), dur * 950);
             }
-            // @ts-ignore
-            char.children(`:lt(${len})`).fadeToExit(dur * 950);
+            char.children(`:lt(${len})`).each((_, el) => domFadeToExit(el, dur * 950));
         }
 
         if (ent) {
-            // @ts-ignore
-            timer.clear("char2_enter");
+            globalTimer.clear("char2_enter");
             char.attr("style", "");
             const tx = ent === "left" ? -base_width : ent === "right" ? base_width : 0;
             const ty = ent === "up" ? -base_height : ent === "down" ? base_height : 0;
             
             char.css("transform", `matrix(1,0,0,1,${tx},${ty})`);
-            // @ts-ignore
-            timer.create("char2_enter", () => {
+            globalTimer.create("char2_enter", () => {
                 char.css({"transition": `transform ${dur}s`, "transform": "matrix(1,0,0,1,0,0)"});
             }, 20);
         }
     } else {
-        // @ts-ignore
-        char.fadeToExit(dur * 950);
-        // @ts-ignore
-        $(`#${tarA}`).fadeToExit(dur * 950);
+        domFadeToExit(char[0], dur * 950);
+        const tarADOM = document.getElementById(tarA);
+        if (tarADOM) domFadeToExit(tarADOM, dur * 950);
         tarA = "char_middle";
     }
 
@@ -124,8 +120,7 @@ export const handleCharacter: CommandHandler = (ctx) => {
     if (n1) {
         const ent = ctx.args.enter || "";
         const len = char.children().length;
-        // @ts-ignore
-        timer.clear("char1_reset", true);
+        globalTimer.clear("char1_reset", true);
 
         if (char.length === 0) {
             const e = document.createElement("div");
@@ -155,13 +150,13 @@ export const handleCharacter: CommandHandler = (ctx) => {
         if (can.attr("data-n") === String(n) && can.attr("data-cnt") === String(cnt)) {
             support.drawChar(can[0] as HTMLCanvasElement, data.char[k], (can[0] as HTMLCanvasElement).width, (can[0] as HTMLCanvasElement).height, ctx.args.blackstart, ctx.args.blackend);
             if (ctx.args.fadetime || ctx.args.duration) {
-                // @ts-ignore
-                can.hide().fadeIn(dur * 950 || 0);
+                can.hide();
+                domFadeIn(can[0], dur * 950 || 0);
             }
         } else {
             if (tarA !== "char_middle") {
-                // @ts-ignore
-                $("#char_middle").fadeToExit(dur * 950);
+                const charMiddle = document.getElementById("char_middle");
+                if (charMiddle) domFadeToExit(charMiddle, dur * 950);
             }
             
             const [sx, sy, px, py] = scenarioExtend.charPos(n as string, n2 ? -1 : 0);
@@ -175,33 +170,30 @@ export const handleCharacter: CommandHandler = (ctx) => {
             if (k === "char_empty") char.attr("style", "");
             
             const sf = char.attr("style") === "" ? false : (can.attr("data-n") === "char_empty" && can.attr("data-cnt") === String(cnt) ? false : true);
-            e.hide().fadeIn(dur * 1000);
+            e.hide();
+            domFadeIn(e[0], dur * 1000);
             
             if (sf) {
-                // @ts-ignore
-                timer.create("char1_reset", () => char.attr("style", ""), dur * 950);
+                globalTimer.create("char1_reset", () => char.attr("style", ""), dur * 950);
             }
-            // @ts-ignore
-            char.children(`:lt(${len})`).fadeToExit(dur * 950);
+            char.children(`:lt(${len})`).each((_, el) => domFadeToExit(el, dur * 950));
         }
 
         if (ent) {
-            // @ts-ignore
-            timer.clear("char1_enter");
+            globalTimer.clear("char1_enter");
             char.attr("style", "");
             const tx = ent === "left" ? -base_width : ent === "right" ? base_width : 0;
             const ty = ent === "up" ? -base_height : ent === "down" ? base_height : 0;
             
             char.css("transform", `matrix(1,0,0,1,${tx},${ty})`);
-            // @ts-ignore
-            timer.create("char1_enter", () => {
+            globalTimer.create("char1_enter", () => {
                 char.css({"transition": `transform ${dur}s`, "transform": "matrix(1,0,0,1,0,0)"});
             }, 20);
         }
     }
 
     if (ctx.args.block === "true") {
-        (window as any).fun_delay("block", dur);
+        fun_delay("block", dur);
         return 2;
     }
     
@@ -211,9 +203,8 @@ export const handleCharacter: CommandHandler = (ctx) => {
 export const handleCharSlot: CommandHandler = (ctx) => {
     if (ctx.isSkip) {
         // Skip 模式与 Character 的 skip 处理逻辑合并（统一为 fadeToExit 或者直接移除）
-        // @ts-ignore
-        $("#sys_char").children().fadeToExit(150);
-        (window as any).fun_delay("block", 0.2);
+        $("#sys_char").children().each((_, el) => domFadeToExit(el, 150));
+        fun_delay("block", 0.2);
         return 2;
     }
 
@@ -222,10 +213,9 @@ export const handleCharSlot: CommandHandler = (ctx) => {
     const o = $("#sys_char");
 
     if (!p) {
-        // @ts-ignore
-        o.children().fadeToExit(t * 950);
+        o.children().each((_, el) => domFadeToExit(el, t * 950));
         if (ctx.args.isblock) {
-            (window as any).fun_delay("block", t);
+            fun_delay("block", t);
             return 2;
         }
         return 1;
@@ -278,9 +268,10 @@ export const handleCharSlot: CommandHandler = (ctx) => {
 
         if (o3.attr("data-n") === String(charN)) {
             support.drawChar(o3[0] as HTMLCanvasElement, data.char[n1], sx, sy, ctx.args.bstart, ctx.args.bend);
-            o3.fadeTo(t * 950, 1);
+            domFadeTo(o3[0], t * 950, 1);
             if (ctx.args.fadetime) {
-                o3.hide().fadeIn(ctx.args.fadetime * 950);
+                o3.hide();
+                domFadeIn(o3[0], ctx.args.fadetime * 950);
             }
         } else {
             const e = $(document.createElement("canvas"));
@@ -289,9 +280,9 @@ export const handleCharSlot: CommandHandler = (ctx) => {
             support.drawChar(e[0] as HTMLCanvasElement, data.char[n1], sx, sy, ctx.args.bstart, ctx.args.bend);
             
             o1.append(e);
-            e.hide().fadeIn(t * 1000);
-            // @ts-ignore
-            o1.children(`:lt(${c11})`).fadeToExit(t * 950);
+            e.hide();
+            domFadeIn(e[0], t * 1000);
+            o1.children(`:lt(${c11})`).each((_, el) => domFadeToExit(el, t * 950));
             o3 = e;
         }
     }
@@ -355,15 +346,14 @@ export const handleCharSlot: CommandHandler = (ctx) => {
     o1DOM.props = pas;
     if (ctx.args.posfrom || ctx.args.posto) {
         o1.css("transition", "").css("transform", `matrix(${tsf[0]},0,0,${tsf[3]},${tsf[4]},${tsf[5]})`);
-        // @ts-ignore
-        timer.create(`charslot_${p}`, () => {
+        globalTimer.create(`charslot_${p}`, () => {
             o1.css("transition", `transform ${t}s`)
               .css("transform", `matrix(${pas.sx},0,0,${pas.sy},${pas.px},${pas.py})`);
         }, 20);
     }
 
     if (ctx.args.block === "true" || ctx.args.isblock) {
-        (window as any).fun_delay("block", t);
+        fun_delay("block", t);
         return 2;
     }
     
@@ -426,8 +416,7 @@ export const handleCharacterAction: CommandHandler = (ctx) => {
     }
 
     // 正常播放模式
-    // @ts-ignore
-    timer.clear("trans_action", true);
+    globalTimer.clear("trans_action", true);
     
     const d1 = o1[0].style.transform.replace(/\s/g, "").match(/^matrix\((.*)\).*$/i);
     const pos = d1 == null ? [1, 0, 0, 1, 0, 0] : d1[1].split(",").map(Number);
@@ -451,8 +440,7 @@ export const handleCharacterAction: CommandHandler = (ctx) => {
         case 'rotate':
             const o2 = o1.children();
             o2.css("transform", "");
-            // @ts-ignore
-            timer.clear(`${n}_rotate`);
+            globalTimer.clear(`${n}_rotate`);
             if (ctx.args.stop === "true") return 1;
             
             const st = ctx.args.start === undefined ? 0 : ctx.args.start;
@@ -466,8 +454,7 @@ export const handleCharacterAction: CommandHandler = (ctx) => {
             });
             o2.attr({"data-r": 0, "data-c": 0, "data-cm": tm});
             
-            // @ts-ignore
-            timer.create(`${n}_rotate`, () => {
+            globalTimer.create(`${n}_rotate`, () => {
                 const d = o2.attr("data-r");
                 const cStr = o2.attr("data-c");
                 let c = Number(cStr);
@@ -481,8 +468,7 @@ export const handleCharacterAction: CommandHandler = (ctx) => {
                 
                 if (++c > Number(t)) {
                     o2.css("transform", "");
-                    // @ts-ignore
-                    timer.clear(`${n}_rotate`);
+                    globalTimer.clear(`${n}_rotate`);
                 }
                 o2.attr("data-c", c);
             }, fd * 1000, true);
@@ -490,8 +476,7 @@ export const handleCharacterAction: CommandHandler = (ctx) => {
         case 'shake':
             {
                 const timerName = `action_${n}`;
-                // @ts-ignore
-                timer.clear(timerName);
+                globalTimer.clear(timerName);
                 o1.css({left: 0, top: 0});
                 if (ctx.args.stop === "true") {
                     o1.removeAttr("d-sh-n");
@@ -500,9 +485,7 @@ export const handleCharacterAction: CommandHandler = (ctx) => {
                 }
                 o1.attr({"d-sh-n": timerName, "d-sh-t": 0});
                 const c = tm > 0 ? Math.max(Math.round(fd * 1000 / tm), 1) : fd;
-                // TODO: 临时占位，需要引入 timer_shake_common 全局辅助函数
-                // @ts-ignore
-                timer.create(timerName, () => (window as any).timer_shake_common(o1, pw, pw, ctx.args.randomness || 90, tm), c, true);
+                globalTimer.create(timerName, () => timer_shake_common(o1, pw, pw, ctx.args.randomness || 90, tm), c, true);
             }
             return 1;
         case 'zoom':
@@ -521,13 +504,12 @@ export const handleCharacterAction: CommandHandler = (ctx) => {
             return -1;
     }
 
-    // @ts-ignore
-    timer.create("trans_action", () => {
+    globalTimer.create("trans_action", () => {
         o1.css("transform", `matrix(${pos.join(',')})`);
     }, 20);
 
     if (ctx.args.isblock === "true") {
-        (window as any).fun_delay("block", fd);
+        fun_delay("block", fd);
         return 2;
     }
     
