@@ -80,17 +80,16 @@ export const handleBackground: CommandHandler = (ctx) => {
     ctx.args.screenadapt = "coverall";
     $e1.attr("d-adapt", ctx.args.screenadapt);
 
-    i1.onload = function() {
-        // @ts-ignore
-        let w = this.width * 0.75, h = this.height * 0.75;
+    i1.onload = function(this: GlobalEventHandlers) {
+        const img = this as unknown as HTMLImageElement;
+        let w = img.width * 0.75, h = img.height * 0.75;
         if ($e1.attr("d-adapt") === "coverall") {
             let s_x = w / 960, s_y = h / 540;
             let s = Math.min(s_x, s_y);
             w /= s; h /= s;
         }
         let x = 480 - w / 2, y = 270 - h / 2;
-        // @ts-ignore
-        $e1.css({"width": w, "height": h, "left": x, "top": y, "background-size": `${w}px ${h}px`, "background-image": `url(${this.src})`});
+        $e1.css({"width": w, "height": h, "left": x, "top": y, "background-size": `${w}px ${h}px`, "background-image": `url(${img.src})`});
     };
 
     $e1.css({ "position": "absolute", "transform": `matrix(${sx},0,0,${sy},${px},${-py})` });
