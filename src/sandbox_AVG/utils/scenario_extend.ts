@@ -5,12 +5,7 @@
 
 import { LogType } from '../types/enums';
 import { support } from './support';
-
-declare global {
-    // 临时屏蔽全局数据字典与状态机的强类型检查，待 Slice 4 补全
-    var data: any;
-    var system: any;
-}
+import { data, system } from '../store/avgState';
 
 export const scenarioRegex = {
     space: "^\\s+$",
