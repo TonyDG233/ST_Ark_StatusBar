@@ -218,84 +218,16 @@ export function fun_fullscreen_support(): boolean {
 }
 
 /**
- * 向 PRTS 开发者报告当前故障信息
+ * 向 PRTS 开发者报告当前故障信息 (已被抽空)
+ * TODO: 剧情模拟器在酒馆插件环境运行，不支持向 PRTS Wiki 发起 MediaWiki API 请求
  */
 export function fun_report_to_developer(note: string) {
-    const mw = (window as any).mw;
-    if (typeof mw === 'undefined') return;
-    if (!mw.config.values.wgUserGroups.includes("user") || GetCookie("ak_scerp_cd")) return;
-    
-    var api = new mw.Api();
-    var btn_sub = document.getElementById("report_submit") as HTMLButtonElement;
-    
-    api.get({ action: 'query', meta: 'tokens', type: 'csrf' }).done((ret: any) => {
-        if (ret.error || ret.warning) {
-            support.log(-2, false, "get token failed.");
-            if (btn_sub) {
-                btn_sub.disabled = false;
-                btn_sub.classList.remove("waiting");
-            }
-            return;
-        }
-        
-        var dat = `*Time: ${new Date().toLocaleString()}\n*Note: ${note}`;
-        if (system.error.stat) dat = `${dat}\n*error: ${system.error.info}\n**client: ${system.user.client} | screen: ${system.user.display}`;
-        dat = `${dat}\n*index: ${system.txt.index} | debug: ${system.debug}\n*UserAgent: ${navigator.userAgent}\n*Reporter: ${system.user.name}`;
-        
-        var token = ret.query.tokens.csrftoken.toString();
-        var param = {
-            action: "edit",
-            title: "剧情一览/Auto_Report_List",
-            section: "new",
-            sectiontitle: "[[" + system.page + "]]",
-            bot: true,
-            watchlist: 'nochange',
-            text: dat,
-            summary: "Append by ScenarioSimulator Auto Report Script.",
-            token: token,
-        };
-        
-        api.post(param).done((ret2: any) => {
-            console.log(ret2);
-            if (btn_sub) {
-                btn_sub.disabled = false;
-                btn_sub.classList.remove("waiting");
-            }
-            if (ret2.error) {
-                support.log(-2, false, "Report Error.", ret2);
-                return;
-            }
-            support.log(3, false, "Report Success!");
-            if (!mw.config.values.wgUserGroups.includes("sysop")) {
-                SetCookie("ak_scerp_cd", "yes", { path: '/', domain: '.prts.wiki', expires: '5m' });
-            }
-            mw.notify("提交完成！");
-            if (btn_sub && btn_sub.parentElement) btn_sub.parentElement.classList.add("hidden");
-        });
-    });
+    support.log(3, false, "Report feature is disabled in Tavern Helper environment. Note: " + note);
 }
 
+/**
+ * 切换故障报告 UI 界面 (已被抽空)
+ */
 export function fun_report_toggle() {
-    let report = document.getElementById("button_report");
-    if (!report || !report.childElementCount) return;
-    
-    let ui = report.children[0] as HTMLElement;
-    if (ui.classList.contains("hidden")) {
-        system.stats.report = true;
-        fun_setting("cmd_suspend");
-        
-        var dat = "*index: " + system.txt.index + "\n*UserAgent: " + navigator.userAgent + "\n*ID: " + system.user.name;
-        if (system.error.stat) dat = "*error: " + system.error.info + "\n" + dat;
-        
-        const repCol = document.getElementById("report_collected") as HTMLInputElement;
-        if (repCol) repCol.value = dat;
-        const repNote = document.getElementById("report_note") as HTMLInputElement;
-        if (repNote) repNote.value = "";
-        
-        ui.classList.remove("hidden");
-    } else {
-        ui.classList.add("hidden");
-        fun_setting("cmd_resume");
-        system.stats.report = false;
-    }
+    support.log(3, false, "Report UI feature is disabled.");
 }
