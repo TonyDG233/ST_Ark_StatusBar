@@ -69,8 +69,10 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
 import { loadPRTSDataLocal } from '../core/DataLoader';
-import { system } from '../core/../store/avgState';
-import { globalTimer } from '../core/../store/avgState';
+import { globalTimer, system } from '../store/avgState';
+import { initPrtsEvents } from '../core/events';
+import { preloadQueue } from '../core/PreloadService';
+import { txt_next, txt_click, fun_skip_start, fun_skip_stop } from '../core/engineActions';
 
 onMounted(() => {
   console.log("[AVGContainer] Mounted. Initiating Ignition Sequence...");
@@ -78,8 +80,62 @@ onMounted(() => {
   // 1. 注入静态数据
   loadPRTSDataLocal();
 
-  // 2. 初始化资源预加载系统并绑定初次启动事件
-  system.preload.init();
+  // 2. 绑定预加载器回调与引擎启动机制
+  preloadQueue.onFileLoad = (url: string) => {
+    console.log(`[Preload] Loaded: ${url}`);
+    const out = document.getElementById("dialog_output");
+    if (out) out.innerHTML = `正在载入资源: ${url.split('/').pop()}`;
+  };
+
+  preloadQueue.onComplete = () => {
+    console.log(`[Preload] All sources loaded complete.`);
+    
+    // 关键修复：预加载完成后，正式解锁引擎的点击锁，允许用户触发第一句剧情
+    system.stats.click = true;
+    
+    const out = document.getElementById("dialog_output");
+    if (out) out.innerHTML = "资源加载完毕。单击开始剧情回顾";
+
+    // 资源加载完毕，解绑预加载器的拦截
+    const clicker = document.getElementById("sys_clicker");
+    if (clicker) {
+        clicker.removeEventListener("mousedown", system.preload.handler.begin);
+        clicker.removeEventListener("mouseup", system.preload.handler.end);
+        clicker.removeEventListener("mouseleave", system.preload.handler.end);
+        clicker.removeEventListener("touchstart", system.preload.handler.begin);
+        clicker.removeEventListener("touchend", system.preload.handler.end);
+        clicker.removeEventListener("touchcancel", system.preload.handler.end);
+
+        // 绑定真正的剧情点击推图事件
+        clicker.addEventListener("click", (ev) => {
+            txt_click();
+            ev.preventDefault();
+        });
+        
+        // 绑定长按跳过 (Skip) 事件
+        clicker.addEventListener("mousedown", fun_skip_start);
+        clicker.addEventListener("mouseup", fun_skip_stop);
+        clicker.addEventListener("mouseleave", fun_skip_stop);
+        clicker.addEventListener("touchstart", fun_skip_start);
+        clicker.addEventListener("touchend", fun_skip_stop);
+        clicker.addEventListener("touchleave", fun_skip_stop); // 注意：原生是 touchcancel，原作者写了 touchleave，为了防呆建议兼容
+        clicker.addEventListener("touchcancel", fun_skip_stop);
+    }
+  };
+
+  // 绑定预加载器触发锁
+  const clicker = document.getElementById("sys_clicker");
+  if (clicker) {
+      clicker.addEventListener("mousedown", system.preload.handler.begin);
+      clicker.addEventListener("mouseup", system.preload.handler.end);
+      clicker.addEventListener("mouseleave", system.preload.handler.end);
+      clicker.addEventListener("touchstart", system.preload.handler.begin);
+      clicker.addEventListener("touchend", system.preload.handler.end);
+      clicker.addEventListener("touchcancel", system.preload.handler.end);
+  }
+
+  // 3. 挂载引擎的生命周期事件和核心组件 (初始化底层 UI 和解析脚本塞入预加载队列)
+  initPrtsEvents();
 });
 
 onUnmounted(() => {
