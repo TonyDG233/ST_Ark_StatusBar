@@ -1,6 +1,8 @@
 import { CommandHandler } from '../analyzerCore';
-import { data } from '../../store/avgState';
+import { data, globalTimer } from '../../store/avgState';
 import { support } from '../../utils/support';
+import { domFadeToExit, domFadeIn } from '../../utils/toolbox';
+import { fun_delay } from '../engineActions';
 
 // ----------------------------------------------------------------------
 // Background Handlers
@@ -48,10 +50,9 @@ export const handleBackground: CommandHandler = (ctx) => {
 
     if (n === "") {
         if (fadetime > 0) {
-            // @ts-ignore
-            o1.children('div').fadeToExit(fadetime * 1000, 'linear');
+            o1.children('div').each((_, el) => domFadeToExit(el, fadetime * 1000));
             if (ctx.args.block === "true") {
-                (window as any).fun_delay("block", fadetime);
+                fun_delay("block", fadetime);
                 return 2;
             }
         } else {
@@ -95,12 +96,14 @@ export const handleBackground: CommandHandler = (ctx) => {
     $e1.css({ "position": "absolute", "transform": `matrix(${sx},0,0,${sy},${px},${-py})` });
     o1.append($e1);
 
-    $e1.hide().fadeIn(fadetime * 1000, () => {
+    $e1.hide();
+    domFadeIn(e1, fadetime * 1000);
+    setTimeout(() => {
         o1.children(`div:lt(${c1})`).remove();
-    });
+    }, fadetime * 1000);
 
     if (ctx.args.block === "true") {
-        (window as any).fun_delay("block", fadetime);
+        fun_delay("block", fadetime);
         return 2;
     }
     return 1;
@@ -143,14 +146,13 @@ export const handleBackgroundTween: CommandHandler = (ctx) => {
 
     o1.css("transition", "").css("transform", `matrix(${sxf},0,0,${syf},${pxf},${pyf})`);
     
-    // @ts-ignore
-    timer.create("backt_w", () => {
+    globalTimer.create("backt_w", () => {
         o1.css("transition", `transform ${t}s linear`)
           .css("transform", `matrix(${sxt},0,0,${syt},${pxt},${pyt})`);
     }, 20);
 
     if (ctx.args.duration === undefined || ctx.args.block === "true") {
-        (window as any).fun_delay("block", t);
+        fun_delay("block", t);
         return 2;
     }
 
@@ -272,12 +274,14 @@ export const handleGridBg: CommandHandler = (ctx) => {
     
     o1.append($o2);
     
-    $o2.hide().fadeIn(t * 1000, () => {
+    $o2.hide();
+    domFadeIn(o2, t * 1000);
+    setTimeout(() => {
         o1.children(`canvas:lt(${c1})`).remove();
-    });
+    }, t * 1000);
     
     if (ctx.args.block === "true") {
-        (window as any).fun_delay("block", t);
+        fun_delay("block", t);
         return 2;
     }
     return 1;
@@ -320,14 +324,13 @@ export const handleLargeBgTween: CommandHandler = (ctx) => {
 
     o1.css("transform", `matrix(${sxf},0,0,${syf},${pxf},${pyf})`);
     
-    // @ts-ignore
-    timer.create("large_t_w", () => {
+    globalTimer.create("large_t_w", () => {
         o1.css("transition", `transform ${t}s linear`)
           .css("transform", `matrix(${sxt},0,0,${syt},${pxt},${pyt})`);
     }, 20);
 
     if (ctx.args.block === "true") {
-        (window as any).fun_delay("block", t);
+        fun_delay("block", t);
         return 2;
     }
     return 1;
