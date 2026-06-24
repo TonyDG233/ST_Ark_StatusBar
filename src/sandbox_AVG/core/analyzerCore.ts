@@ -1,8 +1,19 @@
-import { system } from './../store/avgState';
+import { system, data } from './../store/avgState';
 import { strToObject } from '../utils/toolbox';
 import * as exFun from '../utils/scenario_extend';
 
 /**
+ * 🚨🚨🚨 内部逻辑严重破损警告 (CRITICAL WARNING) 🚨🚨🚨
+ * 
+ * 本文件的内部逻辑以及整个 core/handlers/ 目录下的处理器由于早期重构失误，处于严重破损和功能丢失状态。
+ * 之前的重构错误地破坏了指令解析生命周期，并且强行使用 DOM 替换导致各类时间、坐标计算丢失上下文及类型错误。
+ * 
+ * 强制要求后续开发者：
+ * 1. 务必回顾参考 `src/poc/prts_v3_sandbox/prts_analyze.js` 中的完整原版逻辑，重新开发和整理所有内容。
+ * 2. 不要信任目前 handlers/ 中的任何数学运算或动画替代逻辑，必须 1:1 对齐原版的时序和回调。
+ * 
+ * 🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨
+ * 
  * 引擎执行上下文，封装当前指令的所有关键信息，彻底替代原版的 temp = {}
  */
 export interface ExecutionContext {
