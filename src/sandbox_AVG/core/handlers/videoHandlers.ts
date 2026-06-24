@@ -1,5 +1,7 @@
 import { CommandHandler } from '../analyzerCore';
 import { system } from '../../store/avgState';
+import { fun_setting } from '../uiController';
+import { txt_next } from '../engineActions';
 
 // ----------------------------------------------------------------------
 // Video Handlers
@@ -15,8 +17,7 @@ export const handleVideo: CommandHandler = (ctx) => {
         return 1;
     }
 
-    // @ts-ignore
-    if (typeof fun_setting !== "undefined") fun_setting("cmd_suspend");
+    fun_setting("cmd_suspend");
 
     const video = document.createElement("video");
     const container = document.querySelector("#sys_video");
@@ -34,10 +35,8 @@ export const handleVideo: CommandHandler = (ctx) => {
     // 当视频播放结束或出错时，清理自身并唤醒引擎
     const cleanupAndNext = () => {
         video.remove();
-        // @ts-ignore
-        if (typeof fun_setting !== "undefined") fun_setting("cmd_resume");
-        // @ts-ignore
-        if (typeof txt_next !== "undefined") txt_next();
+        fun_setting("cmd_resume");
+        txt_next();
     };
 
     video.onended = cleanupAndNext;
