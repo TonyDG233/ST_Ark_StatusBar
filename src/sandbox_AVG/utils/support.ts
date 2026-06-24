@@ -4,15 +4,12 @@
  */
 
 import { LogType } from '../types/enums';
+import { system } from '../store/avgState';
 
 declare global {
     // 屏蔽对 String 原型链扩展的报错 (来自外部 krliov.toolbox.js)
     interface String {
         getPx(font: string): number;
-    }
-    // 屏蔽全局 system 引用 (特别是 debug 状态)
-    interface Window {
-        system: any;
     }
 }
 
@@ -123,8 +120,7 @@ export const support = {
      * @param msgs 具体信息参数群
      */
     log: function (type: number, debug: boolean, ...msgs: any[]) {
-        // TODO: 依赖了全局 system.debug，未来应使用统一的环境配置管理替换
-        if (debug && window.system && !window.system.debug) return;
+        if (debug && !system.debug) return;
 
         const t = new Date();
         const t_txt = t.getFullYear() + "-" + (t.getMonth() + 1) + "-" + t.getDate() + " " + t.getHours() + ":" + t.getMinutes() + ":" + t.getSeconds();
