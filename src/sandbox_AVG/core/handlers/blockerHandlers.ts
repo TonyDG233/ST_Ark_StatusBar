@@ -1,5 +1,7 @@
 import { CommandHandler } from '../analyzerCore';
 import { data } from '../../store/avgState';
+import { fun_delay } from '../engineActions';
+import { domFadeToExit } from '../../utils/toolbox';
 
 // ----------------------------------------------------------------------
 // Blocker & Curtain Handlers
@@ -32,7 +34,7 @@ export const handleBlocker: CommandHandler = (ctx) => {
     o1.css("background-image", ctx.args.image ? `url('${data.back[ctx.args.image]}')` : "");
 
     if (ctx.args.block === "true") {
-        (window as any).fun_delay("block", t);
+        fun_delay("block", t);
         return 2;
     }
     return 1;
@@ -46,10 +48,9 @@ export const handleCurtain: CommandHandler = (ctx) => {
         return 1;
     }
 
-    // @ts-ignore
-    o1.children(".curtain").fadeToExit(200);
+    o1.children(".curtain").each((_, el) => domFadeToExit(el, 200));
     if (ctx.args.block === "true") {
-        (window as any).fun_delay("block", 0.2);
+        fun_delay("block", 0.2);
         return 2;
     }
     return 1;
