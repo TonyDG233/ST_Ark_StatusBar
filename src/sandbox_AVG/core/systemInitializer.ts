@@ -80,6 +80,30 @@ export function fun_sys_preload() {
     let chars = data.char;
     let cfgs = data.setting;
 
+    // 将被 tween 指令和 character 指令共享的资源加载逻辑提取为局部函数，消除 fallthrough
+    const processCharacterAssets = (m1: string, sets: any, page: string, i: number, txts: string[], chars: any, cfgs: any, assets: Set<string>, exFun: any) => {
+        if (cfgs.check('char', page, i)) {
+            let pas = cfgs.char[page][i + 1];
+            sets.name = pas.name || sets.name;
+            if (m1 === "character") sets.name2 = pas.name2 || sets.name2;
+            txts[i] = exFun.serialize(m1, sets);
+        }
+        let names = [];
+        if (sets.name) names.push(sets.name.toLowerCase());
+        if (m1 === "character" && sets.name2) names.push(sets.name2.toLowerCase());
+        
+        for (let name of names) {
+            let [k, idx] = exFun.charLink(name);
+            if (k === -1) continue;
+            let key = exFun.charFormat(k as string, idx as number);
+            if (!chars[key]) {
+                support.log(-2, false, `<${m1}>Linked key [${key}] not exist.`);
+                continue;
+            }
+            assets.add(chars[key]);
+        }
+    };
+
     for (let i = 0; i < txts.length; i++) {
         if (cfgs.check('override', page, i)) {
             txts[i] = cfgs.override[page][i + 1];
@@ -152,32 +176,13 @@ export function fun_sys_preload() {
                         }
                         txts[i] = exFun.serialize(match[1], sets);
                     }
-                    // 故意穿透 (原版代码的魔法，处理立绘引用逻辑并补全资源队列)
-                    // @ts-ignore: fallthrough
+                    processCharacterAssets(m1, sets, page, i, txts, chars, cfgs, assets, exFun);
+                    break;
                 }
                 case 'character':
                 case 'charactercutin':
                 case 'charslot': {
-                    if (cfgs.check('char', page, i)) {
-                        let pas = cfgs.char[page][i + 1];
-                        sets.name = pas.name || sets.name;
-                        if (m1 === "character") sets.name2 = pas.name2 || sets.name2;
-                        txts[i] = exFun.serialize(match[1], sets);
-                    }
-                    let names = [];
-                    if (sets.name) names.push(sets.name.toLowerCase());
-                    if (m1 === "character" && sets.name2) names.push(sets.name2.toLowerCase());
-                    
-                    for (let name of names) {
-                        let [k, idx] = exFun.charLink(name);
-                        if (k === -1) continue;
-                        let key = exFun.charFormat(k as string, idx as number);
-                        if (!chars[key]) {
-                            support.log(-2, false, `<${m1}>Linked key [${key}] not exist.`);
-                            continue;
-                        }
-                        assets.add(chars[key]);
-                    }
+                    processCharacterAssets(m1, sets, page, i, txts, chars, cfgs, assets, exFun);
                     break;
                 }
                 case 'decision': {

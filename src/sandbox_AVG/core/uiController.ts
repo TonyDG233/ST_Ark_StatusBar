@@ -7,7 +7,6 @@ import { system, data, globalTimer } from './../store/avgState';
 import { SCENARIO_CONSTANTS } from '../types/enums';
 import { fun_stop_audio } from './audioController';
 import { support } from '../utils/support';
-import { GetCookie, SetCookie } from '../utils/toolbox';
 import { domSetClear, domHide, domShow, domSetHide, domSetShow } from '../utils/toolbox';
 
 /**
@@ -88,13 +87,15 @@ export function fun_setting(key: string) {
         }
         case "cmd_suspend":
             system.flag.respond++;
-            // fallthrough
+            system.stats.click = false;
+            break;
         case "cmd_close":
             system.stats.click = false;
             break;
         case "cmd_resume":
             system.flag.respond--;
-            // fallthrough
+            system.stats.click = true;
+            break;
         case "cmd_open":
             system.stats.click = true;
             break;
