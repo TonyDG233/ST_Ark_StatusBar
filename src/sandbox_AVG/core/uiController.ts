@@ -88,13 +88,13 @@ export function fun_setting(key: string) {
         }
         case "cmd_suspend":
             system.flag.respond++;
-            // @ts-ignore: fallthrough
+            // fallthrough
         case "cmd_close":
             system.stats.click = false;
             break;
         case "cmd_resume":
             system.flag.respond--;
-            // @ts-ignore: fallthrough
+            // fallthrough
         case "cmd_open":
             system.stats.click = true;
             break;

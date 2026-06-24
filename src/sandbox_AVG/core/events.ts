@@ -7,20 +7,7 @@ import { system, public_disabled } from '../store/avgState';
 import { fun_sys_init, fun_sys_preload } from './systemInitializer';
 import { txt_fullscreen } from './engineActions';
 import { fun_fullscreen, fun_fullscreen_support } from './uiController';
-
-// 仅保留无法被 TS 推断的对 JQuery 原型链的扩展和极其特定的方法
-declare global {
-    interface JQuery {
-        fadeToExit(duration?: number | string, easing?: string): any;
-        remove(): any;
-        fadeOut(duration: any, easing: any, complete: Function): any;
-    }
-
-    interface HTMLElement {
-        setShow(): void;
-        setHide(): void;
-    }
-}
+import { domSetHide, domSetShow } from '../utils/toolbox';
 
 /**
  * 引擎生命周期与 DOM 事件初始化函数
@@ -29,14 +16,6 @@ declare global {
 export function initPrtsEvents() {
     const $: any = (window as any).$;
     const mw: any = (window as any).mw;
-
-    // TODO: 考虑是否仍需直接扩展 $.prototype。在纯 Vue3 时代，可以改写为原生的 CSS 动画或 Vue Transition
-    $.prototype.fadeToExit = function(duration?: number | string, easing?: string) {
-        if (!duration) {
-            return this.remove();
-        }
-        return this.fadeOut(duration, easing, function(this: any) { this.remove(); });
-    };
 
     // 1. 原 $(document).ready 的等价转译
     $(document).ready(() => {
@@ -66,16 +45,16 @@ export function initPrtsEvents() {
 
     // 2. 原 IIFE (立即执行函数) 的等价转译，负责检查状态和更新 UI
     (function checkAndInitializeUI() {
-        const logAll: any = document.getElementById("button_playback_all");
+        const logAll = document.getElementById("button_playback_all");
         const txt = document.getElementById("dialog_output");
 
         if (!system.error.stat && system.stats.log_all && logAll) {
-            logAll.setShow();
+            domSetShow(logAll);
         }
         
         if (fun_fullscreen_support()) {
-            const fullscreenBtn: any = document.getElementById("button_fullscreen");
-            if (fullscreenBtn) fullscreenBtn.setShow();
+            const fullscreenBtn = document.getElementById("button_fullscreen");
+            if (fullscreenBtn) domSetShow(fullscreenBtn);
         }
 
         if (public_disabled || system.disabled.flag) {
@@ -85,24 +64,24 @@ export function initPrtsEvents() {
                                 + "，查看剧情所有文本请单击LOG ALL" 
                                 + (r ? "<br/>附言: " + r : "");
             }
-            const btnAuto: any = document.getElementById("button_auto");
-            const btnReset: any = document.getElementById("button_reset");
-            const btnPlayback: any = document.getElementById("button_playback");
+            const btnAuto = document.getElementById("button_auto");
+            const btnReset = document.getElementById("button_reset");
+            const btnPlayback = document.getElementById("button_playback");
             
-            if (btnAuto) btnAuto.setHide();
-            if (btnReset) btnReset.setHide();
-            if (btnPlayback) btnPlayback.setHide();
+            if (btnAuto) domSetHide(btnAuto);
+            if (btnReset) domSetHide(btnReset);
+            if (btnPlayback) domSetHide(btnPlayback);
             
             if (logAll) {
-                logAll.setShow();
+                domSetShow(logAll);
                 logAll.style.left = "24px";
             }
             return; // 原版遇到禁用，直接中断后续逻辑
         }
 
         if (system.user.client == "desktop") {
-            const btnReport: any = document.getElementById("button_report");
-            if (btnReport) btnReport.setShow();
+            const btnReport = document.getElementById("button_report");
+            if (btnReport) domSetShow(btnReport);
         }
 
         if (system.error.stat) {
