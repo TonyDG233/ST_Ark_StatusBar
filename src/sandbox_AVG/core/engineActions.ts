@@ -12,7 +12,7 @@ import { SCENARIO_CONSTANTS } from '../types/enums';
 import { support } from '../utils/support';
 import { audioDispose, domSetHide, domSetShow } from '../utils/toolbox';
 import { registry } from './analyzerCore';
-import { timer_auto } from './callbacks';
+import { timer_auto, timer_dialog } from './callbacks';
 import { fun_fullscreen_check, fun_setting } from './uiController';
 
 export function txt_click() {
@@ -23,32 +23,32 @@ export function txt_click() {
         return;
     }
     support.log(0, true, "Click passed.");
-    if (system.txt.index === 0 && typeof fun_setting !== 'undefined') fun_setting("pre");
+    if (system.txt.index === 0) fun_setting("pre");
     
     // TODO: Vue 重构后，音频管理将从 DOM 剥离
-    let audio: any = document.getElementById("dialog_audio");
+    let audio = document.getElementById("dialog_audio") as HTMLAudioElement | null;
     if (audio) {
         audioDispose(audio);
     }
     
     if (globalTimer.hasTimer("dynamic")) {
-        if (typeof txt_stop !== 'undefined') txt_stop();
+        txt_stop();
         if (system.txt.dynamic) {
-            (system.txt.dynamic as any).innerHTML = system.txt.now;
+            system.txt.dynamic.innerHTML = system.txt.now;
         }
         return;
     }
-    if (typeof txt_next !== 'undefined') txt_next();
+    txt_next();
 }
 
 export function txt_fullscreen() {
-    let e1: any = document.getElementById("sys_fullscreen");
-    let e2: any = document.getElementById("button_fullscreen");
+    let e1 = document.getElementById("sys_fullscreen");
+    let e2 = document.getElementById("button_fullscreen");
     if (!e1 || !e2) return;
     
     let isFull = e2.classList.contains("return");
     if (isFull) {
-        if (typeof fun_fullscreen_check !== 'undefined' && fun_fullscreen_check()) {
+        if (fun_fullscreen_check()) {
             if (document.exitFullscreen) document.exitFullscreen();
             else if ((document as any).mozCancelFullScreen) (document as any).mozCancelFullScreen();
             else if ((document as any).webkitExitFullscreen) (document as any).webkitExitFullscreen();
@@ -57,10 +57,10 @@ export function txt_fullscreen() {
         }
     } else {
         if (e1.requestFullscreen) e1.requestFullscreen();
-        else if (e1.mozRequestFullScreen) e1.mozRequestFullScreen();
-        else if (e1.webkitRequestFullscreen) e1.webkitRequestFullscreen();
-        else if (e1.webkitRequestFullScreen) e1.webkitRequestFullScreen();
-        else if (e1.msRequestFullscreen) e1.msRequestFullscreen();
+        else if ((e1 as any).mozRequestFullScreen) (e1 as any).mozRequestFullScreen();
+        else if ((e1 as any).webkitRequestFullscreen) (e1 as any).webkitRequestFullscreen();
+        else if ((e1 as any).webkitRequestFullScreen) (e1 as any).webkitRequestFullScreen();
+        else if ((e1 as any).msRequestFullscreen) (e1 as any).msRequestFullscreen();
     }
 }
 
@@ -68,8 +68,8 @@ export function txt_next() {
     /* before */
     if (system.txt.index >= system.txt.max) {
         support.log(1, true, "<Txt>index=" + system.txt.index + ",max=" + system.txt.max);
-        if (globalTimer.hasTimer("auto") && typeof (window as any).fun_auto_stop !== 'undefined') (window as any).fun_auto_stop();
-        if (typeof (window as any).fun_setting !== 'undefined') (window as any).fun_setting("reset");
+        if (globalTimer.hasTimer("auto")) fun_auto_stop();
+        fun_setting("reset");
         const out = document.getElementById("dialog_output");
         if (out) out.innerHTML = "剧情模拟已结束，单击将重新开始剧情回顾";
         return;
@@ -80,7 +80,7 @@ export function txt_next() {
     let txt = data.txt[idx];
     
     // TODO: 移除 JQuery 强耦合
-    const $: any = (window as any).$;
+    const $ = (window as any).$;
     if ($) $(".dialog_style.header").attr({ "d-now": idx });
     
     // 连接到重构后的 CommandRegistry
@@ -109,7 +109,7 @@ export function txt_next() {
             if (system.txt.index < system.txt.max && system.txt.index >= 0) {
                 let i = system.flag.skip >= SCENARIO_CONSTANTS.wait_trigger ? 1 : system.txt.delay.word;
                 globalTimer.create("dynamic", () => {
-                    if (typeof (window as any).timer_dialog !== 'undefined') (window as any).timer_dialog();
+                    timer_dialog();
                 }, i, true);
             }
             break;
@@ -117,15 +117,15 @@ export function txt_next() {
 }
 
 export function txt_playback(target: string, bind: string, isAll: boolean = false) {
-    let obj1: any = document.getElementById(target);
-    let obj2: any = document.getElementById(bind);
+    let obj1 = document.getElementById(target);
+    let obj2 = document.getElementById(bind);
     if (!obj1 || !obj2) return;
     
     let isIn = obj2.classList.contains("return");
     if (isIn) {
         if (system.stats.auto && system.flag.respond === 1 && !isAll) {
             globalTimer.create("auto", () => {
-                if (typeof timer_auto !== 'undefined') timer_auto();
+                timer_auto();
             }, 400, true);
             if (!globalTimer.hasTimer("txt") && !globalTimer.hasTimer("dynamic")) txt_next();
         }
@@ -156,20 +156,20 @@ export function txt_stop() {
         c = 0;
     }
     
-    if (txt.dynamic && (txt.dynamic as any).parentElement) {
-        if ((txt.dynamic as any).parentElement.id === "sys_subtitle") {
+    if (txt.dynamic && txt.dynamic.parentElement) {
+        if (txt.dynamic.parentElement.id === "sys_subtitle") {
             delay.reset("word");
         }
     }
     
     let ms = (txt.now.length * p) + c;
-    const $: any = (window as any).$;
+    const $ = (window as any).$;
     let obj = $ ? $("#dialog_audio") : [];
     
     if (system.stats.theater) {
         ms = c;
     } else if (obj.length > 0) {
-        let voice: any = obj[0];
+        let voice = obj[0] as HTMLAudioElement;
         ms = (voice.duration - voice.currentTime) * 1000;
     }
     
@@ -201,10 +201,10 @@ export function fun_delay(key_cmd: string, key_time: any, key_type: string = "s"
     var t = Number.isNaN(+key_time) ? 1 : +key_time;
     if (key_type === "s") t *= 1000;
     if (key_cmd === "block") {
-        if (typeof fun_setting !== 'undefined') fun_setting("cmd_close");
+        fun_setting("cmd_close");
         if (system.flag.skip === SCENARIO_CONSTANTS.wait_trigger) t = 0;
         setTimeout(function () {
-            if (typeof fun_setting !== 'undefined') fun_setting("cmd_open");
+            fun_setting("cmd_open");
             if (system.stats.reset) txt_next();
         }, t);
     }
@@ -213,7 +213,7 @@ export function fun_delay(key_cmd: string, key_time: any, key_type: string = "s"
 export function fun_skip_start() {
     if (!system || system.stats.theater || system.txt.max === 0 || system.flag.respond > 0) return;
     if (globalTimer.hasTimer("skip")) {
-        if (typeof fun_skip_stop !== 'undefined') fun_skip_stop();
+        fun_skip_stop();
     }
     globalTimer.create("skip", () => {
         if (++system.flag.skip >= SCENARIO_CONSTANTS.wait_trigger) {

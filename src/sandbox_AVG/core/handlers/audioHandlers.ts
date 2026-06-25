@@ -10,8 +10,13 @@ export const handlePlayMusicOrSound: CommandHandler = (ctx) => {
     // 兼容 playmusic 和 playsound
     const cmd = ctx.command;
     const ms = ctx.args.delay ? ctx.args.delay * 1000 : 0;
-    const intro = fun_get_audio_url(ctx.args.intro);
-    const key = fun_get_audio_url(ctx.args.key);
+    // 音频名字既可能在参数字典(key=...)里，也可能直接作为纯文本跟在指令后面
+    const rawIntro = ctx.args.intro;
+    const rawKey = ctx.args.key || ctx.text.trim();
+    
+    const intro = fun_get_audio_url(rawIntro);
+    const key = fun_get_audio_url(rawKey);
+
     const id = cmd === "playmusic" ? "sys_music" : (ctx.args.channel && "audio_" + ctx.args.channel) || "";
     const vol = ctx.args.volume ? Math.min(ctx.args.volume * 0.5, 1) : 0.4;
 
@@ -33,7 +38,7 @@ export const handlePlayMusicOrSound: CommandHandler = (ctx) => {
         fun_stop_audio(id);
     }
 
-    const args: any = { id: id, volume: vol, delay: ctx.isSkip ? 0 : ms };
+    const args: Record<string, any> = { id: id, volume: vol, delay: ctx.isSkip ? 0 : ms };
 
     if (cmd === "playsound") {
         args.loop = ctx.args.loop === "true";

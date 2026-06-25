@@ -287,7 +287,7 @@ export const handleCharSlot: CommandHandler = (ctx) => {
         }
     }
 
-    const o1DOM = o1[0] as any;
+    const o1DOM = o1[0] as HTMLElement & { props?: any };
     const pas = ctx.args.end === "true" ? {px: 0, py: 0, sx: 1, sy: 1} : (o1DOM.props || {px: 0, py: 0, sx: 1, sy: 1});
     
     // preload transform data

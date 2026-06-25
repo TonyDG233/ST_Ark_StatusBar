@@ -64,7 +64,7 @@ export function timer_dialog() {
         
         txt.now_temp = str_tmp + (txt.now[idx] || "");
         if (txt.dynamic) {
-            (txt.dynamic as any).innerHTML = txt.now_temp + tag;
+            txt.dynamic.innerHTML = txt.now_temp + tag;
         }
         txt.now_index = Math.min(++idx, len);
         return;
@@ -72,9 +72,9 @@ export function timer_dialog() {
     txt_stop();
 }
 
-export function timer_shake_common(tar: any, str_x: number, str_y: number, ustb_p: number, max_t: number) {
+export function timer_shake_common(tar: HTMLElement | string | any, str_x: number, str_y: number, ustb_p: number, max_t: number) {
     let o = tar;
-    const $: any = (window as any).$;
+    const $ = (window as any).$; // 仅临时保留 JQuery 调用，未来重构
     
     if (typeof tar === "string" && $) {
         o = $("#" + tar);

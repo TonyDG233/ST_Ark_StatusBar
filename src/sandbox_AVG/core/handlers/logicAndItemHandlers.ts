@@ -1,4 +1,4 @@
-import { CommandHandler } from '../analyzerCore';
+import { CommandHandler, registry } from '../analyzerCore';
 import { system, data, globalTimer } from '../../store/avgState';
 import { fun_delay, txt_next } from '../engineActions';
 import { fun_audio_create, fun_get_audio_url } from '../audioController';
@@ -186,8 +186,7 @@ export const handleTimerSticker: CommandHandler = (ctx) => {
     if (name && t) {
         globalTimer.create(name, () => {
             const parts = name.split('_');
-            // TODO: 未来需通过 analyzerCore 再次 dispatch 该指令，避免绕回暴露
-            (window as any).txt_analyze(`[stickerclear(id=${parts[parts.length - 1]})]`);
+            registry.dispatch(`[stickerclear(id=${parts[parts.length - 1]})]`);
         }, t * 1000);
     }
     return 1;

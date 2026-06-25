@@ -10,7 +10,7 @@ import { fun_delay } from '../engineActions';
 
 export const handleBackground: CommandHandler = (ctx) => {
     const o1 = $('#sys_back');
-    const fadetime = ctx.args.fadetime ? +ctx.args.fadetime : 0.15;
+    const fadetime = ctx.args.fadetime === undefined ? 0.15 : parseFloat(ctx.args.fadetime);
     const n = (ctx.args.image && "bg_" + ctx.args.image.toLowerCase()) || "";
 
     if (ctx.isSkip) {
@@ -127,7 +127,7 @@ export const handleBackgroundTween: CommandHandler = (ctx) => {
     }
 
     if (o1.length === 0) return -1;
-    const t = ctx.args.duration || 0.15;
+    const t = ctx.args.duration === undefined ? 0.15 : parseFloat(ctx.args.duration);
     
     const pStr = o1.css("transform").replace(/\s/g, "").match(/^[a-z]+\((.*)\)/);
     const p = pStr == null ? [1, 0, 0, 1, 0, 0] : pStr[1].split(',');

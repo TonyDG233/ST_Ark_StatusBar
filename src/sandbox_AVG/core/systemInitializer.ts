@@ -402,18 +402,14 @@ export function fun_sys_init() {
         const btnSubmit = document.getElementById("report_submit") as HTMLButtonElement;
         if (btnSubmit) {
             btnSubmit.addEventListener("click", function (e) {
-                const mw = (window as any).mw;
-                if (!mw || !mw.config.values.wgUserGroups.includes("user")) {
-                    mw?.notify("您需要登录后才能使用此功能~");
-                    return;
-                }
+                // 原版有 MediaWiki 的检查逻辑，我们在本地沙盒环境直接跳过认证
                 if (GetCookie("ak_scerp_cd")) {
-                    mw?.notify("您在短时间内已经报告过了，请5分钟后再试吧~");
+                    alert("您在短时间内已经报告过了，请5分钟后再试吧~");
                     return;
                 }
                 var note = document.getElementById("report_note") as HTMLInputElement;
                 if (!note || !note.value.trim()) {
-                    mw?.notify("请填写上相关备注信息~");
+                    alert("请填写上相关备注信息~");
                     return;
                 }
                 this.disabled = true;

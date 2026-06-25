@@ -72,7 +72,7 @@ import { loadPRTSDataLocal } from '../core/DataLoader';
 import { globalTimer, system } from '../store/avgState';
 import { initPrtsEvents } from '../core/events';
 import { preloadQueue } from '../core/PreloadService';
-import { txt_next, txt_click, fun_skip_start, fun_skip_stop } from '../core/engineActions';
+import { txt_click, fun_skip_start, fun_skip_stop } from '../core/engineActions';
 
 onMounted(() => {
   console.log("[AVGContainer] Mounted. Initiating Ignition Sequence...");

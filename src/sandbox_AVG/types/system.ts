@@ -10,7 +10,7 @@ export interface SystemTxtState {
     now: string;
     now_temp: string;
     now_index: number;
-    dynamic?: { id: string };
+    dynamic?: HTMLElement;
     init: () => void;
     over: () => void;
     checkBind: (id: string) => boolean;

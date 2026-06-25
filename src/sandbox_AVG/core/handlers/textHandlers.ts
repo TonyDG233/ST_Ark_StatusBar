@@ -3,6 +3,7 @@ import { system, globalTimer } from '../../store/avgState';
 import { scenarioExtend } from '../../utils/scenario_extend';
 import { domFadeToExit, domFadeIn } from '../../utils/toolbox';
 import { fun_delay } from '../engineActions';
+import { fun_playback } from '../uiController';
 
 /**
  * [animtext] 从原版恢复的文本表现，通常用于渲染没有名字的连续、带延迟换行的特殊文本
@@ -10,18 +11,17 @@ import { fun_delay } from '../engineActions';
 export const handleAnimText: CommandHandler = (ctx) => {
     if (!ctx.text) return -2;
     
-    // 从原版 `scenario.regex.animatepara` 迁移出来的匹配逻辑
-    const animatepara = /<delay.*?>(.*?)<\/delay>/gi; 
-    // 注意: 这里假设原来的正则目的就是为了截出纯文本并换行
-    // 由于在 TypeScript 中 matchAll 提取规则和原版一致，保留：
+    // 从原版 `scenario.regex.animatepara` 迁移出来的匹配逻辑: <p=(\d+)>(.*?)<\/>
+    const animatepara = /<p=(\d+)>(.*?)<\/>/gi; 
+    
     const mc = Array.from(ctx.text.matchAll(animatepara));
     
     let arr = [];
     for (let m of mc) {
-        arr.push(m[1] || m[2]); // 根据不同正则捕获组位置可能略有差异，通常原版取 m[2]
+        arr.push(m[2]); 
     }
     
-    // 如果正则没取到，直接把原文本扔回去
+    // 如果没取到多行 <p=x> 的格式，直接把原文本扔回去
     if (arr.length === 0) {
         arr.push(ctx.text);
     }
@@ -32,8 +32,8 @@ export const handleAnimText: CommandHandler = (ctx) => {
     system.txt.name = "";
     system.txt.now = text; // 注意: 原版直接赋值没有跑 formatTxt
     
-    if (typeof (window as any).fun_playback !== 'undefined') {
-        (window as any).fun_playback("@p", "");
+    if (fun_playback !== undefined) {
+        fun_playback("@p", "");
     }
     
     const dialogName = document.getElementById("dialog_name");

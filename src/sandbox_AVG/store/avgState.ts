@@ -2,6 +2,9 @@ import { Timer } from '../core/timer';
 import { PRTSData, SystemState } from '../types/system';
 import { support } from '../utils/support';
 import { preloadQueue } from '../core/PreloadService';
+import { fun_playback, fun_setting } from '../core/uiController';
+import { timer_auto } from '../core/callbacks';
+import { txt_next } from '../core/engineActions';
 
 // ==========================================
 // 1. 全局配置与单例状态
@@ -131,7 +134,7 @@ export const system: SystemState = {
             this.mode = true;
         },
         end(tar: string = "@p") {
-            if (typeof (window as any).fun_playback !== "undefined") (window as any).fun_playback(tar, system.txt.name);
+            fun_playback(tar, system.txt.name);
             this.reset();
         },
         reset() {
@@ -148,7 +151,7 @@ export const system: SystemState = {
         },
         start() {
             this.mode = true;
-            if (system.txt.index == 0 && typeof (window as any).fun_setting !== "undefined") (window as any).fun_setting("pre");
+            if (system.txt.index === 0) fun_setting("pre");
             globalTimer.clear("auto");
             this.flag = 1;
             this.resume();
@@ -165,15 +168,12 @@ export const system: SystemState = {
         },
         resume() {
             if (!this.mode) return;
-            // TODO: 需要在 action 里注册真正的 timer_auto
-            if (typeof (window as any).timer_auto !== "undefined") {
-                globalTimer.create("auto", (window as any).timer_auto, 400, true);
-            }
+            globalTimer.create("auto", timer_auto, 400, true);
             this.checkNext();
         },
         checkNext() {
             if (!system.stats.click || globalTimer.hasTimer("dynamic") || globalTimer.hasTimer("txt")) return;
-            if (typeof (window as any).txt_next !== "undefined") (window as any).txt_next();
+            txt_next();
         }
     },
     skipnode: { stat: false, waitTarget: null },

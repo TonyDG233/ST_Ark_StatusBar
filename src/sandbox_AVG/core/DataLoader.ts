@@ -152,13 +152,14 @@ export function initPRTSDataAndSystem(source: PRTSDataSource) {
     if (source.audio) {
         try {
             for (let k in source.audio) {
-                if (source.audio[k].toString().indexOf("sound_beta_2") === -1) continue;
-                data.audio[k] = source.audio[k].replace("sound_beta_2", system.assetUrl + "audio") + ".mp3";
+                const lowerPath = source.audio[k].toString().toLowerCase();
+                if (lowerPath.indexOf("sound_beta_2") === -1) continue;
+                data.audio[k] = lowerPath.replace("sound_beta_2", system.assetUrl + "audio") + ".mp3";
             }
         } catch (e) {
             console.error("Failed to parse datas_audio", e);
         }
-        data.audio["btn_click"] = system.sourceUrl + "music/general/g_ui/g_ui_btn_n.mp3";
+        data.audio["btn_click"] = system.assetUrl + "audio/AVG/g_ui_btn_n.mp3";
     }
 
     if (source.link) {

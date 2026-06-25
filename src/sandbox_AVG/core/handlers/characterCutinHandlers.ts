@@ -80,7 +80,7 @@ export const handleCharacterCutin: CommandHandler = (ctx) => {
     let le = ls;
     let te = ts;
 
-    const cutin_paras: any = {};
+    const cutin_paras: Record<string, any> = {};
 
     switch (ctx.args.fadestyle) {
         case 'horiz_expand_center':

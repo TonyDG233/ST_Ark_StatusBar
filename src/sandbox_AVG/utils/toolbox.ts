@@ -79,7 +79,7 @@ export function strGetPx(str: string, font: string): number {
  * 负责将形如 `name="Amiya", focus=1` 的字符串解析为键值对对象
  */
 export function strToObject(str: string, sep1: string = ",", sep2: string = "=", tolower: boolean = true): Record<string, string> {
-    const regStr = `\\s*(.*?)\\s*${sep2}\\s*(?:['"](.*?)['"]|([\\w.-]+))\\s*${sep1}?`;
+    const regStr = `\\s*(.*?)\\s*${sep2}\\s*(?:['"](.*?)['"]|([\\w.$-]+))\\s*${sep1}?`;
     const reg = new RegExp(regStr, 'g');
     let ms: RegExpMatchArray[] = [];
     
@@ -397,5 +397,5 @@ export function DeepCopy<T>(k: T): T {
     }
 
     if (k === null) return k;
-    return Array.isArray(k) ? (arrCopy(k) as unknown as T) : typeof k === "object" ? (objCopy(k as any) as unknown as T) : k;
+    return Array.isArray(k) ? (arrCopy(k) as unknown as T) : typeof k === "object" ? (objCopy(k as Record<string, unknown>) as unknown as T) : k;
 }

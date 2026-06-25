@@ -14,8 +14,8 @@ import { domSetHide, domSetShow } from '../utils/toolbox';
  * TODO: 目前仍保留对部分全局 DOM 节点的操作，在 Vue 重构时会通过 onMounted 和 v-show 替代
  */
 export function initPrtsEvents() {
-    const $: any = (window as any).$;
-    const mw: any = (window as any).mw;
+    const $ = (window as any).$;
+    const mw = (window as any).mw;
 
     // 1. 原 $(document).ready 的等价转译
     $(document).ready(() => {

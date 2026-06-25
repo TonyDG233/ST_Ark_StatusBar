@@ -8,11 +8,11 @@ import { domFadeToExit } from '../../utils/toolbox';
 // ----------------------------------------------------------------------
 
 export const handleBlocker: CommandHandler = (ctx) => {
-    const t = ctx.args.fadetime === undefined ? 0.2 : +ctx.args.fadetime;
-    let d1 = ctx.args.a === undefined ? 1 : +ctx.args.a;
-    const d2 = ctx.args.r === undefined ? 0 : +ctx.args.r;
-    const d3 = ctx.args.g === undefined ? 0 : +ctx.args.g;
-    const d4 = ctx.args.b === undefined ? 0 : +ctx.args.b;
+    const t = ctx.args.fadetime === undefined ? 0.2 : parseFloat(ctx.args.fadetime);
+    let d1 = ctx.args.a === undefined ? 1 : parseFloat(ctx.args.a);
+    const d2 = ctx.args.r === undefined ? 0 : parseFloat(ctx.args.r);
+    const d3 = ctx.args.g === undefined ? 0 : parseFloat(ctx.args.g);
+    const d4 = ctx.args.b === undefined ? 0 : parseFloat(ctx.args.b);
 
     if (d1 > 1) d1 = 1;
     const o1 = $("#sys_blocker");

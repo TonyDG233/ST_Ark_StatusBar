@@ -1,6 +1,6 @@
-import { system, data } from './../store/avgState';
-import { strToObject } from '../utils/toolbox';
 import * as exFun from '../utils/scenario_extend';
+import { strToObject } from '../utils/toolbox';
+import { system } from './../store/avgState';
 
 /**
  * 🚨🚨🚨 内部逻辑严重破损警告 (CRITICAL WARNING) 🚨🚨🚨
@@ -35,17 +35,17 @@ export interface ExecutionContext {
  */
 export type CommandHandler = (ctx: ExecutionContext) => number;
 
-import { handleDialog, handleDialogSetting, handleMultiline, handleHeader, handleSticker, handleStickerClear, handleAnimText, handleAnimTextClean, handleFocusOut } from './handlers/textHandlers';
+import { support } from '../utils/support';
+import { handleMusicVolume, handlePlayMusicOrSound, handleStopMusicOrSound } from './handlers/audioHandlers';
 import { handleBackground, handleBackgroundTween, handleGridBg, handleLargeBgTween } from './handlers/backgroundHandlers';
 import { handleBlocker, handleCurtain, handleInterlude } from './handlers/blockerHandlers';
-import { handleImage, handleImageTween, handleImageRotate } from './handlers/imageHandlers';
-import { handleCharacter, handleCharSlot, handleCharacterAction } from './handlers/characterHandlers';
-import { handleCharacterCutin } from './handlers/characterCutinHandlers';
-import { handleVideo } from './handlers/videoHandlers';
 import { handleCameraEffect, handleCameraShake } from './handlers/cameraHandlers';
-import { handlePlayMusicOrSound, handleStopMusicOrSound, handleMusicVolume } from './handlers/audioHandlers';
-import { handleDelay, handleDecision, handlePredicate, handleTheater, handleShowItem, handleHideItem, handleTimerClear, handleTimerSticker, handleSkipNode, handleSkipToEnd } from './handlers/logicAndItemHandlers';
-import { support } from '../utils/support';
+import { handleCharacterCutin } from './handlers/characterCutinHandlers';
+import { handleCharacter, handleCharacterAction, handleCharSlot } from './handlers/characterHandlers';
+import { handleImage, handleImageRotate, handleImageTween } from './handlers/imageHandlers';
+import { handleDecision, handleDelay, handleHideItem, handlePredicate, handleShowItem, handleSkipNode, handleSkipToEnd, handleTheater, handleTimerClear, handleTimerSticker } from './handlers/logicAndItemHandlers';
+import { handleAnimText, handleAnimTextClean, handleDialog, handleDialogSetting, handleFocusOut, handleHeader, handleMultiline, handleSticker, handleStickerClear } from './handlers/textHandlers';
+import { handleVideo } from './handlers/videoHandlers';
 import { fun_playback } from './uiController';
 
 class CommandRegistry {
@@ -76,6 +76,7 @@ class CommandRegistry {
         
         this.register('image', handleImage);
         this.register('imgeffect', handleImage);
+        this.register('bgeffect', handleImage);
         this.register('imagetween', handleImageTween);
         this.register('imagerotate', handleImageRotate);
         
@@ -109,7 +110,9 @@ class CommandRegistry {
         this.register('predicate', handlePredicate);
         this.register('theater', handleTheater);
         this.register('showitem', handleShowItem);
+        this.register('cgitem', handleShowItem);
         this.register('hideitem', handleHideItem);
+        this.register('hidecgitem', handleHideItem);
         this.register('timerclear', handleTimerClear);
         this.register('timersticker', handleTimerSticker);
         this.register('skipnode', handleSkipNode);
@@ -213,6 +216,29 @@ class CommandRegistry {
             } else {
                 console.warn(`[PRTS Analyzer] Unhandled simple command: ${command}`);
                 return -2;
+            }
+        } 
+        // 6. 解析简写对话模式: [name="Character"] text
+        else if (match && match[4] && match[5]) {
+            const args = strToObject(match[4]);
+            if (args.name !== undefined) {
+                // 等价于标准的 dialog 模式
+                system.multi.check();
+                system.txt.dynamic = document.getElementById("dialog_output") as HTMLElement;
+                system.txt.name = args.name;
+                system.txt.now = exFun.scenarioExtend.formatTxt(match[5]);
+                
+                if (typeof fun_playback !== 'undefined') {
+                    fun_playback("@p", args.name);
+                }
+                
+                const dialogName = document.getElementById("dialog_name");
+                if (dialogName) dialogName.innerHTML = args.name;
+                
+                const sysDialog = document.getElementById("sys_dialog");
+                if (sysDialog) sysDialog.style.display = "block";
+                
+                return 0;
             }
         }
 
