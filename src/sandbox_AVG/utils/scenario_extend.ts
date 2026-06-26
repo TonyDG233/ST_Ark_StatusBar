@@ -174,7 +174,8 @@ export const scenarioExtend = {
 
         let t = scenarioExtend.replaceTxt(str);
         t = t.replace(/<color=/ig, "<font color=").replace(/<\/color>/ig, "</font>");
-        t = t.replace(/ /g, "&nbsp;");
+        // 绝对不能全局替换空格为 &nbsp;！这会把 <font color=> 破坏成 <font&nbsp;color=>
+        // 若需保留多空格，应交由 CSS white-space: pre-wrap 处理
         t = t.replace(/\\n/g, "<br/>");
         return t;
     },
