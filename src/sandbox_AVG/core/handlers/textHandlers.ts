@@ -1,12 +1,18 @@
 import { CommandHandler } from '../analyzerCore';
-import { system, globalTimer } from '../../store/avgState';
-import { scenarioExtend } from '../../utils/scenario_extend';
-import { domFadeToExit, domFadeIn } from '../../utils/toolbox';
+import { system } from '../../store/avgState';
 import { fun_delay } from '../engineActions';
 import { fun_playback } from '../uiController';
 
 /**
- * [animtext] 从原版恢复的文本表现，通常用于渲染没有名字的连续、带延迟换行的特殊文本
+ * [animtext] 
+ * @TODO 【后续Agent请注意：此处未来需要彻底重构】
+ * 目前的逻辑只是简陋地将文本输出到普通的 dialog_output 中（原版 PRTS 沙盒的历史遗留妥协）。
+ * 实际上，游戏原版这里的 name="group_location_stamp" 是一种极其复杂的 UI 动效（地点转换印章效果）。
+ * 包含：贝塞尔曲线弹出的渐变背景框、向外扩散的白色粗边菱形、从 X 旋转 45 度并形变为指南针瘦菱形的内部图标等。
+ * 未来需要：
+ * 1. 废弃写入 dialog_output 的逻辑。
+ * 2. 将 animtext 的数据 (p1, p2, pos, style) 塞入 Pinia 状态管理 (如 ui_state_store)。
+ * 3. 在 Vue 视图层拦截并渲染独立的 <LocationStamp> 组件，使用 GSAP 或 CSS3 Keyframes 还原该动效。
  */
 export const handleAnimText: CommandHandler = (ctx) => {
     if (!ctx.text) return -2;
@@ -28,9 +34,15 @@ export const handleAnimText: CommandHandler = (ctx) => {
     
     const text = arr.join("<br/>");
     
-    system.txt.dynamic = document.getElementById("dialog_output") as HTMLElement;
+    const dialogOutput = document.getElementById("dialog_output");
+    system.txt.dynamic = dialogOutput as HTMLElement;
     system.txt.name = "";
     system.txt.now = text; // 注意: 原版直接赋值没有跑 formatTxt
+    
+    // 立即清空 DOM 容器，防止在定时器启动前展示上一句残留文本
+    if (dialogOutput) {
+        dialogOutput.innerHTML = "";
+    }
     
     if (fun_playback !== undefined) {
         fun_playback("@p", "");
@@ -47,6 +59,7 @@ export const handleAnimText: CommandHandler = (ctx) => {
 
 /**
  * [animtextclean] 行为完全等同于 skip 状态下的 dialog 清理
+ * @TODO 同样需要重构，未来应触发 Pinia store 中对应 animtext 组件的退出动画（或直接销毁）。
  */
 export const handleAnimTextClean: CommandHandler = () => {
     const dialog = $("#sys_dialog");
