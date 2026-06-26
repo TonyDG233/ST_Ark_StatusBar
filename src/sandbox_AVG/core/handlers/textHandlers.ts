@@ -237,12 +237,12 @@ export const handleSticker: CommandHandler = (ctx) => {
     // 处理 X/Y 偏移
     const offsetW = (width - 675) / 2;
     e1.style.transform = `translate(${px - offsetW}px, ${py}px)`;
-    e1.innerHTML = txt;
 
     // 挂载与动画
     let $e1 = $(e1);
     $("#sys_subtitle").append($e1);
     
+    // 淡入控制
     if (delay > 0) {
         $e1.hide();
         globalTimer.create("timer_sticker_" + ctx.args.id, () => { domFadeIn(e1, fadetime * 1000); }, delay);
@@ -253,5 +253,22 @@ export const handleSticker: CommandHandler = (ctx) => {
         }
     }
 
-    return 1;
+    // 核心修复：恢复打字机路由 (返回 0)。
+    // 否则引擎会直接跳到下一行执行 [subtitle] 清理指令，导致整个副标题一闪而过被完全“跳过”。
+    system.txt.delay.set("word", (ctx.args.delay * 1000) || 30);
+    system.txt.dynamic = e1;
+    
+    if (!system.multi.mode) {
+        system.multi.begin();
+        system.txt.now = "";
+    }
+    
+    system.txt.name = "";
+    system.txt.now += txt;
+    
+    if (!system.multi.mode) {
+        if (fun_playback !== undefined) fun_playback("@p", "");
+    }
+    
+    return 0;
 };
