@@ -350,6 +350,12 @@
 #sys_camera>#sys_back{
 	z-index: 0;
 }
+#sys_camera>#sys_image{
+	z-index: 2; /* Ensure image/imgeffect/cgitem layers have a base above #sys_back */
+}
+#sys_camera>#sys_item{
+	z-index: 2; /* Normal showitems should also not be entirely hidden */
+}
 #sys_curtain,#sys_subtitle{
 	z-index: 2;
 }

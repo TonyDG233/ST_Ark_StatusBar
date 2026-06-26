@@ -1,6 +1,6 @@
 import { CommandHandler } from '../analyzerCore';
 import { data, globalTimer } from '../../store/avgState';
-import { domFadeIn, domFadeToExit } from '../../utils/toolbox';
+import { domFadeIn, domFadeToExit, domFadeTo } from '../../utils/toolbox';
 import { fun_delay } from '../engineActions';
 
 // ----------------------------------------------------------------------
@@ -186,5 +186,159 @@ export const handleImageRotate: CommandHandler = (ctx) => {
         return 2;
     }
 
+    return 1;
+};
+
+// ----------------------------------------------------------------------
+// cgitem 特效图 Handlers
+// ----------------------------------------------------------------------
+
+export const handleCgItem: CommandHandler = (ctx) => {
+    // 挂载点从 sys_image 改为 sys_camera，以支持 layer 越级覆盖
+    const o1 = $('#sys_camera');
+    const n = (ctx.args.image && ctx.args.image.toLowerCase()) || "";
+
+    if (n === "") return -1;
+    if (data.back[n] === undefined || data.back[n] === "") {
+        console.warn(`<CgItem> Data [${n}] not exist.`);
+        return -1;
+    }
+
+    const sxf = ctx.args.sfrom !== undefined ? +ctx.args.sfrom : 1;
+    const syf = ctx.args.sfrom !== undefined ? +ctx.args.sfrom : 1;
+    const sxt = ctx.args.sto !== undefined ? +ctx.args.sto : 1;
+    const syt = ctx.args.sto !== undefined ? +ctx.args.sto : 1;
+    
+    // 解析坐标, pfrom/pto 格式为 "x,y"
+    let pxf = 0, pyf = 0, pxt = 0, pyt = 0;
+    if (ctx.args.pfrom) {
+        const parts = ctx.args.pfrom.split(',');
+        pxf = +parts[0] * 0.75;
+        pyf = +parts[1] * 0.75;
+    }
+    if (ctx.args.pto) {
+        const parts = ctx.args.pto.split(',');
+        pxt = +parts[0] * 0.75;
+        pyt = +parts[1] * 0.75;
+    }
+    pyf = -pyf;
+    pyt = -pyt;
+
+    const layer = ctx.args.layer !== undefined ? +ctx.args.layer : 2;
+
+    const e1 = document.createElement('div');
+    const $e1 = $(e1);
+    
+    // 保底尺寸，防止 new Image().width 异步为 0
+    let tsx = 1280 * 0.75;
+    let tsy = 720 * 0.75;
+    // 如果碰巧缓存了可以直接取
+    const i1 = new Image();
+    i1.src = data.back[n];
+    if (i1.width > 0) {
+        tsx = i1.width * 0.75;
+        tsy = i1.height * 0.75;
+    }
+
+    const tpx = 480 - tsx / 2;
+    const tpy = 270 - tsy / 2;
+
+    // 解析透明度动画
+    const afrom = ctx.args.afrom !== undefined ? +ctx.args.afrom : 0;
+    const ato = ctx.args.ato !== undefined ? +ctx.args.ato : 1;
+    const aduration = ctx.args.aduration !== undefined ? +ctx.args.aduration : 0;
+    
+    // 解析 style 混合模式 (解决 Unity 黑底特效图渲染为巨大黑块的问题)
+    const style = ctx.args.style === undefined ? "" : ctx.args.style.toLowerCase();
+    let blendMode = "normal";
+    if (style === "cg") {
+        // 原作中黑底特效图使用 Screen/Additive 滤掉黑色背景
+        blendMode = "screen";
+    }
+
+    $e1.css({
+        "position": "absolute",
+        "width": tsx + "px",
+        "height": tsy + "px",
+        "left": tpx + "px",
+        "top": tpy + "px",
+        "background-image": `url(${data.back[n]})`,
+        "background-size": `100% 100%`,
+        "transform": `matrix(${sxf},0,0,${syf},${pxf},${pyf})`,
+        "z-index": layer,
+        "opacity": afrom,
+        "display": "block",
+        "mix-blend-mode": blendMode
+    });
+    
+    // 把特定的 image id 保存到 DOM 的 data 属性上，方便 hidecgitem 寻找
+    $e1.attr("data-cgitem-id", n);
+
+    if (ctx.isSkip) {
+        $e1.css("transform", `matrix(${sxt},0,0,${syt},${pxt},${pyt})`);
+        $e1.css("opacity", ato);
+        o1.append($e1);
+        return 1;
+    }
+
+    o1.append($e1);
+    
+    if (aduration > 0) {
+        domFadeTo(e1, aduration * 1000, ato);
+    } else {
+        $e1.css("opacity", ato);
+    }
+    
+    // 如果存在位移/缩放补间
+    if (ctx.args.sduration || ctx.args.pduration) {
+        const dur = Math.max(ctx.args.sduration || 0, ctx.args.pduration || 0);
+        globalTimer.create(`cgitem_${n}_w`, () => {
+            $e1.css("transition", `transform ${dur}s linear`)
+               .css("transform", `matrix(${sxt},0,0,${syt},${pxt},${pyt})`);
+        }, 20);
+    }
+
+    if (ctx.args.block === "true") {
+        // 阻塞时间优先取 aduration，否则取位移的，如果都没有则不阻塞
+        const blockTime = Math.max(aduration, ctx.args.sduration || 0, ctx.args.pduration || 0);
+        if (blockTime > 0) {
+            fun_delay("block", blockTime);
+            return 2;
+        }
+    }
+
+    return 1;
+};
+
+export const handleHideCgItem: CommandHandler = (ctx) => {
+    // 对应寻找挂载点 sys_camera
+    const o1 = $('#sys_camera');
+    const fadetime = ctx.args.fadetime !== undefined ? +ctx.args.fadetime : 0.16;
+    const n = (ctx.args.image && ctx.args.image.toLowerCase()) || "";
+
+    if (ctx.isSkip) {
+        if (n !== "") {
+            o1.children(`div[data-cgitem-id="${n}"]`).remove();
+        } else {
+            o1.children('div[data-cgitem-id]').remove();
+        }
+        return 1;
+    }
+
+    let targetElements;
+    if (n !== "") {
+        targetElements = o1.children(`div[data-cgitem-id="${n}"]`);
+    } else {
+        targetElements = o1.children('div[data-cgitem-id]');
+    }
+
+    if (targetElements.length === 0) return -1;
+
+    targetElements.each((_, el) => domFadeToExit(el, fadetime * 1000));
+    
+    if (ctx.args.block === "true") {
+        fun_delay("block", fadetime);
+        return 2;
+    }
     return 1;
 };

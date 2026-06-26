@@ -21,8 +21,20 @@ export const handleBlocker: CommandHandler = (ctx) => {
         d1 = Math.max(0, 1 - d1);
     }
 
-    // 适配原生提取 rgba 格式
-    const rgba = `rgba(${d2},${d3},${d4},${d1})`;
+    // 修复原版和解包数据的 Unity 小数点色值问题
+    // 鹰角解包数据里，纯红写的是 r=1 而不是 255（Unity Color 标准）
+    // 而浏览器 rgba(1,0,0) 是极其微弱接近黑色的红，需要转换为 0-255 范围
+    const normalizeRGB = (val: number) => {
+        if (val < 0) return 0;
+        if (val > 0 && val <= 1) return Math.round(val * 255);
+        return Math.round(val);
+    };
+
+    const r = normalizeRGB(d2);
+    const g = normalizeRGB(d3);
+    const b = normalizeRGB(d4);
+
+    const rgba = `rgba(${r},${g},${b},${d1})`;
 
     if (ctx.isSkip) {
         o1.stop(true).css("transition", "").css("background-color", rgba);
@@ -30,7 +42,10 @@ export const handleBlocker: CommandHandler = (ctx) => {
         return 1;
     }
 
-    o1.stop(true).css("transition", `background-color ${t}s linear`).css("background-color", rgba);
+    o1.stop(true)
+      .css("transition", `background-color ${t}s linear`)
+      .css("background-color", rgba);
+    
     o1.css("background-image", ctx.args.image ? `url('${data.back[ctx.args.image]}')` : "");
 
     if (ctx.args.block === "true") {

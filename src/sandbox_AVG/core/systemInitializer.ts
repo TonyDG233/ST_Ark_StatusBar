@@ -149,7 +149,8 @@ export function fun_sys_preload() {
                 }
                 case 'background':
                 case 'image':
-                case 'showitem': {
+                case 'showitem':
+                case 'cgitem': {
                     if (cfgs.check('image', page, i)) {
                         let pas = cfgs.image[page][i + 1];
                         for (let k of Object.keys(pas)) {

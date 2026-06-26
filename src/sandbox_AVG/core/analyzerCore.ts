@@ -42,7 +42,7 @@ import { handleBlocker, handleCurtain, handleInterlude } from './handlers/blocke
 import { handleCameraEffect, handleCameraShake } from './handlers/cameraHandlers';
 import { handleCharacterCutin } from './handlers/characterCutinHandlers';
 import { handleCharacter, handleCharacterAction, handleCharSlot } from './handlers/characterHandlers';
-import { handleImage, handleImageRotate, handleImageTween } from './handlers/imageHandlers';
+import { handleImage, handleImageRotate, handleImageTween, handleCgItem, handleHideCgItem } from './handlers/imageHandlers';
 import { handleDecision, handleDelay, handleHideItem, handlePredicate, handleShowItem, handleSkipNode, handleSkipToEnd, handleTheater, handleTimerClear, handleTimerSticker } from './handlers/logicAndItemHandlers';
 import { handleAnimText, handleAnimTextClean, handleDialog, handleDialogSetting, handleFocusOut, handleHeader, handleMultiline, handleSticker, handleStickerClear } from './handlers/textHandlers';
 import { handleVideo } from './handlers/videoHandlers';
@@ -110,9 +110,9 @@ class CommandRegistry {
         this.register('predicate', handlePredicate);
         this.register('theater', handleTheater);
         this.register('showitem', handleShowItem);
-        this.register('cgitem', handleShowItem);
+        this.register('cgitem', handleCgItem);
         this.register('hideitem', handleHideItem);
-        this.register('hidecgitem', handleHideItem);
+        this.register('hidecgitem', handleHideCgItem);
         this.register('timerclear', handleTimerClear);
         this.register('timersticker', handleTimerSticker);
         this.register('skipnode', handleSkipNode);
