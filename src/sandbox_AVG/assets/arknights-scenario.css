@@ -195,7 +195,7 @@
 .subtitle_style{
 	position: absolute;
 	color: white;
-	text-shadow: 0 0 5px rgb(64,64,64);
+	/* text-shadow: 0 0 5px rgb(64,64,64); */
 }
 .report.common:not(.hidden){
 	position: relative;
