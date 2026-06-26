@@ -41,7 +41,9 @@ export function timer_dialog() {
             while (++i < len && str[i] !== ">");
             if (i < len) {
                 if (str[idx + 1] !== "/") {
-                    tag = "</" + str.substring(idx + 1, i) + ">";
+                    const tagContent = str.substring(idx + 1, i);
+                    const tagName = tagContent.split(" ")[0]; // 提取首个单词作为真正的标签名
+                    tag = "</" + tagName + ">";
                     support.log(1, true, "<TimerDialog>tag=" + tag);
                 }
                 if (str[i + 1] === "<") { /* prevent the belong mark. */

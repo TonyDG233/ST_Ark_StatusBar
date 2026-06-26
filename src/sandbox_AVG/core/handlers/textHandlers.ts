@@ -1,5 +1,6 @@
 import { globalTimer, system } from '../../store/avgState';
 import { scenarioExtend } from '../../utils/scenario_extend';
+import { support } from '../../utils/support';
 import { domFadeIn, domFadeToExit } from '../../utils/toolbox';
 import { CommandHandler } from '../analyzerCore';
 import { fun_delay } from '../engineActions';
@@ -38,6 +39,7 @@ export const handleAnimText: CommandHandler = (ctx) => {
     
     const dialogOutput = document.getElementById("dialog_output");
     system.txt.dynamic = dialogOutput as HTMLElement;
+    system.txt.init(); // 初始化清理
     system.txt.name = "";
     system.txt.now = text; // 注意: 原版直接赋值没有跑 formatTxt
     
@@ -144,12 +146,12 @@ export const handleMultiline: CommandHandler = (ctx) => {
     
     if (!system.multi.mode) {
         system.multi.begin();
-        system.txt.now = "";
+        system.txt.init(); // 必须初始化清理
     }
     
     system.txt.name = ctx.args.name;
     // formatTxt 转换
-    system.txt.now += scenarioExtend.formatTxt(ctx.text);
+    system.txt.now = scenarioExtend.formatTxt(ctx.text); // 必须覆盖赋值
     
     $("#dialog_name").html(ctx.args.name);
     $("#sys_dialog").show();
@@ -225,20 +227,38 @@ export const handleSticker: CommandHandler = (ctx) => {
         return 1;
     }
 
+    // 每次生成新的带有文本的 subtitle 时，必须先清掉屏幕上旧的 subtitle
+    // 这是原版防重叠的核心逻辑！
+    if (cmd === "subtitle") {
+        $("#sys_subtitle").children(`span.${cmd}`).each((_, el) => domFadeToExit(el, fadetime * 1000));
+    }
+
+    // 处理 multi 模式（原版只有在 ctx.args.multi === "true" 时才生效）
+    if (ctx.args.multi === "true") {
+        if (system.multi.mode) {
+            system.txt.now += txt;
+            return 0; // 直接追加给现有的 dynamic，不生成新节点
+        }
+        system.multi.begin();
+    }
+
     // 生成 DOM 元素
     let e1 = document.createElement("span");
-    e1.id = cmd + "_" + ctx.args.id;
-    e1.className = cmd;
-    if (align === "c") e1.style.textAlign = "center";
-    else if (align === "r") e1.style.textAlign = "right";
-
+    if (ctx.args.id) e1.id = cmd + "_" + ctx.args.id;
+    e1.className = "subtitle_style " + cmd;
+    
+    // 恢复原版的定距对齐逻辑。修复 getLen 以获取最大单行宽度，防止多行文本累加导致偏移失败
+    const pl = align === "center" || align === "c" ? Math.max(width - support.getLen(txt, support.getFont(size)), 0) / 2 
+             : align === "right" || align === "r" ? Math.max(width - support.getLen(txt, support.getFont(size)), 0) 
+             : 0;
+             
+    e1.style.position = "absolute";
+    e1.style.left = px + "px";
+    e1.style.top = py + "px";
     e1.style.fontSize = size + "px";
     e1.style.lineHeight = (size + 5) + "px";
+    e1.style.paddingLeft = pl + "px";
     e1.style.width = width + "px";
-    
-    // 处理 X/Y 偏移
-    const offsetW = (width - 675) / 2;
-    e1.style.transform = `translate(${px - offsetW}px, ${py}px)`;
 
     // 挂载与动画
     let $e1 = $(e1);
@@ -258,15 +278,11 @@ export const handleSticker: CommandHandler = (ctx) => {
     // 核心修复：恢复打字机路由 (返回 0)。
     // 否则引擎会直接跳到下一行执行 [subtitle] 清理指令，导致整个副标题一闪而过被完全“跳过”。
     system.txt.delay.set("word", (ctx.args.delay * 1000) || 30);
+    
     system.txt.dynamic = e1;
-    
-    if (!system.multi.mode) {
-        system.multi.begin();
-        system.txt.now = "";
-    }
-    
     system.txt.name = "";
-    system.txt.now += txt;
+    system.txt.now = txt;
+    system.txt.init(); // 绝对初始化，清理一切残留
     
     if (!system.multi.mode) {
         if (fun_playback !== undefined) fun_playback("@p", "");

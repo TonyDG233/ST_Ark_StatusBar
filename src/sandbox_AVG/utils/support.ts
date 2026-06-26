@@ -76,14 +76,17 @@ export const support = {
      */
     getLen: function (str: string, font: string, base: number = 0): number {
         const arr = str.split('<br/>');
-        let len = 0;
+        let maxLen = 0;
         for (const d of arr) {
             // 清除所有的内置 HTML 标签（如 <font>, <b> 等），仅测算纯文本
             const s = d.replace(/\<.*?\>/g, "");
             const px = strGetPx(s, font);
-            len += base ? Math.ceil(px / base) : px;
+            const lineLen = base ? Math.ceil(px / base) : px;
+            if (lineLen > maxLen) {
+                maxLen = lineLen;
+            }
         }
-        return len;
+        return maxLen;
     },
 
     /**
