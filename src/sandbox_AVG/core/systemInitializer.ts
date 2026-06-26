@@ -11,6 +11,7 @@ import { support } from '../utils/support';
 import { GetCookie } from '../utils/toolbox';
 import { strToObject } from '../utils/toolbox';
 import { preloadQueue } from './PreloadService';
+import { fun_playback } from './uiController';
 
 // 取消 declare global mw 的隐式声明，通过 (window as any).mw 来引用
 /**
@@ -114,13 +115,13 @@ export function fun_sys_preload() {
         let match = txt.match(new RegExp(regexStr.command));
         if (match == null) {
             if (logs.multi) {
-                txt_playback("@pa", logs.getRecordPara() as any);
+                fun_playback("@pa", logs.getRecordPara() as any);
                 logs.multiEnd();
             }
 
             logs.name = "";
             logs.now = txt;
-            txt_playback("@pa", logs.getRecordPara() as any);
+            fun_playback("@pa", logs.getRecordPara() as any);
             continue;
         }
 
@@ -143,7 +144,7 @@ export function fun_sys_preload() {
                     let text = arr.join("<br/>");
                     logs.name = "";
                     logs.now = text;
-                    txt_playback("@pa", logs.getRecordPara() as any);
+                    fun_playback("@pa", logs.getRecordPara() as any);
                     break;
                 }
                 case 'background':
@@ -239,7 +240,7 @@ export function fun_sys_preload() {
                     logs.now += match[5];
                     
                     if (sets.end === "true") {
-                        txt_playback("@pa", logs.getRecordPara() as any);
+                        fun_playback("@pa", logs.getRecordPara() as any);
                         logs.multiEnd();
                     } else {
                         logs.multiBegin();
@@ -313,13 +314,13 @@ export function fun_sys_preload() {
                     logs.name = "";
                     if (!text) {
                         if (logs.multi) {
-                            txt_playback("@pa", logs.getRecordPara() as any);
+                            fun_playback("@pa", logs.getRecordPara() as any);
                             logs.multiEnd();
                         }
                         continue;
                     }
                     if (m1 === "sticker" && !logs.multiID.endsWith(sets.id) && logs.multi) {
-                        txt_playback("@pa", logs.getRecordPara() as any);
+                        fun_playback("@pa", logs.getRecordPara() as any);
                         logs.multiEnd();
                     }
 
@@ -330,7 +331,7 @@ export function fun_sys_preload() {
                     }
 
                     logs.now = text;
-                    txt_playback("@pa", logs.getRecordPara() as any);
+                    fun_playback("@pa", logs.getRecordPara() as any);
                     break;
                 }
                 case 'video': {
@@ -355,12 +356,12 @@ export function fun_sys_preload() {
             if (p == null || p.name === undefined) continue;
             
             if (logs.multi) {
-                txt_playback("@pa", logs.getRecordPara() as any);
+                fun_playback("@pa", logs.getRecordPara() as any);
                 logs.multiEnd();
             }
             logs.name = p.name;
             logs.now = match[5];
-            txt_playback("@pa", logs.getRecordPara() as any);
+            fun_playback("@pa", logs.getRecordPara() as any);
         }
     }
 

@@ -336,11 +336,18 @@ export const handleCharSlot: CommandHandler = (ctx) => {
             }
         }
         
-        if (fs.indexOf(ctx.args.slot.toLowerCase()) !== -1) {
-            o1.removeClass("unfocus");
-        } else {
-            o1.addClass("unfocus");
-        }
+        o.children().each((_, el) => {
+            const s = el.id || "";
+            let match = false;
+            for (const f of fs) {
+                if (s.includes(f)) {
+                    el.classList.remove("unfocus");
+                    match = true;
+                    break;
+                }
+            }
+            if (!match) el.classList.add("unfocus");
+        });
     }
 
     o1DOM.props = pas;

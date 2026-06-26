@@ -68,11 +68,13 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
+import { timer_auto } from '../core/callbacks';
 import { loadPRTSDataLocal } from '../core/DataLoader';
-import { globalTimer, system } from '../store/avgState';
+import { fun_auto_stop, fun_skip_start, fun_skip_stop, txt_click, txt_next, txt_stop } from '../core/engineActions';
 import { initPrtsEvents } from '../core/events';
 import { preloadQueue } from '../core/PreloadService';
-import { txt_click, fun_skip_start, fun_skip_stop } from '../core/engineActions';
+import { fun_setting } from '../core/uiController';
+import { globalTimer, system } from '../store/avgState';
 
 onMounted(() => {
   console.log("[AVGContainer] Mounted. Initiating Ignition Sequence...");
@@ -121,6 +123,60 @@ onMounted(() => {
         clicker.addEventListener("touchleave", fun_skip_stop); // 注意：原生是 touchcancel，原作者写了 touchleave，为了防呆建议兼容
         clicker.addEventListener("touchcancel", fun_skip_stop);
     }
+    
+    // ==========================================
+    // 缺失的 Auto 与 Reset 按钮事件绑定修复
+    // ==========================================
+    const btnReset = document.getElementById("button_reset");
+    if (btnReset) {
+        btnReset.addEventListener("click", (ev) => {
+            const stats = system.stats;
+            if (system.skipnode.stat) {
+                console.log("[UI] skipnode mode triggered.");
+                if (system.skipnode.waitTarget) {
+                    system.skipnode.waitTarget.remove();
+                    txt_next();
+                }
+                return;
+            } else if (!stats.reset || stats.report) {
+                console.log("[UI] reset didn't pass.");
+                return;
+            }
+            
+            if (globalTimer.hasTimer("auto")) fun_auto_stop();
+            if (globalTimer.hasTimer("dynamic")) txt_stop();
+            
+            fun_setting("reset");
+            const out = document.getElementById("dialog_output");
+            if (out) out.innerHTML = "剧情模拟已重置，单击开始剧情回顾";
+            ev.preventDefault();
+        });
+    }
+
+    const btnAuto = document.getElementById("button_auto");
+    if (btnAuto) {
+        btnAuto.classList.remove("forbid");
+        btnAuto.addEventListener("click", (ev) => {
+            const stats = system.stats;
+            if ((!stats.click && system.txt.max === 0) || stats.theater || stats.report) {
+                console.log("[UI] auto didn't pass.");
+                return;
+            }
+            if (!stats.auto) {
+                stats.auto = true;
+                if(system.txt.index === 0) fun_setting("pre");
+                globalTimer.clear("auto");
+                system.flag.auto = 1;
+                globalTimer.create("auto", timer_auto, 400, true);
+                if (stats.click && !globalTimer.hasTimer("dynamic") && !globalTimer.hasTimer("txt")) {
+                    txt_next();
+                }
+            } else {
+                fun_auto_stop();
+            }
+            ev.preventDefault();
+        });
+    }
   };
 
   // 绑定预加载器触发锁
@@ -144,13 +200,13 @@ onUnmounted(() => {
 });
 </script>
 
-<style scoped>
+<style>
+@import '../assets/arknights-scenario.css';
+
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css');
 @import url('https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css');
 @import url('https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css');
-
-@import '../assets/arknights-scenario.css';
 
 .arknights-avg-container {
     background-color: #222 !important;
