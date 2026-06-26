@@ -68,14 +68,20 @@ export const handleImage: CommandHandler = (ctx) => {
         return -1;
     }
 
+    // 修复异步获取不到宽度导致的 0 和 NaN 问题
+    let tsx = 1280 * 0.75;
+    let tsy = 720 * 0.75;
     const i1 = new Image();
     i1.src = data.back[n];
-    let tsx = i1.width * 0.75;
-    let tsy = i1.height * 0.75;
+    if (i1.width > 0) {
+        tsx = i1.width * 0.75;
+        tsy = i1.height * 0.75;
+    }
 
     if (ctx.args.screenadapt === "coverall") {
         let w = tsx / 960, h = tsy / 540;
         let scale = Math.min(w, h);
+        if (scale === 0) scale = 1; // 防御性处理
         tsx /= scale; tsy /= scale;
     }
 
@@ -86,10 +92,10 @@ export const handleImage: CommandHandler = (ctx) => {
 
     $e1.css({
         "position": "absolute",
-        "width": tsx,
-        "height": tsy,
-        "left": tpx,
-        "top": tpy,
+        "width": tsx + "px",
+        "height": tsy + "px",
+        "left": tpx + "px",
+        "top": tpy + "px",
         "background-image": `url(${data.back[n]})`,
         "background-size": `${tsx}px ${tsy}px`,
         "transform": `matrix(${sx},0,0,${sy},${px},${finalPy})`
