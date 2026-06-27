@@ -104,9 +104,9 @@ export const handleImage: CommandHandler = (ctx) => {
     o1.append($e1);
     $e1.hide();
     domFadeIn(e1, fadetime * 1000);
-    setTimeout(() => {
-        o1.children(`div:lt(${c1})`).remove();
-    }, fadetime * 1000);
+    // setTimeout(() => {
+    //     o1.children(`div:lt(${c1})`).remove();
+    // }, fadetime * 1000);
 
     if (ctx.args.block === "true") {
         fun_delay("block", fadetime);

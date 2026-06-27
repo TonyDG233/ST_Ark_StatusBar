@@ -48,6 +48,16 @@ import { handleAnimText, handleAnimTextClean, handleDialog, handleDialogSetting,
 import { handleVideo } from './handlers/videoHandlers';
 import { fun_playback } from './uiController';
 
+// ----------------------------------------------------------------------
+// Unimplemented / Placeholder Handler
+// ----------------------------------------------------------------------
+export const handleUnimplemented: CommandHandler = (ctx) => {
+    // 专门用于吸收当前 Web 环境无法解析或暂未实现的指令（如 Unity 粒子特效）
+    // 记录日志后直接返回 1 (Next)，静默放行，不阻断剧情流程，不污染 DOM
+    console.debug(`[CommandRegistry] Skipped unimplemented command: [${ctx.command}]`, ctx.args);
+    return 1;
+};
+
 class CommandRegistry {
     private handlers: Map<string, CommandHandler> = new Map();
 
@@ -76,10 +86,23 @@ class CommandRegistry {
         
         this.register('image', handleImage);
         this.register('imgeffect', handleImage);
-        this.register('bgeffect', handleImage);
         this.register('imagetween', handleImageTween);
         this.register('imagerotate', handleImageRotate);
         
+        // -----------------------------------------------------------------
+        // [Technical Debt] Unimplemented Unity Effects (bgeffect, effect)
+        // -----------------------------------------------------------------
+        // 原版 PRTS Web 播放器直接放弃了 Unity 粒子特效的视觉渲染，将其降级为纯音效(在 datas_audio.json 中)。
+        // 强行将其绑定到 handleImage 会导致误触发 o1.empty() 清屏 Bug，摧毁刚刚建立的背景。
+        // 未来若要真正实现在 Web 端渲染 Unity AssetBundle (.ab / .prefab) 特效，可参考以下开源项目：
+        // 1. K0lb3/UnityPy (Python): 最成熟的 Unity 资源解包/修改库 (1.3k stars)
+        // 2. arkntools/unity-js (JS/TS): 专为方舟定制的 .ab 解包库，支持提取贴图、音频、Spine，但不支持 WebGL 渲染
+        // 3. lox9973/uvw.js (JS): 实验性的 WebGL 渲染器，尝试在浏览器直接渲染 UnityFS .ab 场景
+        // 4. tautcony/arknights-particle (JS): 手工编写 WebGL 代码复刻方舟官网的粒子特效
+        // 目前统一交由 handleUnimplemented 拦截，静默放行，防止破坏当前 DOM 状态。
+        this.register('bgeffect', handleUnimplemented);
+        this.register('effect', handleUnimplemented);
+
         this.register('blocker', handleBlocker);
         this.register('curtain', handleCurtain);
         this.register('interlude', handleInterlude);
