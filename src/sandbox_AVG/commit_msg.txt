@@ -1,5 +1,0 @@
-refactor(ui): 抽空与 MediaWiki 强耦合的反馈报告功能
-
-- 移除了 fun_report_to_developer 中的 mw.Api 调用，斩断对外部 Wiki 的网络请求依赖。
-- 移除了 fun_report_toggle 的底层逻辑。
-- 保证引擎能在没有 mw 全局变量的酒馆纯净环境中安全运行。
