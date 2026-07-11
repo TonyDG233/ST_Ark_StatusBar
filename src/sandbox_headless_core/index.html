@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ark Headless Sandbox</title>
+  
+  <!-- 因为项目原本是酒馆插件，Webpack 把 Vue 设置成了 external（不打包进代码，依赖外部环境提供） -->
+  <!-- 在独立运行模式下，我们需要手动从 CDN 引入全局的 Vue 3 -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #1a1a1a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <!-- Vue 实例的挂载点 -->
+  <div id="app"></div>
+</body>
+</html>
