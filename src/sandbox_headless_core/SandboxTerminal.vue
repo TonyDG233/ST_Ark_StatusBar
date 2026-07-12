@@ -13,17 +13,25 @@
       <input v-model="modelName" placeholder="Model (如: gemini-1.5-pro, gpt-4o)" class="model-input" />
     </div>
     <div class="terminal-config">
-      <input v-model="apiEndpoint" placeholder="API Endpoint (如: http://127.0.0.1:8889/v1/chat/completions)" />
+      <input v-model="apiEndpoint" placeholder="API Base URL (如: http://127.0.0.1:8889/v1 或 default)" />
       <input v-model="apiKey" type="password" placeholder="API Key" />
     </div>
 
     <div class="terminal-output" ref="outputArea">
       <div v-for="(msg, index) in messages" :key="index" :class="['message', msg.role]">
         <strong>{{ msg.role === 'user' ? 'Dr.' : 'Amiya' }}:</strong>
+        <details v-if="msg.thinking" class="thinking-details">
+          <summary>思考过程</summary>
+          <p style="white-space: pre-wrap; margin: 5px 0 0 0; color: #aaa; font-size: 0.9em;">{{ msg.thinking }}</p>
+        </details>
         <p style="white-space: pre-wrap; margin: 0;">{{ msg.content }}</p>
       </div>
       <div v-if="isGenerating" class="message assistant streaming">
         <strong>Amiya (Generating...):</strong>
+        <details v-if="currentThinkingText" open class="thinking-details">
+          <summary>思考过程 (实时)</summary>
+          <p style="white-space: pre-wrap; margin: 5px 0 0 0; color: #aaa; font-size: 0.9em;">{{ currentThinkingText }}</p>
+        </details>
         <p style="white-space: pre-wrap; margin: 0;">{{ currentStreamText }}<span class="cursor">_</span></p>
       </div>
     </div>
@@ -42,25 +50,35 @@
 
 <script setup lang="ts">
 import { ref, nextTick } from 'vue';
-import { OpenAIAdapter } from './api/OpenAIAdapter';
-import { ClaudeAdapter } from './api/ClaudeAdapter';
-import { GeminiAdapter } from './api/GeminiAdapter';
-import type { LLMMessage, LLMClientBase } from './api/LLMClientBase';
+import { AgentEngine } from './api/AgentEngine';
+import { parse } from 'yaml';
+import rawConfig from './config.yaml?raw';
 
-const provider = ref('openai');
-const modelName = ref('');
-const apiEndpoint = ref('http://127.0.0.1:8889/v1/chat/completions');
-const apiKey = ref('');
+export interface SandboxMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+  thinking?: string;
+}
+
+const parsedConfig = rawConfig ? parse(rawConfig) : {};
+
+const provider = ref(parsedConfig.provider || 'openai');
+const modelName = ref(parsedConfig.modelName || '');
+const apiEndpoint = ref(parsedConfig.apiEndpoint || 'http://127.0.0.1:8889/v1');
+const apiKey = ref(parsedConfig.apiKey || '');
 const inputText = ref('');
 
-const messages = ref<LLMMessage[]>([
+const messages = ref<SandboxMessage[]>([
   { role: 'system', content: '你是阿米娅，罗德岛的公开领袖。在接下来的对话中，请完全扮演阿米娅，以她的口吻和性格与博士对话。' }
 ]);
 
 const currentStreamText = ref('');
+const currentThinkingText = ref('');
 const isGenerating = ref(false);
 let abortController: AbortController | null = null;
 const outputArea = ref<HTMLElement | null>(null);
+
+const engine = new AgentEngine();
 
 const scrollToBottom = () => {
   nextTick(() => {
@@ -71,58 +89,64 @@ const scrollToBottom = () => {
 };
 
 const sendMessage = async () => {
-  if (!inputText.value.trim() || !apiEndpoint.value || isGenerating.value) return;
+  if (!inputText.value.trim() || isGenerating.value) return;
 
-  const userMsg: LLMMessage = { role: 'user', content: inputText.value };
+  const userMsg: SandboxMessage = { role: 'user', content: inputText.value };
   messages.value.push(userMsg);
   inputText.value = '';
   scrollToBottom();
 
   isGenerating.value = true;
   currentStreamText.value = '';
+  currentThinkingText.value = '';
   abortController = new AbortController();
 
-  let adapter: LLMClientBase;
-  if (provider.value === 'claude') {
-    adapter = new ClaudeAdapter();
-  } else if (provider.value === 'gemini') {
-    adapter = new GeminiAdapter();
-  } else {
-    adapter = new OpenAIAdapter();
-  }
-
   try {
-    await adapter.generate({
-      endpoint: apiEndpoint.value,
-      apiKey: apiKey.value,
-      model: modelName.value,
-      messages: messages.value,
-      stream: true,
-      signal: abortController.signal
-    }, {
-      onChunk: (text) => {
-        currentStreamText.value += text;
-        scrollToBottom();
-      },
-      onComplete: (fullText) => {
-        messages.value.push({ role: 'assistant', content: fullText });
-        isGenerating.value = false;
-        currentStreamText.value = '';
-        scrollToBottom();
-      },
-      onError: (err) => {
-        console.error("生成失败:", err);
-        messages.value.push({ role: 'assistant', content: `[系统错误] ${err.message}` });
-        isGenerating.value = false;
-        currentStreamText.value = '';
+    await engine.generateStream(
+      provider.value,
+      modelName.value || 'gpt-3.5-turbo',
+      apiKey.value,
+      apiEndpoint.value,
+      messages.value,
+      abortController.signal,
+      {
+        onTextDelta: (text) => {
+          currentStreamText.value += text;
+          scrollToBottom();
+        },
+        onThinkingDelta: (text) => {
+          currentThinkingText.value += text;
+          scrollToBottom();
+        },
+        onComplete: (fullMessage) => {
+          let finalContent = "";
+          let finalThinking = "";
+          for (const block of fullMessage.content) {
+             if (block.type === 'text') finalContent += block.text;
+             if (block.type === 'thinking') finalThinking += block.thinking;
+          }
+          messages.value.push({ role: 'assistant', content: finalContent, thinking: finalThinking });
+          isGenerating.value = false;
+          currentStreamText.value = '';
+          currentThinkingText.value = '';
+          scrollToBottom();
+        },
+        onError: (err) => {
+          console.error("生成失败:", err);
+          messages.value.push({ role: 'assistant', content: `[系统错误] ${err.message}` });
+          isGenerating.value = false;
+          currentStreamText.value = '';
+          currentThinkingText.value = '';
+        }
       }
-    });
+    );
 
   } catch (err: any) {
     if (err.name === 'AbortError') {
       messages.value.push({ role: 'assistant', content: currentStreamText.value + " [已中断]" });
       isGenerating.value = false;
       currentStreamText.value = '';
+      currentThinkingText.value = '';
     }
   }
 };
@@ -220,4 +244,21 @@ const abortGeneration = () => {
 
 .cursor { animation: blink 1s step-end infinite; }
 @keyframes blink { 50% { opacity: 0; } }
+
+.thinking-details {
+  margin: 5px 0 10px 0;
+  padding: 5px 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border-left: 3px solid #666;
+  border-radius: 4px;
+}
+.thinking-details summary {
+  cursor: pointer;
+  color: #888;
+  font-size: 0.85em;
+  user-select: none;
+}
+.thinking-details summary:hover {
+  color: #aaa;
+}
 </style>

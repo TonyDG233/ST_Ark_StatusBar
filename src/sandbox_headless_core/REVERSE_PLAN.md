@@ -31,12 +31,13 @@
 
 **【已完成】阶段 1：可扩展的 LLM API 适配器与独立测试基座**
 - 成功搭建完全独立于酒馆的 `SandboxTerminal` (独立 Web 网页)。
-- 实现 `LLMClientBase` 抽象基类，封装了跨域 `fetch`、AbortController 阻断和 SSE 流式碎片解析。
-- 构建了三大主流格式适配器基座（**注：处于残血状态，亟待对齐最新特性**）：
-  - `OpenAIAdapter` (**TODO**: 必须补充多媒体支持、Tool Calling 拦截、Reasoning 思维链提取)
-  - `ClaudeAdapter` (**TODO**: 补充多模态与系统词抽离，对齐 TauriTavern 实现)
-  - `GeminiAdapter` (**TODO**: 补充 safetySettings, system_instruction 映射)
-- UI 交互闭环验证完成：成功脱离宿主，在浏览器中完成流式通信打字机测试。
+- **架构升级 (Engine Shift)**：全面废弃手写的残缺 Adapter，引入工业级开源框架 `@earendil-works/pi-ai` 与 `@earendil-works/pi-agent-core` 作为底层大模型通信与状态管理核心。
+  - 原生获得了完整的模型统一适配 (Unified Provider API)、工具调用 (Tool Calling)、思维链提取 (Reasoning blocks) 与多模态 (Vision) 支持，彻底根除了之前遗留的技术债务。
+- UI 交互闭环验证完成：成功脱离宿主，在浏览器中通过 `pi` 框架完成流式通信打字机测试。
+- **核心参考文档 (Pi Framework Docs)**：
+  - 官方主站指南：[https://pi.dev/docs/latest](https://pi.dev/docs/latest)
+  - `pi-ai` 本地源码与 API 参考：`D:\LLM\self_programming\pi\packages\ai\README.md`
+  - `pi-agent-core` 状态机与钩子参考：`D:\LLM\self_programming\pi\packages\agent\README.md`
 
 ---
 
@@ -47,15 +48,14 @@
 - **目标**：
   - **角色卡与世界书解析**：`CharacterParser.ts` 负责提取 PNG 内的 `v2CharData` JSON，并构建世界书条目实体。
   - **预设系统解析 (至关重要)**：绝对不能自己凭空写组合逻辑！必须实现 `PresetParser.ts`，原样解析酒馆导出的 JSON 预设文件。
-    - 深入提取 `Context Template`（决定世界书插入的深度和顺序）。
-    - 深入提取 `Instruct Mode` 格式（处理前缀、系统词包裹以及 User/Assistant 角色的包装规则）。
+    - **逆向行动**：必须回到 SillyTavern 或 TauriTavern 源码，逆向其 `generate()` 函数及其上下文拼接流，严格提取 `Context Template` 和 `Instruct Mode` 格式。
 
-### 阶段 3：基于预设的上下文组装与宏引擎 (Context Assembly & Macro Engine)
-- **业务需求**：严格按照【阶段 2】读取到的“酒馆预设 (Preset)”规则，将角色设定、触发的世界书条目、聊天记录进行“格式化缝合”，最终输出 API 请求数组。并在拼装和渲染流式数据时执行“宏指令”。
+### 阶段 3：基于 `pi` 框架的上下文拦截与宏引擎 (Context Interception & Macro Engine)
+- **业务需求**：利用 `pi-agent-core` 的 `transformContext` 钩子，将阶段 2 解析到的酒馆设定“隐形”地注入到每次发送给大模型的 Message 流中。
 - **目标**：
-  - **世界书触发引擎**：实现一个包含深度 (Depth) 和关键字 (BM25/正则) 的扫描器，决定哪条世界书被激活。
-  - **基于预设的组装管道 (`PromptBuilder.ts`)**：将激活的数据送入预设管道，按照 `[INST]` 或各种设定的 Prompt 占位符进行拼接，绝不搞硬编码。
-  - **独立宏引擎 (`MacroEvaluator.ts`)**：精准拦截并处理 `{{user}}`, `{{char}}`, `{{setvar}}`, `{{getvar}}` 等基础宏。支持将状态改变（如 HP 扣除）通过 EventBus 同步给前端的 Vue 游戏 UI。
+  - **世界书触发器 (Worldbook Activator)**：在 `transformContext` 中扫描最近的上下文文本，激活对应的世界书条目并按深度(Depth)组装。
+  - **宏引擎 (MacroEvaluator)**：在预处理阶段拦截并替换 `{{user}}`, `{{char}}`, `{{getvar}}` 等宏。
+  - **系统交互与状态更新 (JSON-Patch / Tools 双轨制)**：虽然 `pi` 框架原生提供了降维打击般的强类型 `AgentTool` 工具调用能力，但考虑到许多用户使用的**公益中转 API 会封杀 Tool Calling** 以防止 Coding Agent 滥用份额，我们的核心状态更新（如扣血、切换场景）必须兼容 **文本流内联 JSON-Patch 解析**（类似原生 MVU 的做法）。即优先使用 Tool Calling，若环境不支持，则回退为在 System Prompt 中教导模型输出特定格式的 JSON/正则文本块并在 `transformContext` 或输出后拦截。
 
 ### 阶段 4：沉浸式游戏架构演进 (Game Architecture Evolution)
 - 将跑通的、支持工具调用与复杂宏的无头通信与数据解析管线，移植并入真正的方舟游戏前端（如与剧情播放器 `analyzerCore.ts` 深度结合），实现真正的“独立一体化同人游戏”。

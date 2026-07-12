@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ark Headless Sandbox</title>
   
-  <!-- 因为项目原本是酒馆插件，Webpack 把 Vue 设置成了 external（不打包进代码，依赖外部环境提供） -->
-  <!-- 在独立运行模式下，我们需要手动从 CDN 引入全局的 Vue 3 -->
+  <!-- 因为项目原本是酒馆插件，Webpack 把 Vue 设置成了 external -->
+  <!-- 在独立运行模式下，我们需要手动从 CDN 引入全局依赖 -->
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
   <style>

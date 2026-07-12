@@ -78,6 +78,8 @@
     "webpack-obfuscator": "^3.6.1"
   },
   "dependencies": {
+    "@earendil-works/pi-agent-core": "^0.80.6",
+    "@earendil-works/pi-ai": "^0.80.6",
     "@pixi/react": "8.0.0-beta.25",
     "@vueuse/components": "^14.3.0",
     "@vueuse/core": "^13.9.0",
