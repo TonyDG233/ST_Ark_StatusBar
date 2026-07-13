@@ -1,4 +1,4 @@
-# SillyTavern 逆向与架构迁移笔记 (Reverse Engineering Notes)
+﻿# SillyTavern 逆向与架构迁移笔记 (Reverse Engineering Notes)
 
 > **创建目的**：此文档作为长期逆向探索的“活文档（Living Document）”。用于梳理 SillyTavern / TauriTavern 中庞大且混乱的核心上下文组装、宏替换、世界书触发等逻辑。
 > **协作红线**：每次深入逆向后，必须更新此文档，清晰标注“哪些必须完整迁移”、“哪些可以取舍或用新框架能力替代”、“哪些可以直接忽略”。绝不允许在核心机制上偷懒跳过。
@@ -57,10 +57,36 @@
   - `src/script.js` 里的 **`substituteParams()`**: **【需提取】** 早期基于正则的简单无脑字符串替换。
   - `src/scripts/macros/engine/MacroEngine.js` 里的 **`MacroEngine.evaluate()`**: **【需深入评估】** 新版处理带逻辑控制流的宏 AST 引擎。
 
-✅ **【Pi 框架迁移策略: 取舍与降维打击】**
-- **静态宏 (如 {{char}})**: 在 `transformContext` 阶段直接替换文本。
-- **系统交互宏 (如改血量、改好感、切场景)**: **【战略性重构】** 原版是通过宏输出特定文本然后再用正则去抓取状态改变。在 `pi` 框架中，我们将这些彻底替换为 **强类型的 `AgentTool` (工具调用) + JSON-Patch 解析双轨制**。让大模型直接通过标准工具接口修改 AVG 状态机，告别脆弱的正则抓取。
+✅ **【Pi 框架迁移策略: 绝对向下兼容】**
+必须 100% 完美向下兼容酒馆现有的资产，包括包含 `{{setvar}}`, `{{getvar}}`, `{{#if}}` 等极其复杂的宏的预设和角色卡。
+
+- **📍 数据来源**: 真实的导出预设 JSON（如 `【小猫之神】3.10.json`）。
+- **📊 核心发现**:
+  - 真正的**上下文模板 (Context Template)** 是由 `entries` 字典定义的。每个 entry 拥有 `content`, `position`, `role`, 和 `depth`。`depth` 是排序的唯一标准。
+  - **宏 (Macros)** 是直接写在 `content` 字符串里的花括号语法。
+  - **外置正则插件** 是预设中的 `regex_scripts` 数组，负责文本清洗。
+
+在 `pi` 框架的 `transformContext` 拦截器中，构建向下兼容的流水线：
+1. **Worldbook Scanner**：纯文本比对，选出被激活的世界书条目。
+2. **Macro & Regex Engine**：完整移植 `substituteParams`，对角色设定和系统提示词进行宏和正则替换。大模型接收到的将是被宏引擎“洗”过的纯净文本。
+3. **Prompt Assembler**：严格读取预设中的 `entries`，将其映射为 `AgentMessage[]`，并**严格按照 `depth` 重新排序 (sort)**。
+4. **Tool Calling 融合**：对于改变环境状态的宏（如 `{{setvar}}`），在拦截阶段进行解析并注入 System Prompt。同时引入原生 `AgentTool`，实现新旧机制的完美共存。
+
+## 6. 从酒馆助手 API 反推的底层基建缺失 (Infrastructure Gaps)
+通过侧面观察酒馆助手 (@types/function) 暴露的便捷 API，我们明确了：由于 Headless Core 必须**完全脱离酒馆独立运行**，酒馆助手封装的黑盒功能全部转化为我们必须从零重建的底层基建。
+
+为了跑通 导入数据 -> (pi接管上下文) -> 发送消息 -> 更新状态 -> 循环 的基础业务闭环，必须在 src/sandbox_headless_core 中重构以下三大模块：
+
+1. **彻底独立的数据解析层 (Data Ingestion)**
+   - *观察*: 原版依赖 importRawCharacter 等 API 隐藏了文件解码过程。
+   - *重构目标*: 必须手写底层解析器（对应阶段2），直接读取磁盘上的 PNG (	EXt 数据块) 和 JSON 预设文件，并使用 Zod 进行强类型反序列化，转化为标准的 TypeScript 内存实体。
+2. **会话状态与持久化层的重建 (State & Persistence)**
+   - *观察*: 原版依赖 getChatMessages 和 getVariables 维护对话历史和状态。
+   - *重构目标*: 必须实现一个独立于浏览器的内存级“运行时上下文管理器 (Runtime Context Manager)”，自己维护 AgentMessage[] 的对话树流转，并管理 {{getvar}} 及 Tool Calling 所需的全局/角色变量字典。
+3. **主生成管线的全盘接管 (Core Generation Pipeline)**
+   - *观察*: 原版助手用一个黑盒 generate() 包揽了一切，这会绕过 pi 框架，导致我们无法使用现代原生的 Tool Calling。
+   - *重构目标*: 坚决弃用原版 generate。将上文提到的“预设深度排序”、“世界书扫描”和“宏清洗”彻底解耦为纯算法函数，全部塞进 pi 的 	ransformContext 钩子中，让 pi-agent-core 完全接管大模型通信。
 
 ---
-*上次更新时间：2026-07-12 22:33*
-*当前逆向进度：已锚定关键文件与函数坐标，准备进入源码逐行提取阶段。*
+*上次更新时间：2026-07-13 14:23*
+*当前逆向进度：已从助手 API 边界反推出无头核心所需的三大基建（解析、状态、生成管线），为后续逐个拆分重构任务指明了具体方向。*
