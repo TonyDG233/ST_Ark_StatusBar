@@ -142,10 +142,10 @@ export const v2DataWorldInfoEntryExtensionInfosSchema = z.object({
   group_weight: z.number(),
   prevent_recursion: z.boolean(),
   delay_until_recursion: z.boolean(),
-  scan_depth: z.number(),
-  match_whole_words: z.boolean(),
+  scan_depth: z.number().nullable().optional(),
+  match_whole_words: z.boolean().nullable().optional(),
   use_group_scoring: z.boolean(),
-  case_sensitive: z.boolean(),
+  case_sensitive: z.boolean().nullable().optional(),
   automation_id: z.string(),
   role: z.number(),
   vectorized: z.boolean(),
@@ -176,7 +176,7 @@ export type v2DataWorldInfoEntry = z.infer<typeof v2DataWorldInfoEntrySchema>;
 
 export const v2WorldInfoBookSchema = z.object({
   name: z.string(),
-  entries: z.record(z.string(), v2DataWorldInfoEntrySchema),
+  entries: z.array(v2DataWorldInfoEntrySchema),
 }).passthrough();
 export type v2WorldInfoBook = z.infer<typeof v2WorldInfoBookSchema>;
 
@@ -184,9 +184,9 @@ export type v2WorldInfoBook = z.infer<typeof v2WorldInfoBookSchema>;
 // --- 以下为 V2 角色卡 (Character Card) 的解析契约 ---
 
 export const v2CharDataExtensionInfosSchema = z.object({
-  talkativeness: z.number(),
-  fav: z.boolean(),
-  world: z.string(),
+  talkativeness: z.union([z.number(), z.string()]).optional(),
+  fav: z.boolean().optional(),
+  world: z.string().optional(),
   depth_prompt: z.object({
     depth: z.number(),
     prompt: z.string(),
@@ -206,17 +206,17 @@ export const v2CharDataSchema = z.object({
   name: z.string(),
   description: z.string(),
   character_version: z.string().optional(),
-  personality: z.string(),
-  scenario: z.string(),
-  first_mes: z.string(),
-  mes_example: z.string(),
-  creator_notes: z.string(),
-  tags: z.array(z.string()),
-  system_prompt: z.string(),
-  post_history_instructions: z.string(),
-  creator: z.string(),
-  alternate_greetings: z.array(z.string()).default([]),
+  personality: z.string().optional().default(''),
+  scenario: z.string().optional().default(''),
+  first_mes: z.string().optional().default(''),
+  mes_example: z.string().optional().default(''),
+  creator_notes: z.string().optional().default(''),
+  tags: z.array(z.string()).optional().default([]),
+  system_prompt: z.string().optional().default(''),
+  post_history_instructions: z.string().optional().default(''),
+  creator: z.string().optional().default(''),
+  alternate_greetings: z.array(z.string()).optional().default([]),
   character_book: v2WorldInfoBookSchema.optional().nullable(),
-  extensions: v2CharDataExtensionInfosSchema,
+  extensions: v2CharDataExtensionInfosSchema.optional().default({}),
 }).passthrough();
 export type v2CharData = z.infer<typeof v2CharDataSchema>;

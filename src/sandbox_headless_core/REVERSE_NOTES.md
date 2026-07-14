@@ -105,6 +105,23 @@
 4. **引擎中立性法则 (Dumb Pipe)**：
    引擎从不凭空发明 `<system_context>`、`<interaction_record>` 或 pseudo-roles (如 `=<role>user`) 这样的 XML 格式标签。它们全部是作者手动写死在提示词 `content` 里的纯文本。引擎只需做好“毫无感情的搬运与合并 Squash”工作，禁止强加预设。
 
+## 8. V2/V3 角色卡 (Character Card) 解析的底层暗坑与结构发现
+在编写脱离浏览器 API 的底层 PNG 解析器 (`CharacterParser.ts`) 时，我们使用 `Ark.png` (长达 18000 字的首次对话、56条滑动分支、内嵌 840 条目的世界书) 进行了压力测试。发现了以下与原生接口声明严重不符的数据结构真相：
+
+1. **V3 规范外层包装壳 (The Wrapper Trap)**：
+   原生酒馆保存的现代角色卡数据（藏于 PNG 的 `chara` 或 `ccv3` 的 Base64 编码块中），并不是直接暴露 `v2CharData` 的扁平结构，而是将其隐藏在一个**包装壳 (Wrapper)** 中：
+   ```json
+   {
+     "spec": "chara_card_v2", // 或者是 "chara_card_v3"
+     "data": { /* 真正的 v2CharData 结构在这里！ */ }
+   }
+   ```
+   **大坑**：包装壳的首层包含了向后兼容的假字段（如简陋的 `name` 和 `description`），如果没有做判断直接解析最外层，就会导致丰富的 V2 扩展数据（特别是 `alternate_greetings` 分支和内嵌的世界书 `character_book`）彻底丢失。
+2. **世界书序列化的 Record 转 Array 现象**：
+   在 `@types/iframe/exported.sillytavern.d.ts` 中，世界书的 `entries` 被定义为 `Record<string, Entry>` (键值对字典)。但在实际导出落盘到 JSON/PNG 内部时，原版引擎会将其序列化为一个**数组 (`Array<Entry>`)**。这就要求底层解析器的 Zod 契约必须向后兼容这种落盘格式的变化，不能生搬硬套内存接口。
+3. **松散的扩展字段类型容错**：
+   实战数据证明，像 `talkativeness` 这样的数值字段，以及很多世界书扫描的配置开关 (如 `scan_depth`、`match_whole_words`)，在实际导出时经常会变成字符串 (如 `"0.5"`) 甚至是 `null`。数据防腐层必须使用 `.nullable().optional()` 和 `.union([z.number(), z.string()])` 来提供极高的容错性。
+
 ---
-*上次更新时间：2026-07-14 17:05*
-*当前逆向进度：已彻底打通了 数据读取 -> 线性骨架映射 -> 深度插队 -> 压榨合并 的预设大盘管线。接下来需攻克基于正则表达式和占位符的 Macro (宏) 解析引擎。*
+*上次更新时间：2026-07-14 17:35*
+*当前逆向进度：已彻底打通了 数据读取 -> 线性骨架映射 -> 深度插队 -> 压榨合并 的预设大盘管线。同时完成了 10MB 级复杂方舟角色卡（含巨型内嵌世界书与海量分支）的底层脱壳解析。接下来需攻克基于正则表达式和占位符的 Macro (宏) 解析引擎，或查阅 `TauriTavern` 源码逆向世界书的蓝绿灯扫描触发展发。*
