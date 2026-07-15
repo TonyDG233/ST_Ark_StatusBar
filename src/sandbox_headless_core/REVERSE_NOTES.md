@@ -122,6 +122,40 @@
 3. **松散的扩展字段类型容错**：
    实战数据证明，像 `talkativeness` 这样的数值字段，以及很多世界书扫描的配置开关 (如 `scan_depth`、`match_whole_words`)，在实际导出时经常会变成字符串 (如 `"0.5"`) 甚至是 `null`。数据防腐层必须使用 `.nullable().optional()` 和 `.union([z.number(), z.string()])` 来提供极高的容错性。
 
+## 9. 世界书激活器 (Worldbook Scanner) 的终极工作流解密
+通过对原版 `checkWorldInfo` 及 `WorldInfoBuffer` 类的逐行反编译，我们拆解出了世界书扫描系统的所有微观控制开关与过滤防线。这是一个精巧的过滤管道，绝不能在重构中被阉割或简化。
+
+其完整的全尺寸工作流被分解为以下 6 个阶段执行：
+
+### 阶段 1：预处理与上下文注入 (Pre-processing)
+*   **Include Names (开关)**：如果启用了“包含角色名称”，原版扫描器并不是单独把名字提出来匹配，而是在构建扫描的大海 (Haystack / `depthBuffer`) 时，把每一条文本强行变为 `${x.name}: ${x.mes}`。这样角色名称本身就会成为合法触发点。
+
+### 阶段 2：粗筛与绝对过滤 (Pre-filtering)
+在这个阶段，如果不满足条件，条目直接抛弃：
+1.  **触发类型 (Triggers)**：只在匹配的生成类型 (如 normal, continue) 触发。
+2.  **绑定隔离 (Character/Tag Filters)**：条目会判定当前的对话角色名字或标签是否在包含/排除名单中。如果被排除，直接判定死亡。
+3.  **递归深度阀门 (Recursion Delay & Exclude)**：包含 `preventRecursion` (阻止自身的内容被再次扫描), `excludeRecursion` (在递归循环中直接装死), 以及 `delayUntilRecursion` (硬性要求必须在第 N 层扫描时才允许出场)。
+4.  **冷却与延迟限制 (Cooldown & Delay)**：计算当前聊天消息数 `chat.length`，若在冷却期内或延迟层数不够，禁止触发。
+
+### 阶段 3：强制激活与豁免 (Force Activation)
+1.  **黏性 (Sticky)**：如果一个条目因为触发或常驻，被标记为了 Sticky，那么它在接下来的指定回合内会**无视一切触发词、优先级甚至是概率骰子 (Probability)**，永远被强制激活。
+2.  **常驻 (Constant) 与 外部修饰符 (`@@activate`)**：强制激活且不需要过匹配阶段。
+
+### 阶段 4：宏展开与关键字匹配 (Macro & Matching)
+**核心大坑：** 匹配之前，系统必须先用宏引擎 (Macro Engine) 去清洗触发词 (`substituteParams(key)`)。这意味着带有 `{{char}}` 等动态触发词的条目会在此时被展开真实名字。
+*   **匹配算法**：支持纯正则、大小写转换。当使用精确匹配 (`matchWholeWords`) 时，如果是单词会用边界正则 `(?:^|\W)关键词(?:$|\W)`；如果是**多个词（带空格），则直接退化为简单的 `includes` 子串匹配**。
+*   **四象限逻辑 (`selectiveLogic`)**：对于次要关键字，分为 AND_ANY (任意命中), NOT_ALL (并非全命中), NOT_ANY (全不命中), AND_ALL (全命中) 四种匹配条件。
+
+### 阶段 5：权重死斗与概率检定 (Inclusion Groups & Probability)
+所有在第 4 阶段匹配存活下来的条目，将在落盘前进行最后两道“大清洗”：
+1.  **同组死斗 (Inclusion Groups)**：相同 `group` 名称的条目会被集中。如果有霸权标记 (`groupOverride`) 则直接吃鸡。否则所有条目将根据 `groupWeight` 放入奖池，进行 `Math.random() * totalWeight` 随机抽奖，**同组只会活下来一个**。
+2.  **命运之骰 (Probability)**：对每一个存活下来的条目（除非是 Sticky 状态），执行一次 `Math.random() * 100 <= entry.probability` 的判定。只有丢出大成功的条目，才能被塞进最后的输出列表。
+
+### 阶段 6：排序与发车 (Sorting & Positioning)
+存活的最终赢家，进行最终的 `Macro` 替换生成 `content`，然后：
+*   **同层排序**：所有条目根据 `b.order - a.order` 降序重排。
+*   **阵地分发**：根据 `position` 使用 `unshift` 推入各自深度的栈内（如 Before、After、ANTop、AtDepth、EMEntries 等），最终交由 `PresetAssembler` 执行深度的拼接！
+
 ---
-*上次更新时间：2026-07-14 17:35*
-*当前逆向进度：已彻底打通了 数据读取 -> 线性骨架映射 -> 深度插队 -> 压榨合并 的预设大盘管线。同时完成了 10MB 级复杂方舟角色卡（含巨型内嵌世界书与海量分支）的底层脱壳解析。接下来需攻克基于正则表达式和占位符的 Macro (宏) 解析引擎，或查阅 `TauriTavern` 源码逆向世界书的蓝绿灯扫描触发展发。*
+*上次更新时间：2026-07-15 17:35*
+*当前逆向进度：已彻底打通了 数据读取 -> 线性骨架映射 -> 深度插队 -> 压榨合并 的预设大盘管线。同时完成了 10MB 级复杂方舟角色卡（含巨型内嵌世界书与海量分支）的底层脱壳解析。TauriTavern 的世界书扫描器黑盒已被拆解为 6 大阶段。接下来需攻克基于正则表达式和占位符的 Macro (宏) 解析引擎，为世界书的管线提供清洗服务。*
