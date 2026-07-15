@@ -220,3 +220,80 @@ export const v2CharDataSchema = z.object({
   extensions: v2CharDataExtensionInfosSchema.optional().default({}),
 }).passthrough();
 export type v2CharData = z.infer<typeof v2CharDataSchema>;
+
+// ============================================================================
+// 世界书扫描器契约 (Worldbook Scanner I/O)
+// ============================================================================
+
+export type WIPositionType = 
+    | 'before' 
+    | 'after' 
+    | 'ANTop' 
+    | 'ANBottom' 
+    | 'atDepth' 
+    | 'EMTop' 
+    | 'EMBottom' 
+    | 'outlet';
+
+// 记录当前时效性数据的类型 (外部按需保存)
+export interface TimedEffectMetadata {
+    hash: number;
+    start: number; // chat index 触发时刻
+    end: number;   // 结束时刻
+    protected: boolean;
+}
+
+export interface TimedEffectsState {
+    sticky: Record<string, TimedEffectMetadata>;
+    cooldown: Record<string, TimedEffectMetadata>;
+    delay: Record<string, TimedEffectMetadata>;
+}
+
+export interface WorldbookScannerSettings {
+    world_info_include_names: boolean;
+    world_info_case_sensitive: boolean;
+    world_info_match_whole_words: boolean;
+    world_info_use_group_scoring: boolean;
+    // 不包含 budget/token，因其属组装器职责
+}
+
+// 扫描器入口契约
+export interface WorldbookScannerInput {
+    // Stage 0 组装好的扁平化原始条目池 (自带 world name)
+    entries: (z.infer<typeof v2DataWorldInfoEntrySchema> & { world: string })[];
+    
+    // 聊天上下文 (用于 IncludeNames 处理和冷却计算)
+    chatHistory: { name?: string; mes: string; is_system?: boolean }[];
+    
+    // 时效性状态
+    timedEffects: TimedEffectsState;
+    
+    // 系统设置
+    settings: WorldbookScannerSettings;
+    
+    // 全局上下文数据 (如 Persona)
+    globalScanData: {
+        trigger?: string;
+        personaDescription?: string;
+        scenario?: string;
+        // ...
+    };
+}
+
+// 扫描器出口契约
+export interface WorldbookScannerOutput {
+    // 成功通过 6 阶段过滤管道存活下来的条目，按照 Position 进行阵地分发
+    activated: {
+        before: z.infer<typeof v2DataWorldInfoEntrySchema>[];
+        after: z.infer<typeof v2DataWorldInfoEntrySchema>[];
+        atDepth: z.infer<typeof v2DataWorldInfoEntrySchema>[];
+        ANTop: z.infer<typeof v2DataWorldInfoEntrySchema>[];
+        ANBottom: z.infer<typeof v2DataWorldInfoEntrySchema>[];
+        EMTop: z.infer<typeof v2DataWorldInfoEntrySchema>[];
+        EMBottom: z.infer<typeof v2DataWorldInfoEntrySchema>[];
+        outlet: z.infer<typeof v2DataWorldInfoEntrySchema>[];
+    };
+    
+    // 刷新后的时效性状态 (如果有条目触发了 sticky/cooldown，这里会更新)
+    newTimedEffects: TimedEffectsState;
+}
