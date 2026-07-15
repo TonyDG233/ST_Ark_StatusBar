@@ -173,6 +173,26 @@
 *   **绿灯 (Triggered / `constant: false`)**：这是绝大多数世界书条目的状态。它们必须通过 `keys` / `secondary_keys` 以及四象限逻辑匹配后，才能被判定为激活。
 *   **蓝灯 (Constant / `constant: true`)**：这些是**常驻激活条目**。在 `Stage 3` 中，只要遇到 `constant: true` 的条目，扫描器会直接将其推入存活数组（`activatedEntries.push(e)`），**彻底绕过 `Stage 4` 的关键词宏展开和匹配检测**，无论当前聊天中有没有触发词都会生效。
 
+## 10. 宏引擎 (Macro Engine) 的无头化剥离与复刻
+通过分析顶级预设 (如 Izumi Reload) 的使用数据，原版的“实验性 AST 宏引擎”使用率极低，预设极度依赖旧版正则引擎 (`substituteParamsLegacy`) 中的变量读写 (`getvar`/`setvar`)、随机数 (`roll`/`random`) 以及注释 (`//`)。
+我们在 Headless Core 中彻底抛弃了 DOM 和 AST 依赖，一比一复刻了旧版的正则链式清洗管线 `MacroEngine`。
+
+### 宏替换的应用节点 (TODO)
+*   **世界书 (Worldbook)**：在 Scanner 的 Stage 4 (关键词匹配前)，必须使用宏引擎对 `key` 和 `secondary_keys` 进行展开。落盘发车前，对 `content` 进行展开。
+*   **预设 (Preset)**：在 `PresetAssembler` 拼装完成输出最终字符串前，必须进行一次全盘的宏展开，清洗掉 `{{char}}`, `{{user}}`, `{{persona}}` 等占位符。
+
+## 11. 玩家人设 (Persona) 的“薛定谔”插队机制
+玩家人设（Persona）在原版架构中具有双重存在形式，由其设定的 `position` 决定：
+*   **路径 A (宏插值 / `IN_PROMPT`)**：当位置设为 0 时，作为环境变量传入 `MacroEngine`。预设中的 `{{persona}}` 宏会将此内容原地展开。
+*   **路径 B (世界书化 / `AT_DEPTH` 等)**：当设定了具体的深度 (Depth) 或附加位置 (AN) 时，Persona 将不再通过宏展开，而是**伪装成一条蓝灯常驻的 世界书条目 (Worldbook Entry)**，被赋予 `constant: true`，汇入 WorldbookScanner 的 0 阶段，与其他条目一起经历排序和阵地分发。
+
+## 12. 下一步架构规划：统一上下文组装器 (Session Context Builder)
+目前各个无头解析器（Character, Worldbook, Preset, Macro）各自为战。为了彻底脱离酒馆前端的全局变量泥潭，实现真正意义上的独立游戏/分离渲染服务端，我们必须建立一个统一的数据入口/门面引擎 (`ContextBuilder`)。
+
+**明日 TODO**：
+*   构建统一的入参接口 `SessionConfig`，接收：角色卡路径、预设路径、玩家人设档案 (Persona)、历史聊天数组等零散配置。
+*   实现一键化管线：加载解析 -> 世界书/Persona融合与筛选 -> 预设组装 -> 宏替换 -> 输出直接可以发送给 LLM 的干净 API Payload。
+
 ---
-*上次更新时间：2026-07-15 19:15*
+*上次更新时间：2026-07-15 20:25*
 *当前逆向进度：已彻底打通了 数据读取 -> 线性骨架映射 -> 深度插队 -> 压榨合并 的预设大盘管线。同时完成了 10MB 级复杂方舟角色卡（含巨型内嵌世界书与海量分支）的底层脱壳解析。TauriTavern 的世界书扫描器黑盒已被拆解为 6 大阶段。接下来需攻克基于正则表达式和占位符的 Macro (宏) 解析引擎，为世界书的管线提供清洗服务。*
