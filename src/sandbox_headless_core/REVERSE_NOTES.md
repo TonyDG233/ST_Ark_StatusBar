@@ -125,7 +125,15 @@
 ## 9. 世界书激活器 (Worldbook Scanner) 的终极工作流解密
 通过对原版 `checkWorldInfo` 及 `WorldInfoBuffer` 类的逐行反编译，我们拆解出了世界书扫描系统的所有微观控制开关与过滤防线。这是一个精巧的过滤管道，绝不能在重构中被阉割或简化。
 
-其完整的全尺寸工作流被分解为以下 6 个阶段执行：
+原版核心代码(`world-info.js`)中的 `checkWorldInfo` 长达 570 行，`WorldInfoTimedEffects` 长达 316 行，`WorldInfoBuffer` 长达 277 行。合计超过 1100 行的高密度业务逻辑必须被分解为以下独立的执行阶段：
+
+### 阶段 0：作用域搜集与策略排序 (Scope & Strategy)
+在进入扫描之前，系统必须先拉取 4 个维度的世界书，并将它们按特定策略融合成一个扁平的待扫描数组：
+1. **Chat Lore (聊天书)**：与当前聊天绑定的世界书（绝对优先）。
+2. **Persona Lore (人设书)**：与当前玩家 Persona 绑定的世界书。
+3. **Character Lore (角色书)**：读取角色卡 `extensions.world` 以及关联的 `extraBooks` 附加书。
+4. **Global Lore (全局书)**：被用户在界面中勾选开启的全局世界书（对应 `selected_world_info` 数组）。
+*   **组装策略 (`world_info_character_strategy`)**：支持 3 种模式（混合排序 `evenly`，角色优先 `character_first`，全局优先 `global_first`）。聊天书与人设书始终强制排在最前面。
 
 ### 阶段 1：预处理与上下文注入 (Pre-processing)
 *   **Include Names (开关)**：如果启用了“包含角色名称”，原版扫描器并不是单独把名字提出来匹配，而是在构建扫描的大海 (Haystack / `depthBuffer`) 时，把每一条文本强行变为 `${x.name}: ${x.mes}`。这样角色名称本身就会成为合法触发点。
@@ -155,6 +163,10 @@
 存活的最终赢家，进行最终的 `Macro` 替换生成 `content`，然后：
 *   **同层排序**：所有条目根据 `b.order - a.order` 降序重排。
 *   **阵地分发**：根据 `position` 使用 `unshift` 推入各自深度的栈内（如 Before、After、ANTop、AtDepth、EMEntries 等），最终交由 `PresetAssembler` 执行深度的拼接！
+
+### 阶段 7：落盘结算 (Finalization)
+*   **Token 预决算**：UI 层与核心层依赖于 `getTokenCountAsync` 调用所选 API 的计算器（如果配置为 `openai`，会回退到内置的 tiktoken 近似算法），从而扣除世界书的 `world_info_budget` 预算。
+*   **UID 生成**：如果在运行期间需要创建或注入新条目，原版通过一个硬编码的扫描函数 (`getFreeWorldEntryUid`) 遍历 0 到 1,000,000，寻找第一个未被占用的数字分配为 UID。
 
 ---
 *上次更新时间：2026-07-15 17:35*
