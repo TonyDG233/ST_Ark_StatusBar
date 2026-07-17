@@ -181,18 +181,62 @@
 *   **世界书 (Worldbook)**：在 Scanner 的 Stage 4 (关键词匹配前)，必须使用宏引擎对 `key` 和 `secondary_keys` 进行展开。落盘发车前，对 `content` 进行展开。
 *   **预设 (Preset)**：在 `PresetAssembler` 拼装完成输出最终字符串前，必须进行一次全盘的宏展开，清洗掉 `{{char}}`, `{{user}}`, `{{persona}}` 等占位符。
 
-## 11. 玩家人设 (Persona) 的“薛定谔”插队机制
-玩家人设（Persona）在原版架构中具有双重存在形式，由其设定的 `position` 决定：
-*   **路径 A (宏插值 / `IN_PROMPT`)**：当位置设为 0 时，作为环境变量传入 `MacroEngine`。预设中的 `{{persona}}` 宏会将此内容原地展开。
-*   **路径 B (世界书化 / `AT_DEPTH` 等)**：当设定了具体的深度 (Depth) 或附加位置 (AN) 时，Persona 将不再通过宏展开，而是**伪装成一条蓝灯常驻的 世界书条目 (Worldbook Entry)**，被赋予 `constant: true`，汇入 WorldbookScanner 的 0 阶段，与其他条目一起经历排序和阵地分发。
+## 11. 玩家人设 (Persona) 与深度插队提示词 (IN_CHAT Injections) 机制的终极揭秘
+通过对 TauriTavern 源码中 `populationInjectionPrompts` 算法的深度逆向，我们推翻了早先关于“常驻世界书条目化”的猜测，探明了原版扩展提示词（人设、深度插队、深度世界书）真正的运行法则。这不仅是一个占位符，而是一个按【深度 + 角色】多重循环并高度整合的动态插队系统：
 
-## 12. 下一步架构规划：统一上下文组装器 (Session Context Builder)
-目前各个无头解析器（Character, Worldbook, Preset, Macro）各自为战。为了彻底脱离酒馆前端的全局变量泥潭，实现真正意义上的独立游戏/分离渲染服务端，我们必须建立一个统一的数据入口/门面引擎 (`ContextBuilder`)。
+1. **基本类型分类 (Persona Options)**：
+   * `IN_PROMPT (0)`：作为纯文本占位宏，传入 `MacroContext.persona`，由预设中的 `{{persona}}` 标签执行替换。
+   * `TOP_AN (2) / BOTTOM_AN (3)`：在组装期直接与 `authorsNote` (作者寄语) 拼接，融合成最终的 AN 内容。
+   * `AT_DEPTH (4)`：转换为独立的深度插队提示词（`extension_prompt_types.IN_CHAT`），被派往专属的深度插队管道。
 
-**明日 TODO**：
-*   构建统一的入参接口 `SessionConfig`，接收：角色卡路径、预设路径、玩家人设档案 (Persona)、历史聊天数组等零散配置。
-*   实现一键化管线：加载解析 -> 世界书/Persona融合与筛选 -> 预设组装 -> 宏替换 -> 输出直接可以发送给 LLM 的干净 API Payload。
+2. **多深度多角色插队清洗 (Injections Assembly)**：
+   * 原版通过外层循环 `i`（从 0 遍历到最大扩展提示词深度），针对当前深度的提示词（包括用户人设、深度世界书条目等）进行拉取。
+   * 在当前深度 `i` 内部，系统将具有相同角色（`system`、`user`、`assistant`）的所有插队提示词，使用换行符 `\n` **粘合为一个 `jointPrompt`**。
+   * 随后，带有 `injected: true` 标记 of `jointPrompt` 被通过 `.splice` 强行塞入历史对话（`messages`）中对应的物理索引位置（`i` 深度）。
+
+## 12. 提示词后处理领域 (Prompt Post Processing) 与排版的物理隔离
+在进行物理分离的架构探索中，我们明确并理清了两个极其重要的核心领域职责：
+
+1. **`PresetAssembler` (纯排版布局) —— 空间结构排版**：
+   * 只负责将 `prompt_order` 线性骨架、Placeholders 以及聊天历史拼接成一个最原始、未被改写和合并的消息链，**不做任何角色强制转换或消息合并 (Squash)**。它保持最干净的结构输入与输出。
+2. **`PromptPostProcessor` (提示词后处理) —— 转换与适配**：
+   * 对应 TauriTavern 页面上的 API 提示词洗牌设置（Merge, Semi, Strict, Strict (with tools), Single 等 8 种模式）。
+   * 这是一个独立的微服务。它接收 `PresetAssembler` 的输出，执行严格的消息角色对换（Strict Downgrade，将非首条 system 转为 user 角色）以及同角色连续消息的 `Squash` 暴力物理粘合。
+3. **`ContextBuilder` (总编排生命周期)**：
+   * 属于主业务管线领域。统一协调数据源 $\rightarrow$ 处理人设 $\rightarrow$ 调用世界书扫描 $\rightarrow$ 驱动排版布局 $\rightarrow$ 执行后处理转换 $\rightarrow$ 终极宏洗涤 $\rightarrow$ 最终将结果完美转译输出给大模型，实现真正无副作用的纯净 Payload 输出。
+
+## 13. 用户输入 (User Input) 在生命周期中的时序与核心作用
+用户最新键入的消息（UserInput）并非仅仅在拼装最后一步被死板地塞入 `messages` 尾部。在无头核心拼装的整个生命周期中，它是**最活跃、也是更新状态机的核心源泉**：
+
+1. **扫描时序的 Haystack 核心**：
+   在调用 `WorldbookScanner` 时，用户最新的 `UserInput` 必须在扫描前与 `chatHistory` **当即合流**，共同组成扫描的“文本大海”。许多触发词正是要在 `UserInput` 里寻找匹配（如输入“源石虫”，立刻激活源石虫的世界书说明）。
+2. **变量状态更新与时限刷新**：
+   最新的 `UserInput` 一旦送入，系统应当优先在 `ContextBuilder` 侧更新 `MacroContext.lastUserMessage`、`lastMessage` 等会话变量。使得在拼合 Placeholders 以及进行终极宏替换（如 `{{lastUserMessage}}`）时，系统能够 100% 毫无时差地读取到最新状态。
+
+## 14. 大一统物理重构与开发规划
+为了防范“东一榔头西一棒槌”造成的逻辑遗漏、细节破坏与变量状态死锁。我们在此定死接下来的开发闭环步骤，保证一气呵成：
+
+* **第一步：契约设计 (`TavernData.ts`)**
+  * 定义玩家人设 Zod 契约 (`UserPersonasConfigSchema`)。
+  * 定义 8 种后处理模式的枚举。
+* **第二步：排版与后处理完全物理分离**
+  * 净化 `PresetAssembler.ts`，彻底移除尾部硬编码的降级和 Squash 合并。
+  * 编写 `PromptPostProcessor.ts`，提供 100% 还原 Rust 逻辑的 8 种后处理重组微服务。
+* **第三步：编写 ContextBuilder.ts (大一统主业务管线)**
+  * 串联：加载解析 -> 变量初始化与人设分发 -> 统合聊天历史与最新 UserInput 执行世界书扫描 -> 拼装原始骨架 -> 后处理转换 -> 全盘宏展开洗涤 -> 转译为 pi-ai 发包 Context。
+* **第四步：编写 testContextBuilderE2E.ts (最严苛集成测试验证)**
+  * 引入真正的 `Ark.png` 角色卡。
+  * 引入真实的 `Izumi Reload 0227` 预设。
+  * 引入玩家真实的“迷迭香” / “穿越者”人设 JSON 片段。
+  * 引入玩家最新 UserInput。
+  * 检验最终 Payload 结果，确认每一个变量（hp, mood, shield 等）在各 placeholders 间完美共享、深度插队绝对正确、多重降级与合并 Squash 100% 完美无瑕。
 
 ---
-*上次更新时间：2026-07-15 20:25*
-*当前逆向进度：已彻底打通了 数据读取 -> 线性骨架映射 -> 深度插队 -> 压榨合并 的预设大盘管线。同时完成了 10MB 级复杂方舟角色卡（含巨型内嵌世界书与海量分支）的底层脱壳解析。TauriTavern 的世界书扫描器黑盒已被拆解为 6 大阶段。接下来需攻克基于正则表达式和占位符的 Macro (宏) 解析引擎，为世界书的管线提供清洗服务。*
+*上次更新时间：2026-07-17 19:20*
+*当前逆向进度：已打通本地数据读取 -> 线性骨架映射 -> 深度插队 -> 严格降级与消息 Squashing 合并 -> 变量动态清洗的大盘本地拼装管线。通过对比原版 Rust 的 `prompt_post_processing.rs` 源码，成功修复了 `name` 残留引起的 UUID 污染、`preset.prompts` 在静态定义层 `enabled` 误过滤导致的提示词丢失等三个底层排版 Bug。目前已在本地集成测试中成功输出了结构与占位符对齐的 Context 文本报告。
+
+## 📋 遗留防线与后续 TODO (Takeaways)
+1. **真实 API 接口与发包验证**：虽然本地 Context 排版拼装已经成功对齐，但仍需将排版结果真正接入 API 请求或 Mock 发包层，在真实的大模型请求/响应周期中验证此无头引擎输出包体的可用性与稳定性。
+2. **测试脚本用例扩展**：在后续的 E2E 测试中，继续引入更多边界条件和极其复杂的含有深层嵌套的 `{{setvar}}` 宏组合进行性能回压测试，验证非贪婪递归清洗在长文本下的抗回溯与防栈溢出表现。
+3. **多人物卡多重插队（Population）对齐**：当在多人聊天室（Group Chat）时，对多角色 `populationInjectionPrompts` 深度插队和 Role 优先级在 API Payloads 上的真实表现进行行级相似度验证。
+4. **对接真实同人独立游戏**：完全将此纯净 Headless Core 桥接作为底座，接入外置 RPG 渲染器，执行脱离酒馆的单机游玩概念验证。
