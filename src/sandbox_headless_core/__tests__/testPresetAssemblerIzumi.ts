@@ -5,6 +5,10 @@ import { PresetAssembler } from '../parsers/PresetAssembler';
 
 async function main() {
   const filePath = path.resolve(process.cwd(), 'references/杂项/Izumi Reload 0227 (1).json');
+  if (!fs.existsSync(filePath)) {
+    console.log('跳过旧测试');
+    return;
+  }
   const rawData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
   const parsed = ExportedPresetSchema.parse(rawData);
 
@@ -22,28 +26,10 @@ async function main() {
     }
   });
 
-  console.log('============= 最终组装的完整 Payload (Izumi 预设) =============\n');
-  if (context.systemPrompt) {
-    console.log('>>> systemInstruction (System Prompt) <<<');
-    console.log(context.systemPrompt);
-    console.log('--------------------------------------------------\n');
-  } else {
-    console.log('>>> systemInstruction (System Prompt) <<<');
-    console.log('(Empty - Due to use_sysprompt=false or squashing)');
-    console.log('--------------------------------------------------\n');
-  }
-
-  console.log('>>> contents (Chat History) <<<');
-  context.messages.forEach((msg, idx) => {
-    console.log(`[Message ${idx} | Role: ${msg.role}]`);
-    if (msg.role === 'user') {
-      console.log(msg.content);
-    } else {
-      const textBlock = (msg.content as any[]).find(c => c.type === 'text');
-      const text = textBlock ? textBlock.text : JSON.stringify(msg.content);
-      console.log(text);
-    }
-    console.log('--------------------------------------------------');
+  console.log('Izumi skeleton elements count:', context.length);
+  context.forEach((msg, idx) => {
+    console.log(`--- [${idx}] Role: ${msg.role}, Name: ${msg.name || 'None'} ---`);
+    console.log(msg.content.substring(0, 300) + (msg.content.length > 300 ? '...' : ''));
   });
 }
 

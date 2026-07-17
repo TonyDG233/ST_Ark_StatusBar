@@ -222,6 +222,41 @@ export const v2CharDataSchema = z.object({
 export type v2CharData = z.infer<typeof v2CharDataSchema>;
 
 // ============================================================================
+// 玩家人设 (User Personas) 配置契约
+// ============================================================================
+
+export const UserPersonaDescriptionSchema = z.object({
+  description: z.string(),
+  position: z.number().default(0), // 0: IN_PROMPT, 2: TOP_AN, 3: BOTTOM_AN, 4: AT_DEPTH, 9: NONE
+  depth: z.number().optional().default(2),
+  role: z.number().optional().default(0), // 0: SYSTEM, 1: USER, 2: ASSISTANT
+  lorebook: z.string().optional().nullable(),
+  title: z.string().optional(),
+}).passthrough();
+export type UserPersonaDescription = z.infer<typeof UserPersonaDescriptionSchema>;
+
+export const UserPersonasConfigSchema = z.object({
+  personas: z.record(z.string(), z.string()).default({}), // avatar_id -> display_name
+  persona_descriptions: z.record(z.string(), UserPersonaDescriptionSchema).default({}),
+  default_persona: z.string().nullable().optional()
+}).passthrough();
+export type UserPersonasConfig = z.infer<typeof UserPersonasConfigSchema>;
+
+// ============================================================================
+// 提示词后处理模式枚举
+// ============================================================================
+export enum PromptProcessingType {
+  None = 0,
+  Merge = 1,
+  MergeTools = 2,
+  Semi = 3,
+  SemiTools = 4,
+  Strict = 5,
+  StrictTools = 6,
+  Single = 7
+}
+
+// ============================================================================
 // 世界书扫描器契约 (Worldbook Scanner I/O)
 // ============================================================================
 

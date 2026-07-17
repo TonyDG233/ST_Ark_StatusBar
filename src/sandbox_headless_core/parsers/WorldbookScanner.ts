@@ -5,6 +5,7 @@ import {
     v2DataWorldInfoEntrySchema 
 } from '../types/TavernData';
 import { z } from 'zod';
+import { MacroEngine, MacroContext } from './MacroEngine';
 
 export type ScannerEntry = z.infer<typeof v2DataWorldInfoEntrySchema> & { world: string };
 
@@ -18,7 +19,7 @@ export class WorldbookScanner {
     /**
      * 运行扫描管线
      */
-    public scan(input: WorldbookScannerInput): WorldbookScannerOutput {
+    public scan(input: WorldbookScannerInput, macroEngine?: MacroEngine, macroCtx?: MacroContext): WorldbookScannerOutput {
         // Stage 1: 预处理 (Pre-processing) - Include Names 
         // 将聊天记录拍扁成字符串大海 (Haystack)
         const chatBuffer = this.buildChatBuffer(input.chatHistory, input.settings.world_info_include_names);
@@ -45,12 +46,20 @@ export class WorldbookScanner {
             // Stage 3: Force Activation (Sticky & Constant)
             const isSticky = newTimedEffects.sticky[uidKey] && input.chatHistory.length < newTimedEffects.sticky[uidKey].end;
             if (isSticky || e.constant) {
-                activatedEntries.push(e);
+                // 如果是 Constant/Sticky，世界书内容也需要进行一次终极宏替换
+                let content = e.content;
+                if (macroEngine && macroCtx) {
+                    content = macroEngine.evaluate(content, macroCtx);
+                }
+                activatedEntries.push({
+                    ...e,
+                    content
+                });
                 continue;
             }
 
             // Stage 4: 宏展开与关键字匹配 (Macro & Matching)
-            if (this.matchEntry(e, chatBuffer, input.settings)) {
+            if (this.matchEntry(e, chatBuffer, input.settings, macroEngine, macroCtx)) {
                 
                 // Stage 5: 概率判定 (Probability)
                 if (e.extensions.useProbability && e.extensions.probability !== undefined && e.extensions.probability < 100) {
@@ -59,7 +68,16 @@ export class WorldbookScanner {
                     }
                 }
                 
-                activatedEntries.push(e);
+                // 将匹配到的内容进行一次宏替换后再送入
+                let content = e.content;
+                if (macroEngine && macroCtx) {
+                    content = macroEngine.evaluate(content, macroCtx);
+                }
+                
+                activatedEntries.push({
+                    ...e,
+                    content
+                });
             }
         }
 
@@ -108,10 +126,7 @@ export class WorldbookScanner {
         return survivors;
     }
 
-    private matchEntry(entry: ScannerEntry, haystack: string, settings: WorldbookScannerInput['settings']): boolean {
-        // TODO: Macro Engine 宏展开
-        // 此处在匹配前应调用宏引擎 substituteParams(key)，清洗所有的 {{char}}, {{user}} 等宏
-        
+    private matchEntry(entry: ScannerEntry, haystack: string, settings: WorldbookScannerInput['settings'], macroEngine?: MacroEngine, macroCtx?: MacroContext): boolean {
         let primaryMatched = false;
         
         // Primary Keys Match
@@ -119,8 +134,9 @@ export class WorldbookScanner {
             primaryMatched = false; // 没有主关键词，除非 constant 否则不触发
         } else {
             for (let k of entry.keys) {
-                // TODO: 替换 k
-                if (this.matchKey(haystack, k, entry, settings)) {
+                // 如果传入了宏替换，优先对单个 key 进行宏展开
+                const expandedKey = (macroEngine && macroCtx) ? macroEngine.evaluate(k, macroCtx) : k;
+                if (this.matchKey(haystack, expandedKey, entry, settings)) {
                     primaryMatched = true;
                     break;
                 }
@@ -133,8 +149,8 @@ export class WorldbookScanner {
         if (entry.secondary_keys && entry.secondary_keys.length > 0) {
             let secondaryMatchesCount = 0;
             for (let sk of entry.secondary_keys) {
-                // TODO: 替换 sk
-                if (this.matchKey(haystack, sk, entry, settings)) {
+                const expandedSecondaryKey = (macroEngine && macroCtx) ? macroEngine.evaluate(sk, macroCtx) : sk;
+                if (this.matchKey(haystack, expandedSecondaryKey, entry, settings)) {
                     secondaryMatchesCount++;
                 }
             }

@@ -1,0 +1,67 @@
+{
+  "compilerOptions": {
+    "types": [
+      "jquery",
+      "jqueryui",
+      "lodash",
+      "toastr",
+      "type-fest",
+      "yaml",
+      "zod",
+      "node"
+    ],
+    "target": "ESNext",
+    "module": "commonjs",
+    "rootDir": ".",
+    "outDir": "dist",
+    "paths": {
+      "@/*": [
+        "./*"
+      ],
+      "@components/*": [
+        "./src/ARK_STATUSBAR/components/*"
+      ],
+      "@views/*": [
+        "./src/ARK_STATUSBAR/views/*"
+      ],
+      "@services/*": [
+        "./src/ARK_STATUSBAR/services/*"
+      ],
+      "@store/*": [
+        "./src/ARK_STATUSBAR/store/*"
+      ],
+      "@hooks/*": [
+        "./src/ARK_STATUSBAR/hooks/*"
+      ],
+      "@utils/*": [
+        "./src/ARK_STATUSBAR/utils/*"
+      ]
+    },
+    "moduleDetection": "auto",
+    "moduleResolution": "node",
+    "allowUmdGlobalAccess": true,
+    "allowSyntheticDefaultImports": true,
+    "strictBindCallApply": true,
+    "allowJs": true,
+    "checkJs": false,
+    "sourceMap": true,
+    "strict": true,
+    "jsx": "react-jsx",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "@types",
+    "src",
+    "*.d.ts"
+  ],
+  "exclude": [
+    "**/dist/**",
+    "**/node_modules/**",
+    "src/poc/**"
+  ]
+}

@@ -95,8 +95,9 @@ export class MacroEngine {
             { regex: /{{roll ([^}]+)}}/gi, replace: (_: any, formula: string) => this.rollDice(formula) },
             
             // ============ 变量操作指令区 ============
-            { regex: /{{setvar::([^:]+)::([^}]*)}}/gi, replace: (_: any, name: string, value: string) => { ctx.localVariables[name.trim()] = value; return ''; } },
-            { regex: /{{addvar::([^:]+)::([^}]+)}}/gi, replace: (_: any, name: string, value: string) => { this.addVar(ctx.localVariables, name, value); return ''; } },
+            // 🚨 对齐 TauriTavern：使用最严密的 [^:]+ 正则和惰性非贪婪匹配，杜绝内嵌 {{...}} 宏发生自截断与自碎尸
+            { regex: /{{setvar::([^:]+)::([\s\S]*?)}}/gi, replace: (_: any, name: string, value: string) => { ctx.localVariables[name.trim()] = value; return ''; } },
+            { regex: /{{addvar::([^:]+)::([\s\S]*?)}}/gi, replace: (_: any, name: string, value: string) => { this.addVar(ctx.localVariables, name, value); return ''; } },
             { regex: /{{incvar::([^}]+)}}/gi, replace: (_: any, name: string) => { this.incVar(ctx.localVariables, name, 1); return ''; } },
             { regex: /{{decvar::([^}]+)}}/gi, replace: (_: any, name: string) => { this.incVar(ctx.localVariables, name, -1); return ''; } },
             { regex: /{{getvar::([^}]+)}}/gi, replace: (_: any, name: string) => ctx.localVariables[name.trim()] || '' },
@@ -104,8 +105,8 @@ export class MacroEngine {
             { regex: /{{deletevar::([^}]+)}}/gi, replace: (_: any, name: string) => { delete ctx.localVariables[name.trim()]; return ''; } },
             
             // 全局变量操作
-            { regex: /{{setglobalvar::([^:]+)::([^}]*)}}/gi, replace: (_: any, name: string, value: string) => { ctx.globalVariables[name.trim()] = value; return ''; } },
-            { regex: /{{addglobalvar::([^:]+)::([^}]+)}}/gi, replace: (_: any, name: string, value: string) => { this.addVar(ctx.globalVariables, name, value); return ''; } },
+            { regex: /{{setglobalvar::([^:]+)::([\s\S]*?)}}/gi, replace: (_: any, name: string, value: string) => { ctx.globalVariables[name.trim()] = value; return ''; } },
+            { regex: /{{addglobalvar::([^:]+)::([\s\S]*?)}}/gi, replace: (_: any, name: string, value: string) => { this.addVar(ctx.globalVariables, name, value); return ''; } },
             { regex: /{{incglobalvar::([^}]+)}}/gi, replace: (_: any, name: string) => { this.incVar(ctx.globalVariables, name, 1); return ''; } },
             { regex: /{{decglobalvar::([^}]+)}}/gi, replace: (_: any, name: string) => { this.incVar(ctx.globalVariables, name, -1); return ''; } },
             { regex: /{{getglobalvar::([^}]+)}}/gi, replace: (_: any, name: string) => ctx.globalVariables[name.trim()] || '' },
@@ -184,7 +185,7 @@ export class MacroEngine {
             { regex: /{{reverse:(.+?)}}/gi, replace: (_: any, str: string) => Array.from(str).reverse().join('') },
             
             // ============ 最高频：删除大段注释 ============
-            { regex: /\{\{\/\/([\s\S]*?)\}\}/gm, replace: () => '' },
+            { regex: /\{\{\/\/([\s\S]*?)\}\}/g, replace: () => '' },
 
             // 日期与时间 (Mock: 返回当前服务器时间或固定格式)
             { regex: /{{time}}/gi, replace: () => new Date().toLocaleTimeString() },
