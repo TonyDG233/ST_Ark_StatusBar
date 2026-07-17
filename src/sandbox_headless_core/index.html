@@ -5,9 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ark Headless Sandbox</title>
   
-  <!-- 因为项目原本是酒馆插件，Webpack 把 Vue 设置成了 external -->
-  <!-- 在独立运行模式下，我们需要手动从 CDN 引入全局依赖 -->
-  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <!-- 因为项目原本是酒馆插件，Webpack 把一些库设置成了 external -->
+  <!-- 在独立运行的沙盒模式下，我们需要手动从 CDN 引入这些全局依赖以满足 Webpack externals 契约 -->
+  <script src="https://testingcf.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+  <script src="https://testingcf.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://testingcf.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+  <script src="https://testingcf.jsdelivr.net/npm/zod@3.23.8/lib/index.umd.js"></script>
+  <script>
+    // 🚨 黄金桥接：由于 Zod UMD 包在 window 上导出为 Zod/zod，而 Webpack external 期待的是小写 z（对齐酒馆原生环境）
+    // 我们必须手动将其桥接挂载到 window.z 上，防止 ReferenceError 崩溃！
+    window.z = window.Zod || window.zod;
+  </script>
+  <script src="https://testingcf.jsdelivr.net/npm/toastr@2.1.4/toastr.min.js"></script>
+  <link rel="stylesheet" href="https://testingcf.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css">
 
   <style>
     body {

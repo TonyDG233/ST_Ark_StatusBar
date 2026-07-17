@@ -1,10 +1,9 @@
-import * as fs from 'fs';
 import { 
   UserPersonasConfig, 
   PromptProcessingType,
-  WorldbookScannerSettings,
   v2DataWorldInfoEntry,
-  ExportedPresetSchema
+  ExportedPresetSchema,
+  WorldbookScannerSettings
 } from '../types/TavernData';
 import { CharacterParser } from './CharacterParser';
 import { WorldbookScanner, ScannerEntry } from './WorldbookScanner';
@@ -14,8 +13,10 @@ import { MacroEngine, MacroContext } from './MacroEngine';
 import { Context } from '@earendil-works/pi-ai';
 
 export interface SessionConfig {
-  characterPngPath: string;            // 角色卡 PNG 的绝对路径 (如 Ark.png)
-  presetJsonPath: string;              // 预设 JSON 的绝对路径 (如 Izumi.json)
+  characterPngPath?: string;           // 角色卡 PNG 的绝对路径 (可选，Node.js 使用)
+  characterData?: any;                 // 预解析的强类型角色卡数据 (可选，浏览器/Vue 使用)
+  presetJsonPath?: string;             // 预设 JSON 的绝对路径 (可选，Node.js 使用)
+  presetData?: any;                    // 预解析的强类型预设数据 (可选，浏览器/Vue 使用)
   personasConfig?: UserPersonasConfig; // 传入的玩家人设总 JSON 实体 (可选)
   activePersonaAvatar?: string;        // 当前使用的人设头像 Key (如 "1746291893260-.png")
   chatHistory: ChatMessageInput[];     // 历史对话记录数组 (不包含当前最新 userInput)
@@ -24,11 +25,15 @@ export interface SessionConfig {
   postProcessingMode?: PromptProcessingType; // 提示词后处理模式 (若缺省则从预设中读取或默认为 Strict)
 }
 
+export interface CompiledContext extends Context {
+  activatedWorldbooks?: any[];         // 🟢 真实扫描出并被激活的世界书条目列表
+}
+
 export class ContextBuilder {
   /**
    * 物理分离总调度门面：一键执行完整的数据加载、人设双轨分发、世界书扫描、排版拼接与终极洗涤
    */
-  public static build(config: SessionConfig): Context {
+  public static build(config: SessionConfig): CompiledContext {
     const {
       characterPngPath,
       presetJsonPath,
@@ -49,9 +54,23 @@ export class ContextBuilder {
     // =========================================================================
     // 2. 加载核心资源 (PNG 脱壳 与 预设反序列化)
     // =========================================================================
-    const charData = CharacterParser.parsePng(characterPngPath);
+    const charData = config.characterData 
+      ? config.characterData 
+      : (characterPngPath ? CharacterParser.parsePng(characterPngPath) : null);
+    if (!charData) {
+      throw new Error('ContextBuilder 错误：未提供 characterPngPath 或 characterData！');
+    }
     
-    const rawPreset = JSON.parse(fs.readFileSync(presetJsonPath, 'utf-8'));
+    let rawPreset: any;
+    if (config.presetData) {
+      rawPreset = config.presetData;
+    } else if (presetJsonPath) {
+      const fsNode = eval('require')('fs');
+      rawPreset = JSON.parse(fsNode.readFileSync(presetJsonPath, 'utf-8'));
+    }
+    if (!rawPreset) {
+      throw new Error('ContextBuilder 错误：未提供 presetJsonPath 或 presetData！');
+    }
     const preset = ExportedPresetSchema.parse(rawPreset);
 
     // 确定当前对话使用的名称（优先从激活的玩家人设配置文件中提取，100% 同步 {{user}} 宏）
@@ -244,6 +263,13 @@ export class ContextBuilder {
       }
     }) as any;
 
-    return context;
+    const compiledContext: CompiledContext = context;
+    compiledContext.activatedWorldbooks = [
+      ...scanOutput.activated.before,
+      ...scanOutput.activated.after,
+      ...scanOutput.activated.atDepth
+    ];
+
+    return compiledContext;
   }
 }
