@@ -6,7 +6,7 @@
     <div
       class="flex-1 flex flex-col items-center justify-center relative min-h-[300px] border border-outline-variant/30 bg-surface-container-low/50"
     >
-      <WipMask text="扩展模块开发中" />
+      <WipMask text="扩展模块缓慢开发中" />
     </div>
   </div>
 </template>

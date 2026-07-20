@@ -14,7 +14,7 @@
         </div>
         <ProgressBar label="理智 / HP" :current="120" :max="135" class="mt-2" />
       </Panel>
-      <WipMask text="即将实装" />
+      <WipMask text="缓慢开发中" />
     </div>
 
     <!-- 中部活动日志 (Recent Activity) -->

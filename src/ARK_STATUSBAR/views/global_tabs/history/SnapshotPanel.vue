@@ -2,7 +2,7 @@
   <HistoryActionCard
     label="ACTION_01"
     title="创建快照 (Snapshot)"
-    description="将当前世界书内容克隆并保存，以便在需要时无损回滚。"
+    description="将当前世界书各条目的状态保存为快照，以便在需要时无损回滚。"
     icon="camera"
     type="primary"
   >
