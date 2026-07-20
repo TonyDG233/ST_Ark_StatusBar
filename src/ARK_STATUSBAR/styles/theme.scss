@@ -101,3 +101,162 @@
   display: inline-block;
   line-height: 1;
 }
+
+/* 
+ * 强制根节点防御：彻底切断宿主主题（如莱茵生命、双色盒子等）通过 body { color: ... !important } 对本插件文字颜色的继承渗透 
+ */
+#ark-ui-root,
+.ark-global-statusbar-mount-point {
+  color: var(--color-on-surface) !important;
+  font-family: var(--font-body) !important;
+}
+
+/* 
+ * 强制排版元素防御：彻底防止宿主对 h1, h2, h3, h4, h5, h6, p, label 等标签全局 !important 的强制性色彩污染。
+ * 我们强制使这些排版标签在 #ark-ui-root 内部恢复使用我们的主题配色，并保留其文本变体色彩类名。
+ */
+#ark-ui-root,
+.ark-global-statusbar-mount-point {
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--color-on-surface) !important;
+    font-family: var(--font-display) !important;
+    
+    /* 强力保护各种 Tailwind 色彩修饰类 */
+    &.text-on-surface { color: var(--color-on-surface) !important; }
+    &.text-on-surface-variant { color: var(--color-on-surface-variant) !important; }
+    &.text-primary-text { color: var(--color-primary-text) !important; }
+    &.text-secondary { color: var(--color-secondary) !important; }
+    &.text-error { color: var(--color-error) !important; }
+  }
+
+  p, span, label, li, a {
+    color: inherit !important;
+    
+    &.text-on-surface { color: var(--color-on-surface) !important; }
+    &.text-on-surface-variant { color: var(--color-on-surface-variant) !important; }
+    &.text-primary-text { color: var(--color-primary-text) !important; }
+    &.text-secondary { color: var(--color-secondary) !important; }
+    &.text-error { color: var(--color-error) !important; }
+  }
+}
+
+/* 
+ * 强效防御防线：彻底对抗宿主主题对 button 标签的全局 !important 强制覆盖（如背景、边框、字体等）
+ * 通过父级 #ark-ui-root 结合 button 标签选择器，并使用 !important 强制夺回控制权。
+ */
+#ark-ui-root button,
+.ark-global-statusbar-mount-point button {
+  font-family: var(--font-body) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  border-radius: 4px !important;
+  background-image: none !important;
+  transition: all 0.2s ease !important;
+
+  /* 默认基础重置 */
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  color: inherit !important;
+
+  /* ==========================================================================
+   * 1. 按钮背景色与前景色匹配 (Tailwind 常用背景/文字类强制映射)
+   * ========================================================================== */
+  &.bg-primary {
+    background-color: var(--color-primary) !important;
+    color: var(--color-on-primary) !important;
+    border-color: var(--color-primary) !important;
+    &:hover {
+      background-color: var(--color-primary-container) !important;
+      color: var(--color-on-primary-container) !important;
+      border-color: var(--color-primary-container) !important;
+    }
+  }
+
+  &.bg-surface-container-highest {
+    background-color: var(--color-surface-container-highest) !important;
+    color: var(--color-primary-text) !important;
+    border-color: var(--color-outline-variant) !important;
+    &:hover {
+      border-color: var(--color-primary) !important;
+      background-color: var(--color-surface-container-high) !important;
+    }
+  }
+
+  &.bg-primary-container {
+    background-color: var(--color-primary-container) !important;
+    color: var(--color-on-primary-container) !important;
+    border-color: var(--color-primary-container) !important;
+  }
+
+  &.bg-surface-container {
+    background-color: var(--color-surface-container) !important;
+    color: var(--color-on-surface) !important;
+  }
+
+  &.bg-surface {
+    background-color: var(--color-surface) !important;
+    color: var(--color-on-surface) !important;
+  }
+
+  &.bg-error {
+    background-color: var(--color-error) !important;
+    color: var(--color-on-error) !important;
+    border-color: var(--color-error) !important;
+    &:hover {
+      background-color: var(--color-error-container) !important;
+      color: var(--color-on-error-container) !important;
+      border-color: var(--color-error-container) !important;
+    }
+  }
+
+  /* ==========================================================================
+   * 2. 按钮边框属性强提权
+   * ========================================================================== */
+  &.border {
+    border-style: solid !important;
+    border-width: 1px !important;
+  }
+  &.border-outline-variant {
+    border-color: var(--color-outline-variant) !important;
+  }
+  &.border-outline {
+    border-color: var(--color-outline) !important;
+  }
+  &.border-transparent {
+    border-color: transparent !important;
+  }
+
+  /* ==========================================================================
+   * 3. 字体与颜色强制提权
+   * ========================================================================== */
+  &.text-primary-text { color: var(--color-primary-text) !important; }
+  &.text-on-primary { color: var(--color-on-primary) !important; }
+  &.text-on-surface { color: var(--color-on-surface) !important; }
+  &.text-on-surface-variant { color: var(--color-on-surface-variant) !important; }
+  &.text-secondary { color: var(--color-secondary) !important; }
+  &.text-error { color: var(--color-error) !important; }
+  &.text-xs { font-size: 0.75em !important; }
+  &.text-sm { font-size: 0.875em !important; }
+
+  /* ==========================================================================
+   * 4. 专用组件特异性精细化加固 (.ark-button / .ark-action-toggle)
+   * ========================================================================== */
+  &.ark-button {
+    font-family: var(--font-display) !important;
+    border-radius: 0 !important; /* 保持方舟独特的硬朗直角风格 */
+    
+    /* 专属的右下角斜切角样式适配 */
+    .absolute.bottom-0.right-0 {
+      border-color: inherit !important;
+    }
+  }
+
+  &.ark-action-toggle {
+    background-color: transparent !important;
+    border: none !important;
+    
+    &.text-primary-text:hover { background-color: rgba(255, 230, 0, 0.15) !important; }
+    &.text-error:hover { background-color: rgba(255, 59, 59, 0.15) !important; }
+    &.text-\[\#28a745\]:hover { background-color: rgba(40, 167, 69, 0.15) !important; }
+  }
+}
