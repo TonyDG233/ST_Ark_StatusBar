@@ -89,7 +89,7 @@
 import { ref, onMounted, nextTick } from 'vue';
 import { AgentEngine } from './api/AgentEngine';
 import { parse } from 'yaml';
-import rawConfig from './config.yaml?raw';
+import rawConfig from '../../references/config.yaml?raw';
 
 // 引入我们的无头 Context 组装器和 Zod 契约
 import { ContextBuilder } from './parsers/ContextBuilder';
