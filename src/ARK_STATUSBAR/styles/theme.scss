@@ -117,26 +117,55 @@
  */
 #ark-ui-root,
 .ark-global-statusbar-mount-point {
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     color: var(--color-on-surface) !important;
     font-family: var(--font-display) !important;
-    
+
     /* 强力保护各种 Tailwind 色彩修饰类 */
-    &.text-on-surface { color: var(--color-on-surface) !important; }
-    &.text-on-surface-variant { color: var(--color-on-surface-variant) !important; }
-    &.text-primary-text { color: var(--color-primary-text) !important; }
-    &.text-secondary { color: var(--color-secondary) !important; }
-    &.text-error { color: var(--color-error) !important; }
+    &.text-on-surface {
+      color: var(--color-on-surface) !important;
+    }
+    &.text-on-surface-variant {
+      color: var(--color-on-surface-variant) !important;
+    }
+    &.text-primary-text {
+      color: var(--color-primary-text) !important;
+    }
+    &.text-secondary {
+      color: var(--color-secondary) !important;
+    }
+    &.text-error {
+      color: var(--color-error) !important;
+    }
   }
 
-  p, span, label, li, a {
+  p,
+  span,
+  label,
+  li,
+  a {
     color: inherit !important;
-    
-    &.text-on-surface { color: var(--color-on-surface) !important; }
-    &.text-on-surface-variant { color: var(--color-on-surface-variant) !important; }
-    &.text-primary-text { color: var(--color-primary-text) !important; }
-    &.text-secondary { color: var(--color-secondary) !important; }
-    &.text-error { color: var(--color-error) !important; }
+
+    &.text-on-surface {
+      color: var(--color-on-surface) !important;
+    }
+    &.text-on-surface-variant {
+      color: var(--color-on-surface-variant) !important;
+    }
+    &.text-primary-text {
+      color: var(--color-primary-text) !important;
+    }
+    &.text-secondary {
+      color: var(--color-secondary) !important;
+    }
+    &.text-error {
+      color: var(--color-error) !important;
+    }
   }
 }
 
@@ -229,14 +258,30 @@
   /* ==========================================================================
    * 3. 字体与颜色强制提权
    * ========================================================================== */
-  &.text-primary-text { color: var(--color-primary-text) !important; }
-  &.text-on-primary { color: var(--color-on-primary) !important; }
-  &.text-on-surface { color: var(--color-on-surface) !important; }
-  &.text-on-surface-variant { color: var(--color-on-surface-variant) !important; }
-  &.text-secondary { color: var(--color-secondary) !important; }
-  &.text-error { color: var(--color-error) !important; }
-  &.text-xs { font-size: 0.75em !important; }
-  &.text-sm { font-size: 0.875em !important; }
+  &.text-primary-text {
+    color: var(--color-primary-text) !important;
+  }
+  &.text-on-primary {
+    color: var(--color-on-primary) !important;
+  }
+  &.text-on-surface {
+    color: var(--color-on-surface) !important;
+  }
+  &.text-on-surface-variant {
+    color: var(--color-on-surface-variant) !important;
+  }
+  &.text-secondary {
+    color: var(--color-secondary) !important;
+  }
+  &.text-error {
+    color: var(--color-error) !important;
+  }
+  &.text-xs {
+    font-size: 0.75em !important;
+  }
+  &.text-sm {
+    font-size: 0.875em !important;
+  }
 
   /* ==========================================================================
    * 4. 专用组件特异性精细化加固 (.ark-button / .ark-action-toggle)
@@ -244,7 +289,7 @@
   &.ark-button {
     font-family: var(--font-display) !important;
     border-radius: 0 !important; /* 保持方舟独特的硬朗直角风格 */
-    
+
     /* 专属的右下角斜切角样式适配 */
     .absolute.bottom-0.right-0 {
       border-color: inherit !important;
@@ -254,9 +299,15 @@
   &.ark-action-toggle {
     background-color: transparent !important;
     border: none !important;
-    
-    &.text-primary-text:hover { background-color: rgba(255, 230, 0, 0.15) !important; }
-    &.text-error:hover { background-color: rgba(255, 59, 59, 0.15) !important; }
-    &.text-\[\#28a745\]:hover { background-color: rgba(40, 167, 69, 0.15) !important; }
+
+    &.text-primary-text:hover {
+      background-color: rgba(255, 230, 0, 0.15) !important;
+    }
+    &.text-error:hover {
+      background-color: rgba(255, 59, 59, 0.15) !important;
+    }
+    &.text-\[\#28a745\]:hover {
+      background-color: rgba(40, 167, 69, 0.15) !important;
+    }
   }
 }
