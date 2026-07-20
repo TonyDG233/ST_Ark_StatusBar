@@ -545,7 +545,6 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
         toastr: 'toastr',
         vue: 'Vue',
         'vue-router': 'VueRouter',
-        yaml: 'YAML',
         zod: 'z',
         'pixi.js': 'PIXI',
       };
