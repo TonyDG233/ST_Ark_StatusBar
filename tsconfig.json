@@ -7,13 +7,18 @@
       "toastr",
       "type-fest",
       "yaml",
+<<<<<<< HEAD
       "zod"
+=======
+      "zod",
+>>>>>>> d3edc570be82dfef999b800e6b45a51d0863a025
     ],
     "target": "ESNext",
     "module": "ESNext",
     "rootDir": ".",
     "outDir": "dist",
     "paths": {
+<<<<<<< HEAD
       "@/*": [
         "./*"
       ],
@@ -34,6 +39,13 @@
       ],
       "@utils/*": [
         "./src/ARK_STATUSBAR/utils/*"
+=======
+      "@util/*": [
+        "./util/*"
+      ],
+      "@/*": [
+        "./src/*"
+>>>>>>> d3edc570be82dfef999b800e6b45a51d0863a025
       ]
     },
     "moduleDetection": "auto",
@@ -55,12 +67,23 @@
   },
   "include": [
     "@types",
+<<<<<<< HEAD
     "src",
     "*.d.ts"
+=======
+    "初始模板",
+    "示例",
+    "src",
+    "util",
+    "*.d.ts",
+>>>>>>> d3edc570be82dfef999b800e6b45a51d0863a025
   ],
   "exclude": [
     "**/dist/**",
     "**/node_modules/**",
+<<<<<<< HEAD
     "src/poc/**"
+=======
+>>>>>>> d3edc570be82dfef999b800e6b45a51d0863a025
   ]
 }
