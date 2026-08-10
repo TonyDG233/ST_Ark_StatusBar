@@ -72,3 +72,161 @@
      - **【重新分析】**：重新触发次级旁路 API 分析；
      - **【取消发送】**：中断本次发包。
 3. **彻底监控剧情**：确保不论使用模式一还是模式二，用户均能 100% 监视并掌控剧情的实际流转，杜绝 AI 乱跑乱跳。
+
+---
+
+## 四、 核心系统框架与运行时业务流图 (System Architecture & Business Workflow Diagrams)
+
+以下定义本沙盒系统的核心物理架构与运行时数据流咬合关系。方案设计已完全与主项目及外部依赖实现解耦。
+
+### 4.1 项目完整架构图 (Standalone Sandbox Architecture)
+本图描绘了沙盒系统的核心静态结构、各计算子模块的分工，以及它们在数据层（SQLite 统一单源存储）上的咬合关系。
+
+```mermaid
+graph TD
+    %% -------------------
+    %% 1. 数据资产与解析层
+    %% -------------------
+    subgraph Data_Assets_Layer ["1. 数据资产与解析层"]
+        WB_Json["标准酒馆世界书.json<br>(包含剧情节点大文本)"]
+        Parser["LocalPlotParser.ts<br>(纯TS正则切片解析器)"]
+        WB_Json -->|1. 冷启动静态扫描| Parser
+    end
+
+    %% -------------------
+    %% 2. 关系数据库核心层 (SSOT)
+    %% -------------------
+    subgraph Database_Core_Layer ["2. 关系数据库核心层 (单一真值源 - SSOT)"]
+        DB_Engine["SqliteEngine.ts<br>(纯JS ASM/WASM 内存库)"]
+        Sync_Bridge["SyncBridge.ts<br>(V1二维数组 ↔ V2关系表双向同步)"]
+        
+        subgraph SQLite_Tables ["内存 SQLite 数据库表"]
+            T_Nodes["plot_nodes<br>(正则切片缓存: node_id, summary, full_script, next_nodes)"]
+            T_Vars["sys_variables<br>(系统变量: currentNodeId, activeAct)"]
+            T_Stats["rpg_stats<br>(游戏化属性: hp, affinity, inventory)"]
+            T_Chronicle["chronicle<br>(剧情纪要: row_id, time_span, code_index, entry)"]
+        end
+        
+        Parser -->|2. 50ms 一键加载| T_Nodes
+        DB_Engine ===> SQLite_Tables
+        Sync_Bridge <===>|3. 旧档清洗 / 变动落盘| DB_Engine
+    end
+
+    %% -------------------
+    %% 3. 提示词与决策模板层
+    %% -------------------
+    subgraph Prompt_Registry_Layer ["3. 提示词与决策模板层 (defaults-json.js)"]
+        P_Recall["TimeRecallPrompts<br>(天之音召回自检模板)"]
+        P_Filler["TableFillerPrompts<br>(填表人SQL变异模板)"]
+        P_Medusa["MedusaCoAtPrompts<br>(美杜莎7步CoAT合并模板)"]
+    end
+
+    %% -------------------
+    %% 4. 双轨逻辑编排与调度层
+    %% -------------------
+    subgraph Orchestration_Layer ["4. 双轨逻辑编排与调度层"]
+        Interceptor["send_interceptor.ts<br>(前置/后置旁路调用拦截器)"]
+        Scout["Pre-Main Scout<br>(前置侦察兵: 计算滑动节点视窗)"]
+        Writer["Post-Main Writer<br>(后置填表人: 提取并执行 DML SQL)"]
+        Medusa["Medusa Scheduler<br>(定期触发 7步 CoAT 剧情压缩)"]
+        
+        Interceptor ===>|前置拦截| Scout
+        Interceptor ===>|后置非阻塞并发| Writer
+        Writer ===>|定期检测未合并行| Medusa
+    end
+
+    %% -------------------
+    %% 5. 跨模块连接与决策反馈
+    %% -------------------
+    Scout -->|读当前进度| T_Vars
+    Scout -->|从模板组装| P_Recall
+    Scout -->|拉取视窗切片| T_Nodes
+    
+    Writer -->|生成数值修改 SQL| P_Filler
+    Writer -->|原子runBatch事务提交| DB_Engine
+    
+    Medusa -->|读取明细与底稿| T_Chronicle
+    Medusa -->|7步CoAT压缩 SQL| P_Medusa
+    Medusa -->|写入合并条目并清理明细| DB_Engine
+
+    style Data_Assets_Layer fill:#f9f,stroke:#333,stroke-width:2px
+    style Database_Core_Layer fill:#bbf,stroke:#333,stroke-width:2px
+    style Prompt_Registry_Layer fill:#f9d,stroke:#333,stroke-width:2px
+    style Orchestration_Layer fill:#bfb,stroke:#333,stroke-width:2px
+```
+
+---
+
+### 4.2 运行时业务流程图 (Runtime Business Workflow)
+本图描述了在一轮完整的 AI 交互中，系统从前置拦截、人机导演确认、主模型流式渲染，到后台非阻塞异步填表、错误自愈重试的完整业务执行时序。
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Player as 玩家 (UI)
+    participant Interceptor as 双轨拦截器
+    participant SQLite as SQLite 内存库
+    participant PreAPI as 前置侦察兵 (次级API)
+    participant Director as 人工导演窗口 (Popup)
+    participant MainLLM as 主模型 (演绎AI)
+    participant PostAPI as 后置填表人 (后台异步API)
+
+    %% ---- 1. 前置拦截与判定阶段 ----
+    Player->>Interceptor: 玩家发送消息
+    activate Interceptor
+    Interceptor->>SQLite: 查询 sys_variables 获取当前 currentNodeId
+    SQLite-->>Interceptor: 返回 'RI5'
+    Interceptor->>PreAPI: 请求前置剧情判定 (带入天之音模板 + 历史AM上下文)
+    activate PreAPI
+    Note over PreAPI: 严格执行天之音规则:<br/>1. <all_am> 全量抄录防遗漏<br/>2. <self_check> 数量验证防失忆
+    PreAPI-->>Interceptor: 返回 [目标节点ID: 'RI5' + 导演建议]
+    deactivate PreAPI
+
+    %% ---- 2. 导演介入与切片注入 ----
+    rect rgb(35, 40, 65)
+        Note over Interceptor, Director: 门控开启：人工导演介入 (Human-in-the-Loop)
+        Interceptor->>Director: 挂起主发包，弹出导演核对弹窗
+        Player->>Director: 手动确认、微调导演建议，或一键放行
+        Director-->>Interceptor: 导演思路和进度放行
+    end
+
+    Interceptor->>SQLite: 按模式二查询 plot_nodes (RI4概要 + RI5全量 + RI6概要)
+    SQLite-->>Interceptor: 返回滑动视窗剧本切片
+    Interceptor->>Interceptor: 将 [视窗切片 + 导演建议] 绑定至宏 {{ark_story_hook}}
+
+    %% ---- 3. 主模型流式生成与后置异步并发 ----
+    Interceptor->>MainLLM: 物理替换宏，放行主模型发包
+    deactivate Interceptor
+    activate MainLLM
+    
+    par 主模型流式正文演绎与后置非阻塞分析同步进行
+        MainLLM-->>Player: 流式渲染演绎正文 (正则过滤思维链标签)
+    and 后置异步并发开始
+        MainLLM-->>PostAPI: [非阻塞] 发送最新正文、背景人设与当前 DDL
+        deactivate MainLLM
+        activate PostAPI
+        Note over PostAPI: 运行 SQL_TABLE_FILLER_PROMPT<br/>分析角色属性与好感度变动
+        PostAPI-->>Interceptor: 返回 <tableEdit> 标准 SQL 变异指令集
+        deactivate PostAPI
+        activate Interceptor
+        
+        %% ---- 4. 事务提交与错误自愈循环 ----
+        rect rgb(60, 35, 35)
+            Note over Interceptor, SQLite: 事务执行与 UpdateOrchestrator 错误重试闭环
+            Interceptor->>SQLite: SQL 批处理原子事务提交 (SqliteEngine.runBatch)
+            alt SQL 执行报错 (如 UNIQUE 键冲突)
+                SQLite-->>Interceptor: 抛出: "第 N 条语句失败: ..." 异常
+                Interceptor->>PostAPI: 捕获异常，将 SQL + 错误日志拼接自愈 Prompt 重试发包
+                activate PostAPI
+                PostAPI-->>Interceptor: 返回修正后的 SQL 指令
+                deactivate PostAPI
+                Interceptor->>SQLite: 重新执行事务
+            end
+        end
+        
+        SQLite-->>Interceptor: 事务提交成功，变更行数 X
+        Interceptor->>Interceptor: 提取变更语句，写入 ChatMessage.extra.sql_delta (<50 字节)
+        Interceptor->>Player: 刷新 UI 状态栏 (剧情进度与 RPG 数值同步变异)
+        deactivate Interceptor
+    end
+

@@ -10,12 +10,14 @@
 
 ### 1. 📂 `1_逆向工程与底层事实/`
 本目录记录了对外部 `shujuku` 插件物理代码和提示词机制的真实逆向分析，是底座搭建的事实源。
+*   **[1_0_shujuku全界面功能与业务全景总结.md](./1_逆向工程与底层事实/1_0_shujuku全界面功能与业务全景总结.md)**：梳理并记录了原 `shujuku` 插件的全功能界面版面特征、系统核心状态定义以及全部底盘实体关系。
 *   **[1_1_shujuku插件三层架构剖析.md](./1_逆向工程与底层事实/1_1_shujuku插件三层架构剖析.md)**：分析其 Data/Service/Presentation 层级职责，定位 `ITableStorageProvider` 存储策略接缝（Seam）。
 *   **[1_2_核心业务逻辑与不变量约束.md](./1_逆向工程与底层事实/1_2_核心业务逻辑与不变量约束.md)**：记录其双重调用、事务原子性、表名/列名映射器 `NameMapper` 的租约所有权，以及 Null-to-RowID 的历史数据兼容迁移逻辑。
+*   **[1_2_1_shujuku提示词管线与三大业务环逆向分析.md](./1_逆向工程与底层事实/1_2_1_shujuku提示词管线与三大业务环逆向分析.md)**：**【核心事实解密】**。深入逆向 `defaults-json.js`、`merge-logic.ts` 和 `plot-logic.ts` 的物理代码，揭秘 SQL DML 填表约束、时间线“天之音”记忆召回，以及美杜莎 CoAT（分析-草稿-策略选择-扩写-审计-自评-SQL输出）后台主动收缩抗熵业务闭环的真实运作机制。
+*   **[1_2_2_shujuku深层高级子系统逆向分析.md](./1_逆向工程与底层事实/1_2_2_shujuku深层高级子系统逆向分析.md)**：**【黑盘高阶模块事实】**。逆向 `vector/`、`agent-worldbook-takeover.ts` 等高难度代码，深入还原自制中文滑动 Bigram 分词 BM25 检索、RRF 重排算法、世界书绿灯接管（Greenlight Takeover）、Token 预算自动裁切以及 Schema 字段列更名自动调和平滑迁移（`renamePhysicalColumn_ACU`）的底层机制。
+*   **[1_2_3_shujuku自动填表计划器与高阶Agent决策引擎逆向分析.md](./1_逆向工程与底层事实/1_2_3_shujuku自动填表计划器与高阶Agent决策引擎逆向分析.md)**：**【自动决策与调度事实】**。逆向 `update-scheduler.ts`、`agent-decision-engine.ts` 等代码，深度还原基于表格元数据 `updateConfig` 自适应构建 **UpdateGroup** 并行填表计划、高阶 Agent 决策拓扑任务排序与 DFS 依赖死锁检测、以及超大世界书 Sharded Concurrency 分片并发决策的物理代码机制。
 *   **[1_3_无头解耦实施方案.md](./1_逆向工程与底层事实/1_3_无头解耦实施方案.md)**：详述如何剥离 `toastr` 和 `window.parent` 等宿主 DOM/UI 强依赖，提炼纯 TypeScript 无头（Headless）核心引擎。
-*   **[1_4_shujuku提示词管线与三大业务环逆向分析.md](./1_逆向工程与底层事实/1_4_shujuku提示词管线与三大业务环逆向分析.md)**：**【核心事实解密】**。深入逆向 `defaults-json.js`、`merge-logic.ts` 和 `plot-logic.ts` 的物理代码，揭秘 SQL DML 填表约束、时间线“天之音”记忆召回，以及美杜莎 CoAT（分析-草稿-策略选择-扩写-审计-自评-SQL输出）后台主动收缩抗熵业务闭环的真实运作机制。
-*   **[1_5_shujuku深层高级子系统逆向分析.md](./1_逆向工程与底层事实/1_5_shujuku深层高级子系统逆向分析.md)**：**【黑盘高阶模块事实】**。逆向 `vector/`、`agent-worldbook-takeover.ts` 等高难度代码，深入还原自制中文滑动 Bigram 分词 BM25 检索、RRF 重排算法、世界书绿灯接管（Greenlight Takeover）、Token 预算自动裁切以及 Schema 字段列更名自动调和平滑迁移（`renamePhysicalColumn_ACU`）的底层机制。
-*   **[1_6_shujuku自动填表计划器与高阶Agent决策引擎逆向分析.md](./1_逆向工程与底层事实/1_6_shujuku自动填表计划器与高阶Agent决策引擎逆向分析.md)**：**【自动决策与调度事实】**。逆向 `update-scheduler.ts`、`agent-decision-engine.ts` 等代码，深度还原基于表格元数据 `updateConfig` 自适应构建 **UpdateGroup** 并行填表计划、高阶 Agent 决策拓扑任务排序与 DFS 依赖死锁检测、以及超大世界书 Sharded Concurrency 分片并发决策的物理代码机制。
+*   **[1_4_剧情世界书资产结构与驱动事实.md](./1_逆向工程与底层事实/1_4_剧情世界书资产结构与驱动事实.md)**：梳理 7.20 最新剧情包 of the 物理拓扑路径、导出 JSON 数据结构，归纳出主/支线世界书中的四大功能条目特征以及节点排版事实。
 
 ### 2. 📂 `2_技术规格与核心设计/`
 本目录记录了本插件要达到的具体技术指标和场景机制的详细设计规格书。
