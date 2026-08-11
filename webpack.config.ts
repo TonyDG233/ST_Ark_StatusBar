@@ -417,6 +417,13 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
             filename: path.parse(entry.html).base,
             scriptLoading: 'module',
             cache: false,
+            // 注入全局常量以防止外部 CDN 加载的 Vue 插件 (如 Pinia) 因缺少编译期变量而崩溃
+            meta: {
+              vue_prod_config: {
+                name: 'vue-prod-config',
+                content: 'window.__VUE_PROD_DEVTOOLS__=false;window.__VUE_OPTIONS_API__=false;window.__VUE_PROD_HYDRATION_MISMATCH_DETAILS__=false;'
+              }
+            }
           }),
           new HtmlInlineScriptWebpackPlugin(),
           new MiniCssExtractPlugin(),
