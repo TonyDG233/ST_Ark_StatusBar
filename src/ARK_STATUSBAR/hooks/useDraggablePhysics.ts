@@ -65,8 +65,9 @@ export function useDraggablePhysics(statusBarEl: Ref<HTMLElement | null>, curren
   let initialY = 0;
   let snappingTimeout: number | null = null;
 
-  // 双保险计时器
-  let heartbeatTimer: number | null = null;
+  // 被动事件源 (替代原 1s 常驻心跳；以下计时器均为"一次性、自清除")
+  let settleTimeout: number | null = null; // 模式切换过渡结束后的单次边界收敛
+  let viewportResizeRaf: number | null = null; // 视口 resize 的 rAF 合帧句柄
   let resizeObserver: ResizeObserver | null = null;
 
   // 监听模式变化，如果以任何途径离开 BUBBLE 模式，必须立刻清空边缘吸附状态
@@ -85,6 +86,15 @@ export function useDraggablePhysics(statusBarEl: Ref<HTMLElement | null>, curren
       }
       triggerSmoothSnap();
     }
+  });
+
+  // 替代常驻心跳：模式切换的 CSS 过渡结束后，一次性收敛边界（自清除，不常驻）
+  watch(currentUiMode, () => {
+    if (settleTimeout !== null) clearTimeout(settleTimeout);
+    settleTimeout = window.setTimeout(() => {
+      settleTimeout = null;
+      if (!isDraggingState.value) checkBounds();
+    }, 400);
   });
 
   const triggerSmoothSnap = () => {
@@ -219,6 +229,16 @@ export function useDraggablePhysics(statusBarEl: Ref<HTMLElement | null>, curren
       transformRight.value = newRight;
       transformY.value = newY;
     }
+  };
+
+  // 替代常驻心跳：视口缩放时按 rAF 合帧收敛一次边界（固定宽度 UI 不触发 ResizeObserver，必须监听窗口）
+  const onViewportResize = () => {
+    if (isDraggingState.value) return;
+    if (viewportResizeRaf !== null) cancelAnimationFrame(viewportResizeRaf);
+    viewportResizeRaf = requestAnimationFrame(() => {
+      viewportResizeRaf = null;
+      checkBounds();
+    });
   };
 
   const onDrag = (e: MouseEvent | TouchEvent) => {
@@ -427,16 +447,19 @@ export function useDraggablePhysics(statusBarEl: Ref<HTMLElement | null>, curren
       resizeObserver.observe(statusBarEl.value);
     }
 
-    heartbeatTimer = window.setInterval(() => {
-      if (!isDraggingState.value) requestAnimationFrame(() => checkBounds());
-    }, 1000);
+    // 视口缩放的即时修正（原常驻心跳的唯一空白面，改由被动事件承担）
+    const ST_WIN = window.parent || window;
+    ST_WIN.addEventListener('resize', onViewportResize);
 
     resetPosition();
   });
 
   onUnmounted(() => {
     if (resizeObserver) resizeObserver.disconnect();
-    if (heartbeatTimer !== null) window.clearInterval(heartbeatTimer);
+    const ST_WIN = window.parent || window;
+    ST_WIN.removeEventListener('resize', onViewportResize);
+    if (viewportResizeRaf !== null) cancelAnimationFrame(viewportResizeRaf);
+    if (settleTimeout !== null) clearTimeout(settleTimeout);
     if (snappingTimeout !== null) clearTimeout(snappingTimeout);
   });
 

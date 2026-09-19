@@ -9,21 +9,21 @@
         <!-- Header Section -->
         <div class="header-section">
           <div class="arknights-logo-container">
-            <img :src="ASSETS.LOGO_URL" alt="Arknights Logo" class="arknights-logo" />
+            <img :src="logoUrl" alt="Arknights Logo" class="arknights-logo" />
           </div>
-          <p class="author-info">初版作者：我是特蕾西娅(旧称“豌豆”) | v版核心作者：F.o.x.i.o</p>
-          <p class="author-info">项目贡献者：TonyDG233(UI), 晚鸢尾(UI demo)</p>
-          <p class="author-info">暗中观察信长“死芒”(剧情), 政委x(剧情), Rylan(剧情), rdq9909(剧情), “血先生”(剧情)</p>
-          <p class="author-info">小额(剧情), Void(剧情), 空弦(剧情), 飨舞(剧情)</p>
-          <p class="author-info">UI重构项目：ARK_STATUSBAR</p>
+          <p v-once class="author-info">初版作者：我是特蕾西娅(旧称“豌豆”) | v版核心作者：F.o.x.i.o</p>
+          <p v-once class="author-info">项目贡献者：TonyDG233(UI), 晚鸢尾(UI demo)</p>
+          <p v-once class="author-info">暗中观察信长“死芒”(剧情), 政委x(剧情), Rylan(剧情), rdq9909(剧情), “血先生”(剧情)</p>
+          <p v-once class="author-info">小额(剧情), Void(剧情), 空弦(剧情), 飨舞(剧情)</p>
+          <p v-once class="author-info">UI重构项目：ARK_STATUSBAR</p>
         </div>
 
-        <div class="copyright-notice">
+        <div v-once class="copyright-notice">
           <strong>版权声明</strong><br />
           本卡完全免费，永远禁止商业化行为，如果您是购买获得，请立即退款并向购买平台举报贩卖者，维护创作者和您自身的权益。
         </div>
 
-        <div class="usage-instructions">
+        <div v-once class="usage-instructions">
           <strong>使用说明</strong><br />
           请第一次使用本角色卡的用户，务必前往最后一个开局阅读<strong style="color: var(--warning-accent)"
             >“狐の言（在首次游玩前请一定要看！）”</strong
@@ -31,8 +31,8 @@
           若需管理单字干员/重置世界书状态，或管理悬浮窗UI，请点击右上角按钮打开侧边栏进行操作。
         </div>
 
-        <div class="section-title">◆ 简介</div>
-        <p class="intro-desc">
+        <div v-once class="section-title">◆ 简介</div>
+        <p v-once class="intro-desc">
           从先史文明的终焉开始，到萨卡兹的第一位魔王，再到移动城市的拔地而起……<br />
           如今的泰拉已经历经许多，源石将诅咒与馈赠印刻于这片大地，列国的城邦永无止境地在天灾轨迹中迁徙，感染者的悲鸣与帝国的号角于风雪中交织，仇恨浸染大地，而希望亦如天光。<br />
           现在，你来到于此。<br />
@@ -41,8 +41,8 @@
         </p>
 
         <!-- Scenarios Grid -->
-        <div class="section-title">◆ 点击—开启故事</div>
-        <div class="opening-section">
+        <div v-once class="section-title">◆ 点击—开启故事</div>
+        <div v-once class="opening-section">
           <div class="opening-grid">
             <div
               v-for="scenario in scenarios"
@@ -91,7 +91,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { ASSETS } from '../data/assets';
+import { ASSETS, getLogoUrl } from '../data/assets';
 import { STARTUP_SCENARIOS, type Scenario } from '../data/scenarios';
 import { StatusBarManager, type WorldbookStatus } from '../services/statusbar_manager';
 import { configStore, useArkConfig } from '../store/config_store';
@@ -105,6 +105,8 @@ const scenarios = ref(STARTUP_SCENARIOS);
 const isSettingsOpen = ref(false);
 // 记录当前世界书状态 (初始/被修改/单字关闭等)
 const wbStatus = ref<WorldbookStatus>('original');
+// LOGO 地址：首次挂载时尝试替换为模块级缓存的 blob URL，后续挂载零网络请求
+const logoUrl = ref(ASSETS.LOGO_URL);
 
 import { type ArkConfig } from '../types/system_config';
 
@@ -131,11 +133,25 @@ const toggleSettings = () => {
   }
 };
 
+// 进行中的状态检查共用同一 Promise，避免并发重复全量扫描
+let statusCheckPromise: Promise<WorldbookStatus> | null = null;
+
 /**
  * 获取并更新当前世界书是否偏离了基准线配置的状态
  */
-const checkWbStatus = async () => {
-  wbStatus.value = (await StatusBarManager.getInstance().worldbook.getStatus()) as WorldbookStatus;
+const checkWbStatus = (): Promise<WorldbookStatus> => {
+  if (statusCheckPromise === null) {
+    statusCheckPromise = StatusBarManager.getInstance()
+      .worldbook.getStatus()
+      .then(status => {
+        wbStatus.value = status;
+        return status;
+      })
+      .finally(() => {
+        statusCheckPromise = null;
+      });
+  }
+  return statusCheckPromise;
 };
 
 /**
@@ -161,6 +177,10 @@ const handleRestoreWorldbook = async () => {
 
 onMounted(() => {
   checkWbStatus();
+  // 异步尝试替换为缓存的 blob URL；失败时保持原始 URL，视觉无差异
+  getLogoUrl().then(url => {
+    logoUrl.value = url;
+  });
 });
 
 /**
