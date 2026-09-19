@@ -118,8 +118,7 @@ function reconcileChatMount() {
     const swipeId = firstMessage.swipe_id || 0;
 
     // 4. 楼层是否仍保有我们的挂载点（酒馆重渲染会静默移除它，此时必须重新派发）
-    const hasMount =
-      containerEl.querySelector(`.${STARTUP_CONTAINER_CLASS}, .${RETURN_BTN_CONTAINER_CLASS}`) !== null;
+    const hasMount = containerEl.querySelector(`.${STARTUP_CONTAINER_CLASS}, .${RETURN_BTN_CONTAINER_CLASS}`) !== null;
 
     const nextSignature: MountSignature = { containerEl, swipeId, isArknights, hasMount };
     if (signaturesEqual(lastSignature, nextSignature)) return;

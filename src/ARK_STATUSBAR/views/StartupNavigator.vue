@@ -13,7 +13,9 @@
           </div>
           <p v-once class="author-info">初版作者：我是特蕾西娅(旧称“豌豆”) | v版核心作者：F.o.x.i.o</p>
           <p v-once class="author-info">项目贡献者：TonyDG233(UI), 晚鸢尾(UI demo)</p>
-          <p v-once class="author-info">暗中观察信长“死芒”(剧情), 政委x(剧情), Rylan(剧情), rdq9909(剧情), “血先生”(剧情)</p>
+          <p v-once class="author-info">
+            暗中观察信长“死芒”(剧情), 政委x(剧情), Rylan(剧情), rdq9909(剧情), “血先生”(剧情)
+          </p>
           <p v-once class="author-info">小额(剧情), Void(剧情), 空弦(剧情), 飨舞(剧情)</p>
           <p v-once class="author-info">UI重构项目：ARK_STATUSBAR</p>
         </div>
