@@ -259,16 +259,7 @@ function parseCommandValueImpl(string: string): any {
   try {
     return JSON.parse(trimmed);
   } catch (e) {
-    if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
-      try {
-        const result = new Function(`return ${trimmed};`)();
-        if (_.isObject(result) || Array.isArray(result)) {
-          return result;
-        }
-      } catch (err) {
-        // 如果解析失败，说明它可能是一个未加引号的字符串，继续往下走
-      }
-    }
+    /** empty */
   }
 
   try {
