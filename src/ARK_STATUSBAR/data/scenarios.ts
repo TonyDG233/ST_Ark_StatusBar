@@ -655,12 +655,7 @@ export const STARTUP_SCENARIOS: Scenario[] = [
   {
     swipeId: 58,
     title: '泰拉像差(请确保开启mvu插件与相关正则)',
-    linkedWorldInfo: [
-      '[开局]:泰拉像差·设定',
-      '[开局]:泰拉像差·规则',
-      '[开局]:泰拉像差·运算',
-      '[开局]:泰拉像差·更新',
-    ]
+    linkedWorldInfo: ['[开局]:泰拉像差·设定', '[开局]:泰拉像差·规则', '[开局]:泰拉像差·运算', '[开局]:泰拉像差·更新'],
   },
   {
     swipeId: 59,
