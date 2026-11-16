@@ -44,7 +44,7 @@
     "html-webpack-plugin": "^5.6.8",
     "javascript-obfuscator": "^4.2.2",
     "mini-css-extract-plugin": "^2.10.2",
-    "postcss": "^8.5.32",
+    "postcss": "^8.5.33",
     "postcss-cli": "^11.0.1",
     "postcss-load-config": "^6.0.1",
     "postcss-loader": "^8.2.1",
@@ -100,7 +100,7 @@
     "toastr": "^2.1.4",
     "vue": "^3.5.45",
     "vue-final-modal": "^4.5.6",
-    "vue-router": "^4.6.4",
+    "vue-router": "^4.6.5",
     "vue3-pixi": "1.0.0-beta.3",
     "yaml": "^2.9.1",
     "zod": "^4.6.7"
